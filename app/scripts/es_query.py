@@ -3,8 +3,8 @@ Script that allows manually querying ES
 """
 import time
 
-from models.product import Product
-from utils import connection
+from app.models.product import Product
+from app.utils import connection
 
 
 def manual_query():

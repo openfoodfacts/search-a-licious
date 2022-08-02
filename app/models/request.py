@@ -2,7 +2,7 @@ import datetime
 from typing import Optional, List, Set
 from pydantic import BaseModel
 
-from utils import constants
+from app.utils import constants
 
 
 class SearchBase(BaseModel):

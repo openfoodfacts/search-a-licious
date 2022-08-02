@@ -2,7 +2,7 @@
 This script takes the data-fields.txt and generates the updated product fields.
 Note, if field names are changed, etc, this will have considerable implications for the index.
 """
-from utils import constants
+from app.utils import constants
 
 
 def get_type_for_field(field):

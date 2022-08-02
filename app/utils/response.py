@@ -1,5 +1,5 @@
-from models.product import Product
-from models.request import SearchBase
+from app.models.product import Product
+from app.models.request import SearchBase
 
 
 def create_response(es_results, request: SearchBase):

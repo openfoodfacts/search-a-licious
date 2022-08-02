@@ -123,7 +123,6 @@ services:
       timeout: 10s
       retries: 120
 
-
   # elasticsearch browser
   elasticvue:
       image: cars10/elasticvue
@@ -132,6 +131,14 @@ services:
           - '8080:8080'
       links:
           - es01
+
+  searchservice:
+    image: off_search_image
+    container_name: searchservice
+    environment:
+      - ELASTICSEARCH_URL=host.docker.internal:9200
+    ports:
+      - '8000:8000'
 
 volumes:
   certs:

@@ -5,8 +5,7 @@ import json
 import time
 import requests
 
-from models.product import Product
-from utils import connection
+from app.utils import connection
 
 
 def manual_query():

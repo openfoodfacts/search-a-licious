@@ -1,9 +1,9 @@
 from elasticsearch_dsl import Q
 from fastapi import FastAPI, HTTPException
 
-from models.product import Product
-from models.request import AutocompleteRequest, SearchRequest
-from utils import connection, constants, response
+from app.models.product import Product
+from app.models.request import AutocompleteRequest, SearchRequest
+from app.utils import connection, constants, response
 
 app = FastAPI()
 connection.get_connection()

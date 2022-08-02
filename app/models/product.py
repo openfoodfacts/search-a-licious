@@ -1,7 +1,7 @@
 from elasticsearch_dsl import Document, Date, Double, Keyword, Text, Integer
 
-from utils import constants
-from utils.analyzers import autocomplete
+from app.utils import constants
+from app.utils.analyzers import autocomplete
 
 
 class Product(Document):

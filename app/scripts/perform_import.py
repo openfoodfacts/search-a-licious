@@ -13,8 +13,8 @@ from datetime import datetime
 
 from elasticsearch.helpers import bulk
 
-from models.product import Product
-from utils import connection, constants
+from app.models.product import Product
+from app.utils import connection, constants
 
 
 def gen_documents(filename, next_index):
