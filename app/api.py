@@ -24,7 +24,6 @@ connection.get_connection()
 
 @app.post("/autocomplete")
 def autocomplete(request: AutocompleteRequest):
-    # TODO: This function needs unit testing
     if not request.search_fields:
         request.search_fields = constants.AUTOCOMPLETE_FIELDS
     for field in request.search_fields:
