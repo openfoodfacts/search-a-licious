@@ -1,7 +1,9 @@
 # openfoodfacts-search
 Open Food Facts Search API V3 using ElasticSearch - https://wiki.openfoodfacts.org/Search_API_V3
 
-This API is currently in development. It is not serving any production traffic. The [Work Plan](https://wiki.openfoodfacts.org/Search_API_V3#Work_Plan) will be updated as development continues
+This API is currently in development. It is not serving any production traffic. The [Work Plan](https://wiki.openfoodfacts.org/Search_API_V3#Work_Plan) will be updated as development continues.
+
+The file product.schema.json contains the schema of the returned products.
 
 ### Organization
 The main file is `api.py`, and the Product schema is in `models/product.py`. 
