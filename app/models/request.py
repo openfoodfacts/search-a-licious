@@ -35,12 +35,12 @@ class NumericFilter(BaseModel):
 class DateTimeFilter(BaseModel):
     field: str
     value: datetime.datetime
-    # One of eq, ne, lt, gt, without
+    # One of lt, gt, without
     operator: str = 'eq'
 
 
 class SearchRequest(SearchBase):
     # Works as an intersection/AND query
-    string_filters: List[StringFilter]
-    numeric_filters: List[NumericFilter]
-    date_time_filters: List[DateTimeFilter]
+    string_filters: List[StringFilter] = []
+    numeric_filters: List[NumericFilter] = []
+    date_time_filters: List[DateTimeFilter] = []

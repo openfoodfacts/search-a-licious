@@ -9,7 +9,6 @@ from app.utils import connection
 
 
 def manual_query():
-
     connection.get_connection()
 
     while True:
@@ -18,10 +17,11 @@ def manual_query():
 
         payload = {
             'text': search_term,
+            'search_fields': ['product_name'],
             'num_results': 10,
-            'response_fields': ['product_name', 'pnns_groups_1'],
+            'response_fields': ['product_name'],
         }
-        response = requests.post("http://127.0.0.1:8000/autocomplete", json=payload)
+        response = requests.post("http://127.0.0.1:8001/autocomplete", json=payload)
         print(json.dumps(response.json(), indent=4, sort_keys=True))
         print("Number of results: {}".format(len(response.json())))
         end_time = time.perf_counter()
