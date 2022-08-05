@@ -2,6 +2,8 @@
 This script takes the data-fields.txt and generates the updated product fields.
 Note, if field names are changed, etc, this will have considerable implications for the index.
 """
+from __future__ import annotations
+
 import json
 
 from app.utils import constants
@@ -45,7 +47,7 @@ def get_types_for_field(field):
 
 
 def generate_product_from_data_fields():
-    with open('data-fields.txt', 'r') as f:
+    with open('data-fields.txt') as f:
         lines = f.readlines()
 
     # Prepare for generating the JSON schema too
@@ -72,7 +74,7 @@ def generate_product_from_data_fields():
             description = ' '.join(words[2:])
 
         if description:
-            print("# {}".format(description))
+            print(f'# {description}')
 
         # Some fields have dashes, let's replace them
         field_name = field_name.replace('-', '_')
@@ -80,16 +82,17 @@ def generate_product_from_data_fields():
         # Autocomplete cases
         if field_name in constants.AUTOCOMPLETE_FIELDS:
             # Do text with snowball (for direct searches), and autocomplete too
-            print(field_name + "= Text(analyzer='snowball', fields={'autocomplete': Text(analyzer=autocomplete), "
-                               "'raw': Keyword()})")
+            print(
+                f"{field_name}= Text(analyzer=text_like, fields={{'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword()}})",
+            )
             schema_properties[field_name] = {
-              "type": "string",
+                'type': 'string',
             }
         else:
             es_field_type, json_field_type = get_types_for_field(field_name)
-            print("{} = {}".format(field_name, es_field_type))
+            print(f'{field_name} = {es_field_type}')
             schema_properties[field_name] = {
-              "type": json_field_type,
+                'type': json_field_type,
             }
 
         if description:
@@ -99,8 +102,9 @@ def generate_product_from_data_fields():
     json_str = json.dumps(schema, indent=4)
 
     # Writing to sample.json
-    with open("../product.schema.json", "w") as outfile:
+    with open('../product.schema.json', 'w') as outfile:
         outfile.write(json_str)
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     generate_product_from_data_fields()

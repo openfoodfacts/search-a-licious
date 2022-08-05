@@ -6,7 +6,7 @@ This API is currently in development. It is not serving any production traffic. 
 The file product.schema.json contains the schema of the returned products.
 
 ### Organization
-The main file is `api.py`, and the Product schema is in `models/product.py`. 
+The main file is `api.py`, and the Product schema is in `models/product.py`.
 
 The `scripts/` directory contains various scripts for manual validation, constructing the product schema, importing, etc.
 
@@ -48,8 +48,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.api:app --reload --port=8001
 ```
-Note that it's important to use port 8001, as port 8000 will be used by the docker version of the search service. 
+Note that it's important to use port 8001, as port 8000 will be used by the docker version of the search service.
 
+### Pre-Commit
+This repo uses [pre-commit](https://pre-commit.com/) to enforce code styling, etc. To use it:
+```console
+pre-commit run
+```
 
 ### Helpful commands:
 To import data from the [CSV export](https://world.openfoodfacts.org/data):

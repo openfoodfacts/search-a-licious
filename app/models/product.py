@@ -1,7 +1,15 @@
-from elasticsearch_dsl import Document, Date, Double, Keyword, Text, Integer
+from __future__ import annotations
+
+from elasticsearch_dsl import Date
+from elasticsearch_dsl import Document
+from elasticsearch_dsl import Double
+from elasticsearch_dsl import Integer
+from elasticsearch_dsl import Keyword
+from elasticsearch_dsl import Text
 
 from app.utils import constants
 from app.utils.analyzers import autocomplete
+from app.utils.analyzers import text_like
 
 
 class Product(Document):
@@ -14,7 +22,7 @@ class Product(Document):
     class Index:
         name = constants.INDEX_ALIAS
         settings = {
-            "number_of_shards": 4,
+            'number_of_shards': 4,
         }
 
     # barcode of the product (can be EAN-13 or internal codes for some food stores), for products without a barcode, Open Food Facts assigns a number starting with the 200 reserved prefix
@@ -30,14 +38,26 @@ class Product(Document):
     # date that the product page was last modified
     last_modified_t = Integer()
     # name of the product
-    product_name = Text(analyzer='snowball', fields={'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword()})
+    product_name = Text(
+        analyzer=text_like, fields={
+            'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword(),
+        },
+    )
     # quantity and unit
     quantity = Keyword()
     # url of the product page on Open Food Facts
     url = Keyword()
-    brands = Text(analyzer='snowball', fields={'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword()})
+    brands = Text(
+        analyzer=text_like, fields={
+            'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword(),
+        },
+    )
     brands_tags = Text(multi=True)
-    categories = Text(analyzer='snowball', fields={'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword()})
+    categories = Text(
+        analyzer=text_like, fields={
+            'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword(),
+        },
+    )
     categories_fr = Keyword()
     categories_tags = Text(multi=True)
     cities = Keyword()
