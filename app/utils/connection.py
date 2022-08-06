@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import os
+
 from elasticsearch_dsl.connections import connections
 
 

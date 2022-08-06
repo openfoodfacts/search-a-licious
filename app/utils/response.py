@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import os
+from functools import lru_cache
 
 from jsonschema import validate
-from functools import lru_cache
 
 from app.models.product import Product
 from app.models.request import SearchBase
@@ -25,8 +27,16 @@ def convert_es_result(es_result, request: SearchBase, json_schema):
         return None
 
     # Add missing fields to maintain backwards compatibility
-    field_names = list(Product._doc_type.mapping.properties.to_dict()['properties'].keys())
-    result_dict = {field_name: [] if field_name.endswith('_tags') else '' for field_name in field_names}
+    field_names = list(
+        Product._doc_type.mapping.properties.to_dict()[
+            'properties'
+        ].keys(),
+    )
+    result_dict = {
+        field_name: [] if field_name.endswith(
+            '_tags',
+        ) else '' for field_name in field_names
+    }
     result_dict.update(es_result.to_dict())
 
     # Trim fields as needed
