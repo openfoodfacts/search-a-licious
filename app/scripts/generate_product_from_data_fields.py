@@ -21,15 +21,13 @@ def get_types_for_field(field):
     """
 
     suffix_to_es_type = {
-        't': 'Integer()',
-        'datetime': 'Date()',
+        'datetime': 'Date(required=True)' if field in constants.REQUIRED_FIELDS else 'Date()',
         'tags': 'Text(multi=True)',
-        '100g': 'Double()',
-        'serving': 'Double()',
+        '100g': 'Double(required=True)' if field in constants.REQUIRED_FIELDS else 'Double()',
+        'serving': 'Double(required=True)' if field in constants.REQUIRED_FIELDS else 'Double()',
     }
 
     suffix_to_json_type = {
-        't': 'integer',
         'datetime': 'string',
         'tags': 'array',
         '100g': 'number',
@@ -42,8 +40,12 @@ def get_types_for_field(field):
     if es_type:
         return es_type, json_type
 
+    es_field = 'Keyword()'
+    if field in constants.REQUIRED_FIELDS:
+        es_field = 'Keyword(required=True)'
+
     # Otherwise, just do as keyword
-    return 'Keyword()', 'string'
+    return es_field, 'string'
 
 
 def generate_product_from_data_fields():

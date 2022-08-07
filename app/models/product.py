@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import datetime
+
 from elasticsearch_dsl import Date
 from elasticsearch_dsl import Document
 from elasticsearch_dsl import Double
-from elasticsearch_dsl import Integer
 from elasticsearch_dsl import Keyword
 from elasticsearch_dsl import Text
 
@@ -25,18 +26,31 @@ class Product(Document):
             'number_of_shards': 4,
         }
 
+    def fill_internal_fields(self):
+        self.meta['id'] = self.code
+        self.last_indexed_datetime = datetime.datetime.now()
+
+    def save(
+        self,
+        **kwargs,
+    ):
+        self.fill_internal_fields()
+        super().save(**kwargs)
+
     # barcode of the product (can be EAN-13 or internal codes for some food stores), for products without a barcode, Open Food Facts assigns a number starting with the 200 reserved prefix
-    code = Keyword()
-    # date that the product was added (iso8601 format: yyyy-mm-ddThh:mn:ssZ)
+    code = Keyword(required=True)
+    # date of last index for the purposes of search
+    last_indexed_datetime = Date(required=True)
+    # date that the product was added
     created_datetime = Date()
     # date that the product was added (UNIX timestamp format)
-    created_t = Integer()
+    created_t = Keyword()
     # contributor who first added the product
     creator = Keyword()
     generic_name = Keyword()
     last_modified_datetime = Date()
     # date that the product page was last modified
-    last_modified_t = Integer()
+    last_modified_t = Keyword()
     # name of the product
     product_name = Text(
         analyzer=text_like, fields={

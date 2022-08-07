@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import datetime
+from typing import List
+from typing import Optional
+from typing import Set
 
 from pydantic import BaseModel
 
@@ -8,7 +11,7 @@ from app.utils import constants
 
 
 class SearchBase(BaseModel):
-    response_fields: set[str] | None
+    response_fields: Optional[Set[str]]
     num_results: int = 10
 
     def get_num_results(self):
@@ -17,7 +20,7 @@ class SearchBase(BaseModel):
 
 class AutocompleteRequest(SearchBase):
     text: str
-    search_fields: list[str] = constants.AUTOCOMPLETE_FIELDS
+    search_fields: List[str] = constants.AUTOCOMPLETE_FIELDS
 
 
 class StringFilter(BaseModel):
@@ -43,6 +46,6 @@ class DateTimeFilter(BaseModel):
 
 class SearchRequest(SearchBase):
     # Works as an intersection/AND query
-    string_filters: list[StringFilter] = []
-    numeric_filters: list[NumericFilter] = []
-    date_time_filters: list[DateTimeFilter] = []
+    string_filters: List[StringFilter] = []
+    numeric_filters: List[NumericFilter] = []
+    date_time_filters: List[DateTimeFilter] = []

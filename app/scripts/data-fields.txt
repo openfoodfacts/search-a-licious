@@ -1,7 +1,8 @@
 # This list of fields is taken from data-fields.txt and then added with undocumented fields, grouped and sorted
 
 code : barcode of the product (can be EAN-13 or internal codes for some food stores), for products without a barcode, Open Food Facts assigns a number starting with the 200 reserved prefix
-created_datetime : date that the product was added (iso8601 format: yyyy-mm-ddThh:mn:ssZ)
+last_indexed_datetime : date of last index for the purposes of search
+created_datetime : date that the product was added
 created_t : date that the product was added (UNIX timestamp format)
 creator : contributor who first added the product
 generic_name

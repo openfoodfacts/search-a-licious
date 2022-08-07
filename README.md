@@ -11,12 +11,7 @@ The main file is `api.py`, and the Product schema is in `models/product.py`.
 The `scripts/` directory contains various scripts for manual validation, constructing the product schema, importing, etc.
 
 ### Running locally
-Firstly, make sure your environment is configured:
-```commandline
-export ELASTIC_PASSWORD=PASSWORD_HERE
-```
-
-Then start docker:
+Start docker:
 ```console
 docker-compose up -d
 ```
@@ -46,7 +41,7 @@ To develop locally, create a venv, install dependencies, then run the service:
 virtualenv .
 source venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.api:app --reload --port=8001
+uvicorn app.api:app --reload --port=8001 --workers=4
 ```
 Note that it's important to use port 8001, as port 8000 will be used by the docker version of the search service.
 
