@@ -6,12 +6,16 @@
             "type": "string",
             "description": "barcode of the product (can be EAN-13 or internal codes for some food stores), for products without a barcode, Open Food Facts assigns a number starting with the 200 reserved prefix"
         },
+        "last_indexed_datetime": {
+            "type": "string",
+            "description": "date of last index for the purposes of search"
+        },
         "created_datetime": {
             "type": "string",
-            "description": "date that the product was added (iso8601 format: yyyy-mm-ddThh:mn:ssZ)"
+            "description": "date that the product was added"
         },
         "created_t": {
-            "type": "integer",
+            "type": "string",
             "description": "date that the product was added (UNIX timestamp format)"
         },
         "creator": {
@@ -25,7 +29,7 @@
             "type": "string"
         },
         "last_modified_t": {
-            "type": "integer",
+            "type": "string",
             "description": "date that the product page was last modified"
         },
         "product_name": {
