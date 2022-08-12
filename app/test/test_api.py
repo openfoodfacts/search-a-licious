@@ -80,7 +80,7 @@ class TestApi:
             api.search(request=SearchRequest())
 
     @pytest.mark.parametrize(
-        'string_filters,numeric_filters,date_time_filters,num_results,expected_must,expected_must_not,expected_range',
+        'string_filters,numeric_filters,date_time_filters,num_results,expected_body',
         [
             (
                 [
@@ -93,11 +93,11 @@ class TestApi:
                 [],
                 [],
                 100,
-                [
-                    {'term': {'product_name.raw': 'water'}},
-                ],
-                [],
-                [],
+                {
+                    'query': {
+                        'bool': {'must': [{'term': {'product_name.raw': 'water'}}]},
+                    }, 'size': 100,
+                },
             ),
             (
                 [
@@ -115,13 +115,15 @@ class TestApi:
                 [],
                 [],
                 10,
-                [
-                    {'term': {'product_name.raw': 'water'}},
-                ],
-                [
-                    {'term': {'product_name.raw': 'vitamins'}},
-                ],
-                [],
+                {
+                    'query': {
+                        'bool': {
+                            'must': [{'term': {'product_name.raw': 'water'}}], 'must_not': [
+                                {'term': {'product_name.raw': 'vitamins'}},
+                            ],
+                        },
+                    }, 'size': 10,
+                },
             ),
             (
                 [
@@ -134,79 +136,111 @@ class TestApi:
                 [],
                 [],
                 10,
-                [
-                    {'match': {'product_name': 'water'}},
-                ],
-                [],
-                [],
+                {
+                    'query': {
+                        'bool': {'must': [{'match': {'product_name': 'water'}}]},
+                    }, 'size': 10,
+                },
             ),
             (
                 [],
                 [
                     NumericFilter(
-                        field='carbohydrates_100g',
+                        field='nutriments.carbohydrates_100g',
                         value=10,
                         operator='eq',
                     ),
                 ],
                 [],
                 10,
-                [
-                    {'term': {'carbohydrates_100g': 10}},
-                ],
-                [],
-                [],
+                {
+                    'query': {
+                        'bool': {
+                            'must': [{
+                                'nested': {
+                                    'path': 'nutriments', 'query': {
+                                        'term': {'nutriments.carbohydrates_100g': 10.0},
+                                    },
+                                },
+                            }],
+                        },
+                    }, 'size': 10,
+                },
             ),
             (
                 [],
                 [
                     NumericFilter(
-                        field='carbohydrates_100g',
+                        field='nutriments.carbohydrates_100g',
                         value=10,
                         operator='ne',
                     ),
                 ],
                 [],
                 10,
-                [],
-                [
-                    {'term': {'carbohydrates_100g': 10}},
-                ],
-                [],
+                {
+                    'query': {
+                        'bool': {
+                            'must_not': [{
+                                'nested': {
+                                    'path': 'nutriments', 'query': {
+                                        'term': {'nutriments.carbohydrates_100g': 10.0},
+                                    },
+                                },
+                            }],
+                        },
+                    }, 'size': 10,
+                },
             ),
             (
                 [],
                 [
                     NumericFilter(
-                        field='carbohydrates_100g',
+                        field='nutriments.carbohydrates_100g',
                         value=10,
                         operator='lt',
                     ),
                 ],
                 [],
                 10,
-                [],
-                [],
-                [
-                    {'carbohydrates_100g': {'lt': 10}},
-                ],
+                {
+                    'query': {
+                        'bool': {
+                            'filter': [{
+                                'nested': {
+                                    'path': 'nutriments', 'query': {
+                                        'range': {'nutriments.carbohydrates_100g': {'lt': 10.0}},
+                                    },
+                                },
+                            }],
+                        },
+                    }, 'size': 10,
+                },
             ),
             (
                 [],
                 [
                     NumericFilter(
-                        field='carbohydrates_100g',
+                        field='nutriments.carbohydrates_100g',
                         value=10,
                         operator='gt',
                     ),
                 ],
                 [],
                 10,
-                [],
-                [],
-                [
-                    {'carbohydrates_100g': {'gt': 10}},
-                ],
+                {
+                    'query': {
+                        'bool': {
+                            'filter': [{
+                                'nested': {
+                                    'path': 'nutriments', 'query': {
+                                        'range': {'nutriments.carbohydrates_100g': {'gt': 10.0}},
+                                    },
+                                },
+                            }],
+                        },
+                    }, 'size': 10,
+                },
             ),
             (
                 [],
@@ -219,15 +253,19 @@ class TestApi:
                     ),
                 ],
                 10,
-                [],
-                [],
-                [
-                    {
-                        'created_datetime': {
-                            'lt': datetime.datetime(2022, 5, 5),
+                {
+                    'query': {
+                        'bool': {
+                            'filter': [{
+                                'range': {
+                                    'created_datetime': {
+                                        'lt': datetime.datetime(2022, 5, 5, 0, 0),
+                                    },
+                                },
+                            }],
                         },
-                    },
-                ],
+                    }, 'size': 10,
+                },
             ),
             (
                 [],
@@ -240,21 +278,25 @@ class TestApi:
                     ),
                 ],
                 10,
-                [],
-                [],
-                [
-                    {
-                        'created_datetime': {
-                            'gt': datetime.datetime(2022, 5, 5),
+                {
+                    'query': {
+                        'bool': {
+                            'filter': [{
+                                'range': {
+                                    'created_datetime': {
+                                        'gt': datetime.datetime(2022, 5, 5, 0, 0),
+                                    },
+                                },
+                            }],
                         },
-                    },
-                ],
+                    }, 'size': 10,
+                },
             ),
         ],
     )
     def test_create_search_query(
         self, string_filters, numeric_filters, date_time_filters,
-        num_results, expected_must, expected_must_not, expected_range,
+        num_results, expected_body,
     ):
         with mock.patch('elasticsearch.Elasticsearch.search') as mocked_search:
             api.search(
@@ -265,26 +307,6 @@ class TestApi:
                     num_results=num_results,
                 ),
             )
-            expected_body = {
-                'query': {
-                    'bool': {},
-                },
-                'size': num_results,
-            }
-            if expected_must:
-                expected_body['query']['bool']['must'] = [
-                    must_value for must_value in expected_must
-                ]
-            if expected_must_not:
-                expected_body['query']['bool']['must_not'] = [
-                    must_not_value for must_not_value in expected_must_not
-                ]
-            if expected_range:
-                expected_body['query']['bool']['filter'] = [
-                    {
-                        'range': expected_range_value,
-                    } for expected_range_value in expected_range
-                ]
             assert mocked_search.call_args_list == [
                 call(index=['openfoodfacts'], body=expected_body),
             ]

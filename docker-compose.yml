@@ -83,6 +83,10 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    networks:
+      - webnet
+    storage_opt:
+      size: '200G'
 
   es02:
     depends_on:
@@ -117,6 +121,10 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    networks:
+      - webnet
+    storage_opt:
+      size: '200G'
 
   # elasticsearch browser
   elasticvue:
@@ -126,6 +134,8 @@ services:
           - '8080:8080'
       links:
           - es01
+      networks:
+        - webnet
 
   searchservice:
     image: off_search_image
@@ -135,8 +145,10 @@ services:
       - REDIS_HOST=host.docker.internal
     ports:
       - '8000:8000'
+    networks:
+      - webnet
 
-  redis:
+  searchredis:
     image: redis
     container_name: redis
     restart: always
@@ -145,6 +157,10 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes:
       - rediscache:/data
+    networks:
+      - webnet
+
+
 
 volumes:
   certs:
@@ -155,3 +171,7 @@ volumes:
     driver: local
   rediscache:
     driver: local
+
+networks:
+  webnet:
+    name: webnet

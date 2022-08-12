@@ -6,3 +6,7 @@ INDEX_ALIAS_PATTERN = INDEX_ALIAS + '-*'
 MAX_RESULTS = 100
 REDIS_EXPIRATION = 60 * 60 * 36  # 36 hours
 REDIS_READER_TIMEOUT = 5
+BLACKLISTED_DOCUMENTS = [
+    # Contains invalid chars (5.۹ in ingredients.percent)
+    '8901552007122',
+]

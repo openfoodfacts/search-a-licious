@@ -21,16 +21,21 @@ def manual_query():
         payload = {
             'string_filters': [
                 {
-                    'field': 'product_name',
+                    'field': 'code',
                     'value': search_term,
-                    'operator': 'like',
+                    'operator': 'eq',
                 },
             ],
             # 'numeric_filters': [
             #     {
-            #         'field': 'energy_kcal_100g',
-            #         'value': float(200),
+            #         'field': 'nutriments.sodium_value',
+            #         'value': 5,
             #         'operator': 'gt',
+            #     },
+            #     {
+            #         'field': 'nutriments.sodium_value',
+            #         'value': 50,
+            #         'operator': 'lt',
             #     }
             # ],
             # 'date_time_filters': [
@@ -43,7 +48,7 @@ def manual_query():
             'num_results': 10,
             # 'response_fields': ['product_name', 'states_tags'],
         }
-        response = requests.post('http://127.0.0.1:8000/search', json=payload)
+        response = requests.post('http://127.0.0.1:8001/search', json=payload)
         print(
             json.dumps(
                 response.json(), indent=4,
