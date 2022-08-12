@@ -12,6 +12,8 @@ from app.models.request import AutocompleteRequest
 from app.models.request import SearchRequest
 from app.utils import connection
 from app.utils import constants
+from app.utils import dict_utils
+from app.utils import query_utils
 from app.utils import response
 
 app = FastAPI()
@@ -68,11 +70,13 @@ def autocomplete(request: AutocompleteRequest):
 
 
 def validate_field(field, fields_to_types, valid_types, filter_type):
-    if field not in fields_to_types:
+    try:
+        field_value = dict_utils.get_nested_value(field, fields_to_types)
+    except KeyError:
         raise HTTPException(
             status_code=400, detail=f'Field {field} does not exist',
         )
-    field_type = fields_to_types[field]['type']
+    field_type = field_value['type']
     if field_type not in valid_types:
         raise HTTPException(
             status_code=400, detail=f'Field {field} is not of type {filter_type}',
@@ -100,21 +104,38 @@ def create_search_query(request: SearchRequest):
             field = f'{field}__raw'
 
         if filter.operator == 'eq':
-            must_queries.append(Q('term', **{field: filter.value}))
+            must_queries.append(
+                query_utils.create_query(
+                    'term', field, filter.value,
+                ),
+            )
         elif filter.operator == 'ne':
-            must_not_queries.append(Q('term', **{field: filter.value}))
+            must_not_queries.append(
+                query_utils.create_query('term', field, filter.value),
+            )
         elif filter.operator == 'like':
-            must_queries.append(Q('match', **{field: filter.value}))
+            must_queries.append(
+                query_utils.create_query(
+                    'match', field, filter.value,
+                ),
+            )
 
     for filter in request.numeric_filters:
         field = filter.field
         validate_field(field, fields_to_types, ['double'], 'numeric')
 
         if filter.operator == 'eq':
-            must_queries.append(Q('term', **{field: filter.value}))
+            must_queries.append(
+                query_utils.create_query(
+                    'term', field, filter.value,
+                ),
+            )
         elif filter.operator == 'ne':
-            must_not_queries.append(Q('term', **{field: filter.value}))
+            must_not_queries.append(
+                query_utils.create_query('term', field, filter.value),
+            )
         elif filter.operator == 'lt':
+            # range_queries.append(query_utils.create_range_query('lt', field, filter.value))
             range_queries.append({field: {'lt': filter.value}})
         elif filter.operator == 'gt':
             range_queries.append({field: {'gt': filter.value}})
@@ -135,9 +156,7 @@ def create_search_query(request: SearchRequest):
     )
     if range_queries:
         for range_query in range_queries:
-            query = query.filter(
-                'range', **range_query,
-            )
+            query = query.filter(query_utils.create_range_query(range_query))
     return query.extra(size=request.get_num_results())
 
 

@@ -52,6 +52,6 @@ pre-commit run
 ```
 
 ### Helpful commands:
-To import data from the [CSV export](https://world.openfoodfacts.org/data):
+To import data from the [MongoDb export](https://world.openfoodfacts.org/data):
 ```console
-python scripts/perform_import.py --filename=/path/to/file.csv
+python scripts/perform_import_parallel.py --filename=/path/to/file.csv

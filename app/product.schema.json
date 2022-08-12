@@ -1,626 +1,3064 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "type": "object",
-    "properties": {
-        "code": {
-            "type": "string",
-            "description": "barcode of the product (can be EAN-13 or internal codes for some food stores), for products without a barcode, Open Food Facts assigns a number starting with the 200 reserved prefix"
-        },
-        "last_indexed_datetime": {
-            "type": "string",
-            "description": "date of last index for the purposes of search"
-        },
-        "created_datetime": {
-            "type": "string",
-            "description": "date that the product was added"
-        },
-        "created_t": {
-            "type": "string",
-            "description": "date that the product was added (UNIX timestamp format)"
-        },
-        "creator": {
-            "type": "string",
-            "description": "contributor who first added the product"
-        },
-        "generic_name": {
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "traces": {
+      "type": "string"
+    },
+    "last_modified_t": {
+      "type": "integer"
+    },
+    "nucleotides_prev_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ecoscore_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allergens_from_user": {
+      "type": "string"
+    },
+    "informers_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_text_en": {
+      "type": "string"
+    },
+    "removed_countries_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "other_nutritional_substances_prev_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "last_modified_by": {
+      "type": "string"
+    },
+    "lc": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "nutrition_score_debug": {
+      "type": "string"
+    },
+    "created_t": {
+      "type": "integer"
+    },
+    "states_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data_quality_info_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rev": {
+      "type": "integer"
+    },
+    "traces_from_ingredients": {
+      "type": "string"
+    },
+    "product_name_en": {
+      "type": "string"
+    },
+    "lang": {
+      "type": "string"
+    },
+    "additives_old_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nova_group_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nutrition_data_prepared_per": {
+      "type": "string"
+    },
+    "nutrition_grades_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nutrition_data_per": {
+      "type": "string"
+    },
+    "allergens": {
+      "type": "string"
+    },
+    "packagings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "shape": {
             "type": "string"
-        },
-        "last_modified_datetime": {
+          },
+          "quantity_value": {
             "type": "string"
-        },
-        "last_modified_t": {
-            "type": "string",
-            "description": "date that the product page was last modified"
-        },
-        "product_name": {
-            "type": "string",
-            "description": "name of the product"
-        },
-        "quantity": {
-            "type": "string",
-            "description": "quantity and unit"
-        },
-        "url": {
-            "type": "string",
-            "description": "url of the product page on Open Food Facts"
-        },
-        "brands": {
+          },
+          "quantity": {
             "type": "string"
-        },
-        "brands_tags": {
-            "type": "array"
-        },
-        "categories": {
+          },
+          "quantity_unit": {
             "type": "string"
-        },
-        "categories_fr": {
-            "type": "string"
-        },
-        "categories_tags": {
-            "type": "array"
-        },
-        "cities": {
-            "type": "string"
-        },
-        "cities_tags": {
-            "type": "array"
-        },
-        "countries": {
-            "type": "string",
-            "description": "list of countries where the product is sold"
-        },
-        "countries_fr": {
-            "type": "string"
-        },
-        "countries_tags": {
-            "type": "array"
-        },
-        "emb_codes": {
-            "type": "string"
-        },
-        "emb_codes_tags": {
-            "type": "array"
-        },
-        "first_packaging_code_geo": {
-            "type": "string",
-            "description": "coordinates corresponding to the first packaging code indicated"
-        },
-        "labels": {
-            "type": "string"
-        },
-        "labels_fr": {
-            "type": "string"
-        },
-        "labels_tags": {
-            "type": "array"
-        },
-        "manufacturing_places": {
-            "type": "string",
-            "description": "places where manufactured or transformed"
-        },
-        "manufacturing_places_tags": {
-            "type": "array"
-        },
-        "origins": {
-            "type": "string",
-            "description": "origins of ingredients"
-        },
-        "origins_tags": {
-            "type": "array"
-        },
-        "packaging": {
-            "type": "string",
-            "description": "shape, material"
-        },
-        "packaging_tags": {
-            "type": "array"
-        },
-        "purchase_places": {
-            "type": "string"
-        },
-        "stores": {
-            "type": "string"
-        },
-        "ingredients_from_palm_oil": {
-            "type": "string"
-        },
-        "ingredients_from_palm_oil_n": {
-            "type": "string"
-        },
-        "ingredients_from_palm_oil_tags": {
-            "type": "array"
-        },
-        "ingredients_tags": {
-            "type": "array"
-        },
-        "ingredients_text": {
-            "type": "string"
-        },
-        "ingredients_that_may_be_from_palm_oil": {
-            "type": "string"
-        },
-        "ingredients_that_may_be_from_palm_oil_n": {
-            "type": "string"
-        },
-        "ingredients_that_may_be_from_palm_oil_tags": {
-            "type": "array"
-        },
-        "traces": {
-            "type": "string"
-        },
-        "traces_tags": {
-            "type": "array"
-        },
-        "abbreviated_product_name": {
-            "type": "string"
-        },
-        "additives": {
-            "type": "string"
-        },
-        "additives_en": {
-            "type": "string"
-        },
-        "additives_n": {
-            "type": "string",
-            "description": "number of food additives"
-        },
-        "additives_tags": {
-            "type": "array"
-        },
-        "allergens": {
-            "type": "string"
-        },
-        "allergens_en": {
-            "type": "string"
-        },
-        "brand_owner": {
-            "type": "string"
-        },
-        "categories_en": {
-            "type": "string"
-        },
-        "countries_en": {
-            "type": "string"
-        },
-        "ecoscore_grade": {
-            "type": "string"
-        },
-        "ecoscore_score": {
-            "type": "string"
-        },
-        "food_groups": {
-            "type": "string"
-        },
-        "food_groups_en": {
-            "type": "string"
-        },
-        "food_groups_tags": {
-            "type": "array"
-        },
-        "image_ingredients_small_url": {
-            "type": "string"
-        },
-        "image_ingredients_url": {
-            "type": "string"
-        },
-        "image_nutrition_small_url": {
-            "type": "string"
-        },
-        "image_nutrition_url": {
-            "type": "string"
-        },
-        "image_small_url": {
-            "type": "string"
-        },
-        "image_url": {
-            "type": "string"
-        },
-        "labels_en": {
-            "type": "string"
-        },
-        "main_category": {
-            "type": "string"
-        },
-        "main_category_en": {
-            "type": "string"
-        },
-        "main_category_fr": {
-            "type": "string"
-        },
-        "no_nutriments": {
-            "type": "string",
-            "description": "indicates if the nutrition facts are indicated on the food label"
-        },
-        "nova_group": {
-            "type": "string"
-        },
-        "nutriscore_grade": {
-            "type": "string"
-        },
-        "nutriscore_score": {
-            "type": "string"
-        },
-        "nutrition_grade_fr": {
-            "type": "string",
-            "description": "nutrition grade ('a' to 'e'). see https://fr.openfoodfacts.org/nutriscore"
-        },
-        "origins_en": {
-            "type": "string"
-        },
-        "packaging_en": {
-            "type": "string"
-        },
-        "packaging_text": {
-            "type": "string"
-        },
-        "pnns_groups_1": {
-            "type": "string"
-        },
-        "pnns_groups_2": {
-            "type": "string"
-        },
-        "serving_quantity": {
-            "type": "string"
-        },
-        "serving_size": {
-            "type": "string",
-            "description": "serving size in g"
-        },
-        "states": {
-            "type": "string"
-        },
-        "states_en": {
-            "type": "string"
-        },
-        "states_tags": {
-            "type": "array"
-        },
-        "traces_en": {
-            "type": "string"
-        },
-        "alcohol_100g": {
-            "type": "number",
-            "description": "% vol of alcohol"
-        },
-        "alpha_linolenic_acid_100g": {
-            "type": "number"
-        },
-        "arachidic_acid_100g": {
-            "type": "number"
-        },
-        "arachidonic_acid_100g": {
-            "type": "number"
-        },
-        "behenic_acid_100g": {
-            "type": "number"
-        },
-        "beta_carotene_100g": {
-            "type": "number"
-        },
-        "beta_glucan_100g": {
-            "type": "number"
-        },
-        "bicarbonate_100g": {
-            "type": "number"
-        },
-        "biotin_100g": {
-            "type": "number",
-            "description": "also known as Vitamine B8"
-        },
-        "butyric_acid_100g": {
-            "type": "number"
-        },
-        "caffeine_100g": {
-            "type": "number"
-        },
-        "calcium_100g": {
-            "type": "number"
-        },
-        "capric_acid_100g": {
-            "type": "number"
-        },
-        "caproic_acid_100g": {
-            "type": "number"
-        },
-        "caprylic_acid_100g": {
-            "type": "number"
-        },
-        "carbohydrates_100g": {
-            "type": "number"
-        },
-        "carbon_footprint_from_meat_or_fish_100g": {
-            "type": "number"
-        },
-        "carnitine_100g": {
-            "type": "number"
-        },
-        "casein_100g": {
-            "type": "number"
-        },
-        "cerotic_acid_100g": {
-            "type": "number"
-        },
-        "chloride_100g": {
-            "type": "number"
-        },
-        "chlorophyl_100g": {
-            "type": "number"
-        },
-        "cholesterol_100g": {
-            "type": "number"
-        },
-        "choline_100g": {
-            "type": "number"
-        },
-        "chromium_100g": {
-            "type": "number"
-        },
-        "cocoa_100g": {
-            "type": "number"
-        },
-        "collagen_meat_protein_ratio_100g": {
-            "type": "number"
-        },
-        "copper_100g": {
-            "type": "number"
-        },
-        "dihomo_gamma_linolenic_acid_100g": {
-            "type": "number"
-        },
-        "docosahexaenoic_acid_100g": {
-            "type": "number"
-        },
-        "eicosapentaenoic_acid_100g": {
-            "type": "number"
-        },
-        "elaidic_acid_100g": {
-            "type": "number"
-        },
-        "energy_kcal_100g": {
-            "type": "number"
-        },
-        "energy_kj_100g": {
-            "type": "number"
-        },
-        "energy_100g": {
-            "type": "number"
-        },
-        "energy_from_fat_100g": {
-            "type": "number"
-        },
-        "erucic_acid_100g": {
-            "type": "number"
-        },
-        "fat_100g": {
-            "type": "number"
-        },
-        "fiber_100g": {
-            "type": "number"
-        },
-        "fluoride_100g": {
-            "type": "number"
-        },
-        "folates_100g": {
-            "type": "number"
-        },
-        "fructose_100g": {
-            "type": "number"
-        },
-        "fruits_vegetables_nuts_100g": {
-            "type": "number",
-            "description": "% of fruits, vegetables and nuts (excluding potatoes, yams, manioc)"
-        },
-        "fruits_vegetables_nuts_dried_100g": {
-            "type": "number"
-        },
-        "fruits_vegetables_nuts_estimate_100g": {
-            "type": "number"
-        },
-        "fruits_vegetables_nuts_estimate_from_ingredients_100g": {
-            "type": "number"
-        },
-        "gamma_linolenic_acid_100g": {
-            "type": "number"
-        },
-        "glucose_100g": {
-            "type": "number"
-        },
-        "glycemic_index_100g": {
-            "type": "number"
-        },
-        "gondoic_acid_100g": {
-            "type": "number"
-        },
-        "inositol_100g": {
-            "type": "number"
-        },
-        "insoluble_fiber_100g": {
-            "type": "number"
-        },
-        "iodine_100g": {
-            "type": "number"
-        },
-        "iron_100g": {
-            "type": "number"
-        },
-        "lactose_100g": {
-            "type": "number"
-        },
-        "lauric_acid_100g": {
-            "type": "number"
-        },
-        "lignoceric_acid_100g": {
-            "type": "number"
-        },
-        "linoleic_acid_100g": {
-            "type": "number"
-        },
-        "magnesium_100g": {
-            "type": "number"
-        },
-        "maltodextrins_100g": {
-            "type": "number"
-        },
-        "maltose_100g": {
-            "type": "number"
-        },
-        "manganese_100g": {
-            "type": "number"
-        },
-        "mead_acid_100g": {
-            "type": "number"
-        },
-        "melissic_acid_100g": {
-            "type": "number"
-        },
-        "molybdenum_100g": {
-            "type": "number"
-        },
-        "monounsaturated_fat_100g": {
-            "type": "number"
-        },
-        "montanic_acid_100g": {
-            "type": "number"
-        },
-        "myristic_acid_100g": {
-            "type": "number"
-        },
-        "nervonic_acid_100g": {
-            "type": "number"
-        },
-        "nucleotides_100g": {
-            "type": "number"
-        },
-        "oleic_acid_100g": {
-            "type": "number"
-        },
-        "omega_3_fat_100g": {
-            "type": "number"
-        },
-        "omega_6_fat_100g": {
-            "type": "number"
-        },
-        "omega_9_fat_100g": {
-            "type": "number"
-        },
-        "palmitic_acid_100g": {
-            "type": "number"
-        },
-        "pantothenic_acid_100g": {
-            "type": "number",
-            "description": "also known as Vitamine B5"
-        },
-        "ph_100g": {
-            "type": "number",
-            "description": "pH (no unit)"
-        },
-        "phosphorus_100g": {
-            "type": "number"
-        },
-        "phylloquinone_100g": {
-            "type": "number"
-        },
-        "polyols_100g": {
-            "type": "number"
-        },
-        "polyunsaturated_fat_100g": {
-            "type": "number"
-        },
-        "potassium_100g": {
-            "type": "number"
-        },
-        "proteins_100g": {
-            "type": "number"
+          }
+        }
+      }
+    },
+    "data_quality_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "main_countries_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "vitamins_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "category_properties": {
+      "type": "object"
+    },
+    "data_quality_bugs_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "last_editor": {
+      "type": "string"
+    },
+    "photographers_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allergens_from_ingredients": {
+      "type": "string"
+    },
+    "nutrient_levels_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "serving_quantity": {
+      "type": "string"
+    },
+    "languages_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "interface_version_modified": {
+      "type": "string"
+    },
+    "allergens_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pnns_groups_1_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pnns_groups_2_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_text": {
+      "type": "string"
+    },
+    "popularity_key": {
+      "type": "integer"
+    },
+    "update_key": {
+      "type": "string"
+    },
+    "pnns_groups_1": {
+      "type": "string"
+    },
+    "nutrition_data": {
+      "type": "string"
+    },
+    "languages_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "complete": {
+      "type": "integer"
+    },
+    "creator": {
+      "type": "string"
+    },
+    "brands_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "states": {
+      "type": "string"
+    },
+    "additives_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nutriments": {
+      "type": "object",
+      "properties": {
+        "energy_serving": {
+          "type": "integer"
+        },
+        "vitamin-a_unit": {
+          "type": "string"
+        },
+        "trans-fat_value": {
+          "type": "integer"
+        },
+        "sodium": {
+          "type": "number"
+        },
+        "vitamin-c": {
+          "type": "number"
+        },
+        "sodium_serving": {
+          "type": "number"
         },
         "salt_100g": {
-            "type": "number"
+          "type": "number"
         },
-        "saturated_fat_100g": {
-            "type": "number"
+        "energy-kcal_100g": {
+          "type": "integer"
         },
-        "selenium_100g": {
-            "type": "number"
+        "carbohydrates_100g": {
+          "type": "number"
         },
-        "serum_proteins_100g": {
-            "type": "number"
+        "energy_100g": {
+          "type": "integer"
         },
-        "silica_100g": {
-            "type": "number"
+        "energy": {
+          "type": "integer"
         },
-        "sodium_100g": {
-            "type": "number"
+        "proteins_serving": {
+          "type": "integer"
         },
-        "soluble_fiber_100g": {
-            "type": "number"
+        "proteins": {
+          "type": "number"
         },
-        "starch_100g": {
-            "type": "number"
+        "sugars": {
+          "type": "number"
         },
-        "stearic_acid_100g": {
-            "type": "number"
+        "fiber_value": {
+          "type": "number"
         },
-        "sucrose_100g": {
-            "type": "number"
+        "trans-fat": {
+          "type": "integer"
+        },
+        "nova-group_100g": {
+          "type": "integer"
+        },
+        "vitamin-a_100g": {
+          "type": "number"
+        },
+        "fiber": {
+          "type": "number"
+        },
+        "energy_unit": {
+          "type": "string"
+        },
+        "fat": {
+          "type": "number"
+        },
+        "fruits-vegetables-nuts-estimate-from-ingredients_serving": {
+          "type": "integer"
+        },
+        "iron": {
+          "type": "number"
+        },
+        "fiber_unit": {
+          "type": "string"
+        },
+        "energy-kcal_value": {
+          "type": "integer"
+        },
+        "trans-fat_serving": {
+          "type": "integer"
+        },
+        "saturated-fat_serving": {
+          "type": "integer"
+        },
+        "vitamin-c_value": {
+          "type": "number"
+        },
+        "salt_unit": {
+          "type": "string"
+        },
+        "sugars_value": {
+          "type": "number"
+        },
+        "proteins_value": {
+          "type": "number"
+        },
+        "vitamin-c_unit": {
+          "type": "string"
+        },
+        "iron_unit": {
+          "type": "string"
+        },
+        "vitamin-c_100g": {
+          "type": "number"
+        },
+        "cholesterol_value": {
+          "type": "integer"
+        },
+        "fiber_serving": {
+          "type": "number"
+        },
+        "carbohydrates_value": {
+          "type": "number"
+        },
+        "carbohydrates": {
+          "type": "number"
+        },
+        "fat_serving": {
+          "type": "integer"
+        },
+        "iron_100g": {
+          "type": "number"
+        },
+        "trans-fat_unit": {
+          "type": "string"
+        },
+        "cholesterol": {
+          "type": "number"
+        },
+        "salt_serving": {
+          "type": "number"
+        },
+        "saturated-fat_value": {
+          "type": "number"
+        },
+        "energy-kcal": {
+          "type": "integer"
+        },
+        "fat_value": {
+          "type": "number"
+        },
+        "calcium_unit": {
+          "type": "string"
+        },
+        "vitamin-c_serving": {
+          "type": "number"
+        },
+        "sodium_unit": {
+          "type": "string"
+        },
+        "sugars_unit": {
+          "type": "string"
+        },
+        "iron_value": {
+          "type": "number"
+        },
+        "fat_100g": {
+          "type": "number"
+        },
+        "vitamin-a": {
+          "type": "number"
+        },
+        "cholesterol_serving": {
+          "type": "number"
+        },
+        "calcium": {
+          "type": "number"
+        },
+        "nutrition-score-fr": {
+          "type": "integer"
+        },
+        "carbohydrates_serving": {
+          "type": "integer"
+        },
+        "calcium_serving": {
+          "type": "number"
+        },
+        "saturated-fat_unit": {
+          "type": "string"
+        },
+        "salt": {
+          "type": "number"
+        },
+        "nutrition-score-fr_100g": {
+          "type": "integer"
+        },
+        "nova-group_serving": {
+          "type": "integer"
+        },
+        "vitamin-a_serving": {
+          "type": "number"
+        },
+        "cholesterol_100g": {
+          "type": "number"
+        },
+        "energy-kcal_unit": {
+          "type": "string"
+        },
+        "fat_unit": {
+          "type": "string"
+        },
+        "energy-kcal_serving": {
+          "type": "integer"
+        },
+        "proteins_100g": {
+          "type": "number"
+        },
+        "trans-fat_100g": {
+          "type": "integer"
+        },
+        "saturated-fat_100g": {
+          "type": "number"
+        },
+        "iron_serving": {
+          "type": "number"
+        },
+        "cholesterol_unit": {
+          "type": "string"
+        },
+        "calcium_100g": {
+          "type": "number"
+        },
+        "sugars_serving": {
+          "type": "integer"
+        },
+        "fruits-vegetables-nuts-estimate-from-ingredients_100g": {
+          "type": "integer"
+        },
+        "sodium_value": {
+          "type": "integer"
+        },
+        "saturated-fat": {
+          "type": "number"
         },
         "sugars_100g": {
-            "type": "number"
+          "type": "number"
         },
-        "taurine_100g": {
-            "type": "number"
+        "sodium_100g": {
+          "type": "number"
         },
-        "trans_fat_100g": {
-            "type": "number"
+        "vitamin-a_value": {
+          "type": "integer"
         },
-        "vitamin_a_100g": {
-            "type": "number"
+        "calcium_value": {
+          "type": "integer"
         },
-        "vitamin_b12_100g": {
-            "type": "number"
+        "proteins_unit": {
+          "type": "string"
         },
-        "vitamin_b1_100g": {
-            "type": "number"
+        "nova-group": {
+          "type": "integer"
         },
-        "vitamin_b2_100g": {
-            "type": "number"
+        "energy_value": {
+          "type": "integer"
         },
-        "vitamin_b6_100g": {
-            "type": "number"
+        "carbohydrates_unit": {
+          "type": "string"
         },
-        "vitamin_b9_100g": {
-            "type": "number"
+        "salt_value": {
+          "type": "number"
         },
-        "vitamin_c_100g": {
-            "type": "number"
-        },
-        "vitamin_d_100g": {
-            "type": "number"
-        },
-        "vitamin_e_100g": {
-            "type": "number"
-        },
-        "vitamin_k_100g": {
-            "type": "number"
-        },
-        "vitamin_pp_100g": {
-            "type": "number"
-        },
-        "water_hardness_100g": {
-            "type": "number"
-        },
-        "zinc_100g": {
-            "type": "number"
-        },
-        "carbon_footprint_100g": {
-            "type": "number",
-            "description": "carbon footprint (as indicated on the packaging of some products)"
-        },
-        "nutrition_score_fr_100g": {
-            "type": "number",
-            "description": "Nutri-Score - Nutrition score derived from the UK FSA score and adapted for the French market (formula defined by the team of Professor Hercberg)"
-        },
-        "nutrition_score_uk_100g": {
-            "type": "number",
-            "description": "nutrition score defined by the UK Food Standards Administration (FSA)"
+        "fiber_100g": {
+          "type": "number"
         }
+      }
+    },
+    "languages": {
+      "type": "object",
+      "properties": {
+        "en:english": {
+          "type": "integer"
+        }
+      }
+    },
+    "countries": {
+      "type": "string"
+    },
+    "data_quality_warnings_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "other_nutritional_substances_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "serving_size": {
+      "type": "string"
+    },
+    "nova_group_debug": {
+      "type": "string"
+    },
+    "traces_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "countries_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allergens_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pnns_groups_2": {
+      "type": "string"
+    },
+    "misc_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "countries_lc": {
+      "type": "string"
+    },
+    "_keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data_quality_errors_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "vitamins_prev_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categories_properties": {
+      "type": "object"
+    },
+    "id": {
+      "type": "string"
+    },
+    "amino_acids_prev_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "checkers_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ciqual_food_name_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "last_edit_dates_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_from_palm_oil_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "popularity_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "states_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "interface_version_created": {
+      "type": "string"
+    },
+    "categories_properties_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_text_debug": {
+      "type": "string"
+    },
+    "traces_from_user": {
+      "type": "string"
+    },
+    "completeness": {
+      "type": "number"
+    },
+    "minerals_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "countries_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "additives_original_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "correctors_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "additives_debug_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nutrition_score_beverage": {
+      "type": "integer"
+    },
+    "traces_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unique_scans_n": {
+      "type": "integer"
+    },
+    "ingredients_that_may_be_from_palm_oil_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unknown_nutrients_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "entry_dates_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ecoscore_grade": {
+      "type": "string"
+    },
+    "amino_acids_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "food_groups_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "additives_prev_original_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scans_n": {
+      "type": "integer"
+    },
+    "languages_codes": {
+      "type": "object",
+      "properties": {
+        "en": {
+          "type": "integer"
+        }
+      }
+    },
+    "added_countries_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "nutrient_levels": {
+      "type": "object",
+      "properties": {
+        "saturated-fat": {
+          "type": "string"
+        },
+        "salt": {
+          "type": "string"
+        },
+        "sugars": {
+          "type": "string"
+        },
+        "fat": {
+          "type": "string"
+        }
+      }
+    },
+    "no_nutrition_data": {
+      "type": "string"
+    },
+    "brands": {
+      "type": "string"
+    },
+    "editors_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ecoscore_data": {
+      "type": "object",
+      "properties": {
+        "adjustments": {
+          "type": "object",
+          "properties": {
+            "threatened_species": {
+              "type": "object"
+            },
+            "production_system": {
+              "type": "object",
+              "properties": {
+                "labels": {
+                  "type": "array",
+                  "items": {
+                    "items": {}
+                  }
+                },
+                "value": {
+                  "type": "integer"
+                },
+                "warning": {
+                  "type": "string"
+                }
+              }
+            },
+            "origins_of_ingredients": {
+              "type": "object",
+              "properties": {
+                "origins_from_origins_field": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "transportation_values": {
+                  "type": "object",
+                  "properties": {
+                    "sk": {
+                      "type": "integer"
+                    },
+                    "lt": {
+                      "type": "integer"
+                    },
+                    "pt": {
+                      "type": "integer"
+                    },
+                    "es": {
+                      "type": "integer"
+                    },
+                    "lv": {
+                      "type": "integer"
+                    },
+                    "de": {
+                      "type": "integer"
+                    },
+                    "at": {
+                      "type": "integer"
+                    },
+                    "nl": {
+                      "type": "integer"
+                    },
+                    "us": {
+                      "type": "integer"
+                    },
+                    "im": {
+                      "type": "integer"
+                    },
+                    "ee": {
+                      "type": "integer"
+                    },
+                    "ro": {
+                      "type": "integer"
+                    },
+                    "dz": {
+                      "type": "integer"
+                    },
+                    "lu": {
+                      "type": "integer"
+                    },
+                    "si": {
+                      "type": "integer"
+                    },
+                    "uk": {
+                      "type": "integer"
+                    },
+                    "pl": {
+                      "type": "integer"
+                    },
+                    "is": {
+                      "type": "integer"
+                    },
+                    "sy": {
+                      "type": "integer"
+                    },
+                    "hr": {
+                      "type": "integer"
+                    },
+                    "world": {
+                      "type": "integer"
+                    },
+                    "fo": {
+                      "type": "integer"
+                    },
+                    "sj": {
+                      "type": "integer"
+                    },
+                    "gg": {
+                      "type": "integer"
+                    },
+                    "mc": {
+                      "type": "integer"
+                    },
+                    "fi": {
+                      "type": "integer"
+                    },
+                    "ba": {
+                      "type": "integer"
+                    },
+                    "ad": {
+                      "type": "integer"
+                    },
+                    "eg": {
+                      "type": "integer"
+                    },
+                    "cz": {
+                      "type": "integer"
+                    },
+                    "gr": {
+                      "type": "integer"
+                    },
+                    "mk": {
+                      "type": "integer"
+                    },
+                    "ax": {
+                      "type": "integer"
+                    },
+                    "va": {
+                      "type": "integer"
+                    },
+                    "cy": {
+                      "type": "integer"
+                    },
+                    "je": {
+                      "type": "integer"
+                    },
+                    "mt": {
+                      "type": "integer"
+                    },
+                    "me": {
+                      "type": "integer"
+                    },
+                    "bg": {
+                      "type": "integer"
+                    },
+                    "hu": {
+                      "type": "integer"
+                    },
+                    "li": {
+                      "type": "integer"
+                    },
+                    "lb": {
+                      "type": "integer"
+                    },
+                    "ie": {
+                      "type": "integer"
+                    },
+                    "ly": {
+                      "type": "integer"
+                    },
+                    "se": {
+                      "type": "integer"
+                    },
+                    "it": {
+                      "type": "integer"
+                    },
+                    "be": {
+                      "type": "integer"
+                    },
+                    "ma": {
+                      "type": "integer"
+                    },
+                    "gi": {
+                      "type": "integer"
+                    },
+                    "rs": {
+                      "type": "integer"
+                    },
+                    "ua": {
+                      "type": "integer"
+                    },
+                    "il": {
+                      "type": "integer"
+                    },
+                    "tn": {
+                      "type": "integer"
+                    },
+                    "ch": {
+                      "type": "integer"
+                    },
+                    "no": {
+                      "type": "integer"
+                    },
+                    "md": {
+                      "type": "integer"
+                    },
+                    "al": {
+                      "type": "integer"
+                    },
+                    "dk": {
+                      "type": "integer"
+                    },
+                    "sm": {
+                      "type": "integer"
+                    },
+                    "xk": {
+                      "type": "integer"
+                    },
+                    "ps": {
+                      "type": "integer"
+                    },
+                    "tr": {
+                      "type": "integer"
+                    },
+                    "fr": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "transportation_scores": {
+                  "type": "object",
+                  "properties": {
+                    "sj": {
+                      "type": "integer"
+                    },
+                    "fo": {
+                      "type": "integer"
+                    },
+                    "world": {
+                      "type": "integer"
+                    },
+                    "hr": {
+                      "type": "integer"
+                    },
+                    "sy": {
+                      "type": "integer"
+                    },
+                    "is": {
+                      "type": "integer"
+                    },
+                    "pl": {
+                      "type": "integer"
+                    },
+                    "gr": {
+                      "type": "integer"
+                    },
+                    "cz": {
+                      "type": "integer"
+                    },
+                    "ad": {
+                      "type": "integer"
+                    },
+                    "eg": {
+                      "type": "integer"
+                    },
+                    "ba": {
+                      "type": "integer"
+                    },
+                    "fi": {
+                      "type": "integer"
+                    },
+                    "mc": {
+                      "type": "integer"
+                    },
+                    "gg": {
+                      "type": "integer"
+                    },
+                    "us": {
+                      "type": "integer"
+                    },
+                    "nl": {
+                      "type": "integer"
+                    },
+                    "at": {
+                      "type": "integer"
+                    },
+                    "de": {
+                      "type": "integer"
+                    },
+                    "lv": {
+                      "type": "integer"
+                    },
+                    "es": {
+                      "type": "integer"
+                    },
+                    "lt": {
+                      "type": "integer"
+                    },
+                    "pt": {
+                      "type": "integer"
+                    },
+                    "sk": {
+                      "type": "integer"
+                    },
+                    "uk": {
+                      "type": "integer"
+                    },
+                    "si": {
+                      "type": "integer"
+                    },
+                    "lu": {
+                      "type": "integer"
+                    },
+                    "dz": {
+                      "type": "integer"
+                    },
+                    "im": {
+                      "type": "integer"
+                    },
+                    "ee": {
+                      "type": "integer"
+                    },
+                    "ro": {
+                      "type": "integer"
+                    },
+                    "no": {
+                      "type": "integer"
+                    },
+                    "md": {
+                      "type": "integer"
+                    },
+                    "tn": {
+                      "type": "integer"
+                    },
+                    "ch": {
+                      "type": "integer"
+                    },
+                    "il": {
+                      "type": "integer"
+                    },
+                    "ua": {
+                      "type": "integer"
+                    },
+                    "rs": {
+                      "type": "integer"
+                    },
+                    "gi": {
+                      "type": "integer"
+                    },
+                    "ma": {
+                      "type": "integer"
+                    },
+                    "be": {
+                      "type": "integer"
+                    },
+                    "it": {
+                      "type": "integer"
+                    },
+                    "fr": {
+                      "type": "integer"
+                    },
+                    "tr": {
+                      "type": "integer"
+                    },
+                    "ps": {
+                      "type": "integer"
+                    },
+                    "xk": {
+                      "type": "integer"
+                    },
+                    "dk": {
+                      "type": "integer"
+                    },
+                    "al": {
+                      "type": "integer"
+                    },
+                    "sm": {
+                      "type": "integer"
+                    },
+                    "li": {
+                      "type": "integer"
+                    },
+                    "hu": {
+                      "type": "integer"
+                    },
+                    "mt": {
+                      "type": "integer"
+                    },
+                    "bg": {
+                      "type": "integer"
+                    },
+                    "me": {
+                      "type": "integer"
+                    },
+                    "je": {
+                      "type": "integer"
+                    },
+                    "cy": {
+                      "type": "integer"
+                    },
+                    "va": {
+                      "type": "integer"
+                    },
+                    "mk": {
+                      "type": "integer"
+                    },
+                    "ax": {
+                      "type": "integer"
+                    },
+                    "se": {
+                      "type": "integer"
+                    },
+                    "ly": {
+                      "type": "integer"
+                    },
+                    "ie": {
+                      "type": "integer"
+                    },
+                    "lb": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "epi_score": {
+                  "type": "integer"
+                },
+                "aggregated_origins": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "origin": {
+                        "type": "string"
+                      },
+                      "percent": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                "epi_value": {
+                  "type": "integer"
+                },
+                "values": {
+                  "type": "object",
+                  "properties": {
+                    "im": {
+                      "type": "integer"
+                    },
+                    "ee": {
+                      "type": "integer"
+                    },
+                    "ro": {
+                      "type": "integer"
+                    },
+                    "dz": {
+                      "type": "integer"
+                    },
+                    "lu": {
+                      "type": "integer"
+                    },
+                    "si": {
+                      "type": "integer"
+                    },
+                    "uk": {
+                      "type": "integer"
+                    },
+                    "pt": {
+                      "type": "integer"
+                    },
+                    "lt": {
+                      "type": "integer"
+                    },
+                    "sk": {
+                      "type": "integer"
+                    },
+                    "es": {
+                      "type": "integer"
+                    },
+                    "de": {
+                      "type": "integer"
+                    },
+                    "lv": {
+                      "type": "integer"
+                    },
+                    "nl": {
+                      "type": "integer"
+                    },
+                    "us": {
+                      "type": "integer"
+                    },
+                    "at": {
+                      "type": "integer"
+                    },
+                    "gg": {
+                      "type": "integer"
+                    },
+                    "mc": {
+                      "type": "integer"
+                    },
+                    "fi": {
+                      "type": "integer"
+                    },
+                    "cz": {
+                      "type": "integer"
+                    },
+                    "ad": {
+                      "type": "integer"
+                    },
+                    "gr": {
+                      "type": "integer"
+                    },
+                    "eg": {
+                      "type": "integer"
+                    },
+                    "ba": {
+                      "type": "integer"
+                    },
+                    "is": {
+                      "type": "integer"
+                    },
+                    "pl": {
+                      "type": "integer"
+                    },
+                    "sy": {
+                      "type": "integer"
+                    },
+                    "hr": {
+                      "type": "integer"
+                    },
+                    "fo": {
+                      "type": "integer"
+                    },
+                    "world": {
+                      "type": "integer"
+                    },
+                    "sj": {
+                      "type": "integer"
+                    },
+                    "lb": {
+                      "type": "integer"
+                    },
+                    "ie": {
+                      "type": "integer"
+                    },
+                    "se": {
+                      "type": "integer"
+                    },
+                    "ly": {
+                      "type": "integer"
+                    },
+                    "cy": {
+                      "type": "integer"
+                    },
+                    "mk": {
+                      "type": "integer"
+                    },
+                    "va": {
+                      "type": "integer"
+                    },
+                    "ax": {
+                      "type": "integer"
+                    },
+                    "je": {
+                      "type": "integer"
+                    },
+                    "hu": {
+                      "type": "integer"
+                    },
+                    "mt": {
+                      "type": "integer"
+                    },
+                    "bg": {
+                      "type": "integer"
+                    },
+                    "me": {
+                      "type": "integer"
+                    },
+                    "li": {
+                      "type": "integer"
+                    },
+                    "sm": {
+                      "type": "integer"
+                    },
+                    "al": {
+                      "type": "integer"
+                    },
+                    "dk": {
+                      "type": "integer"
+                    },
+                    "ps": {
+                      "type": "integer"
+                    },
+                    "xk": {
+                      "type": "integer"
+                    },
+                    "fr": {
+                      "type": "integer"
+                    },
+                    "tr": {
+                      "type": "integer"
+                    },
+                    "be": {
+                      "type": "integer"
+                    },
+                    "ma": {
+                      "type": "integer"
+                    },
+                    "it": {
+                      "type": "integer"
+                    },
+                    "rs": {
+                      "type": "integer"
+                    },
+                    "ua": {
+                      "type": "integer"
+                    },
+                    "gi": {
+                      "type": "integer"
+                    },
+                    "ch": {
+                      "type": "integer"
+                    },
+                    "tn": {
+                      "type": "integer"
+                    },
+                    "il": {
+                      "type": "integer"
+                    },
+                    "md": {
+                      "type": "integer"
+                    },
+                    "no": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "warning": {
+                  "type": "string"
+                }
+              }
+            },
+            "packaging": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "integer"
+                },
+                "warning": {
+                  "type": "string"
+                },
+                "non_recyclable_and_non_biodegradable_materials": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "agribalyse": {
+          "type": "object",
+          "properties": {
+            "warning": {
+              "type": "string"
+            }
+          }
+        },
+        "missing_agribalyse_match_warning": {
+          "type": "integer"
+        },
+        "missing": {
+          "type": "object",
+          "properties": {
+            "agb_category": {
+              "type": "integer"
+            },
+            "labels": {
+              "type": "integer"
+            },
+            "origins": {
+              "type": "integer"
+            },
+            "packagings": {
+              "type": "integer"
+            }
+          }
+        },
+        "missing_key_data": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "nucleotides_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "codes_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "minerals_prev_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "debug_param_sorted_langs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_text_en_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "product_name_en_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_with_allergens_en": {
+      "type": "string"
+    },
+    "generic_name_fr": {
+      "type": "string"
+    },
+    "last_image_t": {
+      "type": "integer"
+    },
+    "labels_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "origins_lc": {
+      "type": "string"
+    },
+    "ingredients_n": {
+      "type": "integer"
+    },
+    "ingredients_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unknown_ingredients_n": {
+      "type": "integer"
+    },
+    "ingredients_analysis": {
+      "type": "object",
+      "properties": {
+        "en:may-contain-palm-oil": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "en:non-vegan": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "en:vegetarian-status-unknown": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "en:vegan-status-unknown": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "additives_n": {
+      "type": "integer"
+    },
+    "ingredients_that_may_be_from_palm_oil_n": {
+      "type": "integer"
+    },
+    "images": {
+      "type": "object",
+      "properties": {
+        "front_fr": {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "type": "string"
+            },
+            "x1": {
+              "type": "null"
+            },
+            "y1": {
+              "type": "null"
+            },
+            "y2": {
+              "type": "null"
+            },
+            "rev": {
+              "type": "string"
+            },
+            "angle": {
+              "type": "null"
+            },
+            "imgid": {
+              "type": "string"
+            },
+            "sizes": {
+              "type": "object",
+              "properties": {
+                "400": {
+                  "type": "object",
+                  "properties": {
+                    "h": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "200": {
+                  "type": "object",
+                  "properties": {
+                    "h": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "full": {
+                  "type": "object",
+                  "properties": {
+                    "h": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "100": {
+                  "type": "object",
+                  "properties": {
+                    "h": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            "white_magic": {
+              "type": "string"
+            },
+            "normalize": {
+              "type": "string"
+            },
+            "x2": {
+              "type": "null"
+            }
+          }
+        },
+        "ingredients_fr": {
+          "type": "object",
+          "properties": {
+            "geometry": {
+              "type": "string"
+            },
+            "x1": {
+              "type": "string"
+            },
+            "ocr": {
+              "type": "integer"
+            },
+            "y2": {
+              "type": "string"
+            },
+            "y1": {
+              "type": "string"
+            },
+            "rev": {
+              "type": "string"
+            },
+            "sizes": {
+              "type": "object",
+              "properties": {
+                "100": {
+                  "type": "object",
+                  "properties": {
+                    "w": {
+                      "type": "integer"
+                    },
+                    "h": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "400": {
+                  "type": "object",
+                  "properties": {
+                    "h": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "200": {
+                  "type": "object",
+                  "properties": {
+                    "w": {
+                      "type": "integer"
+                    },
+                    "h": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "full": {
+                  "type": "object",
+                  "properties": {
+                    "w": {
+                      "type": "integer"
+                    },
+                    "h": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            "angle": {
+              "type": "integer"
+            },
+            "imgid": {
+              "type": "string"
+            },
+            "white_magic": {
+              "type": "null"
+            },
+            "x2": {
+              "type": "string"
+            },
+            "normalize": {
+              "type": "null"
+            },
+            "orientation": {
+              "type": "string"
+            }
+          }
+        },
+        "2": {
+          "type": "object",
+          "properties": {
+            "uploaded_t": {
+              "type": "string"
+            },
+            "uploader": {
+              "type": "string"
+            },
+            "sizes": {
+              "type": "object",
+              "properties": {
+                "100": {
+                  "type": "object",
+                  "properties": {
+                    "w": {
+                      "type": "integer"
+                    },
+                    "h": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "full": {
+                  "type": "object",
+                  "properties": {
+                    "w": {
+                      "type": "integer"
+                    },
+                    "h": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "400": {
+                  "type": "object",
+                  "properties": {
+                    "h": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "1": {
+          "type": "object",
+          "properties": {
+            "sizes": {
+              "type": "object",
+              "properties": {
+                "100": {
+                  "type": "object",
+                  "properties": {
+                    "w": {
+                      "type": "integer"
+                    },
+                    "h": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "full": {
+                  "type": "object",
+                  "properties": {
+                    "h": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "400": {
+                  "type": "object",
+                  "properties": {
+                    "h": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            },
+            "uploaded_t": {
+              "type": "string"
+            },
+            "uploader": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "known_ingredients_n": {
+      "type": "integer"
+    },
+    "product_name_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "product_quantity": {
+      "type": "string"
+    },
+    "emb_codes": {
+      "type": "string"
+    },
+    "manufacturing_places": {
+      "type": "string"
+    },
+    "origins_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_original_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "food_groups": {
+      "type": "string"
+    },
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "percent_estimate": {
+            "type": "number"
+          },
+          "ingredients": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "ingredients": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "percent_estimate": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                "text": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "percent_estimate": {
+                  "type": "number"
+                },
+                "vegan": {
+                  "type": "string"
+                },
+                "vegetarian": {
+                  "type": "string"
+                },
+                "percent": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "text": {
+            "type": "string"
+          },
+          "vegan": {
+            "type": "string"
+          },
+          "vegetarian": {
+            "type": "string"
+          },
+          "percent": {
+            "type": [
+              "number",
+              "integer"
+            ]
+          },
+          "processing": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "packaging_old": {
+      "type": "string"
+    },
+    "manufacturing_places_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_with_unspecified_percent_sum": {
+      "type": "number"
+    },
+    "last_image_dates_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nutrition_data_prepared_per_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "origins_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "purchase_places_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "labels_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expiration_date": {
+      "type": "string"
+    },
+    "labels_lc": {
+      "type": "string"
+    },
+    "cities_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "fruits_vegetables_nuts_100g_estimate": {
+      "type": "integer"
+    },
+    "quantity_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "emb_codes_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "packaging": {
+      "type": "string"
+    },
+    "generic_name_en": {
+      "type": "string"
+    },
+    "ingredients_analysis_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_with_specified_percent_n": {
+      "type": "integer"
+    },
+    "generic_name": {
+      "type": "string"
+    },
+    "ingredients_n_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "product_name_fr": {
+      "type": "string"
+    },
+    "ingredients_from_or_that_may_be_from_palm_oil_n": {
+      "type": "integer"
+    },
+    "data_sources_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "traces_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "link_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "expiration_date_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "generic_name_fr_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "packaging_old_before_taxonomization": {
+      "type": "string"
+    },
+    "max_imgid": {
+      "type": "string"
+    },
+    "categories_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ingredients_text_with_allergens_fr": {
+      "type": "string"
+    },
+    "categories_old": {
+      "type": "string"
+    },
+    "generic_name_en_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_with_unspecified_percent_n": {
+      "type": "integer"
+    },
+    "stores_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nova_group_error": {
+      "type": "string"
+    },
+    "purchase_places_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "purchase_places": {
+      "type": "string"
+    },
+    "data_sources": {
+      "type": "string"
+    },
+    "ingredients_percent_analysis": {
+      "type": "integer"
+    },
+    "link": {
+      "type": "string"
+    },
+    "packaging_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "labels": {
+      "type": "string"
+    },
+    "packaging_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stores_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "manufacturing_places_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "items": {}
+            }
+          },
+          "import_t": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "manufacturer": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    "labels_old": {
+      "type": "string"
+    },
+    "packaging_lc": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "string"
+    },
+    "emb_codes_orig": {
+      "type": "string"
+    },
+    "countries_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "nova_groups_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categories": {
+      "type": "string"
+    },
+    "lang_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_fr_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "emb_codes_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "stores": {
+      "type": "string"
+    },
+    "compared_to_category": {
+      "type": "string"
+    },
+    "nutrition_data_prepared": {
+      "type": "string"
+    },
+    "ingredients_with_specified_percent_sum": {
+      "type": "integer"
+    },
+    "ingredients_text_with_allergens": {
+      "type": "string"
+    },
+    "nutrition_data_per_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "serving_size_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "origins_old": {
+      "type": "string"
+    },
+    "ingredients_from_palm_oil_n": {
+      "type": "integer"
+    },
+    "additives_old_n": {
+      "type": "integer"
+    },
+    "categories_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categories_lc": {
+      "type": "string"
+    },
+    "product_name_fr_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "brands_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_fr": {
+      "type": "string"
+    },
+    "origins": {
+      "type": "string"
+    },
+    "nutrition_score_warning_fruits_vegetables_nuts_estimate_from_ingredients_value": {
+      "type": "integer"
+    },
+    "nutriscore_grade": {
+      "type": "string"
+    },
+    "nutrition_grades": {
+      "type": "string"
+    },
+    "nutrition_grade_fr": {
+      "type": "string"
+    },
+    "nutriscore_data": {
+      "type": "object",
+      "properties": {
+        "proteins": {
+          "type": "number"
+        },
+        "sugars": {
+          "type": "number"
+        },
+        "fiber_value": {
+          "type": "number"
+        },
+        "proteins_points": {
+          "type": "integer"
+        },
+        "fruits_vegetables_nuts_colza_walnut_olive_oils_points": {
+          "type": "integer"
+        },
+        "is_cheese": {
+          "type": "integer"
+        },
+        "sugars_points": {
+          "type": "integer"
+        },
+        "saturated_fat_ratio_points": {
+          "type": "integer"
+        },
+        "fiber_points": {
+          "type": "integer"
+        },
+        "grade": {
+          "type": "string"
+        },
+        "fiber": {
+          "type": "number"
+        },
+        "sodium": {
+          "type": "integer"
+        },
+        "energy": {
+          "type": "integer"
+        },
+        "fruits_vegetables_nuts_colza_walnut_olive_oils_value": {
+          "type": "integer"
+        },
+        "saturated_fat_value": {
+          "type": "number"
+        },
+        "saturated_fat_ratio_value": {
+          "type": "number"
+        },
+        "fruits_vegetables_nuts_colza_walnut_olive_oils": {
+          "type": "integer"
+        },
+        "sodium_points": {
+          "type": "integer"
+        },
+        "energy_value": {
+          "type": "integer"
+        },
+        "energy_points": {
+          "type": "integer"
+        },
+        "saturated_fat_ratio": {
+          "type": "number"
+        },
+        "is_fat": {
+          "type": "integer"
+        },
+        "sugars_value": {
+          "type": "number"
+        },
+        "sodium_value": {
+          "type": "integer"
+        },
+        "is_beverage": {
+          "type": "integer"
+        },
+        "saturated_fat_points": {
+          "type": "integer"
+        },
+        "positive_points": {
+          "type": "integer"
+        },
+        "negative_points": {
+          "type": "integer"
+        },
+        "score": {
+          "type": "integer"
+        },
+        "is_water": {
+          "type": "integer"
+        },
+        "proteins_value": {
+          "type": "number"
+        },
+        "saturated_fat": {
+          "type": "number"
+        }
+      }
+    },
+    "nutriscore_score_opposite": {
+      "type": "integer"
+    },
+    "nutrition_score_warning_fruits_vegetables_nuts_estimate_from_ingredients": {
+      "type": "integer"
+    },
+    "ecoscore_score": {
+      "type": "integer"
+    },
+    "new_additives_n": {
+      "type": "integer"
+    },
+    "editors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nutriscore_score": {
+      "type": "integer"
+    },
+    "nutrition_score_warning_no_fiber": {
+      "type": "integer"
+    },
+    "downgraded": {
+      "type": "string"
+    },
+    "nutrition_score_warning_no_fruits_vegetables_nuts": {
+      "type": "integer"
+    },
+    "forest_footprint_data": {
+      "type": "object",
+      "properties": {
+        "footprint_per_kg": {
+          "type": "number"
+        },
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "footprint_per_kg": {
+                "type": "number"
+              },
+              "percent_estimate": {
+                "type": "number"
+              },
+              "tag_type": {
+                "type": "string"
+              },
+              "tag_id": {
+                "type": "string"
+              },
+              "matching_tag_id": {
+                "type": "string"
+              },
+              "percent": {
+                "type": "number"
+              },
+              "processing_factor": {
+                "type": "string"
+              },
+              "conditions_tags": {
+                "type": "array",
+                "items": {
+                  "items": {}
+                }
+              },
+              "type": {
+                "type": "object",
+                "properties": {
+                  "soy_feed_factor": {
+                    "type": "string"
+                  },
+                  "deforestation_risk": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "soy_yield": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "grade": {
+          "type": "string"
+        }
+      }
+    },
+    "nova_group": {
+      "type": "integer"
+    },
+    "allergens_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "nova_groups": {
+      "type": "string"
+    },
+    "carbon_footprint_from_known_ingredients_debug": {
+      "type": "string"
+    },
+    "carbon_footprint_percent_of_known_ingredients": {
+      "type": "integer"
+    },
+    "nutrition_score_warning_fruits_vegetables_nuts_from_category_value": {
+      "type": "integer"
+    },
+    "nutrition_score_warning_fruits_vegetables_nuts_from_category": {
+      "type": "string"
+    },
+    "allergens_lc": {
+      "type": "string"
+    },
+    "traces_lc": {
+      "type": "string"
+    },
+    "nova_groups_markers": {
+      "type": "object",
+      "properties": {
+        "4": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "3": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "carbon_footprint_from_meat_or_fish_debug": {
+      "type": "string"
+    },
+    "labels_prev_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "labels_prev_hierarchy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "emb_codes_20141016": {
+      "type": "string"
+    },
+    "categories_prev_hierarchy": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "categories_prev_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "labels_debug_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categories_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "additives_tags_n": {
+      "type": "null"
+    },
+    "origins_fr": {
+      "type": "string"
+    },
+    "with_sweeteners": {
+      "type": "integer"
+    },
+    "nutrition_score_warning_fruits_vegetables_nuts_estimate": {
+      "type": "integer"
+    },
+    "specific_ingredients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ingredient": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "origins": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "data_quality_warning_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "product_name_de": {
+      "type": "string"
+    },
+    "product_name_de_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_with_allergens_de": {
+      "type": "string"
+    },
+    "generic_name_de": {
+      "type": "string"
+    },
+    "ingredients_text_de": {
+      "type": "string"
+    },
+    "generic_name_de_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_de_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "photographers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "correctors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "checkers": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "informers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generic_name_nl": {
+      "type": "string"
+    },
+    "product_name_nl": {
+      "type": "string"
+    },
+    "generic_name_it_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_es_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "generic_name_es_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_it": {
+      "type": "string"
+    },
+    "ingredients_text_nl": {
+      "type": "string"
+    },
+    "ingredients_text_nl_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "obsolete": {
+      "type": "string"
+    },
+    "product_name_es_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "generic_name_nl_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_with_allergens_es": {
+      "type": "string"
+    },
+    "ingredients_text_es": {
+      "type": "string"
+    },
+    "ingredients_text_it_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "product_name_es": {
+      "type": "string"
+    },
+    "generic_name_es": {
+      "type": "string"
+    },
+    "product_name_it": {
+      "type": "string"
+    },
+    "obsolete_since_date": {
+      "type": "string"
+    },
+    "ingredients_text_with_allergens_it": {
+      "type": "string"
+    },
+    "product_name_it_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_with_allergens_nl": {
+      "type": "string"
+    },
+    "generic_name_it": {
+      "type": "string"
+    },
+    "product_name_nl_debug_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "ingredients_text_en_imported": {
+      "type": "string"
+    },
+    "categories_imported": {
+      "type": "string"
+    },
+    "brand_owner": {
+      "type": "string"
+    },
+    "sources_fields": {
+      "type": "object",
+      "properties": {
+        "org-database-usda": {
+          "type": "object",
+          "properties": {
+            "fdc_category": {
+              "type": "string"
+            },
+            "fdc_id": {
+              "type": "string"
+            },
+            "available_date": {
+              "type": "string"
+            },
+            "publication_date": {
+              "type": "string"
+            },
+            "fdc_data_source": {
+              "type": "string"
+            },
+            "modified_date": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "nutrition_data_per_imported": {
+      "type": "string"
+    },
+    "lc_imported": {
+      "type": "string"
+    },
+    "countries_imported": {
+      "type": "string"
+    },
+    "product_name_en_imported": {
+      "type": "string"
+    },
+    "brand_owner_imported": {
+      "type": "string"
+    },
+    "data_sources_imported": {
+      "type": "string"
+    },
+    "nutrition_data_prepared_per_imported": {
+      "type": "string"
+    },
+    "serving_size_imported": {
+      "type": "string"
+    },
+    "allergens_imported": {
+      "type": "string"
+    },
+    "ingredients_text_with_allergens_la": {
+      "type": "string"
+    },
+    "ingredients_text_la": {
+      "type": "string"
+    },
+    "product_name_la": {
+      "type": "string"
+    },
+    "teams_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "teams": {
+      "type": "string"
+    },
+    "traces_imported": {
+      "type": "string"
+    },
+    "labels_imported": {
+      "type": "string"
+    },
+    "packaging_text_fr": {
+      "type": "string"
+    },
+    "origin_fr": {
+      "type": "string"
+    },
+    "packaging_text": {
+      "type": "string"
+    },
+    "origin": {
+      "type": "string"
+    },
+    "generic_name_en_imported": {
+      "type": "string"
+    },
+    "ecoscore_extended_data": {
+      "type": "object",
+      "properties": {
+        "impact": {
+          "type": "object",
+          "properties": {
+            "warnings": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "likeliest_impacts": {
+              "type": "object",
+              "properties": {
+                "EF_single_score": {
+                  "type": "number"
+                },
+                "Climate_change": {
+                  "type": "number"
+                }
+              }
+            },
+            "uncharacterized_ingredients_mass_proportion": {
+              "type": "object",
+              "properties": {
+                "nutrition": {
+                  "type": "number"
+                },
+                "impact": {
+                  "type": "number"
+                }
+              }
+            },
+            "likeliest_recipe": {
+              "type": "object",
+              "properties": {
+                "en:water": {
+                  "type": "number"
+                },
+                "en:coconut__defatted_cocoa_powder": {
+                  "type": "number"
+                },
+                "en:egg_white": {
+                  "type": "number"
+                },
+                "en:potato_starch": {
+                  "type": "number"
+                },
+                "en:soya_lecithin": {
+                  "type": "number"
+                },
+                "en:glucose_syrup": {
+                  "type": "number"
+                },
+                "en:coconut": {
+                  "type": "number"
+                },
+                "en:vegetable_fats_palm": {
+                  "type": "number"
+                },
+                "en:palm_kernel_oil": {
+                  "type": "number"
+                },
+                "en:dextrose": {
+                  "type": "number"
+                },
+                "en:e492": {
+                  "type": "number"
+                },
+                "en:sugar": {
+                  "type": "number"
+                }
+              }
+            },
+            "uncharacterized_ingredients_ratio": {
+              "type": "object",
+              "properties": {
+                "impact": {
+                  "type": "number"
+                },
+                "nutrition": {
+                  "type": "number"
+                }
+              }
+            },
+            "uncharacterized_ingredients": {
+              "type": "object",
+              "properties": {
+                "nutrition": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "impact": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "ef_single_score_log_stddev": {
+              "type": "number"
+            },
+            "mass_ratio_uncharacterized": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "ecoscore_extended_data_version": {
+      "type": "string"
+    },
+    "packaging_text_en": {
+      "type": "string"
+    },
+    "environment_impact_level_tags": {
+      "type": "array",
+      "items": {
+        "items": {}
+      }
+    },
+    "origin_en": {
+      "type": "string"
+    },
+    "environment_impact_level": {
+      "type": "string"
     }
+  }
 }
