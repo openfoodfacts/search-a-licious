@@ -21,7 +21,7 @@ def manual_query():
         payload = {
             'string_filters': [
                 {
-                    'field': 'code',
+                    'field': 'product_name',
                     'value': search_term,
                     'operator': 'eq',
                 },
@@ -48,7 +48,7 @@ def manual_query():
             'num_results': 10,
             # 'response_fields': ['product_name', 'states_tags'],
         }
-        response = requests.post('http://127.0.0.1:8001/search', json=payload)
+        response = requests.post('http://127.0.0.1:8000/search', json=payload)
         print(
             json.dumps(
                 response.json(), indent=4,
