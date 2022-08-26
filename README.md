@@ -31,7 +31,7 @@ For development, you have two options for running the service:
 
 To develop on docker, make the changes you need, then build the image and compose by running:
 ```console
-docker build -t off_search_image . && docker-compose up -d
+docker-compose up -d
 ```
 
 However, this tends to be slower than developing locally.

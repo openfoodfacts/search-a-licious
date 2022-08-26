@@ -1,8 +1,46 @@
-version: "2.2"
+version: "3.7"
+
+
+# base ES service definition
+x-base-es-service: &base-es-service
+    depends_on:
+      setup:
+        condition: service_healthy
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: ${RESTART_POLICY}
+    mem_limit: ${MEM_LIMIT}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 120
+
+
+# shared environment for ES
+x-base-es-envs: &base-es-envs
+  cluster.name: ${CLUSTER_NAME}
+  cluster.initial_master_nodes: es01,es02
+  bootstrap.memory_lock: "true"
+  xpack.security.enabled: "false"
+  xpack.license.self_generated.type: ${LICENSE}
+  http.cors.enabled: "true"
+  http.cors.allow-origin: http://localhost:8080,http://127.0.0.1:8080
+  http.cors.allow-headers: X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+  http.cors.allow-credentials: "true"
+
 
 services:
   setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: on-failure
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
     user: "0"
@@ -48,97 +86,51 @@ services:
       retries: 120
 
   es01:
-    depends_on:
-      setup:
-        condition: service_healthy
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    <<: *base-es-service
+    environment:
+      <<: *base-es-envs
+      node.name: es01
+      discovery.seed_hosts: es02
+
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata01:/usr/share/elasticsearch/data
     ports:
       - ${ES_PORT}:9200
-    environment:
-      - node.name=es01
-      - cluster.name=${CLUSTER_NAME}
-      - cluster.initial_master_nodes=es01,es02
-      - discovery.seed_hosts=es02
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=false
-      - xpack.license.self_generated.type=${LICENSE}
-      - http.cors.enabled=true
-      - http.cors.allow-origin=http://localhost:8080,http://127.0.0.1:8080
-      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
-      - http.cors.allow-credentials=true
-    mem_limit: ${MEM_LIMIT}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
 
   es02:
+    <<: *base-es-service
+    environment:
+      <<: *base-es-envs
+      node.name: es02
+      discovery.seed_hosts: es01
     depends_on:
       - es01
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata02:/usr/share/elasticsearch/data
-    environment:
-      - node.name=es02
-      - cluster.name=${CLUSTER_NAME}
-      - cluster.initial_master_nodes=es01,es02
-      - discovery.seed_hosts=es01
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=false
-      - xpack.license.self_generated.type=${LICENSE}
-      - http.cors.enabled=true
-      - http.cors.allow-origin=http://localhost:8080,http://127.0.0.1:8080
-      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
-      - http.cors.allow-credentials=true
-    mem_limit: ${MEM_LIMIT}
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
 
   # elasticsearch browser
   elasticvue:
       image: cars10/elasticvue
+      restart: ${RESTART_POLICY}
       ports:
-          - '8080:8080'
-      links:
-          - es01
+          - '${ES_VUE_PORT}:8080'
 
   searchservice:
     image: off_search_image
+    restart: ${RESTART_POLICY}
     environment:
-      - ELASTICSEARCH_URL=host.docker.internal:9200
-      - REDIS_HOST=host.docker.internal
+      - ELASTICSEARCH_URL=es01:9200
+      - REDIS_HOST=searchredis
     ports:
-      - '8000:8000'
+      - '${SEARCH_PORT}:8000'
     networks:
       - common_net
 
   searchredis:
     image: redis
-    restart: always
+    restart: ${RESTART_POLICY}
     ports:
       - '6379:6379'
     command: redis-server --save 20 1 --loglevel warning
@@ -149,13 +141,9 @@ services:
 
 volumes:
   certs:
-    driver: local
   esdata01:
-    driver: local
   esdata02:
-    driver: local
   rediscache:
-    driver: local
 
 networks:
   common_net:
