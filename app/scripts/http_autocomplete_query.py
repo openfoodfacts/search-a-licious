@@ -3,6 +3,7 @@ Script that allows manually querying the local search service
 """
 from __future__ import annotations
 
+import argparse
 import json
 import time
 
@@ -11,7 +12,7 @@ import requests
 from app.utils import connection
 
 
-def manual_query():
+def manual_query(hostname, port):
     connection.get_connection()
 
     while True:
@@ -25,7 +26,7 @@ def manual_query():
             'response_fields': ['product_name'],
         }
         response = requests.post(
-            'http://127.0.0.1:8001/autocomplete', json=payload,
+            '{}:{}/autocomplete'.format(hostname, port), json=payload,
         )
         print(json.dumps(response.json(), indent=4, sort_keys=True))
         print(f'Number of results: {len(response.json())}')
@@ -34,4 +35,12 @@ def manual_query():
 
 
 if __name__ == '__main__':
-    manual_query()
+    parser = argparse.ArgumentParser('http_autocomplete_query')
+    parser.add_argument(
+        '--hostname', type=str, default='http://127.0.0.1',
+    )
+    parser.add_argument(
+        '--port', type=int, default=8000,
+    )
+    args = parser.parse_args()
+    manual_query(args.hostname, args.port)

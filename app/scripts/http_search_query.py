@@ -3,6 +3,7 @@ Script that allows manually querying the local search service
 """
 from __future__ import annotations
 
+import argparse
 import json
 import time
 
@@ -11,7 +12,7 @@ import requests
 from app.utils import connection
 
 
-def manual_query():
+def manual_query(hostname, port, field):
     connection.get_connection()
 
     while True:
@@ -21,11 +22,12 @@ def manual_query():
         payload = {
             'string_filters': [
                 {
-                    'field': 'product_name',
+                    'field': field,
                     'value': search_term,
                     'operator': 'eq',
                 },
             ],
+            # To test more advanced features, uncomment the below
             # 'numeric_filters': [
             #     {
             #         'field': 'nutriments.sodium_value',
@@ -48,7 +50,9 @@ def manual_query():
             'num_results': 10,
             # 'response_fields': ['product_name', 'states_tags'],
         }
-        response = requests.post('http://127.0.0.1:8000/search', json=payload)
+        response = requests.post(
+            '{}:{}/search'.format(hostname, port), json=payload,
+        )
         print(
             json.dumps(
                 response.json(), indent=4,
@@ -61,4 +65,15 @@ def manual_query():
 
 
 if __name__ == '__main__':
-    manual_query()
+    parser = argparse.ArgumentParser('http_search_query')
+    parser.add_argument(
+        '--hostname', type=str, default='http://127.0.0.1',
+    )
+    parser.add_argument(
+        '--port', type=int, default=8000,
+    )
+    parser.add_argument(
+        '--field', help='Field to search', type=str, default='code',
+    )
+    args = parser.parse_args()
+    manual_query(args.hostname, args.port, args.field)
