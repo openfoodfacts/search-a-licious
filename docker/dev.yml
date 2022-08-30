@@ -1,0 +1,10 @@
+version: "3.7"
+# this file setup various thinks that are for dev environment
+
+services:
+  searchservice:
+    build:
+      context: .
+    volumes:
+      # mount code dynamically
+      - "./app:/code/app"
