@@ -1,0 +1,12 @@
+# Add labels to any any pull request with changes to the specified paths
+github_actions:
+- .github/**/*
+
+models:
+- app/models/**/*
+
+scripts:
+- app/scripts/**/*
+
+utils:
+- app/utils/**/*
