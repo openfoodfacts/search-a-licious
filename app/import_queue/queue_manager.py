@@ -21,11 +21,10 @@ class QueueManager:
             if not item:
                 print('Unable to retrieve product with code {}'.format(code))
                 continue
-
             # As the code is unique (set in the save method), this will handle updates as well as new documents
             product = create_product_from_dict(item)
             product.save()
-            print(f'Recieved Redis update for product: {product.product_name}')
+            print(f'Received Redis update for product: {product.product_name}')
 
             # Now, write a key that can be read for full imports
             self.redis_client.write_processed(product.code)

@@ -53,9 +53,10 @@ def create_product_from_dict(d):
 
 class Product(Document):
     """
-    This should mirror the fields here: https://github.com/openfoodfacts/openfoodfacts-server/blob/main/html/data/data-fields.txt
-    Use scripts/generate_product_from_data_fields.py to regenerate from data-fields.txt, but be careful for manual
-    adjustments
+    This was initially created with the scripts/generate_schema.py script. However, note that there have been manual
+    adjustments.
+
+    Furthermore, additional fields are added at index time, so below is just a subset of the available fields.
     """
 
     class Index:

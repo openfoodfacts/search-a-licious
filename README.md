@@ -3,7 +3,7 @@ Open Food Facts Search API V3 using ElasticSearch - https://wiki.openfoodfacts.o
 
 This API is currently in development. It is not serving any production traffic. The [Work Plan](https://wiki.openfoodfacts.org/Search_API_V3#Work_Plan) will be updated as development continues.
 
-The file product.schema.json contains the schema of the returned products.
+The file product.schema.json contains a partial schema of the returned products.
 
 ### Organization
 The main file is `api.py`, and the Product schema is in `models/product.py`.
@@ -20,8 +20,9 @@ Docker spins up:
 - Two elasticsearch nodes
 - [Elasticvue](https://elasticvue.com/)
 - The search service on port 8000
+- Redis on port 6379
 
-You will then need to import from CSV (see instructions below).
+You will then need to import from MongoDB (see instructions below).
 
 ### Development
 For development, you have two options for running the service:
@@ -30,7 +31,6 @@ For development, you have two options for running the service:
 
 To develop on docker, make the changes you need, then build the image and compose by running:
 ```console
-docker build -t off_search_image .
 docker-compose up -d
 ```
 
@@ -51,7 +51,21 @@ This repo uses [pre-commit](https://pre-commit.com/) to enforce code styling, et
 pre-commit run
 ```
 
-### Helpful commands:
+### Running the import:
 To import data from the [MongoDb export](https://world.openfoodfacts.org/data):
+1. First ensure that your docker environment has at least 150GB of disk and 6GB of RAM. This can be found under settings --> resources
+2. Run the following command:
 ```console
-python scripts/perform_import_parallel.py --filename=/path/to/file.csv
+python scripts/perform_import_parallel.py --filename=/path/to/file.csv --num_processes=2
+```
+If you get errors, try adding more RAM (12GB works well if you have that spare), or slow down the indexing process by setting `num_processes` to 1 in the command above.
+
+Typical import time is 1-1.5 hours on an M1 Macbook.
+
+### Testing via CLI:
+Under `scripts/` there are scripts that allow you to send requests to the service, ES or Redis.
+
+For example, to run the autocomplete query on the local docker instance, do:
+```console
+python scripts/http_autocomplete_query.py --port=8000
+```
