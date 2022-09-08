@@ -27,7 +27,7 @@ x-base-es-envs: &base-es-envs
   cluster.initial_master_nodes: es01,es02
   bootstrap.memory_lock: "true"
   xpack.security.enabled: "false"
-  xpack.license.self_generated.type: ${LICENSE}
+  xpack.license.self_generated.type: ${LICENSE:-basic}
   http.cors.enabled: "true"
   http.cors.allow-origin: http://localhost:8080,http://127.0.0.1:8080
   http.cors.allow-headers: X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
@@ -67,7 +67,7 @@ services:
           - '${ES_VUE_PORT}:8080'
 
   searchservice:
-    image: off_search_image
+    image: off_search_image:${TAG:-dev}
     restart: ${RESTART_POLICY}
     environment:
       - ELASTICSEARCH_URL=es01:9200
