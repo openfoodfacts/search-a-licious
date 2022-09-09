@@ -1,11 +1,11 @@
 name: Container Image Deployment CI
 
-# WIP disable until ready :-)
-# on:
-#   push:
-#     branches:
-#       - main
-#       - deploy-*
+on:
+  push:
+    branches:
+      - main
+      - deploy-*
+# only staging for now, not prod
 #     tags:
 #       - v*.*.*
 
@@ -97,10 +97,14 @@ jobs:
           echo "RESTART_POLICY=always" >> .env
           # Set App variables
           echo "CLUSTER_NAME=${{ matrix.env }}-es-cluster" >> .env
-          echo "ES_VUE_PORT=8181" >> .env
           echo "SEARCH_PORT=8180" >> .env
+          echo "ES_VUE_PORT=8181" >> .env
+          echo "REDIS_PORT=8182" >> .env
           echo "MEM_LIMIT=4294967296" >> .env
+          # this is the network shared with productopener
           echo "COMMON_NET_NAME=webnet">> .env
+          # This secret is to be generated using htpasswd, see .env file
+          echo "NGINX_BASIC_AUTH_USER_PASSWD= ${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}" >> .env
 
     - name: Create Docker volumes
       uses: appleboy/ssh-action@master

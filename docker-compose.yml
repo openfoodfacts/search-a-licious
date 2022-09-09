@@ -42,11 +42,8 @@ services:
       <<: *base-es-envs
       node.name: es01
       discovery.seed_hosts: es02
-
     volumes:
       - esdata01:/usr/share/elasticsearch/data
-    ports:
-      - ${ES_PORT}:9200
 
   es02:
     <<: *base-es-service
@@ -61,10 +58,18 @@ services:
 
   # elasticsearch browser
   elasticvue:
-      image: cars10/elasticvue
-      restart: ${RESTART_POLICY}
-      ports:
-          - '${ES_VUE_PORT}:8080'
+    image: cars10/elasticvue
+    restart: ${RESTART_POLICY}
+    environment:
+      - NGINX_BASIC_AUTH_USER_PASSWD
+    ports:
+      - "${ES_VUE_PORT}:8080"
+    volumes:
+      # we add an entrypoint to eventually add basic auth
+      - ./docker/elasticvue-entrypoint.sh:/bin/elasticvue-entrypoint.sh:ro
+    entrypoint: ["/bin/elasticvue-entrypoint.sh"]
+    # because redefining entrypoint, oblige to redefine command…
+    command: ["nginx", "-g", "daemon off;"]
 
   searchservice:
     image: off_search_image:${TAG:-dev}
@@ -73,7 +78,7 @@ services:
       - ELASTICSEARCH_URL=es01:9200
       - REDIS_HOST=searchredis
     ports:
-      - '${SEARCH_PORT}:8000'
+      - "${SEARCH_PORT}:8000"
     networks:
       - default
       - common_net
@@ -81,11 +86,11 @@ services:
   searchredis:
     image: redis
     restart: ${RESTART_POLICY}
-    ports:
-      - '6379:6379'
     command: redis-server --save 20 1 --loglevel warning
     volumes:
       - rediscache:/data
+    ports:
+      - "${REDIS_PORT}:6379"
     networks:
       - default
       - common_net
@@ -96,5 +101,6 @@ volumes:
   rediscache:
 
 networks:
+  # this is the network shared with product opener
   common_net:
     name: ${COMMON_NET_NAME}

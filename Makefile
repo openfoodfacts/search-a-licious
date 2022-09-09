@@ -1,6 +1,13 @@
 MOUNT_POINT ?= /mnt
 DOCKER_LOCAL_DATA ?= /srv/off/docker_data
 ENV_FILE ?= .env
+# for dev we need to align user uid with the one in the container
+# this is handled through build args
+UID ?= $(shell id -u)
+export USER_UID:=${UID}
+# prefer to use docker buildkit
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
 # we need COMPOSE_PROJECT_NAME for some commands
 # take it form env, or from env file
 COMPOSE_PROJECT_NAME ?= $(shell grep COMPOSE_PROJECT_NAME ${ENV_FILE} | cut -d '=' -f 2)
@@ -41,3 +48,8 @@ livecheck:
 	done; \
 	[ $$exit_code -eq 0 ] && echo "Success !"; \
 	exit $$exit_code;
+
+
+build:
+	@echo "🥫 building docker (for dev)"
+	docker-compose build
