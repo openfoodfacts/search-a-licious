@@ -3,9 +3,6 @@ version: "3.7"
 
 # base ES service definition
 x-base-es-service: &base-es-service
-    depends_on:
-      setup:
-        condition: service_healthy
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
     restart: ${RESTART_POLICY}
     mem_limit: ${MEM_LIMIT}
@@ -17,7 +14,7 @@ x-base-es-service: &base-es-service
       test:
         [
           "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+          "curl -u elastic:elastic -s -f localhost:9200/_cat/health >/dev/null || exit 1",
         ]
       interval: 10s
       timeout: 10s
@@ -38,52 +35,6 @@ x-base-es-envs: &base-es-envs
 
 
 services:
-  setup:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
-    restart: on-failure
-    volumes:
-      - certs:/usr/share/elasticsearch/config/certs
-    user: "0"
-    command: >
-      bash -c '
-        if [ ! -f config/certs/ca.zip ]; then
-          echo "Creating CA";
-          bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
-          unzip config/certs/ca.zip -d config/certs;
-        fi;
-        if [ ! -f config/certs/certs.zip ]; then
-          echo "Creating certs";
-          echo -ne \
-          "instances:\n"\
-          "  - name: es01\n"\
-          "    dns:\n"\
-          "      - es01\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          "  - name: es02\n"\
-          "    dns:\n"\
-          "      - es02\n"\
-          "      - localhost\n"\
-          "    ip:\n"\
-          "      - 127.0.0.1\n"\
-          > config/certs/instances.yml;
-          bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
-          unzip config/certs/certs.zip -d config/certs;
-        fi;
-        echo "Setting file permissions"
-        chown -R root:root config/certs;
-        find . -type d -exec chmod 750 \{\} \;;
-        find . -type f -exec chmod 640 \{\} \;;
-        echo "Waiting for Elasticsearch availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es01:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
-        echo "All done!";
-      '
-    healthcheck:
-      test: ["CMD-SHELL", "[ -f config/certs/es01/es01.crt ]"]
-      interval: 1s
-      timeout: 5s
-      retries: 120
 
   es01:
     <<: *base-es-service
@@ -93,7 +44,6 @@ services:
       discovery.seed_hosts: es02
 
     volumes:
-      - certs:/usr/share/elasticsearch/config/certs
       - esdata01:/usr/share/elasticsearch/data
     ports:
       - ${ES_PORT}:9200
@@ -107,7 +57,6 @@ services:
     depends_on:
       - es01
     volumes:
-      - certs:/usr/share/elasticsearch/config/certs
       - esdata02:/usr/share/elasticsearch/data
 
   # elasticsearch browser
@@ -142,7 +91,6 @@ services:
       - common_net
 
 volumes:
-  certs:
   esdata01:
   esdata02:
   rediscache:
