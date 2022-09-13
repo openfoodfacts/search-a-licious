@@ -112,7 +112,8 @@ jobs:
           # this is the network shared with productopener
           echo "COMMON_NET_NAME=webnet">> .env
           # This secret is to be generated using htpasswd, see .env file
-          echo "NGINX_BASIC_AUTH_USER_PASSWD= ${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}" >> .env
+          # use simple quotes to avoid interpolation of $apr1$ !
+          echo 'NGINX_BASIC_AUTH_USER_PASSWD= ${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}' >> .env
 
     - name: Create Docker volumes
       uses: appleboy/ssh-action@master
