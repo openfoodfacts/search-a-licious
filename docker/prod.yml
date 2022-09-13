@@ -14,3 +14,8 @@ volumes:
   rediscache:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_rediscache
+
+networks:
+  common_net:
+    name: ${COMMON_NET_NAME}
+    external: true

@@ -72,7 +72,7 @@ services:
     command: ["nginx", "-g", "daemon off;"]
 
   searchservice:
-    image: ghcr.io/openfoodfacts/off_search_image:${TAG:-dev}
+    image: ghcr.io/openfoodfacts/openfoodfacts-search/off_search_image:${TAG:-dev}
     restart: ${RESTART_POLICY}
     environment:
       - ELASTICSEARCH_URL=es01:9200
