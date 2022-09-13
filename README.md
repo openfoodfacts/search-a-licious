@@ -11,7 +11,17 @@ The main file is `api.py`, and the Product schema is in `models/product.py`.
 The `scripts/` directory contains various scripts for manual validation, constructing the product schema, importing, etc.
 
 ### Running locally
+
+Note: the Makefile will align the user id with your own uid for a smooth editing experience.
+
+Build with:
+
+```
+make build
+```
+
 Start docker:
+
 ```console
 docker-compose up -d
 ```
