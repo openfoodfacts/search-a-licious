@@ -77,6 +77,8 @@ services:
     environment:
       - ELASTICSEARCH_URL=es01:9200
       - REDIS_HOST=searchredis
+      # make it easier to run scripts
+      - PYTHONPATH=/code
     ports:
       - "${SEARCH_PORT}:8000"
     networks:
