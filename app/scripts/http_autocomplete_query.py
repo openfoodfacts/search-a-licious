@@ -9,11 +9,8 @@ import time
 
 import requests
 
-from app.utils import connection
-
 
 def manual_query(hostname, port):
-    connection.get_connection()
 
     while True:
         search_term = input('Please enter search term:\n')
