@@ -1,0 +1,21 @@
+version: "3.7"
+
+# modifications to docker-compose for production settings
+
+volumes:
+  # declare volumes external to avoid loosing data
+  # we use COMPOSE_PROJECT_NAME to be sure they are unique
+  esdata01:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_esdata01
+  esdata02:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_esdata02
+  rediscache:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_rediscache
+
+networks:
+  common_net:
+    name: ${COMMON_NET_NAME}
+    external: true

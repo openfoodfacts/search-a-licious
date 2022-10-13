@@ -26,6 +26,8 @@ from app.utils import constants
 
 
 def get_product_dict(row, next_index):
+    """Return the product dict suitable for a bulk insert operation
+    """
     product = create_product_from_dict(row)
     if not product:
         return None
@@ -37,6 +39,10 @@ def get_product_dict(row, next_index):
 
 
 def gen_documents(filename, next_index, start_time, num_items, num_processes, process_id):
+    """Generate documents to index for process number process_id
+
+    We chunk documents based on document num % process_id
+    """
     with open(filename, 'rb') as f:
         for i, row in enumerate(bson.decode_file_iter(f)):
             if i > num_items:
@@ -67,7 +73,8 @@ def gen_documents(filename, next_index, start_time, num_items, num_processes, pr
 
 
 def update_alias(es, next_index):
-    # repoint the alias to point to the newly created index
+    """repoint the alias to point to the newly created Index
+    """
     es.indices.update_aliases(
         body={
             'actions': [
@@ -84,7 +91,17 @@ def update_alias(es, next_index):
 
 
 def import_parallel(filename, next_index, start_time, num_items, num_processes, process_id):
-    es = connection.get_connection()
+    """One task of import
+
+    :param str filename: the bson file to read
+    :param str next_index: the index to write to
+    :param float start_time: the start time
+    :param int num_items: max number of items to import
+    :param int num_processes: total number of processes
+    :param int process_id: the index of the process (from 0 to num_processes - 1)
+    """
+    # open a connection for this process
+    es = connection.get_connection(timeout=120, retry_on_timeout=True)
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to parallelize that. If we then do parallel_bulk
     # here, this causes queueing and a lot of memory usage in the importer process.
@@ -101,6 +118,10 @@ def import_parallel(filename, next_index, start_time, num_items, num_processes, 
 
 
 def get_redis_products(next_index, last_updated_timestamp):
+    """Fetch ids of products to update from redis index
+
+    Those ids are set by productopener on products updates
+    """
     redis_client = RedisClient()
     print(f'Processing redis updates since {last_updated_timestamp}')
     timestamp_processed_values = redis_client.get_processed_since(
@@ -131,23 +152,30 @@ def get_redis_updates(next_index):
 
 
 def perform_import(filename, num_items, num_processes, start_time):
+    """Main function running the import sequence
+    """
     es = connection.get_connection()
+    # we create a temporary index to import to
+    # at the end we will change alias to point to it
     next_index = constants.INDEX_ALIAS_PATTERN.replace(
         '*', datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f'),
     )
+    # create the index
     Product.init(index=next_index)
 
+    # split the work between processes
     args = []
     for i in range(num_processes):
         args.append((
             filename, next_index, start_time,
             num_items, num_processes, i,
         ))
-
+    # run in parallel
     with Pool(num_processes) as pool:
         pool.starmap(import_parallel, args)
-
+    # update with last index updates (hopefully since the bson)
     get_redis_updates(next_index)
+    # make alias point to new index
     update_alias(es, next_index)
 
 

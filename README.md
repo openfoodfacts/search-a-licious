@@ -11,7 +11,17 @@ The main file is `api.py`, and the Product schema is in `models/product.py`.
 The `scripts/` directory contains various scripts for manual validation, constructing the product schema, importing, etc.
 
 ### Running locally
+
+Note: the Makefile will align the user id with your own uid for a smooth editing experience.
+
+Build with:
+
+```
+make build
+```
+
 Start docker:
+
 ```console
 docker-compose up -d
 ```
@@ -52,12 +62,20 @@ pre-commit run
 ```
 
 ### Running the import:
-To import data from the [MongoDb export](https://world.openfoodfacts.org/data):
+To import data from the [MongoDB export](https://world.openfoodfacts.org/data):
+
 1. First ensure that your docker environment has at least 150GB of disk and 6GB of RAM. This can be found under settings --> resources
+
 2. Run the following command:
-```console
-python scripts/perform_import_parallel.py --filename=/path/to/file.csv --num_processes=2
-```
+   ```console
+   python scripts/perform_import_parallel.py --filename=/path/to/products.bson --num_processes=2
+   ```
+
+   Or using docker:
+   ```console
+   docker-compose run --rm -v $(pwd)/path/to/products.bson:/mnt/products.bson:ro searchservice python3 app/scripts/perform_import_parallel.py --filename=/mnt/products.bson --num_processes=2
+   ```
+
 If you get errors, try adding more RAM (12GB works well if you have that spare), or slow down the indexing process by setting `num_processes` to 1 in the command above.
 
 Typical import time is 1-1.5 hours on an M1 Macbook.
