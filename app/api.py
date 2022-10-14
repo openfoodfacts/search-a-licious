@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import threading
-
 from elasticsearch_dsl import Q
 from fastapi import FastAPI
 from fastapi import HTTPException
 
-from app.import_queue import queue_manager
 from app.models.product import Product
 from app.models.request import AutocompleteRequest
 from app.models.request import SearchRequest
@@ -18,19 +15,6 @@ from app.utils import response
 
 app = FastAPI()
 connection.get_connection()
-q_manager = queue_manager.QueueManager()
-
-
-@app.on_event('startup')
-async def startup_event():
-    # Start redis
-    t = threading.Thread(target=queue_manager.run_queue, args=(q_manager,))
-    t.start()
-
-
-@app.on_event('shutdown')
-async def shutdown_event():
-    q_manager.stop()
 
 
 @app.get('/{barcode}')

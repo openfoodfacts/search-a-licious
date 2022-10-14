@@ -7,7 +7,7 @@ from redis import Redis
 
 def write_to_redis():
     redis = Redis(
-        host='localhost',
+        host='searchredis',
         port=6379,
         decode_responses=True,
     )
