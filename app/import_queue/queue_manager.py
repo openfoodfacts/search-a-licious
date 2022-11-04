@@ -57,7 +57,7 @@ def handle_stop(queues):
         queue.stop()
 
 
-def run_queue_robust():
+def run_queue_safe():
     """Spawn and consume queues until a clean stop happens"""
     print('Starting redis consumer', flush=True)
 
@@ -81,4 +81,4 @@ if __name__ == '__main__':
     from app.utils import connection
     connection.get_connection()
     # run queue
-    run_queue_robust()
+    run_queue_safe()
