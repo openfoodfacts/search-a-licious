@@ -31,7 +31,7 @@ class QueueManager:
             product = create_product_from_dict(item)
             product.save()
             print(
-                f'Received Redis update for product: {product.product_name}', flush=True,
+                f'Received Redis update for product: {code} - {product.product_name}', flush=True,
             )
 
             # Now, write a key that can be read for full imports
