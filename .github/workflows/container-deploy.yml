@@ -110,7 +110,7 @@ jobs:
           echo "REDIS_PORT=8182" >> .env
           echo "MEM_LIMIT=4294967296" >> .env
           # this is the network shared with productopener
-          echo "COMMON_NET_NAME=webnet">> .env
+          echo "COMMON_NET_NAME=po_webnet">> .env
           # This secret is to be generated using htpasswd, see .env file
           # use simple quotes to avoid interpolation of $apr1$ !
           echo 'NGINX_BASIC_AUTH_USER_PASSWD=${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}' >> .env
