@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging as log
 import os
 import time
 
@@ -43,10 +44,10 @@ class RedisClient:
         fetched_codes = set()
         timestamp_processed_values = []
         for key in self.redis.scan_iter('product:*'):
-            print(key)
+            log.info(key)
             components = key.split(':')
             if len(components) != 3:
-                print(f'Invalid key: {key}')
+                log.info(f'Invalid key: {key}')
                 continue
 
             timestamp = components[1]
@@ -60,7 +61,7 @@ class RedisClient:
             fetched_codes.add(code)
             product = product_client.get_product(code)
             if not product:
-                print('Unable to retrieve product: {}'.format(code))
+                log.info(f'Unable to retrieve product: {code}')
                 continue
 
             timestamp_processed_values.append((timestamp, product))

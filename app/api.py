@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging as log
+
 from elasticsearch_dsl import Q
 from fastapi import FastAPI
 from fastapi import HTTPException
@@ -15,6 +17,11 @@ from app.utils import response
 
 app = FastAPI()
 connection.get_connection()
+
+log.basicConfig(
+    level=log.INFO, format='%(asctime)s %(message)s',
+    datefmt='%m/%d/%Y %I:%M:%S %p',
+)
 
 
 @app.get('/{barcode}')
