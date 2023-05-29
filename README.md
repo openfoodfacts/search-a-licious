@@ -1,4 +1,10 @@
-# openfoodfacts-search
+# Search-a-licious
+
+![Search-a-licious logo](./assets/RVB_VERTICAL_WHITE_BG_SEARCH-A-LICIOUS-350.png)
+
+**NOTE:** this is a prototype which will be heavily evolved to be more generic, more robust and have much more functionalities.
+
+
 Open Food Facts Search API V3 using ElasticSearch - https://wiki.openfoodfacts.org/Search_API_V3
 
 This API is currently in development. It is not serving any production traffic. The [Work Plan](https://wiki.openfoodfacts.org/Search_API_V3#Work_Plan) will be updated as development continues.
