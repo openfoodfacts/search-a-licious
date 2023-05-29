@@ -1,6 +1,5 @@
-# Search-a-licious
+# ![Search-a-licious](./assets/RVB_HORIZONTAL_WHITE_BG_SEARCH-A-LICIOUS-50.png "Search-a-licious logo")
 
-![Search-a-licious logo](./assets/RVB_VERTICAL_WHITE_BG_SEARCH-A-LICIOUS-350.png)
 
 **NOTE:** this is a prototype which will be heavily evolved to be more generic, more robust and have much more functionalities.
 
