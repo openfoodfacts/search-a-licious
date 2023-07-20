@@ -3,10 +3,7 @@
 
 **NOTE:** this is a prototype which will be heavily evolved to be more generic, more robust and have much more functionalities.
 
-
-Open Food Facts Search API V3 using ElasticSearch - https://wiki.openfoodfacts.org/Search_API_V3
-
-This API is currently in development. It is not serving any production traffic. The [Work Plan](https://wiki.openfoodfacts.org/Search_API_V3#Work_Plan) will be updated as development continues.
+This API is currently in development. Read [Search-a-licious roadmap architecture notes](https://docs.google.com/document/d/1mibE8nACcmen6paSrqT9JQk5VbuvlFUXI1S93yHCK2I/edit) to understand where we are headed.
 
 The file product.schema.json contains a partial schema of the returned products.
 
