@@ -44,7 +44,7 @@ jobs:
       id: wait-build
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        checkName: build (off_search_image)
+        checkName: build (search_service_image)
         ref: ${{ github.event.pull_request.head.sha || github.sha }}
         intervalSeconds: 10
         timeoutSeconds: 600 # 10m
