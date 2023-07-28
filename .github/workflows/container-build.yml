@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         image_name:
-        - off_search_image
+        - search_service_image
     steps:
     - uses: actions/checkout@v3
       with:
