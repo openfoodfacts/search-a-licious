@@ -25,7 +25,7 @@ from app.utils import connection
 from app.utils import constants
 
 
-def get_product_dict(row, next_index):
+def get_product_dict(row, next_index: str):
     """Return the product dict suitable for a bulk insert operation"""
     product = create_product_from_dict(row)
     if not product:
@@ -38,7 +38,7 @@ def get_product_dict(row, next_index):
 
 
 def gen_documents(
-    filename, next_index, start_time, num_items, num_processes, process_id
+    filename: str, next_index: str, start_time, num_items: int, num_processes: int, process_id: int
 ):
     """Generate documents to index for process number process_id
 
@@ -129,7 +129,7 @@ def import_parallel(
         print(errors)
 
 
-def get_redis_products(next_index, last_updated_timestamp):
+def get_redis_products(next_index: str, last_updated_timestamp):
     """Fetch ids of products to update from redis index
 
     Those ids are set by productopener on products updates
@@ -146,7 +146,7 @@ def get_redis_products(next_index, last_updated_timestamp):
     print(f"Processed {len(timestamp_processed_values)} updates from Redis")
 
 
-def get_redis_updates(next_index):
+def get_redis_updates(next_index: str):
     es = connection.get_connection()
     # Ensure all documents are searchable after the import
     Index(next_index).refresh()
