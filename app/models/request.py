@@ -27,21 +27,21 @@ class StringFilter(BaseModel):
     field: str
     value: str
     # One of eq, ne, like
-    operator: str = 'eq'
+    operator: str = "eq"
 
 
 class NumericFilter(BaseModel):
     field: str
     value: float
     # One of eq, ne, lt, gt
-    operator: str = 'eq'
+    operator: str = "eq"
 
 
 class DateTimeFilter(BaseModel):
     field: str
     value: datetime.datetime
     # One of lt, gt
-    operator: str = 'eq'
+    operator: str = "eq"
 
 
 class SearchRequest(SearchBase):

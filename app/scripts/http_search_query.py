@@ -11,17 +11,16 @@ import requests
 
 
 def manual_query(hostname, port, field):
-
     while True:
-        search_term = input('Please enter search term:\n')
+        search_term = input("Please enter search term:\n")
         start_time = time.perf_counter()
 
         payload = {
-            'string_filters': [
+            "string_filters": [
                 {
-                    'field': field,
-                    'value': search_term,
-                    'operator': 'eq',
+                    "field": field,
+                    "value": search_term,
+                    "operator": "eq",
                 },
             ],
             # To test more advanced features, uncomment the below
@@ -44,33 +43,43 @@ def manual_query(hostname, port, field):
             #         'operator': 'gt',
             #     }
             # ],
-            'num_results': 10,
+            "num_results": 10,
             # 'response_fields': ['product_name', 'states_tags'],
         }
         response = requests.post(
-            '{}:{}/search'.format(hostname, port), json=payload,
+            "{}:{}/search".format(hostname, port),
+            json=payload,
         )
         print(
             json.dumps(
-                response.json(), indent=4,
-                sort_keys=True, ensure_ascii=False,
+                response.json(),
+                indent=4,
+                sort_keys=True,
+                ensure_ascii=False,
             ),
         )
-        print(f'Number of results: {len(response.json())}')
+        print(f"Number of results: {len(response.json())}")
         end_time = time.perf_counter()
-        print(f'Time: {end_time - start_time} seconds')
+        print(f"Time: {end_time - start_time} seconds")
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser('http_search_query')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("http_search_query")
     parser.add_argument(
-        '--hostname', type=str, default='http://127.0.0.1',
+        "--hostname",
+        type=str,
+        default="http://127.0.0.1",
     )
     parser.add_argument(
-        '--port', type=int, default=8000,
+        "--port",
+        type=int,
+        default=8000,
     )
     parser.add_argument(
-        '--field', help='Field to search', type=str, default='code',
+        "--field",
+        help="Field to search",
+        type=str,
+        default="code",
     )
     args = parser.parse_args()
     manual_query(args.hostname, args.port, args.field)

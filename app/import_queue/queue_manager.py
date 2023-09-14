@@ -22,16 +22,18 @@ class QueueManager:
             item = self.product_client.get_product(code)
             if not item:
                 print(
-                    'Unable to retrieve product with code {}'.format(
+                    "Unable to retrieve product with code {}".format(
                         code,
-                    ), flush=True,
+                    ),
+                    flush=True,
                 )
                 continue
             # As the code is unique (set in the save method), this will handle updates as well as new documents
             product = create_product_from_dict(item)
             product.save()
             print(
-                f'Received Redis update for product: {code} - {product.product_name}', flush=True,
+                f"Received Redis update for product: {code} - {product.product_name}",
+                flush=True,
             )
 
             # Now, write a key that can be read for full imports
@@ -39,7 +41,7 @@ class QueueManager:
 
     def stop(self):
         print(
-            'Stopping redis reader, may take {} seconds'.format(
+            "Stopping redis reader, may take {} seconds".format(
                 constants.REDIS_READER_TIMEOUT,
             ),
             flush=True,
@@ -52,33 +54,34 @@ def run_queue(queue_manager):
 
 
 def handle_stop(queues):
-    queue = queues['current']
-    if (queue):
+    queue = queues["current"]
+    if queue:
         queue.stop()
 
 
 def run_queue_safe():
     """Spawn and consume queues until a clean stop happens"""
-    print('Starting redis consumer', flush=True)
+    print("Starting redis consumer", flush=True)
 
     # we need a dict to have a reference
-    queues = {'current': None}
+    queues = {"current": None}
 
     atexit.register(handle_stop, queues)
 
     alive = True
     while alive:
         try:
-            queues['current'] = QueueManager()
-            queues['current'].consume()
+            queues["current"] = QueueManager()
+            queues["current"].consume()
             alive = False
         except Exception as e:
-            print(f'Received {e}, respawning a consumer', flush=True)
+            print(f"Received {e}, respawning a consumer", flush=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # create elasticsearch connection
     from app.utils import connection
+
     connection.get_connection()
     # run queue
     run_queue_safe()

@@ -17,33 +17,33 @@ from app.utils.analyzers import text_like
 
 class Flattened(Field):
     # Elasticsearch dsl doesn't support the Flattened field yet, so we need to add it here
-    name = 'flattened'
+    name = "flattened"
 
 
 def create_product_from_dict(d):
     # Remove the ocr fields
-    d = {k: v for k, v in d.items() if '_ocr_' not in k}
+    d = {k: v for k, v in d.items() if "_ocr_" not in k}
 
     # Make sure that the nutriments values are floats
     temp_nutriments = {}
-    if 'nutriments' in d:
-        for k, v in d['nutriments'].items():
-            for str_value in ['unit', 'label', 'modifier']:
+    if "nutriments" in d:
+        for k, v in d["nutriments"].items():
+            for str_value in ["unit", "label", "modifier"]:
                 if str_value in k:
                     temp_nutriments[k] = v
                     break
             else:
                 temp_nutriments[k] = float(v)
 
-        d['nutriments'] = temp_nutriments
+        d["nutriments"] = temp_nutriments
 
-    if 'last_modified_t' in d:
-        d['last_modified_datetime'] = datetime.datetime.utcfromtimestamp(
-            d['last_modified_t'],
+    if "last_modified_t" in d:
+        d["last_modified_datetime"] = datetime.datetime.utcfromtimestamp(
+            d["last_modified_t"],
         )
-    if 'created_t' in d:
-        d['created_datetime'] = datetime.datetime.utcfromtimestamp(
-            d['created_t'],
+    if "created_t" in d:
+        d["created_datetime"] = datetime.datetime.utcfromtimestamp(
+            d["created_t"],
         )
 
     product = Product(**d)
@@ -62,18 +62,18 @@ class Product(Document):
     class Index:
         name = constants.INDEX_ALIAS
         settings = {
-            'number_of_shards': 4,
-            'index.mapping.nested_fields.limit': 200,
-            'index.mapping.total_fields.limit': 20000,
+            "number_of_shards": 4,
+            "index.mapping.nested_fields.limit": 200,
+            "index.mapping.total_fields.limit": 20000,
         }
 
     def fill_internal_fields(self):
-        self.meta['id'] = self.code
+        self.meta["id"] = self.code
         self.last_indexed_datetime = datetime.datetime.now()
 
     def save(
-            self,
-            **kwargs,
+        self,
+        **kwargs,
     ):
         self.fill_internal_fields()
         super().save(**kwargs)
@@ -84,18 +84,24 @@ class Product(Document):
     last_indexed_datetime = Date(required=True)
     # name of the product
     product_name = Text(
-        analyzer=text_like, fields={
-            'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword(),
+        analyzer=text_like,
+        fields={
+            "autocomplete": Text(analyzer=autocomplete),
+            "raw": Keyword(),
         },
     )
     brands = Text(
-        analyzer=text_like, fields={
-            'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword(),
+        analyzer=text_like,
+        fields={
+            "autocomplete": Text(analyzer=autocomplete),
+            "raw": Keyword(),
         },
     )
     categories = Text(
-        analyzer=text_like, fields={
-            'autocomplete': Text(analyzer=autocomplete), 'raw': Keyword(),
+        analyzer=text_like,
+        fields={
+            "autocomplete": Text(analyzer=autocomplete),
+            "raw": Keyword(),
         },
     )
 
@@ -129,10 +135,10 @@ class Product(Document):
     allergens = Keyword()
     packagings = Nested(
         properties={
-            'shape': Keyword(),
-            'quantity_value': Keyword(),
-            'quantity': Keyword(),
-            'quantity_unit': Keyword(),
+            "shape": Keyword(),
+            "quantity_value": Keyword(),
+            "quantity": Keyword(),
+            "quantity_unit": Keyword(),
         },
         multi=True,
     )
@@ -140,8 +146,7 @@ class Product(Document):
     main_countries_tags = Keyword(multi=True)
     vitamins_tags = Keyword(multi=True)
     category_properties = Nested(
-        properties={
-        },
+        properties={},
     )
     data_quality_bugs_tags = Keyword(multi=True)
     last_editor = Keyword()
@@ -167,114 +172,114 @@ class Product(Document):
     additives_tags = Keyword(multi=True)
     nutriments = Nested(
         properties={
-            'energy_serving': Double(),
-            'vitamin-a_unit': Keyword(),
-            'trans-fat_value': Double(),
-            'sodium': Double(),
-            'vitamin-c': Double(),
-            'sodium_serving': Double(),
-            'salt_100g': Double(),
-            'energy-kcal_100g': Double(),
-            'energy-kj_value': Double(),
-            'energy-kj': Double(),
-            'energy-kj_100g': Double(),
-            'carbohydrates_100g': Double(),
-            'energy_100g': Double(),
-            'energy': Double(),
-            'proteins_serving': Double(),
-            'proteins': Double(),
-            'sugars': Double(),
-            'fiber_value': Double(),
-            'trans-fat': Double(),
-            'nova-group_100g': Double(),
-            'vitamin-a_100g': Double(),
-            'fiber': Double(),
-            'energy_unit': Keyword(),
-            'fat': Double(),
-            'fruits-vegetables-nuts-estimate-from-ingredients_serving': Double(),
-            'fruits-vegetables-nuts-estimate': Double(),
-            'fruits-vegetables-nuts-estimate_value': Double(),
-            'fruits-vegetables-nuts-estimate_serving': Double(),
-            'potassium_100g': Double(),
-            'iron': Double(),
-            'fiber_unit': Keyword(),
-            'energy-kcal_value': Double(),
-            'trans-fat_serving': Double(),
-            'saturated-fat_serving': Double(),
-            'vitamin-c_value': Double(),
-            'salt_unit': Keyword(),
-            'sugars_value': Double(),
-            'proteins_value': Double(),
-            'vitamin-c_unit': Keyword(),
-            'iron_unit': Keyword(),
-            'vitamin-c_100g': Double(),
-            'cholesterol_value': Double(),
-            'fiber_serving': Double(),
-            'carbohydrates_value': Double(),
-            'carbohydrates': Double(),
-            'fat_serving': Double(),
-            'iron_100g': Double(),
-            'trans-fat_unit': Keyword(),
-            'cholesterol': Double(),
-            'salt_serving': Double(),
-            'saturated-fat_value': Double(),
-            'energy-kcal': Double(),
-            'fat_value': Double(),
-            'calcium_unit': Keyword(),
-            'vitamin-c_serving': Double(),
-            'sodium_unit': Keyword(),
-            'sugars_unit': Keyword(),
-            'iron_value': Double(),
-            'fat_100g': Double(),
-            'vitamin-a': Double(),
-            'cholesterol_serving': Double(),
-            'calcium': Double(),
-            'nutrition-score-fr': Double(),
-            'carbohydrates_serving': Double(),
-            'calcium_serving': Double(),
-            'saturated-fat_unit': Keyword(),
-            'salt': Double(),
-            'nutrition-score-fr_100g': Double(),
-            'nova-group_serving': Double(),
-            'vitamin-a_serving': Double(),
-            'cholesterol_100g': Double(),
-            'energy-kcal_unit': Keyword(),
-            'fat_unit': Keyword(),
-            'energy-kcal_serving': Double(),
-            'proteins_100g': Double(),
-            'trans-fat_100g': Double(),
-            'saturated-fat_100g': Double(),
-            'iron_serving': Double(),
-            'cholesterol_unit': Keyword(),
-            'calcium_100g': Double(),
-            'sugars_serving': Double(),
-            'fruits-vegetables-nuts-estimate-from-ingredients_100g': Double(),
-            'sodium_value': Double(),
-            'saturated-fat': Double(),
-            'sugars_100g': Double(),
-            'sodium_100g': Double(),
-            'vitamin-a_value': Double(),
-            'calcium_value': Double(),
-            'proteins_unit': Keyword(),
-            'nova-group': Double(),
-            'energy_value': Double(),
-            'carbohydrates_unit': Keyword(),
-            'salt_value': Double(),
-            'fiber_100g': Double(),
-            'manganese': Double(),
-            'omega-6-fat_100g': Double(),
-            'omega-6-fat': Double(),
-            'omega-6-fat_value': Double(),
-            'carbon-footprint-from-known-ingredients_product': Double(),
-            'phenylalanin_100g': Double(),
-            'proteins-dry-substance_100g': Double(),
-            'fruits-vegetables-nuts-estimate_100g': Double(),
-            'monounsaturated-fat_value': Double(),
+            "energy_serving": Double(),
+            "vitamin-a_unit": Keyword(),
+            "trans-fat_value": Double(),
+            "sodium": Double(),
+            "vitamin-c": Double(),
+            "sodium_serving": Double(),
+            "salt_100g": Double(),
+            "energy-kcal_100g": Double(),
+            "energy-kj_value": Double(),
+            "energy-kj": Double(),
+            "energy-kj_100g": Double(),
+            "carbohydrates_100g": Double(),
+            "energy_100g": Double(),
+            "energy": Double(),
+            "proteins_serving": Double(),
+            "proteins": Double(),
+            "sugars": Double(),
+            "fiber_value": Double(),
+            "trans-fat": Double(),
+            "nova-group_100g": Double(),
+            "vitamin-a_100g": Double(),
+            "fiber": Double(),
+            "energy_unit": Keyword(),
+            "fat": Double(),
+            "fruits-vegetables-nuts-estimate-from-ingredients_serving": Double(),
+            "fruits-vegetables-nuts-estimate": Double(),
+            "fruits-vegetables-nuts-estimate_value": Double(),
+            "fruits-vegetables-nuts-estimate_serving": Double(),
+            "potassium_100g": Double(),
+            "iron": Double(),
+            "fiber_unit": Keyword(),
+            "energy-kcal_value": Double(),
+            "trans-fat_serving": Double(),
+            "saturated-fat_serving": Double(),
+            "vitamin-c_value": Double(),
+            "salt_unit": Keyword(),
+            "sugars_value": Double(),
+            "proteins_value": Double(),
+            "vitamin-c_unit": Keyword(),
+            "iron_unit": Keyword(),
+            "vitamin-c_100g": Double(),
+            "cholesterol_value": Double(),
+            "fiber_serving": Double(),
+            "carbohydrates_value": Double(),
+            "carbohydrates": Double(),
+            "fat_serving": Double(),
+            "iron_100g": Double(),
+            "trans-fat_unit": Keyword(),
+            "cholesterol": Double(),
+            "salt_serving": Double(),
+            "saturated-fat_value": Double(),
+            "energy-kcal": Double(),
+            "fat_value": Double(),
+            "calcium_unit": Keyword(),
+            "vitamin-c_serving": Double(),
+            "sodium_unit": Keyword(),
+            "sugars_unit": Keyword(),
+            "iron_value": Double(),
+            "fat_100g": Double(),
+            "vitamin-a": Double(),
+            "cholesterol_serving": Double(),
+            "calcium": Double(),
+            "nutrition-score-fr": Double(),
+            "carbohydrates_serving": Double(),
+            "calcium_serving": Double(),
+            "saturated-fat_unit": Keyword(),
+            "salt": Double(),
+            "nutrition-score-fr_100g": Double(),
+            "nova-group_serving": Double(),
+            "vitamin-a_serving": Double(),
+            "cholesterol_100g": Double(),
+            "energy-kcal_unit": Keyword(),
+            "fat_unit": Keyword(),
+            "energy-kcal_serving": Double(),
+            "proteins_100g": Double(),
+            "trans-fat_100g": Double(),
+            "saturated-fat_100g": Double(),
+            "iron_serving": Double(),
+            "cholesterol_unit": Keyword(),
+            "calcium_100g": Double(),
+            "sugars_serving": Double(),
+            "fruits-vegetables-nuts-estimate-from-ingredients_100g": Double(),
+            "sodium_value": Double(),
+            "saturated-fat": Double(),
+            "sugars_100g": Double(),
+            "sodium_100g": Double(),
+            "vitamin-a_value": Double(),
+            "calcium_value": Double(),
+            "proteins_unit": Keyword(),
+            "nova-group": Double(),
+            "energy_value": Double(),
+            "carbohydrates_unit": Keyword(),
+            "salt_value": Double(),
+            "fiber_100g": Double(),
+            "manganese": Double(),
+            "omega-6-fat_100g": Double(),
+            "omega-6-fat": Double(),
+            "omega-6-fat_value": Double(),
+            "carbon-footprint-from-known-ingredients_product": Double(),
+            "phenylalanin_100g": Double(),
+            "proteins-dry-substance_100g": Double(),
+            "fruits-vegetables-nuts-estimate_100g": Double(),
+            "monounsaturated-fat_value": Double(),
         },
     )
     languages = Nested(
         properties={
-            'en:english': Double(),
+            "en:english": Double(),
         },
     )
     countries = Keyword()
@@ -292,8 +297,7 @@ class Product(Document):
     data_quality_errors_tags = Keyword(multi=True)
     vitamins_prev_tags = Keyword(multi=True)
     categories_properties = Nested(
-        properties={
-        },
+        properties={},
     )
     id = Keyword()
     amino_acids_prev_tags = Keyword(multi=True)
@@ -327,16 +331,16 @@ class Product(Document):
     scans_n = Double()
     languages_codes = Nested(
         properties={
-            'en': Double(),
+            "en": Double(),
         },
     )
     added_countries_tags = Keyword(multi=True)
     nutrient_levels = Nested(
         properties={
-            'saturated-fat': Keyword(),
-            'salt': Keyword(),
-            'sugars': Keyword(),
-            'fat': Keyword(),
+            "saturated-fat": Keyword(),
+            "salt": Keyword(),
+            "sugars": Keyword(),
+            "fat": Keyword(),
         },
     )
     no_nutrition_data = Keyword()
@@ -370,32 +374,32 @@ class Product(Document):
     food_groups = Keyword()
     ingredients = Nested(
         properties={
-            'id': Keyword(),
-            'percent_estimate': Double(),
-            'ingredients': Nested(
+            "id": Keyword(),
+            "percent_estimate": Double(),
+            "ingredients": Nested(
                 properties={
-                    'ingredients': Nested(
+                    "ingredients": Nested(
                         properties={
-                            'text': Keyword(),
-                            'id': Keyword(),
-                            'percent_estimate': Double(),
+                            "text": Keyword(),
+                            "id": Keyword(),
+                            "percent_estimate": Double(),
                         },
                         multi=True,
                     ),
-                    'text': Keyword(),
-                    'id': Keyword(),
-                    'percent_estimate': Double(),
-                    'vegan': Keyword(),
-                    'vegetarian': Keyword(),
-                    'percent': Double(),
+                    "text": Keyword(),
+                    "id": Keyword(),
+                    "percent_estimate": Double(),
+                    "vegan": Keyword(),
+                    "vegetarian": Keyword(),
+                    "percent": Double(),
                 },
                 multi=True,
             ),
-            'text': Keyword(),
-            'vegan': Keyword(),
-            'vegetarian': Keyword(),
-            'percent': Double(),
-            'processing': Keyword(),
+            "text": Keyword(),
+            "vegan": Keyword(),
+            "vegetarian": Keyword(),
+            "percent": Double(),
+            "processing": Keyword(),
         },
         multi=True,
     )
@@ -448,13 +452,13 @@ class Product(Document):
     manufacturing_places_debug_tags = Keyword(multi=True)
     sources = Nested(
         properties={
-            'id': Keyword(),
-            'url': Keyword(),
-            'fields': Keyword(multi=True),
-            'images': Keyword(multi=True),
-            'import_t': Double(),
-            'name': Keyword(),
-            'manufacturer': Keyword(),
+            "id": Keyword(),
+            "url": Keyword(),
+            "fields": Keyword(multi=True),
+            "images": Keyword(multi=True),
+            "import_t": Double(),
+            "name": Keyword(),
+            "manufacturer": Keyword(),
         },
         multi=True,
     )
@@ -483,44 +487,46 @@ class Product(Document):
     brands_debug_tags = Keyword(multi=True)
     ingredients_text_fr = Keyword()
     origins = Keyword()
-    nutrition_score_warning_fruits_vegetables_nuts_estimate_from_ingredients_value = Double()
+    nutrition_score_warning_fruits_vegetables_nuts_estimate_from_ingredients_value = (
+        Double()
+    )
     nutriscore_grade = Keyword()
     nutrition_grades = Keyword()
     nutrition_grade_fr = Keyword()
     nutriscore_data = Nested(
         properties={
-            'proteins': Double(),
-            'sugars': Double(),
-            'fiber_value': Double(),
-            'proteins_points': Double(),
-            'fruits_vegetables_nuts_colza_walnut_olive_oils_points': Double(),
-            'is_cheese': Double(),
-            'sugars_points': Double(),
-            'saturated_fat_ratio_points': Double(),
-            'fiber_points': Double(),
-            'grade': Keyword(),
-            'fiber': Double(),
-            'sodium': Double(),
-            'energy': Double(),
-            'fruits_vegetables_nuts_colza_walnut_olive_oils_value': Double(),
-            'saturated_fat_value': Double(),
-            'saturated_fat_ratio_value': Double(),
-            'fruits_vegetables_nuts_colza_walnut_olive_oils': Double(),
-            'sodium_points': Double(),
-            'energy_value': Double(),
-            'energy_points': Double(),
-            'saturated_fat_ratio': Double(),
-            'is_fat': Double(),
-            'sugars_value': Double(),
-            'sodium_value': Double(),
-            'is_beverage': Double(),
-            'saturated_fat_points': Double(),
-            'positive_points': Double(),
-            'negative_points': Double(),
-            'score': Double(),
-            'is_water': Double(),
-            'proteins_value': Double(),
-            'saturated_fat': Double(),
+            "proteins": Double(),
+            "sugars": Double(),
+            "fiber_value": Double(),
+            "proteins_points": Double(),
+            "fruits_vegetables_nuts_colza_walnut_olive_oils_points": Double(),
+            "is_cheese": Double(),
+            "sugars_points": Double(),
+            "saturated_fat_ratio_points": Double(),
+            "fiber_points": Double(),
+            "grade": Keyword(),
+            "fiber": Double(),
+            "sodium": Double(),
+            "energy": Double(),
+            "fruits_vegetables_nuts_colza_walnut_olive_oils_value": Double(),
+            "saturated_fat_value": Double(),
+            "saturated_fat_ratio_value": Double(),
+            "fruits_vegetables_nuts_colza_walnut_olive_oils": Double(),
+            "sodium_points": Double(),
+            "energy_value": Double(),
+            "energy_points": Double(),
+            "saturated_fat_ratio": Double(),
+            "is_fat": Double(),
+            "sugars_value": Double(),
+            "sodium_value": Double(),
+            "is_beverage": Double(),
+            "saturated_fat_points": Double(),
+            "positive_points": Double(),
+            "negative_points": Double(),
+            "score": Double(),
+            "is_water": Double(),
+            "proteins_value": Double(),
+            "saturated_fat": Double(),
         },
     )
     nutriscore_score_opposite = Double()
@@ -534,29 +540,29 @@ class Product(Document):
     nutrition_score_warning_no_fruits_vegetables_nuts = Double()
     forest_footprint_data = Nested(
         properties={
-            'footprint_per_kg': Double(),
-            'ingredients': Nested(
+            "footprint_per_kg": Double(),
+            "ingredients": Nested(
                 properties={
-                    'footprint_per_kg': Double(),
-                    'percent_estimate': Double(),
-                    'tag_type': Keyword(),
-                    'tag_id': Keyword(),
-                    'matching_tag_id': Keyword(),
-                    'percent': Double(),
-                    'processing_factor': Keyword(),
-                    'conditions_tags': Keyword(multi=True),
-                    'type': Nested(
+                    "footprint_per_kg": Double(),
+                    "percent_estimate": Double(),
+                    "tag_type": Keyword(),
+                    "tag_id": Keyword(),
+                    "matching_tag_id": Keyword(),
+                    "percent": Double(),
+                    "processing_factor": Keyword(),
+                    "conditions_tags": Keyword(multi=True),
+                    "type": Nested(
                         properties={
-                            'soy_feed_factor': Keyword(),
-                            'deforestation_risk': Keyword(),
-                            'name': Keyword(),
-                            'soy_yield': Keyword(),
+                            "soy_feed_factor": Keyword(),
+                            "deforestation_risk": Keyword(),
+                            "name": Keyword(),
+                            "soy_yield": Keyword(),
                         },
                     ),
                 },
                 multi=True,
             ),
-            'grade': Keyword(),
+            "grade": Keyword(),
         },
     )
     nova_group = Double()
@@ -569,8 +575,7 @@ class Product(Document):
     allergens_lc = Keyword()
     traces_lc = Keyword()
     nova_groups_markers = Nested(
-        properties={
-        },
+        properties={},
     )
     carbon_footprint_from_meat_or_fish_debug = Keyword()
     labels_prev_tags = Keyword(multi=True)
@@ -586,10 +591,10 @@ class Product(Document):
     nutrition_score_warning_fruits_vegetables_nuts_estimate = Double()
     specific_ingredients = Nested(
         properties={
-            'ingredient': Keyword(),
-            'id': Keyword(),
-            'label': Keyword(),
-            'origins': Keyword(),
+            "ingredient": Keyword(),
+            "id": Keyword(),
+            "label": Keyword(),
+            "origins": Keyword(),
         },
         multi=True,
     )
@@ -633,14 +638,14 @@ class Product(Document):
     brand_owner = Keyword()
     sources_fields = Nested(
         properties={
-            'org-database-usda': Nested(
+            "org-database-usda": Nested(
                 properties={
-                    'fdc_category': Keyword(),
-                    'fdc_id': Keyword(),
-                    'available_date': Keyword(),
-                    'publication_date': Keyword(),
-                    'fdc_data_source': Keyword(),
-                    'modified_date': Keyword(),
+                    "fdc_category": Keyword(),
+                    "fdc_id": Keyword(),
+                    "available_date": Keyword(),
+                    "publication_date": Keyword(),
+                    "fdc_data_source": Keyword(),
+                    "modified_date": Keyword(),
                 },
             ),
         },

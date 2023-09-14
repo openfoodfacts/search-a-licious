@@ -17,38 +17,44 @@ app = FastAPI()
 connection.get_connection()
 
 
-@app.get('/{barcode}')
+@app.get("/{barcode}")
 def get_product(barcode: str):
-    results = Product.search().query('term', code=barcode).extra(size=1).execute()
+    results = Product.search().query("term", code=barcode).extra(size=1).execute()
     results_dict = [r.to_dict() for r in results]
 
     if not results_dict:
-        raise HTTPException(status_code=404, detail='Barcode not found')
+        raise HTTPException(status_code=404, detail="Barcode not found")
 
     product = results_dict[0]
     return product
 
 
-@app.post('/autocomplete')
+@app.post("/autocomplete")
 def autocomplete(request: AutocompleteRequest):
     if not request.search_fields:
         request.search_fields = constants.AUTOCOMPLETE_FIELDS
     for field in request.search_fields:
         if field not in constants.AUTOCOMPLETE_FIELDS:
             raise HTTPException(
-                status_code=400, detail=f'Invalid field: {field}',
+                status_code=400,
+                detail=f"Invalid field: {field}",
             )
 
     match_queries = []
     for field in request.search_fields:
-        autocomplete_field_name = f'{field}__autocomplete'
+        autocomplete_field_name = f"{field}__autocomplete"
         match_queries.append(
-            Q('match', **{autocomplete_field_name: request.text}),
+            Q("match", **{autocomplete_field_name: request.text}),
         )
 
-    results = Product.search().query('bool', should=match_queries).extra(
-        size=request.get_num_results(),
-    ).execute()
+    results = (
+        Product.search()
+        .query("bool", should=match_queries)
+        .extra(
+            size=request.get_num_results(),
+        )
+        .execute()
+    )
     resp = response.create_response(results, request)
     return resp
 
@@ -58,20 +64,20 @@ def validate_field(field, fields_to_types, valid_types, filter_type):
         field_value = dict_utils.get_nested_value(field, fields_to_types)
     except KeyError:
         raise HTTPException(
-            status_code=400, detail=f'Field {field} does not exist',
+            status_code=400,
+            detail=f"Field {field} does not exist",
         )
-    field_type = field_value['type']
+    field_type = field_value["type"]
     if field_type not in valid_types:
         raise HTTPException(
-            status_code=400, detail=f'Field {field} is not of type {filter_type}',
+            status_code=400,
+            detail=f"Field {field} is not of type {filter_type}",
         )
     return field_type
 
 
 def create_search_query(request: SearchRequest):
-    fields_to_types = Product._doc_type.mapping.properties.to_dict()[
-        'properties'
-    ]
+    fields_to_types = Product._doc_type.mapping.properties.to_dict()["properties"]
     must_queries = []
     must_not_queries = []
     range_queries = []
@@ -79,62 +85,72 @@ def create_search_query(request: SearchRequest):
     for filter in request.string_filters:
         field = filter.field
         field_type = validate_field(
-            field, fields_to_types, [
-                'text', 'keyword',
-            ], 'string',
+            field,
+            fields_to_types,
+            [
+                "text",
+                "keyword",
+            ],
+            "string",
         )
         # If it's a text field, use the raw nested field for the eq, ne case
-        if field_type == 'text' and filter.operator in ['eq', 'ne']:
-            field = f'{field}__raw'
+        if field_type == "text" and filter.operator in ["eq", "ne"]:
+            field = f"{field}__raw"
 
-        if filter.operator == 'eq':
+        if filter.operator == "eq":
             must_queries.append(
                 query_utils.create_query(
-                    'term', field, filter.value,
+                    "term",
+                    field,
+                    filter.value,
                 ),
             )
-        elif filter.operator == 'ne':
+        elif filter.operator == "ne":
             must_not_queries.append(
-                query_utils.create_query('term', field, filter.value),
+                query_utils.create_query("term", field, filter.value),
             )
-        elif filter.operator == 'like':
+        elif filter.operator == "like":
             must_queries.append(
                 query_utils.create_query(
-                    'match', field, filter.value,
+                    "match",
+                    field,
+                    filter.value,
                 ),
             )
 
     for filter in request.numeric_filters:
         field = filter.field
-        validate_field(field, fields_to_types, ['double'], 'numeric')
+        validate_field(field, fields_to_types, ["double"], "numeric")
 
-        if filter.operator == 'eq':
+        if filter.operator == "eq":
             must_queries.append(
                 query_utils.create_query(
-                    'term', field, filter.value,
+                    "term",
+                    field,
+                    filter.value,
                 ),
             )
-        elif filter.operator == 'ne':
+        elif filter.operator == "ne":
             must_not_queries.append(
-                query_utils.create_query('term', field, filter.value),
+                query_utils.create_query("term", field, filter.value),
             )
-        elif filter.operator == 'lt':
+        elif filter.operator == "lt":
             # range_queries.append(query_utils.create_range_query('lt', field, filter.value))
-            range_queries.append({field: {'lt': filter.value}})
-        elif filter.operator == 'gt':
-            range_queries.append({field: {'gt': filter.value}})
+            range_queries.append({field: {"lt": filter.value}})
+        elif filter.operator == "gt":
+            range_queries.append({field: {"gt": filter.value}})
 
     for filter in request.date_time_filters:
         field = filter.field
-        validate_field(field, fields_to_types, ['date'], 'date_time')
+        validate_field(field, fields_to_types, ["date"], "date_time")
 
-        if filter.operator == 'lt':
-            range_queries.append({field: {'lt': filter.value}})  # type: ignore
-        elif filter.operator == 'gt':
-            range_queries.append({field: {'gt': filter.value}})  # type: ignore
+        if filter.operator == "lt":
+            range_queries.append({field: {"lt": filter.value}})  # type: ignore
+        elif filter.operator == "gt":
+            range_queries.append({field: {"gt": filter.value}})  # type: ignore
 
     query = Product.search().query(
-        'bool',
+        "bool",
         must=must_queries,
         must_not=must_not_queries,
     )
@@ -144,11 +160,16 @@ def create_search_query(request: SearchRequest):
     return query.extra(size=request.get_num_results())
 
 
-@app.post('/search')
+@app.post("/search")
 def search(request: SearchRequest):
-    if not request.string_filters and not request.numeric_filters and not request.date_time_filters:
+    if (
+        not request.string_filters
+        and not request.numeric_filters
+        and not request.date_time_filters
+    ):
         raise HTTPException(
-            status_code=400, detail='At least one filter must be used',
+            status_code=400,
+            detail="At least one filter must be used",
         )
 
     results = create_search_query(request).execute()
