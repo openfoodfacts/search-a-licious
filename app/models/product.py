@@ -1,9 +1,11 @@
 import datetime
+import functools
 import re
 
-from elasticsearch_dsl import Date, Document, Double, Keyword, Object, Text
+from elasticsearch_dsl import Date, Document, Object
 
 from app.config import CONFIG, FieldConfig, FieldType, TaxonomySourceConfig
+from app.dsl import generate_dsl_field
 from app.taxonomy import get_taxonomy
 from app.types import JSONType
 from app.utils import constants
@@ -62,7 +64,7 @@ def create_product_from_dict(d: JSONType):
                 taxonomy_source_config.name, taxonomy_source_config.url
             )
 
-            for lang in taxonomy_config.export_langs:
+            for lang in taxonomy_config.supported_langs:
                 for single_tag in input_value:
                     if (
                         value := taxonomy.get_localized_name(single_tag, lang)
@@ -86,21 +88,18 @@ def create_product_from_dict(d: JSONType):
     return product
 
 
-class Product(Document):
-    """
-    This was initially created with the scripts/generate_schema.py script. However, note that there have been manual
-    adjustments.
+FIELD_BY_NAME = {field.name: field for field in CONFIG.fields}
+_generate_dsl_field = functools.partial(
+    generate_dsl_field, supported_lang=CONFIG.taxonomy.supported_langs
+)
 
-    Furthermore, additional fields are added at index time, so below is just a subset of the available fields.
-    """
+
+class Product(Document):
+    """Additional fields are added at index time, so below is just a subset of the available fields."""
 
     class Index:
         name = constants.INDEX_ALIAS
-        settings = {
-            "number_of_shards": 4,
-            "index.mapping.nested_fields.limit": 200,
-            "index.mapping.total_fields.limit": 20000,
-        }
+        settings = {"number_of_shards": 4}
 
     def fill_internal_fields(self):
         self.meta["id"] = self.code
@@ -113,17 +112,23 @@ class Product(Document):
     # date of last index for the purposes of search
     last_indexed_datetime = Date(required=True)
 
-    # barcode of the product (can be EAN-13 or internal codes for some food stores),
-    # for products without a barcode, Open Food Facts assigns a number starting with the 200 reserved prefix
-    code = Keyword(required=True)
-    product_name = Object(dynamic=True)
-    generic_name = Object(dynamic=True)
-    categories = Object(dynamic=True)
-    labels = Object(dynamic=True)
-    brands = Text()
-    lang = Keyword()
-    quantity = Text()
-    categories_tags = Keyword(multi=True)
-    labels_tags = Keyword(multi=True)
-    countries_tags = Keyword(multi=True)
-    unique_scans_n = Double()
+    # we generate DSL fields manually for now, we will use a smarter approach later
+    code = _generate_dsl_field(FIELD_BY_NAME["code"])
+    product_name = _generate_dsl_field(FIELD_BY_NAME["product_name"])
+    generic_name = _generate_dsl_field(FIELD_BY_NAME["generic_name"])
+    categories = _generate_dsl_field(FIELD_BY_NAME["categories"])
+    labels = _generate_dsl_field(FIELD_BY_NAME["labels"])
+    brands = _generate_dsl_field(FIELD_BY_NAME["brands"])
+    stores = _generate_dsl_field(FIELD_BY_NAME["stores"])
+    emb_codes = _generate_dsl_field(FIELD_BY_NAME["emb_codes"])
+    lang = _generate_dsl_field(FIELD_BY_NAME["lang"])
+    quantity = _generate_dsl_field(FIELD_BY_NAME["quantity"])
+    categories_tags = _generate_dsl_field(FIELD_BY_NAME["categories_tags"])
+    labels_tags = _generate_dsl_field(FIELD_BY_NAME["labels_tags"])
+    countries_tags = _generate_dsl_field(FIELD_BY_NAME["countries_tags"])
+    states_tags = _generate_dsl_field(FIELD_BY_NAME["states_tags"])
+    origins_tags = _generate_dsl_field(FIELD_BY_NAME["origins_tags"])
+    unique_scans_n = _generate_dsl_field(FIELD_BY_NAME["unique_scans_n"])
+    nutrition_grades = _generate_dsl_field(FIELD_BY_NAME["nutrition_grades"])
+    ecoscore_grade = _generate_dsl_field(FIELD_BY_NAME["ecoscore_grade"])
+    nova_groups = _generate_dsl_field(FIELD_BY_NAME["nova_groups"])

@@ -4,3 +4,4 @@ requests==2.31.0
 redis==5.0.0
 uvicorn==0.23.2
 tqdm==4.66.1
+cachetools==5.3.1
