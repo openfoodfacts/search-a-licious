@@ -1,7 +1,7 @@
 """
 This script was used as a one-off to generate the JSON schema, and the Product model.
 
-It works by iterating through the products.bson file and generating a large product by combining them. This is then
+It works by iterating through the products.jsonl file and generating a large product by combining them. This is then
 used to create a JSON schema.
 
 Finally, the JSON schema is converted to a series of elasticsearch_dsl fields.
@@ -24,7 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 
-import bson
+from app.utils.io import jsonl_iter
 
 
 def dict_merge(dct, merge_dct):
@@ -55,11 +55,10 @@ def dict_merge(dct, merge_dct):
 
 def generate_json_schema(filename):
     extensive_dict = {}
-    with open(filename, "rb") as f:
-        for i, row in enumerate(bson.decode_file_iter(f)):
-            extensive_dict = dict_merge(extensive_dict, row)
-            if i == 1000:
-                break
+    for i, row in enumerate(jsonl_iter(filename)):
+        extensive_dict = dict_merge(extensive_dict, row)
+        if i == 1000:
+            break
 
     # Remove ocr tags
     dupe_dict = {}
@@ -177,7 +176,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("perform_import")
     parser.add_argument(
         "--filename",
-        help="Filename where Mongo products.bson file is located",
+        help="Filename where Mongo products.jsonl file is located",
         type=str,
         defaut="",
     )

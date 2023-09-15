@@ -70,12 +70,12 @@ To import data from the [MongoDB export](https://world.openfoodfacts.org/data):
 
 2. Run the following command:
    ```console
-   python scripts/perform_import_parallel.py --filename=/path/to/products.bson --num_processes=2
+   python scripts/perform_import_parallel.py --filename=/path/to/products.jsonl --num_processes=2
    ```
 
    Or using docker:
    ```console
-   docker-compose run --rm -v $(pwd)/path/to/products.bson:/mnt/products.bson:ro searchservice python3 app/scripts/perform_import_parallel.py --filename=/mnt/products.bson --num_processes=2
+   docker-compose run --rm -v $(pwd)/path/to/products.jsonl:/mnt/products.jsonl:ro searchservice python3 app/scripts/perform_import_parallel.py --filename=/mnt/products.jsonl --num_processes=2
    ```
 
 If you get errors, try adding more RAM (12GB works well if you have that spare), or slow down the indexing process by setting `num_processes` to 1 in the command above.

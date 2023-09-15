@@ -1,5 +1,5 @@
 """
-Performs an import from a MongoDB products.bson file.
+Performs an import from a MongoDB products.jsonl file.
 
 Pass in the path of the file with the filename argument
 
@@ -13,7 +13,6 @@ import time
 from datetime import datetime
 from multiprocessing import Pool
 
-import bson
 from elasticsearch.helpers import bulk
 from elasticsearch.helpers import parallel_bulk
 from elasticsearch_dsl import Index
@@ -23,6 +22,7 @@ from app.models.product import create_product_from_dict
 from app.models.product import Product
 from app.utils import connection
 from app.utils import constants
+from app.utils.io import jsonl_iter
 
 
 def get_product_dict(row, next_index: str):
@@ -38,39 +38,43 @@ def get_product_dict(row, next_index: str):
 
 
 def gen_documents(
-    filename: str, next_index: str, start_time, num_items: int, num_processes: int, process_id: int
+    filename: str,
+    next_index: str,
+    start_time,
+    num_items: int,
+    num_processes: int,
+    process_id: int,
 ):
     """Generate documents to index for process number process_id
 
     We chunk documents based on document num % process_id
     """
-    with open(filename, "rb") as f:
-        for i, row in enumerate(bson.decode_file_iter(f)):
-            if i > num_items:
-                break
-            # Only get the relevant
-            if i % num_processes != process_id:
-                continue
+    for i, row in enumerate(jsonl_iter(filename)):
+        if i > num_items:
+            break
+        # Only get the relevant
+        if i % num_processes != process_id:
+            continue
 
-            if i % 100000 == 0 and i:
-                # Roughly 2.5M lines as of August 2022
-                current_time = time.perf_counter()
-                print(
-                    f"Processed: {i} lines in {round(current_time - start_time)} seconds",
-                )
+        if i % 100000 == 0 and i:
+            # Roughly 2.5M lines as of August 2022
+            current_time = time.perf_counter()
+            print(
+                f"Processed: {i} lines in {round(current_time - start_time)} seconds",
+            )
 
-            # At least one document doesn't have a code set, don't import it
-            if not row.get("code"):
-                continue
+        # At least one document doesn't have a code set, don't import it
+        if not row.get("code"):
+            continue
 
-            if row["code"] in constants.BLACKLISTED_DOCUMENTS:
-                continue
+        if row["code"] in constants.BLACKLISTED_DOCUMENTS:
+            continue
 
-            product_dict = get_product_dict(row, next_index)
-            if not product_dict:
-                continue
+        product_dict = get_product_dict(row, next_index)
+        if not product_dict:
+            continue
 
-            yield product_dict
+        yield product_dict
 
 
 def update_alias(es, next_index):
@@ -100,7 +104,7 @@ def import_parallel(
 ):
     """One task of import.
 
-    :param str filename: the bson file to read
+    :param str filename: the JSONL file to read
     :param str next_index: the index to write to
     :param float start_time: the start time
     :param int num_items: max number of items to import
@@ -195,7 +199,7 @@ def perform_import(
     # run in parallel
     with Pool(num_processes) as pool:
         pool.starmap(import_parallel, args)
-    # update with last index updates (hopefully since the bson)
+    # update with last index updates (hopefully since the jsonl)
     get_redis_updates(next_index)
     # make alias point to new index
     update_alias(es, next_index)
@@ -205,7 +209,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("perform_import")
     parser.add_argument(
         "--filename",
-        help="Filename where Mongo products.bson file is located",
+        help="Filename where the JSONL file is located",
         type=str,
     )
     parser.add_argument(
