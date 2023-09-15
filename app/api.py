@@ -1,17 +1,11 @@
 from __future__ import annotations
 
 from elasticsearch_dsl import Q
-from fastapi import FastAPI
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
 
 from app.models.product import Product
-from app.models.request import AutocompleteRequest
-from app.models.request import SearchRequest
-from app.utils import connection
-from app.utils import constants
-from app.utils import dict_utils
-from app.utils import query_utils
-from app.utils import response
+from app.models.request import AutocompleteRequest, SearchRequest
+from app.utils import connection, constants, dict_utils, query_utils, response
 
 app = FastAPI()
 connection.get_connection()

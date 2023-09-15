@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import List
-from typing import Optional
-from typing import Set
+from typing import List, Optional, Set
 
 from pydantic import BaseModel
 

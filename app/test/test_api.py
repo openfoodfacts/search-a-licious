@@ -7,11 +7,13 @@ from unittest.mock import call
 import pytest
 
 from app import api
-from app.models.request import AutocompleteRequest
-from app.models.request import DateTimeFilter
-from app.models.request import NumericFilter
-from app.models.request import SearchRequest
-from app.models.request import StringFilter
+from app.models.request import (
+    AutocompleteRequest,
+    DateTimeFilter,
+    NumericFilter,
+    SearchRequest,
+    StringFilter,
+)
 from app.utils import constants
 
 

@@ -6,22 +6,17 @@ Pass in the path of the file with the filename argument
 Example:
 python scripts/perform_import_parallel.py --filename=X
 """
-from __future__ import annotations
-
 import argparse
 import time
 from datetime import datetime
 from multiprocessing import Pool
 
-from elasticsearch.helpers import bulk
-from elasticsearch.helpers import parallel_bulk
+from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Index
 
 from app.import_queue.redis_client import RedisClient
-from app.models.product import create_product_from_dict
-from app.models.product import Product
-from app.utils import connection
-from app.utils import constants
+from app.models.product import Product, create_product_from_dict
+from app.utils import connection, constants
 from app.utils.io import jsonl_iter
 
 

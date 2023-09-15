@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from elasticsearch_dsl import analyzer
-from elasticsearch_dsl import tokenizer
+from elasticsearch_dsl import analyzer, tokenizer
 
 autocomplete = analyzer(
     "autocomplete",

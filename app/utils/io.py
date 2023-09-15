@@ -1,7 +1,7 @@
 import gzip
 import json
 from pathlib import Path
-from typing import Callable, Iterable, Union
+from typing import Callable, Iterable
 
 _orjson_available = True
 try:
@@ -10,7 +10,20 @@ except ImportError:
     _orjson_available = False
 
 
-def jsonl_iter(jsonl_path: Union[str, Path]) -> Iterable[dict]:
+def load_json(filepath: str | Path) -> dict | list:
+    """Load a JSON file, support gzipped JSON files.
+
+    :param path: the path of the file
+    """
+    open = get_open_fn(filepath)
+    with open(filepath, "rb") as f:
+        if _orjson_available:
+            return orjson.loads(f.read())
+        else:
+            return json.loads(f.read().decode("utf-8"))
+
+
+def jsonl_iter(jsonl_path: str | Path) -> Iterable[dict]:
     """Iterate over elements of a JSONL file.
 
     :param jsonl_path: the path of the JSONL file. Both plain (.jsonl) and
@@ -23,7 +36,7 @@ def jsonl_iter(jsonl_path: Union[str, Path]) -> Iterable[dict]:
         yield from jsonl_iter_fp(f)
 
 
-def get_open_fn(filepath: Union[str, Path]) -> Callable:
+def get_open_fn(filepath: str | Path) -> Callable:
     filepath = str(filepath)
     if filepath.endswith(".gz"):
         return gzip.open
