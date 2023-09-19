@@ -18,16 +18,16 @@ class OpenFoodFactsPreprocessor(DocumentPreprocessor):
         # - `languages_code`
         # - `countries_tags`: we add every official language of the countries where the product
         # can be found.
-        supported_langs = set(document["languages_codes"])
-        countries_tags = document["countries_tags"]
+        supported_langs = set(document.get("languages_codes", []))
+        countries_tags = document.get("countries_tags", [])
         country_taxonomy = get_taxonomy("country", COUNTRIES_TAXONOMY_URL)
 
         for country_tag in countries_tags:
-            supported_langs |= set(
-                country_taxonomy[country_tag]
-                .properties["language_codes"]["en"]
-                .split(",")
-            )
+            # Check that `country_tag` is in taxonomy
+            if (country_node := country_taxonomy[country_tag]) is not None:
+                # Get all official languages of the country, and add them to `supported_langs`
+                if (lang_codes :=country_node.properties.get("language_codes", {}).get("en")) is not None:
+                    supported_langs |= set(lang_code for lang_code in lang_codes.split(",") if lang_code)
 
         document["supported_langs"] = list(supported_langs)
         return document

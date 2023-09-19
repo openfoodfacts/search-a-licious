@@ -1,12 +1,4 @@
-"""
-Performs an import from a MongoDB products.jsonl file.
-
-Pass in the path of the file with the filename argument
-
-Example:
-python scripts/perform_import_parallel.py --filename=X
-"""
-import argparse
+from pathlib import Path
 import time
 from datetime import datetime
 from multiprocessing import Pool
@@ -18,8 +10,11 @@ from elasticsearch_dsl import Index
 from app.config import CONFIG, Config
 from app.import_queue.redis_client import RedisClient
 from app.models.product import Product, ProductProcessor
-from app.utils import connection, constants
+from app.utils import connection, constants, get_logger
 from app.utils.io import jsonl_iter
+
+
+logger = get_logger(__name__)
 
 
 def get_product_dict(processor: ProductProcessor, row, next_index: str):
@@ -36,10 +31,10 @@ def get_product_dict(processor: ProductProcessor, row, next_index: str):
 
 def gen_documents(
     processor: ProductProcessor,
-    filename: str,
+    file_path: Path,
     next_index: str,
     start_time,
-    num_items: int,
+    num_items: int | None,
     num_processes: int,
     process_id: int,
 ):
@@ -47,8 +42,8 @@ def gen_documents(
 
     We chunk documents based on document num % process_id
     """
-    for i, row in enumerate(tqdm.tqdm(jsonl_iter(filename))):
-        if i > num_items:
+    for i, row in enumerate(tqdm.tqdm(jsonl_iter(file_path))):
+        if num_items is not None and i > num_items:
             break
         # Only get the relevant
         if i % num_processes != process_id:
@@ -57,8 +52,10 @@ def gen_documents(
         if i % 100000 == 0 and i:
             # Roughly 2.5M lines as of August 2022
             current_time = time.perf_counter()
-            print(
-                f"Processed: {i} lines in {round(current_time - start_time)} seconds",
+            logger.info(
+                "Processed: %d lines in %s seconds",
+                i,
+                round(current_time - start_time)
             )
 
         # At least one document doesn't have a code set, don't import it
@@ -94,19 +91,19 @@ def update_alias(es, next_index):
 
 def import_parallel(
     config: Config,
-    filename: str,
+    file_path: Path,
     next_index: str,
     start_time: float,
-    num_items: int,
+    num_items: int | None,
     num_processes: int,
     process_id: int,
 ):
     """One task of import.
 
-    :param str filename: the JSONL file to read
+    :param Path file_path: the JSONL file to read
     :param str next_index: the index to write to
     :param float start_time: the start time
-    :param int num_items: max number of items to import
+    :param int num_items: max number of items to import, default to no limit
     :param int num_processes: total number of processes
     :param int process_id: the index of the process (from 0 to num_processes - 1)
     """
@@ -120,7 +117,7 @@ def import_parallel(
         es,
         gen_documents(
             processor,
-            filename,
+            file_path,
             next_index,
             start_time,
             num_items,
@@ -130,8 +127,7 @@ def import_parallel(
         raise_on_error=False,
     )
     if not success:
-        print("Encountered errors:")
-        print(errors)
+        logger.error("Encountered errors: %s", errors)
 
 
 def get_redis_products(
@@ -142,7 +138,7 @@ def get_redis_products(
     Those ids are set by productopener on products updates
     """
     redis_client = RedisClient()
-    print(f"Processing redis updates since {last_updated_timestamp}")
+    logger.info("Processing redis updates since %s", last_updated_timestamp)
     timestamp_processed_values = redis_client.get_processed_since(
         last_updated_timestamp,
     )
@@ -150,7 +146,7 @@ def get_redis_products(
         product_dict = get_product_dict(processor, row, next_index)
         yield product_dict
 
-    print(f"Processed {len(timestamp_processed_values)} updates from Redis")
+    logger.info("Processed %d updates from Redis", len(timestamp_processed_values))
 
 
 def get_redis_updates(next_index: str):
@@ -169,11 +165,11 @@ def get_redis_updates(next_index: str):
         es, get_redis_products(next_index, last_updated_timestamp)
     ):
         if not success:
-            print("A document failed: ", info)
+            logger.warning("A document failed: %s", info)
 
 
 def perform_import(
-    filename: str, num_items: int, num_processes: int, start_time: float
+    file_path: Path, num_items: int | None, num_processes: int, start_time: float
 ):
     """Main function running the import sequence"""
     es = connection.get_connection()
@@ -192,7 +188,7 @@ def perform_import(
         args.append(
             (
                 CONFIG,
-                filename,
+                file_path,
                 next_index,
                 start_time,
                 num_items,
@@ -207,35 +203,3 @@ def perform_import(
     get_redis_updates(next_index)
     # make alias point to new index
     update_alias(es, next_index)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser("perform_import")
-    parser.add_argument(
-        "--filename",
-        help="Filename where the JSONL file is located",
-        type=str,
-    )
-    parser.add_argument(
-        "--num_items",
-        help="How many items to import",
-        type=int,
-        default=100000000,
-    )
-    parser.add_argument(
-        "--num_processes",
-        help="How many import processes to run in parallel",
-        type=int,
-        default=2,
-    )
-    args = parser.parse_args()
-
-    start_time = time.perf_counter()
-    perform_import(
-        args.filename,
-        args.num_items,
-        args.num_processes,
-        start_time,
-    )
-    end_time = time.perf_counter()
-    print(f"Import time: {end_time - start_time} seconds")

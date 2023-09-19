@@ -29,6 +29,11 @@ class DocumentPreprocessor(abc.ABC):
 
     @abc.abstractmethod
     def preprocess(self, document: JSONType) -> JSONType:
+        """Preprocess the document before data ingestion in Elasticsearch.
+        
+        This can be used to make document schema compatible with the project
+        schema or to add custom fields.
+        """
         pass
 
 
@@ -40,7 +45,9 @@ def process_text_lang_field(
     for target_key in (
         k
         for k in data
-        if re.fullmatch(f"{re.escape(input_field)}{config.lang_separator}\w\w([-_]\w\w)?", k)
+        if re.fullmatch(
+            f"{re.escape(input_field)}{config.lang_separator}\w\w([-_]\w\w)?", k
+        )
     ):
         input_value = preprocess_field(
             data,
@@ -95,6 +102,7 @@ def process_taxonomy_field(
 class ProductProcessor:
     def __init__(self, config: Config) -> None:
         self.config = config
+        self.preprocessor: DocumentPreprocessor | None
 
         if config.preprocessor is not None:
             preprocessor_cls = load_class_object_from_string(config.preprocessor)
@@ -104,7 +112,7 @@ class ProductProcessor:
 
     def from_dict(self, d: JSONType):
         inputs = {}
-        d = self.preprocessor(d) if self.preprocessor is not None else d
+        d = self.preprocessor.preprocess(d) if self.preprocessor is not None else d
 
         for field in self.config.fields:
             input_field = field.get_input_field()
