@@ -4,7 +4,7 @@ from elasticsearch_dsl import Q
 from fastapi import FastAPI, HTTPException
 
 from app.models.product import Product
-from app.models.request import AutocompleteRequest, SearchRequest
+from app.models.request import AdvancedSearchRequest, AutocompleteRequest
 from app.utils import connection, constants, dict_utils, query_utils, response
 
 app = FastAPI()
@@ -70,7 +70,7 @@ def validate_field(field, fields_to_types, valid_types, filter_type):
     return field_type
 
 
-def create_search_query(request: SearchRequest):
+def create_search_query(request: AdvancedSearchRequest):
     fields_to_types = Product._doc_type.mapping.properties.to_dict()["properties"]
     must_queries = []
     must_not_queries = []
@@ -154,8 +154,8 @@ def create_search_query(request: SearchRequest):
     return query.extra(size=request.get_num_results())
 
 
-@app.post("/search")
-def search(request: SearchRequest):
+@app.post("/advanced-search")
+def search(request: AdvancedSearchRequest):
     if (
         not request.string_filters
         and not request.numeric_filters

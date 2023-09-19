@@ -9,7 +9,7 @@ from app.utils import constants
 
 
 class SearchBase(BaseModel):
-    response_fields: Optional[Set[str]]
+    response_fields: set[str] | None = None
     num_results: int = 10
 
     def get_num_results(self):
@@ -42,7 +42,7 @@ class DateTimeFilter(BaseModel):
     operator: str = "eq"
 
 
-class SearchRequest(SearchBase):
+class AdvancedSearchRequest(SearchBase):
     # Works as an intersection/AND query
     string_filters: List[StringFilter] = []
     numeric_filters: List[NumericFilter] = []
