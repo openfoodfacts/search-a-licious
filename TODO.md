@@ -1,0 +1,1 @@
+1. Use mapping API of Elasticsearch DSL to properly create mapping
