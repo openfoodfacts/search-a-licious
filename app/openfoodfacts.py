@@ -26,8 +26,14 @@ class OpenFoodFactsPreprocessor(DocumentPreprocessor):
             # Check that `country_tag` is in taxonomy
             if (country_node := country_taxonomy[country_tag]) is not None:
                 # Get all official languages of the country, and add them to `supported_langs`
-                if (lang_codes :=country_node.properties.get("language_codes", {}).get("en")) is not None:
-                    supported_langs |= set(lang_code for lang_code in lang_codes.split(",") if lang_code)
+                if (
+                    lang_codes := country_node.properties.get("language_codes", {}).get(
+                        "en"
+                    )
+                ) is not None:
+                    supported_langs |= set(
+                        lang_code for lang_code in lang_codes.split(",") if lang_code
+                    )
 
         document["supported_langs"] = list(supported_langs)
         return document

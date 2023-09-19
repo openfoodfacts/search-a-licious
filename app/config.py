@@ -39,6 +39,8 @@ class FieldConfig(BaseModel):
     taxonomy_name: str | None = None
     # can the keyword field contain multiple value (keyword type only)
     multi: bool = False
+    # is the last_modified field, it's used to perform incremental update using Redis queues
+    is_last_modified_field: bool = False
 
     @model_validator(mode="after")
     def multi_should_be_used_for_keyword_type_only(self):
@@ -75,6 +77,10 @@ class Config(BaseModel):
     # This is used to adapt the data schema or to add search-a-licious specific fields
     # for example.
     preprocessor: str | None = None
+    # A list of supported languages, it is used to build index mapping
+    supported_langs: list[str] | None = None
+    # How much we boost exact matches on individual fields
+    match_phrase_boost: float = 2.0
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):
@@ -104,6 +110,15 @@ class Config(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def only_one_field_should_be_is_last_modified_field(self):
+        """Validator that checks that there is a single field with `is_last_modified_field=True`."""
+        if sum(1 for field in self.fields if field.is_last_modified_field) > 1:
+            raise ValueError(
+                f"only one field should have `is_last_modified_field=True`"
+            )
+        return self
+
+    @model_validator(mode="after")
     def if_split_should_be_multi(self):
         """Validator that checks that multi=True if split=True.."""
         for field in self.fields:
@@ -115,6 +130,15 @@ class Config(BaseModel):
         return {field.name for field in self.fields} | {
             field.input_field for field in self.fields if field.input_field is not None
         }
+
+    def get_supported_langs(self) -> set[str]:
+        return set(self.supported_langs or []) | set(self.taxonomy.supported_langs)
+
+    def get_last_modified_field(self) -> FieldConfig:
+        for field in self.fields:
+            if field.is_last_modified_field:
+                return field
+        return None
 
 
 CONFIG = Config(
@@ -160,6 +184,9 @@ CONFIG = Config(
         FieldConfig(name="nutrition_grades", type=FieldType.keyword),
         FieldConfig(name="ecoscore_grade", type=FieldType.keyword),
         FieldConfig(name="nova_groups", type=FieldType.keyword),
+        FieldConfig(
+            name="last_modified_t", type=FieldType.date, is_last_modified_field=True
+        ),
     ],
     taxonomy=TaxonomyConfig(
         sources=[
@@ -175,4 +202,167 @@ CONFIG = Config(
         supported_langs=["en", "fr", "es", "de", "it", "nl"],
     ),
     preprocessor="app.openfoodfacts.OpenFoodFactsPreprocessor",
+    supported_langs=[
+        "aa",
+        "ab",
+        "ae",
+        "af",
+        "ak",
+        "am",
+        "ar",
+        "as",
+        "at",
+        "au",
+        "ay",
+        "az",
+        "be",
+        "bg",
+        "bi",
+        "bn",
+        "br",
+        "bs",
+        "ca",
+        "ch",
+        "co",
+        "cs",
+        "cu",
+        "cy",
+        "da",
+        "de",
+        "dv",
+        "dz",
+        "el",
+        "en",
+        "eo",
+        "es",
+        "et",
+        "eu",
+        "fa",
+        "fi",
+        "fj",
+        "fo",
+        "fr",
+        "fy",
+        "ga",
+        "gb",
+        "gd",
+        "gl",
+        "gn",
+        "gp",
+        "gu",
+        "gv",
+        "ha",
+        "he",
+        "hi",
+        "hk",
+        "ho",
+        "hr",
+        "ht",
+        "hu",
+        "hy",
+        "hz",
+        "id",
+        "in",
+        "io",
+        "is",
+        "it",
+        "iw",
+        "ja",
+        "jp",
+        "jv",
+        "ka",
+        "kk",
+        "kl",
+        "km",
+        "kn",
+        "ko",
+        "ku",
+        "ky",
+        "la",
+        "lb",
+        "lc",
+        "ln",
+        "lo",
+        "lt",
+        "lu",
+        "lv",
+        "mg",
+        "mh",
+        "mi",
+        "mk",
+        "ml",
+        "mn",
+        "mo",
+        "mr",
+        "ms",
+        "mt",
+        "my",
+        "na",
+        "nb",
+        "nd",
+        "ne",
+        "nl",
+        "nn",
+        "no",
+        "nr",
+        "ny",
+        "oc",
+        "om",
+        "pa",
+        "pl",
+        "ps",
+        "pt",
+        "qq",
+        "qu",
+        "re",
+        "rm",
+        "rn",
+        "ro",
+        "rs",
+        "ru",
+        "rw",
+        "sd",
+        "se",
+        "sg",
+        "sh",
+        "si",
+        "sk",
+        "sl",
+        "sm",
+        "sn",
+        "so",
+        "sq",
+        "sr",
+        "ss",
+        "st",
+        "sv",
+        "sw",
+        "ta",
+        "te",
+        "tg",
+        "th",
+        "ti",
+        "tk",
+        "tl",
+        "tn",
+        "to",
+        "tr",
+        "ts",
+        "ug",
+        "uk",
+        "ur",
+        "us",
+        "uz",
+        "ve",
+        "vi",
+        "wa",
+        "wo",
+        "xh",
+        "xx",
+        "yi",
+        "yo",
+        "zh",
+        "zu",
+    ],
+    match_phrase_boost=2.0,
 )

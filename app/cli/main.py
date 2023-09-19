@@ -16,13 +16,16 @@ def import_data(
         help="Path of the JSONL data file",
     ),
     num_processes: int = typer.Option(
-        default=2,
-        help="How many import processes to run in parallel"
+        default=2, help="How many import processes to run in parallel"
     ),
-    num_items: Optional[int] = typer.Option(default=None, help="How many items to import"),
+    num_items: Optional[int] = typer.Option(
+        default=None, help="How many items to import"
+    ),
 ):
     """Import data into Elasticsearch."""
     import time
+
+    from app.config import CONFIG
     from app.utils import get_logger
     from app.cli.perform_import import perform_import
 
@@ -34,10 +37,10 @@ def import_data(
         num_items,
         num_processes,
         start_time,
+        CONFIG,
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
-
 
 
 @app.command()
@@ -45,7 +48,7 @@ def write_to_redis():
     import time
 
     from redis import Redis
-    
+
     redis = Redis(
         host="searchredis",
         port=6379,
@@ -59,6 +62,7 @@ def write_to_redis():
         redis.rpush(key_name, code)
         end_time = time.perf_counter()
         print(f"Time: {end_time - start_time} seconds")
-    
+
+
 def main() -> None:
     app()

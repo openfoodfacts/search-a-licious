@@ -1,10 +1,11 @@
+from typing import Iterable
 from elasticsearch_dsl import Double, Keyword, Object, Text, analyzer
 
 from app.config import FieldConfig, FieldType
 from app.utils.analyzers import ANALYZER_LANG_MAPPING
 
 
-def generate_dsl_field(field: FieldConfig, supported_lang: list[str]):
+def generate_dsl_field(field: FieldConfig, supported_lang: Iterable[str]):
     if field.type in (FieldType.text_lang, FieldType.taxonomy):
         properties = {
             lang: Text(analyzer=analyzer(ANALYZER_LANG_MAPPING.get(lang, "standard")))

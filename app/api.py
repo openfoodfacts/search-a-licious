@@ -1,17 +1,23 @@
 from __future__ import annotations
+import json
+from typing import Annotated
 
 from elasticsearch_dsl import Q
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 
+from app.config import CONFIG
 from app.models.product import Product
 from app.models.request import AdvancedSearchRequest, AutocompleteRequest
 from app.utils import connection, constants, dict_utils, query_utils, response
+from app.utils import get_logger
+
+logger = get_logger()
 
 app = FastAPI()
 connection.get_connection()
 
 
-@app.get("/{barcode}")
+@app.get("/product/{barcode}")
 def get_product(barcode: str):
     results = Product.search().query("term", code=barcode).extra(size=1).execute()
     results_dict = [r.to_dict() for r in results]
@@ -152,6 +158,27 @@ def create_search_query(request: AdvancedSearchRequest):
         for range_query in range_queries:
             query = query.filter(query_utils.create_range_query(range_query))
     return query.extra(size=request.get_num_results())
+
+
+@app.get("/search")
+def search(
+    q: str,
+    langs: Annotated[list[str] | None, Query()] = None,
+    add_english: bool = True,
+    num_results: int = 10,
+):
+    if langs is None:
+        langs = {"en"}
+    else:
+        langs = set(langs)
+
+    if add_english:
+        langs.add("en")
+
+    query = query_utils.build_search_query(q, langs, num_results, CONFIG)
+    logger.info("query:\n%s", json.dumps(query.to_dict(), indent=4))
+    results = query.execute()
+    return results.to_dict()
 
 
 @app.post("/advanced-search")

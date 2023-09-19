@@ -53,9 +53,7 @@ def gen_documents(
             # Roughly 2.5M lines as of August 2022
             current_time = time.perf_counter()
             logger.info(
-                "Processed: %d lines in %s seconds",
-                i,
-                round(current_time - start_time)
+                "Processed: %d lines in %s seconds", i, round(current_time - start_time)
             )
 
         # At least one document doesn't have a code set, don't import it
@@ -149,11 +147,12 @@ def get_redis_products(
     logger.info("Processed %d updates from Redis", len(timestamp_processed_values))
 
 
-def get_redis_updates(next_index: str):
+def get_redis_updates(next_index: str, config: Config):
     es = connection.get_connection()
     # Ensure all documents are searchable after the import
     Index(next_index).refresh()
-    query = Product.search().sort("-last_modified_t").extra(size=1)
+    field_name = config.get_last_modified_field().name
+    query = Product.search().sort(f"-{field_name}").extra(size=1)
     # Note that we can't use index() because we don't want to also query the main alias
     query._index = [next_index]
     results = query.execute()
@@ -169,7 +168,11 @@ def get_redis_updates(next_index: str):
 
 
 def perform_import(
-    file_path: Path, num_items: int | None, num_processes: int, start_time: float
+    file_path: Path,
+    num_items: int | None,
+    num_processes: int,
+    start_time: float,
+    config: Config,
 ):
     """Main function running the import sequence"""
     es = connection.get_connection()
@@ -187,7 +190,7 @@ def perform_import(
     for i in range(num_processes):
         args.append(
             (
-                CONFIG,
+                config,
                 file_path,
                 next_index,
                 start_time,
@@ -200,6 +203,6 @@ def perform_import(
     with Pool(num_processes) as pool:
         pool.starmap(import_parallel, args)
     # update with last index updates (hopefully since the jsonl)
-    get_redis_updates(next_index)
+    get_redis_updates(next_index, config)
     # make alias point to new index
     update_alias(es, next_index)

@@ -30,7 +30,7 @@ class DocumentPreprocessor(abc.ABC):
     @abc.abstractmethod
     def preprocess(self, document: JSONType) -> JSONType:
         """Preprocess the document before data ingestion in Elasticsearch.
-        
+
         This can be used to make document schema compatible with the project
         schema or to add custom fields.
         """
@@ -141,7 +141,7 @@ class ProductProcessor:
 
 FIELD_BY_NAME = {field.name: field for field in CONFIG.fields}
 _generate_dsl_field = functools.partial(
-    generate_dsl_field, supported_lang=CONFIG.taxonomy.supported_langs
+    generate_dsl_field, supported_lang=CONFIG.get_supported_langs()
 )
 
 
