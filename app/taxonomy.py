@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
-import cachetools
 
+import cachetools
 import requests
 
 from app.types import JSONType
@@ -346,7 +346,7 @@ class Taxonomy:
         return cls.from_dict(data)
 
 
-@cachetools.func.ttl_cache(ttl=3600)
+@cachetools.cached(cachetools.TTLCache(maxsize=100, ttl=3600))
 def get_taxonomy(
     taxonomy_name: str,
     taxonomy_url: str,

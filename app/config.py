@@ -57,6 +57,7 @@ class FieldConfig(BaseModel):
         return self
 
     def get_input_field(self):
+        """Return the name of the field to use in input data."""
         return self.input_field or self.name
 
     def has_lang_subfield(self) -> bool:
@@ -66,7 +67,14 @@ class FieldConfig(BaseModel):
 class Config(BaseModel):
     fields: list[FieldConfig]
     split_separator: str = ","
+    # for `text_lang` FieldType, the separator between the name of the field
+    # and the language code, ex: product_name_it if lang_separator="_"
+    lang_separator: str = "_"
     taxonomy: TaxonomyConfig
+    # The full qualified reference to the preprocessor to use before data import
+    # This is used to adapt the data schema or to add search-a-licious specific fields
+    # for example.
+    preprocessor: str | None = None
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):
@@ -133,7 +141,11 @@ CONFIG = Config(
             include_multi_match=True,
         ),
         FieldConfig(
-            name="brands", type=FieldType.text, split=True, multi=True, include_multi_match=True
+            name="brands",
+            type=FieldType.text,
+            split=True,
+            multi=True,
+            include_multi_match=True,
         ),
         FieldConfig(name="stores", type=FieldType.text, split=True, multi=True),
         FieldConfig(name="emb_codes", type=FieldType.text, split=True, multi=True),
@@ -162,4 +174,5 @@ CONFIG = Config(
         ],
         supported_langs=["en", "fr", "es", "de", "it", "nl"],
     ),
+    preprocessor="app.openfoodfacts.OpenFoodFactsPreprocessor",
 )

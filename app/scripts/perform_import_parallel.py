@@ -11,18 +11,20 @@ import time
 from datetime import datetime
 from multiprocessing import Pool
 
+import tqdm
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Index
 
+from app.config import CONFIG, Config
 from app.import_queue.redis_client import RedisClient
-from app.models.product import Product, create_product_from_dict
+from app.models.product import Product, ProductProcessor
 from app.utils import connection, constants
 from app.utils.io import jsonl_iter
 
 
-def get_product_dict(row, next_index: str):
+def get_product_dict(processor: ProductProcessor, row, next_index: str):
     """Return the product dict suitable for a bulk insert operation"""
-    product = create_product_from_dict(row)
+    product = processor.from_dict(row)
     if not product:
         return None
     product_dict = product.to_dict(True)
@@ -33,6 +35,7 @@ def get_product_dict(row, next_index: str):
 
 
 def gen_documents(
+    processor: ProductProcessor,
     filename: str,
     next_index: str,
     start_time,
@@ -44,7 +47,7 @@ def gen_documents(
 
     We chunk documents based on document num % process_id
     """
-    for i, row in enumerate(jsonl_iter(filename)):
+    for i, row in enumerate(tqdm.tqdm(jsonl_iter(filename))):
         if i > num_items:
             break
         # Only get the relevant
@@ -65,7 +68,7 @@ def gen_documents(
         if row["code"] in constants.BLACKLISTED_DOCUMENTS:
             continue
 
-        product_dict = get_product_dict(row, next_index)
+        product_dict = get_product_dict(processor, row, next_index)
         if not product_dict:
             continue
 
@@ -90,6 +93,7 @@ def update_alias(es, next_index):
 
 
 def import_parallel(
+    config: Config,
     filename: str,
     next_index: str,
     start_time: float,
@@ -106,6 +110,7 @@ def import_parallel(
     :param int num_processes: total number of processes
     :param int process_id: the index of the process (from 0 to num_processes - 1)
     """
+    processor = ProductProcessor(config)
     # open a connection for this process
     es = connection.get_connection(timeout=120, retry_on_timeout=True)
     # Note that bulk works better than parallel bulk for our usecase.
@@ -114,6 +119,7 @@ def import_parallel(
     success, errors = bulk(
         es,
         gen_documents(
+            processor,
             filename,
             next_index,
             start_time,
@@ -128,7 +134,9 @@ def import_parallel(
         print(errors)
 
 
-def get_redis_products(next_index: str, last_updated_timestamp):
+def get_redis_products(
+    processor: ProductProcessor, next_index: str, last_updated_timestamp
+):
     """Fetch ids of products to update from redis index
 
     Those ids are set by productopener on products updates
@@ -139,7 +147,7 @@ def get_redis_products(next_index: str, last_updated_timestamp):
         last_updated_timestamp,
     )
     for _, row in timestamp_processed_values:
-        product_dict = get_product_dict(row, next_index)
+        product_dict = get_product_dict(processor, row, next_index)
         yield product_dict
 
     print(f"Processed {len(timestamp_processed_values)} updates from Redis")
@@ -183,6 +191,7 @@ def perform_import(
     for i in range(num_processes):
         args.append(
             (
+                CONFIG,
                 filename,
                 next_index,
                 start_time,
