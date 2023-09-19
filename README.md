@@ -64,21 +64,19 @@ pre-commit run
 ### Running the import:
 To import data from the [JSONL export](https://world.openfoodfacts.org/data):
 
-1. First ensure that your docker environment has at least 150GB of disk and 6GB of RAM. This can be found under settings --> resources
+1Run the following command:
+```console
+python3 -m app import /path/to/products.jsonl.gz --num_processes=2
+```
 
-2. Run the following command:
-   ```console
-   python3 -m app import /path/to/products.jsonl.gz --num_processes=2
-   ```
-
-   Or using docker:
-   ```console
-   docker-compose run --rm -v $(pwd)/path/to/products.jsonl.gz:/mnt/products.jsonl.gz:ro searchservice python3 -m app import /mnt/products.jsonl.gz --num_processes=2
-   ```
+Or using docker:
+```console
+docker-compose run --rm -v $(pwd)/path/to/products.jsonl.gz:/mnt/products.jsonl.gz:ro searchservice python3 -m app import /mnt/products.jsonl.gz --num_processes=2
+```
 
 If you get errors, try adding more RAM (12GB works well if you have that spare), or slow down the indexing process by setting `num_processes` to 1 in the command above.
 
-Typical import time is 1-1.5 hours on an M1 Macbook.
+Typical import time is 45 hours.
 
 ### Testing via CLI:
 Under `scripts/` there are scripts that allow you to send requests to the service, ES or Redis.
