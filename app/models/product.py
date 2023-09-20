@@ -149,7 +149,7 @@ class Product(Document):
     """Additional fields are added at index time, so below is just a subset of the available fields."""
 
     class Index:
-        name = constants.INDEX_ALIAS
+        name = CONFIG.index_name
         settings = {"number_of_shards": 4}
 
     def fill_internal_fields(self):

@@ -71,6 +71,9 @@ class FieldConfig(BaseModel):
 
 
 class Config(BaseModel):
+    # name of the index alias to use
+    index_name: str
+    # configuration of all fields in the index
     fields: list[FieldConfig]
     split_separator: str = ","
     # for `text_lang` FieldType, the separator between the name of the field
@@ -85,6 +88,8 @@ class Config(BaseModel):
     supported_langs: list[str] | None = None
     # How much we boost exact matches on individual fields
     match_phrase_boost: float = 2.0
+    # list of documents IDs to ignore
+    document_denylist: list[str] | None = None
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):
@@ -146,6 +151,7 @@ class Config(BaseModel):
 
 
 CONFIG = Config(
+    index_name="openfoodfacts",
     fields=[
         FieldConfig(name="code", type=FieldType.keyword, required=True),
         FieldConfig(
@@ -369,4 +375,8 @@ CONFIG = Config(
         "zu",
     ],
     match_phrase_boost=2.0,
+    document_denylist=[
+        # Contains invalid chars (5.۹ in ingredients.percent)
+        "8901552007122"
+    ],
 )

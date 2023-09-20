@@ -36,6 +36,7 @@ def gen_documents(
     num_items: int | None,
     num_processes: int,
     process_id: int,
+    document_denylist: set[str],
 ):
     """Generate documents to index for process number process_id
 
@@ -59,7 +60,7 @@ def gen_documents(
         if not row.get("code"):
             continue
 
-        if row["code"] in constants.BLACKLISTED_DOCUMENTS:
+        if row["code"] in document_denylist:
             continue
 
         product_dict = get_product_dict(processor, row, next_index)
@@ -69,18 +70,18 @@ def gen_documents(
         yield product_dict
 
 
-def update_alias(es, next_index):
+def update_alias(es, next_index: str, index_alias: str):
     """repoint the alias to point to the newly created Index"""
     es.indices.update_aliases(
         body={
             "actions": [
                 {
                     "remove": {
-                        "alias": constants.INDEX_ALIAS,
-                        "index": constants.INDEX_ALIAS_PATTERN,
+                        "alias": index_alias,
+                        "index": f"{index_alias}-*",
                     },
                 },
-                {"add": {"alias": constants.INDEX_ALIAS, "index": next_index}},
+                {"add": {"alias": index_alias, "index": next_index}},
             ],
         },
     )
@@ -94,6 +95,7 @@ def import_parallel(
     num_items: int | None,
     num_processes: int,
     process_id: int,
+    document_denylist: set[str],
 ):
     """One task of import.
 
@@ -120,6 +122,7 @@ def import_parallel(
             num_items,
             num_processes,
             process_id,
+            document_denylist,
         ),
         raise_on_error=False,
     )
@@ -178,13 +181,13 @@ def perform_import(
     es = connection.get_connection()
     # we create a temporary index to import to
     # at the end we will change alias to point to it
-    next_index = constants.INDEX_ALIAS_PATTERN.replace(
-        "*",
-        datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f"),
-    )
+    index_date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
+    next_index = f"{config.index_name}-{index_date}"
+
     # create the index
     Product.init(index=next_index)
 
+    document_denylist = set(config.document_denylist or [])
     # split the work between processes
     args = []
     for i in range(num_processes):
@@ -197,6 +200,7 @@ def perform_import(
                 num_items,
                 num_processes,
                 i,
+                document_denylist
             )
         )
     # run in parallel
