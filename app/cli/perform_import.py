@@ -7,7 +7,7 @@ import tqdm
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Index
 
-from app.config import CONFIG, Config
+from app.config import Config
 from app.import_queue.redis_client import RedisClient
 from app.models.product import Product, ProductProcessor
 from app.utils import connection, constants, get_logger
@@ -147,6 +147,7 @@ def get_redis_products(
 
 
 def get_redis_updates(next_index: str, config: Config):
+    processor = ProductProcessor(config)
     es = connection.get_connection()
     # Ensure all documents are searchable after the import
     Index(next_index).refresh()
@@ -156,11 +157,11 @@ def get_redis_updates(next_index: str, config: Config):
     query._index = [next_index]
     results = query.execute()
     results_dict = [r.to_dict() for r in results]
-    last_updated_timestamp = results_dict[0]["last_modified_t"]
+    last_updated_timestamp = results_dict[0][field_name]
 
     # Since this is only done by a single process, we can use parallel_bulk
     for success, info in parallel_bulk(
-        es, get_redis_products(next_index, last_updated_timestamp)
+        es, get_redis_products(processor, next_index, last_updated_timestamp)
     ):
         if not success:
             logger.warning("A document failed: %s", info)
