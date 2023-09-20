@@ -46,7 +46,11 @@ class FieldConfig(BaseModel):
     def multi_should_be_used_for_selected_type_only(self):
         """Validator that checks that `multi` flag is only True for fields
         with specific types."""
-        if self.type not in (FieldType.keyword, FieldType.text, FieldType.double, FieldType.date) and self.multi:
+        if (
+            self.type
+            not in (FieldType.keyword, FieldType.text, FieldType.double, FieldType.date)
+            and self.multi
+        ):
             raise ValueError(f"multi=True is not compatible with type={self.type}")
         return self
 

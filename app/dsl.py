@@ -1,4 +1,5 @@
 from typing import Iterable
+
 from elasticsearch_dsl import Date, Double, Keyword, Object, Text, analyzer
 
 from app.config import FieldConfig, FieldType

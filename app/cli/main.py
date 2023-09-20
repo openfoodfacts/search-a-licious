@@ -25,9 +25,9 @@ def import_data(
     """Import data into Elasticsearch."""
     import time
 
+    from app.cli.perform_import import perform_import
     from app.config import CONFIG
     from app.utils import get_logger
-    from app.cli.perform_import import perform_import
 
     logger = get_logger()
 

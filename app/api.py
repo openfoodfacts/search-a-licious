@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 from typing import Annotated
 
@@ -8,8 +9,14 @@ from fastapi import FastAPI, HTTPException, Query
 from app.config import CONFIG
 from app.models.product import Product
 from app.models.request import AdvancedSearchRequest, AutocompleteRequest
-from app.utils import connection, constants, dict_utils, query_utils, response
-from app.utils import get_logger
+from app.utils import (
+    connection,
+    constants,
+    dict_utils,
+    get_logger,
+    query_utils,
+    response,
+)
 
 logger = get_logger()
 

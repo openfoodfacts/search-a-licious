@@ -1,7 +1,7 @@
-from pathlib import Path
 import time
 from datetime import datetime
 from multiprocessing import Pool
+from pathlib import Path
 
 import tqdm
 from elasticsearch.helpers import bulk, parallel_bulk
@@ -12,7 +12,6 @@ from app.import_queue.redis_client import RedisClient
 from app.models.product import Product, ProductProcessor
 from app.utils import connection, constants, get_logger
 from app.utils.io import jsonl_iter
-
 
 logger = get_logger(__name__)
 
