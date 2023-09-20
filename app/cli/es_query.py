@@ -6,8 +6,8 @@ from __future__ import annotations
 import time
 
 from elasticsearch_dsl import Search
-from app.config import CONFIG
 
+from app.config import CONFIG
 from app.utils import connection
 
 
