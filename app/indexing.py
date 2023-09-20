@@ -36,6 +36,8 @@ def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
         return Double(required=field.required, multi=field.multi)
     elif field.type == FieldType.date:
         return Date(required=field.required, multi=field.multi)
+    elif field.type == FieldType.disabled:
+        return Object(required=field.required, enabled=False)
     else:
         raise ValueError(f"unsupported field type: {field.type}")
 

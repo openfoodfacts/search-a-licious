@@ -197,4 +197,4 @@ def perform_import(
     # update with last index updates (hopefully since the jsonl)
     get_redis_updates(next_index, config)
     # make alias point to new index
-    update_alias(es, next_index)
+    update_alias(es, next_index, config.index.name)

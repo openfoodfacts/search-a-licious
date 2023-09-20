@@ -20,6 +20,9 @@ class FieldType(StrEnum):
     text = auto()
     text_lang = auto()
     taxonomy = auto()
+    # if the field is not enabled (=not indexed and not parsed), see:
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html
+    disabled = auto()
 
 
 class FieldConfig(BaseModel):
@@ -219,6 +222,7 @@ CONFIG = Config(
         FieldConfig(name="ecoscore_grade", type=FieldType.keyword),
         FieldConfig(name="nova_groups", type=FieldType.keyword),
         FieldConfig(name="last_modified_t", type=FieldType.date),
+        FieldConfig(name="images", type=FieldType.disabled),
     ],
     taxonomy=TaxonomyConfig(
         sources=[
