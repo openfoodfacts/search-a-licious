@@ -150,7 +150,9 @@ def generate_mapping_object(config: Config) -> Mapping:
     mapping = Mapping()
     supported_langs = CONFIG.get_supported_langs()
     for field in config.fields:
-        mapping.field(field.name, generate_dsl_field(field, supported_langs=supported_langs))
+        mapping.field(
+            field.name, generate_dsl_field(field, supported_langs=supported_langs)
+        )
 
     # date of last index for the purposes of search
     mapping.field("last_indexed_datetime", Date(required=True))

@@ -39,8 +39,6 @@ class FieldConfig(BaseModel):
     taxonomy_name: str | None = None
     # can the keyword field contain multiple value (keyword type only)
     multi: bool = False
-    # is the last_modified field, it's used to perform incremental update using Redis queues
-    is_last_modified_field: bool = False
 
     @model_validator(mode="after")
     def multi_should_be_used_for_selected_type_only(self):
@@ -75,6 +73,9 @@ class IndexConfig(BaseModel):
     name: str
     # name of the field to use for `_id`
     id_field_name: str
+    # name of the field containing the date of last modification, used for incremental updates
+    # using Redis queues
+    last_modified_field_name: str
     number_of_shards: int = 4
     number_of_replicas: int = 1
 
@@ -128,12 +129,28 @@ class Config(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def only_one_field_should_be_is_last_modified_field(self):
-        """Validator that checks that there is a single field with `is_last_modified_field=True`."""
-        if sum(1 for field in self.fields if field.is_last_modified_field) > 1:
+    def field_references_must_exist_and_be_valid(self):
+        """Validator that checks that every field reference in IndexConfig refers to an existing field and is valid."""
+
+        fields_by_name = {f.name: f for f in self.fields}
+
+        if self.index.id_field_name not in fields_by_name:
             raise ValueError(
-                f"only one field should have `is_last_modified_field=True`"
+                f"id_field_name={self.index.id_field_name} but field was not declared"
             )
+
+        if self.index.last_modified_field_name not in fields_by_name:
+            raise ValueError(
+                f"last_modified_field_name={self.index.last_modified_field_name} but field was not declared"
+            )
+
+        last_modified_field = fields_by_name[self.index.last_modified_field_name]
+
+        if last_modified_field.type != FieldType.date:
+            raise ValueError(
+                "last_modified_field_name is expected to be of type FieldType.Date"
+            )
+
         return self
 
     @model_validator(mode="after")
@@ -152,15 +169,13 @@ class Config(BaseModel):
     def get_supported_langs(self) -> set[str]:
         return set(self.supported_langs or []) | set(self.taxonomy.supported_langs)
 
-    def get_last_modified_field(self) -> FieldConfig:
-        for field in self.fields:
-            if field.is_last_modified_field:
-                return field
-        return None
-
 
 CONFIG = Config(
-    index=IndexConfig(name="openfoodfacts", id_field_name="code"),
+    index=IndexConfig(
+        name="openfoodfacts",
+        id_field_name="code",
+        last_modified_field_name="last_modified_t",
+    ),
     fields=[
         FieldConfig(name="code", type=FieldType.keyword, required=True),
         FieldConfig(
@@ -203,9 +218,7 @@ CONFIG = Config(
         FieldConfig(name="nutrition_grades", type=FieldType.keyword),
         FieldConfig(name="ecoscore_grade", type=FieldType.keyword),
         FieldConfig(name="nova_groups", type=FieldType.keyword),
-        FieldConfig(
-            name="last_modified_t", type=FieldType.date, is_last_modified_field=True
-        ),
+        FieldConfig(name="last_modified_t", type=FieldType.date),
     ],
     taxonomy=TaxonomyConfig(
         sources=[

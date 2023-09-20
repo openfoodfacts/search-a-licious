@@ -143,7 +143,7 @@ def get_redis_updates(next_index: str, config: Config):
     es = connection.get_connection()
     # Ensure all documents are searchable after the import
     Index(next_index).refresh()
-    field_name = config.get_last_modified_field().name
+    field_name = config.index.last_modified_field_name
     query = Search(index=next_index).sort(f"-{field_name}").extra(size=1)
     # Note that we can't use index() because we don't want to also query the main alias
     query._index = [next_index]
