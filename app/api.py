@@ -89,18 +89,10 @@ def validate_field(field, fields_to_types, valid_types, filter_type):
 def search(
     q: str,
     langs: Annotated[list[str] | None, Query()] = None,
-    add_english: bool = True,
     num_results: int = 10,
     projection: Annotated[list[str] | None, Query()] = None,
 ):
-    if langs is None:
-        langs = {"en"}
-    else:
-        langs = set(langs)
-
-    if add_english:
-        langs.add("en")
-
+    langs = set(langs or ["en"])
     query = query_utils.build_search_query(q, langs, num_results, CONFIG)
     logger.info("query:\n%s", json.dumps(query.to_dict(), indent=4))
     results = query.execute()
