@@ -6,7 +6,7 @@ import typer
 app = typer.Typer()
 
 
-@app.command()
+@app.command(name="import")
 def import_data(
     input_path: Path = typer.Argument(
         ...,

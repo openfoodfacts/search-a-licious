@@ -1,11 +1,9 @@
-from __future__ import annotations
-
 import atexit
 
 from app.config import CONFIG, Config
 from app.import_queue.product_client import ProductClient
 from app.import_queue.redis_client import RedisClient
-from app.models.product import ProductProcessor
+from app.models.product import DocumentProcessor
 from app.utils import constants
 
 
@@ -17,7 +15,7 @@ class QueueManager:
         self.config = config
 
     def consume(self):
-        processor = ProductProcessor(self.config)
+        processor = DocumentProcessor(self.config)
         while not self.stop_received:
             code = self.redis_client.get_from_queue()
             if not code:

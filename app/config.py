@@ -1,6 +1,6 @@
 from enum import StrEnum, auto
 
-from pydantic import BaseModel, HttpUrl, model_validator
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 
 class TaxonomySourceConfig(BaseModel):
@@ -70,9 +70,18 @@ class FieldConfig(BaseModel):
         return self.type in (FieldType.taxonomy, FieldType.text_lang)
 
 
-class Config(BaseModel):
+class IndexConfig(BaseModel):
     # name of the index alias to use
-    index_name: str
+    name: str
+    # name of the field to use for `_id`
+    id_field_name: str
+    number_of_shards: int = 4
+    number_of_replicas: int = 1
+
+
+class Config(BaseModel):
+    # configuration of the index
+    index: IndexConfig
     # configuration of all fields in the index
     fields: list[FieldConfig]
     split_separator: str = ","
@@ -89,7 +98,7 @@ class Config(BaseModel):
     # How much we boost exact matches on individual fields
     match_phrase_boost: float = 2.0
     # list of documents IDs to ignore
-    document_denylist: list[str] | None = None
+    document_denylist: set[str] = Field(default_factory=set)
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):
@@ -151,7 +160,7 @@ class Config(BaseModel):
 
 
 CONFIG = Config(
-    index_name="openfoodfacts",
+    index=IndexConfig(name="openfoodfacts", id_field_name="code"),
     fields=[
         FieldConfig(name="code", type=FieldType.keyword, required=True),
         FieldConfig(
@@ -375,8 +384,8 @@ CONFIG = Config(
         "zu",
     ],
     match_phrase_boost=2.0,
-    document_denylist=[
+    document_denylist={
         # Contains invalid chars (5.۹ in ingredients.percent)
         "8901552007122"
-    ],
+    },
 )

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from elasticsearch_dsl import Q
+from elasticsearch_dsl import Q, Search
 
-from app.config import Config
-from app.models.product import Product
+from app.config import CONFIG, Config
 
 
 def get_nesting_segments(path):
@@ -92,7 +91,7 @@ def build_multi_match_query(query: str, langs: set[str], config: Config):
 def build_search_query(q: str, langs: set[str], num_results: int, config: Config):
     base_multi_match_q = build_multi_match_query(q, langs, config)
     query = (
-        Product.search()
+        Search(index=CONFIG.index.name)
         .query(base_multi_match_q)
         .extra(
             size=num_results,

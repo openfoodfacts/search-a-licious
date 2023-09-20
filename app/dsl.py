@@ -6,11 +6,11 @@ from app.config import FieldConfig, FieldType
 from app.utils.analyzers import ANALYZER_LANG_MAPPING
 
 
-def generate_dsl_field(field: FieldConfig, supported_lang: Iterable[str]):
+def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
     if field.type in (FieldType.text_lang, FieldType.taxonomy):
         properties = {
             lang: Text(analyzer=analyzer(ANALYZER_LANG_MAPPING.get(lang, "standard")))
-            for lang in supported_lang
+            for lang in supported_langs
         }
         return Object(required=field.required, dynamic=False, properties=properties)
     elif field.type == FieldType.keyword:

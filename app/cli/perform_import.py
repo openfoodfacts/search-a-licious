@@ -5,38 +5,36 @@ from pathlib import Path
 
 import tqdm
 from elasticsearch.helpers import bulk, parallel_bulk
-from elasticsearch_dsl import Index
+from elasticsearch_dsl import Index, Search
 
 from app.config import Config
 from app.import_queue.redis_client import RedisClient
-from app.models.product import Product, ProductProcessor
-from app.utils import connection, constants, get_logger
+from app.models.product import DocumentProcessor, generate_index_object
+from app.types import JSONType
+from app.utils import connection, get_logger
 from app.utils.io import jsonl_iter
 
 logger = get_logger(__name__)
 
 
-def get_product_dict(processor: ProductProcessor, row, next_index: str):
-    """Return the product dict suitable for a bulk insert operation"""
-    product = processor.from_dict(row)
-    if not product:
+def get_document_dict(processor: DocumentProcessor, row, next_index: str) -> JSONType:
+    """Return the document dict suitable for a bulk insert operation."""
+    document = processor.from_dict(row)
+    if not document:
         return None
-    product_dict = product.to_dict(True)
 
-    # Override the index
-    product_dict["_index"] = next_index
-    return product_dict
+    _id = document.pop("_id")
+    return {"_source": document, "_index": next_index, "_id": _id}
 
 
 def gen_documents(
-    processor: ProductProcessor,
+    processor: DocumentProcessor,
     file_path: Path,
     next_index: str,
     start_time,
     num_items: int | None,
     num_processes: int,
     process_id: int,
-    document_denylist: set[str],
 ):
     """Generate documents to index for process number process_id
 
@@ -56,18 +54,11 @@ def gen_documents(
                 "Processed: %d lines in %s seconds", i, round(current_time - start_time)
             )
 
-        # At least one document doesn't have a code set, don't import it
-        if not row.get("code"):
+        document_dict = get_document_dict(processor, row, next_index)
+        if not document_dict:
             continue
 
-        if row["code"] in document_denylist:
-            continue
-
-        product_dict = get_product_dict(processor, row, next_index)
-        if not product_dict:
-            continue
-
-        yield product_dict
+        yield document_dict
 
 
 def update_alias(es, next_index: str, index_alias: str):
@@ -95,7 +86,6 @@ def import_parallel(
     num_items: int | None,
     num_processes: int,
     process_id: int,
-    document_denylist: set[str],
 ):
     """One task of import.
 
@@ -106,7 +96,7 @@ def import_parallel(
     :param int num_processes: total number of processes
     :param int process_id: the index of the process (from 0 to num_processes - 1)
     """
-    processor = ProductProcessor(config)
+    processor = DocumentProcessor(config)
     # open a connection for this process
     es = connection.get_connection(timeout=120, retry_on_timeout=True)
     # Note that bulk works better than parallel bulk for our usecase.
@@ -122,7 +112,6 @@ def import_parallel(
             num_items,
             num_processes,
             process_id,
-            document_denylist,
         ),
         raise_on_error=False,
     )
@@ -131,7 +120,7 @@ def import_parallel(
 
 
 def get_redis_products(
-    processor: ProductProcessor, next_index: str, last_updated_timestamp
+    processor: DocumentProcessor, next_index: str, last_updated_timestamp
 ):
     """Fetch ids of products to update from redis index
 
@@ -143,19 +132,19 @@ def get_redis_products(
         last_updated_timestamp,
     )
     for _, row in timestamp_processed_values:
-        product_dict = get_product_dict(processor, row, next_index)
-        yield product_dict
+        document_dict = get_document_dict(processor, row, next_index)
+        yield document_dict
 
     logger.info("Processed %d updates from Redis", len(timestamp_processed_values))
 
 
 def get_redis_updates(next_index: str, config: Config):
-    processor = ProductProcessor(config)
+    processor = DocumentProcessor(config)
     es = connection.get_connection()
     # Ensure all documents are searchable after the import
     Index(next_index).refresh()
     field_name = config.get_last_modified_field().name
-    query = Product.search().sort(f"-{field_name}").extra(size=1)
+    query = Search(index=next_index).sort(f"-{field_name}").extra(size=1)
     # Note that we can't use index() because we don't want to also query the main alias
     query._index = [next_index]
     results = query.execute()
@@ -182,12 +171,12 @@ def perform_import(
     # we create a temporary index to import to
     # at the end we will change alias to point to it
     index_date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
-    next_index = f"{config.index_name}-{index_date}"
+    next_index = f"{config.index.name}-{index_date}"
 
+    index = generate_index_object(next_index, config)
     # create the index
-    Product.init(index=next_index)
+    index.save()
 
-    document_denylist = set(config.document_denylist or [])
     # split the work between processes
     args = []
     for i in range(num_processes):
@@ -200,7 +189,6 @@ def perform_import(
                 num_items,
                 num_processes,
                 i,
-                document_denylist
             )
         )
     # run in parallel

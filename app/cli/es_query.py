@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import time
 
-from app.models.product import Product
+from elasticsearch_dsl import Search
+from app.config import CONFIG
+
 from app.utils import connection
 
 
@@ -16,7 +18,7 @@ def manual_query():
         search_term = input("Please enter search term:\n")
         start_time = time.perf_counter()
         results = (
-            Product.search()
+            Search(index=CONFIG.index.name)
             .query(
                 "match",
                 product_name__autocomplete=search_term,

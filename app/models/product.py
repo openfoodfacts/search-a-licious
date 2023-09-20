@@ -1,15 +1,14 @@
 import abc
 import datetime
-import functools
 import re
 
-from elasticsearch_dsl import Date, Document
+from elasticsearch_dsl import Date, Index, Mapping
 
 from app.config import CONFIG, Config, FieldConfig, FieldType, TaxonomySourceConfig
 from app.dsl import generate_dsl_field
 from app.taxonomy import get_taxonomy
 from app.types import JSONType
-from app.utils import constants, load_class_object_from_string
+from app.utils import load_class_object_from_string
 
 
 def preprocess_field(d: JSONType, input_field: str, split: bool, split_separator: str):
@@ -99,7 +98,7 @@ def process_taxonomy_field(
     return field_input if field_input else None
 
 
-class ProductProcessor:
+class DocumentProcessor:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.preprocessor: DocumentPreprocessor | None
@@ -110,8 +109,18 @@ class ProductProcessor:
         else:
             self.preprocessor = None
 
-    def from_dict(self, d: JSONType):
-        inputs = {}
+    def from_dict(self, d: JSONType) -> JSONType | None:
+        id_field_name = self.config.index.id_field_name
+
+        _id = d.get(id_field_name)
+        if _id is None or _id in self.config.document_denylist:
+            # We don't process the document if it has no ID or if it's in the denylist
+            return None
+
+        inputs = {
+            "last_indexed_datetime": datetime.datetime.utcnow(),
+            "_id": _id,
+        }
         d = self.preprocessor.preprocess(d) if self.preprocessor is not None else d
 
         for field in self.config.fields:
@@ -134,53 +143,26 @@ class ProductProcessor:
             if field_input:
                 inputs[field.name] = field_input
 
-        product = Product(**inputs)
-        product.fill_internal_fields()
-        return product
+        return inputs
 
 
-FIELD_BY_NAME = {field.name: field for field in CONFIG.fields}
-_generate_dsl_field = functools.partial(
-    generate_dsl_field, supported_lang=CONFIG.get_supported_langs()
-)
-
-
-class Product(Document):
-    """Additional fields are added at index time, so below is just a subset of the available fields."""
-
-    class Index:
-        name = CONFIG.index_name
-        settings = {"number_of_shards": 4}
-
-    def fill_internal_fields(self):
-        self.meta["id"] = self.code
-        self.last_indexed_datetime = datetime.datetime.now()
-
-    def save(self, **kwargs):
-        self.fill_internal_fields()
-        super().save(**kwargs)
+def generate_mapping_object(config: Config) -> Mapping:
+    mapping = Mapping()
+    supported_langs = CONFIG.get_supported_langs()
+    for field in config.fields:
+        mapping.field(field.name, generate_dsl_field(field, supported_langs=supported_langs))
 
     # date of last index for the purposes of search
-    last_indexed_datetime = Date(required=True)
+    mapping.field("last_indexed_datetime", Date(required=True))
+    return mapping
 
-    # we generate DSL fields manually for now, we will use a smarter approach later
-    code = _generate_dsl_field(FIELD_BY_NAME["code"])
-    product_name = _generate_dsl_field(FIELD_BY_NAME["product_name"])
-    generic_name = _generate_dsl_field(FIELD_BY_NAME["generic_name"])
-    categories = _generate_dsl_field(FIELD_BY_NAME["categories"])
-    labels = _generate_dsl_field(FIELD_BY_NAME["labels"])
-    brands = _generate_dsl_field(FIELD_BY_NAME["brands"])
-    stores = _generate_dsl_field(FIELD_BY_NAME["stores"])
-    emb_codes = _generate_dsl_field(FIELD_BY_NAME["emb_codes"])
-    lang = _generate_dsl_field(FIELD_BY_NAME["lang"])
-    quantity = _generate_dsl_field(FIELD_BY_NAME["quantity"])
-    categories_tags = _generate_dsl_field(FIELD_BY_NAME["categories_tags"])
-    labels_tags = _generate_dsl_field(FIELD_BY_NAME["labels_tags"])
-    countries_tags = _generate_dsl_field(FIELD_BY_NAME["countries_tags"])
-    states_tags = _generate_dsl_field(FIELD_BY_NAME["states_tags"])
-    origins_tags = _generate_dsl_field(FIELD_BY_NAME["origins_tags"])
-    unique_scans_n = _generate_dsl_field(FIELD_BY_NAME["unique_scans_n"])
-    nutrition_grades = _generate_dsl_field(FIELD_BY_NAME["nutrition_grades"])
-    ecoscore_grade = _generate_dsl_field(FIELD_BY_NAME["ecoscore_grade"])
-    nova_groups = _generate_dsl_field(FIELD_BY_NAME["nova_groups"])
-    last_modified_t = _generate_dsl_field(FIELD_BY_NAME["last_modified_t"])
+
+def generate_index_object(index_name: str, config: Config) -> Index:
+    index = Index(index_name)
+    index.settings(
+        number_of_shards=config.index.number_of_shards,
+        number_of_replicas=config.index.number_of_replicas,
+    )
+    mapping = generate_mapping_object(config)
+    index.mapping(mapping)
+    return index
