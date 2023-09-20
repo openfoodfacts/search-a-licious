@@ -9,7 +9,7 @@ from elasticsearch_dsl import Index, Search
 
 from app.config import Config
 from app.import_queue.redis_client import RedisClient
-from app.models.product import DocumentProcessor, generate_index_object
+from app.indexing import DocumentProcessor, generate_index_object
 from app.types import JSONType
 from app.utils import connection, get_logger
 from app.utils.io import jsonl_iter

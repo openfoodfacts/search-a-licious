@@ -1,6 +1,6 @@
 import copy
 
-from app.models.product import DocumentPreprocessor
+from app.indexing import DocumentPreprocessor
 from app.taxonomy import get_taxonomy
 from app.types import JSONType
 

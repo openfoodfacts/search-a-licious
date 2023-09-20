@@ -3,7 +3,7 @@ import atexit
 from app.config import CONFIG, Config
 from app.import_queue.product_client import ProductClient
 from app.import_queue.redis_client import RedisClient
-from app.models.product import DocumentProcessor
+from app.indexing import DocumentProcessor
 from app.utils import constants
 
 
