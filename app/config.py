@@ -43,11 +43,11 @@ class FieldConfig(BaseModel):
     is_last_modified_field: bool = False
 
     @model_validator(mode="after")
-    def multi_should_be_used_for_keyword_type_only(self):
+    def multi_should_be_used_for_selected_type_only(self):
         """Validator that checks that `multi` flag is only True for fields
-        with type `keyword`."""
-        if self.type not in (FieldType.keyword, FieldType.text) and self.multi:
-            raise ValueError("multi=True should only be used with keyword type")
+        with specific types."""
+        if self.type not in (FieldType.keyword, FieldType.text, FieldType.double, FieldType.date) and self.multi:
+            raise ValueError(f"multi=True is not compatible with type={self.type}")
         return self
 
     @model_validator(mode="after")

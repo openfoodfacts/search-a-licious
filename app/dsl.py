@@ -1,5 +1,5 @@
 from typing import Iterable
-from elasticsearch_dsl import Double, Keyword, Object, Text, analyzer
+from elasticsearch_dsl import Date, Double, Keyword, Object, Text, analyzer
 
 from app.config import FieldConfig, FieldType
 from app.utils.analyzers import ANALYZER_LANG_MAPPING
@@ -11,12 +11,14 @@ def generate_dsl_field(field: FieldConfig, supported_lang: Iterable[str]):
             lang: Text(analyzer=analyzer(ANALYZER_LANG_MAPPING.get(lang, "standard")))
             for lang in supported_lang
         }
-        return Object(dynamic=False, properties=properties)
+        return Object(required=field.required, dynamic=False, properties=properties)
     elif field.type == FieldType.keyword:
         return Keyword(required=field.required, multi=field.multi)
     elif field.type == FieldType.text:
         return Text(required=field.required, multi=field.multi)
     elif field.type == FieldType.double:
-        return Double()
+        return Double(required=field.required, multi=field.multi)
+    elif field.type == FieldType.date:
+        return Date(required=field.required, multi=field.multi)
     else:
-        raise ValueError("unsupported field type: %s" % field.type)
+        raise ValueError(f"unsupported field type: {field.type}")

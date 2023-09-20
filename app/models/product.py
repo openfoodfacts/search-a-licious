@@ -183,3 +183,4 @@ class Product(Document):
     nutrition_grades = _generate_dsl_field(FIELD_BY_NAME["nutrition_grades"])
     ecoscore_grade = _generate_dsl_field(FIELD_BY_NAME["ecoscore_grade"])
     nova_groups = _generate_dsl_field(FIELD_BY_NAME["nova_groups"])
+    last_modified_t = _generate_dsl_field(FIELD_BY_NAME["last_modified_t"])

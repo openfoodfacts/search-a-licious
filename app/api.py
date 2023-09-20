@@ -55,7 +55,7 @@ def autocomplete(request: AutocompleteRequest):
         )
         .execute()
     )
-    resp = response.create_response(results, request)
+    resp = response.create_response(results, request.response_fields)
     return resp
 
 
@@ -166,6 +166,7 @@ def search(
     langs: Annotated[list[str] | None, Query()] = None,
     add_english: bool = True,
     num_results: int = 10,
+    projection: Annotated[list[str] | None, Query()] = None,
 ):
     if langs is None:
         langs = {"en"}
@@ -178,7 +179,7 @@ def search(
     query = query_utils.build_search_query(q, langs, num_results, CONFIG)
     logger.info("query:\n%s", json.dumps(query.to_dict(), indent=4))
     results = query.execute()
-    return results.to_dict()
+    return response.create_response(results, projection)
 
 
 @app.post("/advanced-search")
@@ -194,5 +195,4 @@ def search(request: AdvancedSearchRequest):
         )
 
     results = create_search_query(request).execute()
-    resp = response.create_response(results, request)
-    return resp
+    return response.create_response(results, request.response_fields)
