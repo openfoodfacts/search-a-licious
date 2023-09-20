@@ -1,4 +1,3 @@
-from app.models.request import SearchBase
 from app.types import JSONType
 
 
@@ -25,9 +24,9 @@ def add_images_urls_to_product(product: JSONType):
 
     for image_type in ["front", "ingredients", "nutrition", "packaging"]:
         display_ids = []
-        lc = product.get("lc")
-        if lc:
-            display_ids.append(f"{image_type}_{lc}")
+        lang = product.get("lang")
+        if lang:
+            display_ids.append(f"{image_type}_{lang}")
 
         display_ids.append(image_type)
         base_url = "https://images.openfoodfacts.org/images/products/"
