@@ -47,19 +47,12 @@ def search(
         q=q, langs=langs, num_results=num_results, config=CONFIG, sort_by=sort_by
     )
     results = query.execute()
-    results_dict = [r.to_dict() for r in results]
 
-    if result_processor is not None:
-        results_dict = [result_processor.process(r) for r in results_dict]
+    projection_set = set(projection) if projection else None
+    response = result_processor.process(results, projection_set)
 
-    if projection:
-        projection_set = set(projection)
-        results_dict = [
-            dict((k, v) for k, v in r.items() if k in projection_set)
-            for r in results_dict
-        ]
     return {
-        "results": results_dict,
+        **response,
         "debug": {
             "query": query.to_dict(),
         },
