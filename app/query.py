@@ -46,11 +46,12 @@ def build_query_clause(query: str, langs: set[str], config: Config) -> Query:
     match_phrase_boost_queries = []
 
     for field in config.fields:
-        # We don't include all fields in the multi-match clause, only a subset of them
+        # We don't include all fields in the multi-match clause, only a subset
+        # of them
         if field.include_multi_match:
             if field.has_lang_subfield():
                 field_match_phrase_boost_queries = []
-                for lang in (l for l in langs if l in supported_langs):
+                for lang in (_lang for _lang in langs if _lang in supported_langs):
                     subfield_name = f"{field.name}.{lang}"
                     fields.append(subfield_name)
                     field_match_phrase_boost_queries.append(
