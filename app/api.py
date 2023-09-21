@@ -47,7 +47,7 @@ def search(
     results_dict = [r.to_dict() for r in results]
 
     if result_processor is not None:
-        results_dict = [result_processor.process_result(r) for r in results_dict]
+        results_dict = [result_processor.process(r) for r in results_dict]
 
     if projection:
         projection_set = set(projection)

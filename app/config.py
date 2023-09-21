@@ -18,8 +18,6 @@ class FieldType(StrEnum):
     date = auto()
     double = auto()
     float = auto()
-    long = auto()
-    short = auto()
     integer = auto()
     text = auto()
     text_lang = auto()
@@ -29,13 +27,7 @@ class FieldType(StrEnum):
     disabled = auto()
 
     def is_numeric(self):
-        return self in (
-            FieldType.integer,
-            FieldType.float,
-            FieldType.double,
-            FieldType.short,
-            FieldType.long,
-        )
+        return self in (FieldType.integer, FieldType.float, FieldType.double)
 
 
 class FieldConfig(BaseModel):
@@ -239,11 +231,13 @@ CONFIG = Config(
         FieldConfig(name="countries_tags", type=FieldType.keyword, multi=True),
         FieldConfig(name="states_tags", type=FieldType.keyword, multi=True),
         FieldConfig(name="origins_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="unique_scans_n", type=FieldType.double),
+        FieldConfig(name="unique_scans_n", type=FieldType.integer),
+        FieldConfig(name="scans_n", type=FieldType.integer),
         FieldConfig(name="nutrition_grades", type=FieldType.keyword),
         FieldConfig(name="ecoscore_grade", type=FieldType.keyword),
         FieldConfig(name="nova_groups", type=FieldType.keyword),
         FieldConfig(name="last_modified_t", type=FieldType.date),
+        FieldConfig(name="created_t", type=FieldType.date),
         FieldConfig(name="images", type=FieldType.disabled),
         # required for personal search
         FieldConfig(name="additives_n", type=FieldType.integer),
@@ -262,6 +256,10 @@ CONFIG = Config(
         FieldConfig(name="nutriscore_grade", type=FieldType.keyword),
         FieldConfig(name="traces_tags", type=FieldType.keyword, multi=True),
         FieldConfig(name="unknown_ingredients_n", type=FieldType.integer),
+        # used for sorting
+        FieldConfig(name="popularity_key", type=FieldType.integer),
+        FieldConfig(name="nutriscore_score", type=FieldType.integer),
+        FieldConfig(name="completeness", type=FieldType.float),
     ],
     taxonomy=TaxonomyConfig(
         sources=[

@@ -7,6 +7,7 @@ from elasticsearch_dsl import (
     Date,
     Double,
     Index,
+    Integer,
     Keyword,
     Mapping,
     Object,
@@ -34,6 +35,8 @@ def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
         return Text(required=field.required, multi=field.multi)
     elif field.type == FieldType.double:
         return Double(required=field.required, multi=field.multi)
+    elif field.type == FieldType.integer:
+        return Integer(required=field.required, multi=field.multi)
     elif field.type == FieldType.date:
         return Date(required=field.required, multi=field.multi)
     elif field.type == FieldType.disabled:
@@ -68,27 +71,35 @@ class BaseDocumentPreprocessor(abc.ABC):
 
 
 def process_text_lang_field(
-    data: JSONType, field: FieldConfig, config: Config
+    data: JSONType,
+    input_field: str,
+    split: bool,
+    lang_separator: str,
+    split_separator: str,
 ) -> JSONType | None:
     field_input = {}
-    input_field = field.get_input_field()
-    for target_key in (
+    target_fields = [
         k
         for k in data
-        if re.fullmatch(
-            f"{re.escape(input_field)}{config.lang_separator}\w\w([-_]\w\w)?", k
-        )
-    ):
+        if re.fullmatch(rf"{re.escape(input_field)}{lang_separator}\w\w([-_]\w\w)?", k)
+    ]
+    for target_field in (input_field, *target_fields):
         input_value = preprocess_field(
             data,
-            target_key,
-            split=field.split,
-            split_separator=config.split_separator,
+            target_field,
+            split=split,
+            split_separator=split_separator,
         )
         if input_value is None:
             continue
-        lang = target_key.rsplit(config.lang_separator, maxsplit=1)[-1]
-        field_input[lang] = input_value
+
+        if target_field == input_field:
+            # we store the "main language" version of the field in main
+            # subfield
+            key = "main"
+        else:
+            key = target_field.rsplit(lang_separator, maxsplit=1)[-1]
+        field_input[key] = input_value
 
     return field_input if field_input else None
 
@@ -113,11 +124,12 @@ def process_taxonomy_field(
     ]
     taxonomy = get_taxonomy(taxonomy_source_config.name, taxonomy_source_config.url)
 
-    # to know in which language we should translate the tags using the taxonomy, we use:
-    # - the language list defined in the taxonomy config: for every item, we translate
-    #   the tags for this list of languages
-    # - a custom list of supported languages for the item, this is used to allow indexing
-    #   tags for an item that is available in specific countries
+    # to know in which language we should translate the tags using the
+    # taxonomy, we use:
+    # - the language list defined in the taxonomy config: for every item, we
+    #   translate the tags for this list of languages
+    # - a custom list of supported languages for the item, this is used to
+    #   allow indexing tags for an item that is available in specific countries
     supported_langs = set(taxonomy_config.supported_langs) | set(
         data.get("supported_langs", [])
     )
@@ -125,6 +137,9 @@ def process_taxonomy_field(
         for single_tag in input_value:
             if (value := taxonomy.get_localized_name(single_tag, lang)) is not None:
                 field_input.setdefault(lang, []).append(value)
+
+    if field.name in data:
+        field_input["original"] = data[field.name]
 
     return field_input if field_input else None
 
@@ -145,7 +160,8 @@ class DocumentProcessor:
 
         _id = d.get(id_field_name)
         if _id is None or _id in self.config.document_denylist:
-            # We don't process the document if it has no ID or if it's in the denylist
+            # We don't process the document if it has no ID or if it's in the
+            # denylist
             return None
 
         inputs = {
@@ -158,7 +174,13 @@ class DocumentProcessor:
             input_field = field.get_input_field()
 
             if field.type == FieldType.text_lang:
-                field_input = process_text_lang_field(d, field, self.config)
+                field_input = process_text_lang_field(
+                    d,
+                    input_field=field.get_input_field(),
+                    split=field.split,
+                    lang_separator=self.config.lang_separator,
+                    split_separator=self.config.split_separator,
+                )
 
             elif field.type == FieldType.taxonomy:
                 field_input = process_taxonomy_field(d, field, self.config)

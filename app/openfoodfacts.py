@@ -43,7 +43,7 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
 
 
 class ResultProcessor(BaseResultProcessor):
-    def process_result(self, result: JSONType) -> JSONType:
+    def process_after(self, result: JSONType) -> JSONType:
         result |= ResultProcessor.build_image_fields(result)
         return result
 
