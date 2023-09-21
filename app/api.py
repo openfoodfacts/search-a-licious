@@ -6,20 +6,13 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 from app.config import CONFIG
-from app.utils import (
-    connection,
-    constants,
-    dict_utils,
-    get_logger,
-    query_utils,
-    response,
-)
+from app.query import build_search_query
+from app.utils import connection, constants, get_logger, response
 
 logger = get_logger()
 
 app = FastAPI()
 connection.get_connection()
-
 
 
 from app.utils import constants
@@ -36,7 +29,6 @@ class SearchBase(BaseModel):
 class AutocompleteRequest(SearchBase):
     text: str
     search_fields: list[str] = constants.AUTOCOMPLETE_FIELDS
-
 
 
 @app.get("/product/{barcode}")
@@ -86,23 +78,6 @@ def autocomplete(request: AutocompleteRequest):
     return resp
 
 
-def validate_field(field, fields_to_types, valid_types, filter_type):
-    try:
-        field_value = dict_utils.get_nested_value(field, fields_to_types)
-    except KeyError:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Field {field} does not exist",
-        )
-    field_type = field_value["type"]
-    if field_type not in valid_types:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Field {field} is not of type {filter_type}",
-        )
-    return field_type
-
-
 @app.get("/search")
 def search(
     q: str,
@@ -111,7 +86,7 @@ def search(
     projection: Annotated[list[str] | None, Query()] = None,
 ):
     langs = set(langs or ["en"])
-    query = query_utils.build_search_query(q, langs, num_results, CONFIG)
+    query = build_search_query(q, langs, num_results, CONFIG)
     logger.info("query:\n%s", json.dumps(query.to_dict(), indent=4))
     results = query.execute()
     return response.create_response(results, projection)
