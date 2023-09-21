@@ -2,12 +2,11 @@ from typing import Annotated
 
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel
 
 from app.config import CONFIG
 from app.postprocessing import load_result_processor
 from app.query import build_search_query
-from app.utils import connection, constants, get_logger
+from app.utils import connection, get_logger
 
 logger = get_logger()
 
@@ -16,19 +15,6 @@ connection.get_connection()
 
 
 result_processor = load_result_processor(CONFIG)
-
-
-class SearchBase(BaseModel):
-    response_fields: set[str] | None = None
-    num_results: int = 10
-
-    def get_num_results(self):
-        return min(self.num_results, constants.MAX_RESULTS)
-
-
-class AutocompleteRequest(SearchBase):
-    text: str
-    search_fields: list[str] = constants.AUTOCOMPLETE_FIELDS
 
 
 @app.get("/product/{barcode}")
