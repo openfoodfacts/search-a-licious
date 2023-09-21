@@ -121,8 +121,32 @@ def parse_lucene_dsl_query(
     return filter_clauses, remaining_terms
 
 
+def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
+    if sort_by is None:
+        return None
+
+    if negative_operator := sort_by.startswith("-"):
+        sort_by = sort_by[1:]
+
+    for field in config.fields:
+        if field.name == sort_by:
+            if field.type is FieldType.text_lang:
+                # use 'main' language subfield for sorting
+                sort_by = f"{field.name}.main"
+                break
+
+    if negative_operator:
+        sort_by = f"-{sort_by}"
+
+    return sort_by
+
+
 def build_search_query(
-    q: str, langs: set[str], num_results: int, config: Config
+    q: str,
+    langs: set[str],
+    num_results: int,
+    config: Config,
+    sort_by: str | None = None,
 ) -> Query:
     filter_query_builder = build_elasticsearch_query_builder(config)
     filter_clauses, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
@@ -135,6 +159,10 @@ def build_search_query(
 
     if filter_clauses:
         query = query.query("bool", filter=filter_clauses)
+
+    sort_by = parse_sort_by_parameter(sort_by, config)
+    if sort_by is not None:
+        query = query.sort(sort_by)
 
     query = query.extra(
         size=num_results,

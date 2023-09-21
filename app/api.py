@@ -40,9 +40,12 @@ def search(
     langs: Annotated[list[str] | None, Query()] = None,
     num_results: int = 10,
     projection: Annotated[list[str] | None, Query()] = None,
+    sort_by: str | None = None,
 ):
     langs = set(langs or ["en"])
-    query = build_search_query(q, langs, num_results, CONFIG)
+    query = build_search_query(
+        q=q, langs=langs, num_results=num_results, config=CONFIG, sort_by=sort_by
+    )
     results = query.execute()
     results_dict = [r.to_dict() for r in results]
 
