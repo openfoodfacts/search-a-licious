@@ -17,12 +17,25 @@ class FieldType(StrEnum):
     keyword = auto()
     date = auto()
     double = auto()
+    float = auto()
+    long = auto()
+    short = auto()
+    integer = auto()
     text = auto()
     text_lang = auto()
     taxonomy = auto()
     # if the field is not enabled (=not indexed and not parsed), see:
     # https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html
     disabled = auto()
+
+    def is_numeric(self):
+        return self in (
+            FieldType.integer,
+            FieldType.float,
+            FieldType.double,
+            FieldType.short,
+            FieldType.long,
+        )
 
 
 class FieldConfig(BaseModel):
@@ -48,8 +61,10 @@ class FieldConfig(BaseModel):
         """Validator that checks that `multi` flag is only True for fields
         with specific types."""
         if (
-            self.type
-            not in (FieldType.keyword, FieldType.text, FieldType.double, FieldType.date)
+            not (
+                self.type in (FieldType.keyword, FieldType.text)
+                or self.type.is_numeric()
+            )
             and self.multi
         ):
             raise ValueError(f"multi=True is not compatible with type={self.type}")
@@ -191,6 +206,7 @@ CONFIG = Config(
         FieldConfig(
             name="generic_name", type=FieldType.text_lang, include_multi_match=True
         ),
+        FieldConfig(name="abbreviated_product_name", type=FieldType.text_lang),
         FieldConfig(
             name="categories",
             type=FieldType.taxonomy,
@@ -215,6 +231,8 @@ CONFIG = Config(
         FieldConfig(name="stores", type=FieldType.text, split=True, multi=True),
         FieldConfig(name="emb_codes", type=FieldType.text, split=True, multi=True),
         FieldConfig(name="lang", type=FieldType.keyword),
+        FieldConfig(name="lc", type=FieldType.keyword),
+        FieldConfig(name="owner", type=FieldType.keyword),
         FieldConfig(name="quantity", type=FieldType.text),
         FieldConfig(name="categories_tags", type=FieldType.keyword, multi=True),
         FieldConfig(name="labels_tags", type=FieldType.keyword, multi=True),
@@ -227,6 +245,23 @@ CONFIG = Config(
         FieldConfig(name="nova_groups", type=FieldType.keyword),
         FieldConfig(name="last_modified_t", type=FieldType.date),
         FieldConfig(name="images", type=FieldType.disabled),
+        # required for personal search
+        FieldConfig(name="additives_n", type=FieldType.integer),
+        FieldConfig(name="allergens_tags", type=FieldType.keyword, multi=True),
+        FieldConfig(name="ecoscore_data", type=FieldType.disabled),
+        FieldConfig(name="ecoscore_score", type=FieldType.integer),
+        FieldConfig(name="forest_footprint_data", type=FieldType.disabled),
+        FieldConfig(
+            name="ingredients_analysis_tags", type=FieldType.keyword, multi=True
+        ),
+        FieldConfig(name="ingredients_n", type=FieldType.integer),
+        FieldConfig(name="nova_group", type=FieldType.integer),
+        FieldConfig(name="nutrient_levels", type=FieldType.disabled),
+        FieldConfig(name="nutriments", type=FieldType.disabled),
+        FieldConfig(name="nutriscore_data", type=FieldType.disabled),
+        FieldConfig(name="nutriscore_grade", type=FieldType.keyword),
+        FieldConfig(name="traces_tags", type=FieldType.keyword, multi=True),
+        FieldConfig(name="unknown_ingredients_n", type=FieldType.integer),
     ],
     taxonomy=TaxonomyConfig(
         sources=[
