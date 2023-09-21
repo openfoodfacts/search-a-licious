@@ -97,6 +97,10 @@ class Config(BaseModel):
     # This is used to adapt the data schema or to add search-a-licious specific fields
     # for example.
     preprocessor: str | None = None
+    # The full qualified reference to the elasticsearch result processor to use after search
+    # query to Elasticsearch.
+    # This is used to add custom fields for example.
+    result_processor: str | None = None
     # A list of supported languages, it is used to build index mapping
     supported_langs: list[str] | None = None
     # How much we boost exact matches on individual fields
@@ -161,7 +165,7 @@ class Config(BaseModel):
         """Validator that checks that multi=True if split=True.."""
         for field in self.fields:
             if field.split and not field.multi:
-                raise ValueError(f"multi should be True if split=True")
+                raise ValueError("multi should be True if split=True")
         return self
 
     def get_input_fields(self) -> set[str]:
@@ -237,7 +241,8 @@ CONFIG = Config(
         ],
         supported_langs=["en", "fr", "es", "de", "it", "nl"],
     ),
-    preprocessor="app.openfoodfacts.OpenFoodFactsPreprocessor",
+    preprocessor="app.openfoodfacts.DocumentPreprocessor",
+    result_processor="app.openfoodfacts.ResultProcessor",
     supported_langs=[
         "aa",
         "ab",

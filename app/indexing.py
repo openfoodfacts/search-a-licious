@@ -53,7 +53,7 @@ def preprocess_field(d: JSONType, input_field: str, split: bool, split_separator
     return input_value
 
 
-class DocumentPreprocessor(abc.ABC):
+class BaseDocumentPreprocessor(abc.ABC):
     def __init__(self, config: Config) -> None:
         self.config = config
 
@@ -132,7 +132,7 @@ def process_taxonomy_field(
 class DocumentProcessor:
     def __init__(self, config: Config) -> None:
         self.config = config
-        self.preprocessor: DocumentPreprocessor | None
+        self.preprocessor: BaseDocumentPreprocessor | None
 
         if config.preprocessor is not None:
             preprocessor_cls = load_class_object_from_string(config.preprocessor)

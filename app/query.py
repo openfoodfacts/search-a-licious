@@ -10,13 +10,16 @@ from app.config import Config, FieldType
 from app.types import JSONType
 
 
-def build_elasticsearch_query_builder(config: Config):
+def build_elasticsearch_query_builder(config: Config) -> ElasticsearchQueryBuilder:
     not_analyzed_fields = []
     for field in config.fields:
-        if field.type == FieldType.keyword:
+        if field.type in (FieldType.keyword, FieldType.disabled):
             not_analyzed_fields.append(field.name)
 
-    return ElasticsearchQueryBuilder(not_analyzed_fields=not_analyzed_fields)
+    return ElasticsearchQueryBuilder(
+        default_operator=ElasticsearchQueryBuilder.MUST,
+        not_analyzed_fields=not_analyzed_fields,
+    )
 
 
 class UnknownOperationRemover(visitor.TreeTransformer):
@@ -24,11 +27,14 @@ class UnknownOperationRemover(visitor.TreeTransformer):
         super().__init__(track_parents=True)
 
     def visit_unknown_operation(self, node, context):
-        for item in node.children:
-            if not isinstance(item, Word):
-                new_item = item.clone_item()
-                new_item.children = self.clone_children(item, new_item, context)
-                yield new_item
+        new_node = node.clone_item()
+        children = [
+            child
+            for child in self.clone_children(node, new_node, context)
+            if not isinstance(child, Word)
+        ]
+        new_node.children = children
+        yield new_node
 
     def __call__(self, tree):
         return self.visit(tree)
@@ -89,7 +95,9 @@ def build_query_clause(query: str, langs: set[str], config: Config) -> Query:
     return multi_match_query
 
 
-def parse_lucene_dsl_query(q: str, config: Config) -> tuple[list[JSONType], str]:
+def parse_lucene_dsl_query(
+    q: str, filter_query_builder: ElasticsearchQueryBuilder
+) -> tuple[list[JSONType], str]:
     luqum_tree = None
     try:
         luqum_tree = parser.parse(q)
@@ -103,10 +111,8 @@ def parse_lucene_dsl_query(q: str, config: Config) -> tuple[list[JSONType], str]
             item.value for item in luqum_tree.children if isinstance(item, Word)
         )
         processed_tree = UnknownOperationRemover().visit(luqum_tree)
-        filter_query_builder = build_elasticsearch_query_builder(config)
-        filter_clauses = (
-            filter_query_builder(processed_tree).get("bool", {}).get("must", [])
-        )
+        filter_query = filter_query_builder(processed_tree)
+        filter_clauses = filter_query.get("bool", {}).get("must", [])
     else:
         filter_clauses = []
         remaining_terms = q
@@ -117,7 +123,8 @@ def parse_lucene_dsl_query(q: str, config: Config) -> tuple[list[JSONType], str]
 def build_search_query(
     q: str, langs: set[str], num_results: int, config: Config
 ) -> Query:
-    filter_clauses, remaining_terms = parse_lucene_dsl_query(q, config)
+    filter_query_builder = build_elasticsearch_query_builder(config)
+    filter_clauses, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
 
     query = Search(index=config.index.name)
 
