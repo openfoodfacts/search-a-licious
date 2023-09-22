@@ -106,7 +106,7 @@
     </div>
   </div>
 </div>
-<div class="row">
+<div class="row" style="padding-top: 1rem;">
 <div class="large-12 columns">
     <div id="search_results" style="clear:left;">
 		<div id="products_tabs_content" class="tabs-content">
@@ -122,11 +122,8 @@
 								</div>
 								<div class="list_product_name v-space-tiny">{{ product.product_name }}</div>
 								<div class="list_product_sc">
-									<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/vegetarian.svg">
-									<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/ecoscore-a.svg">
-									<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/nutriscore-a.svg">
-									<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/nova-group-1.svg">
-									<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/organic.svg">
+									<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/ecoscore-{{ product.ecoscore_grade }}.svg">
+									<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/nutriscore-{% if product.nutriscore_grade %}{{ product.nutriscore_grade }}{% else %}unknown{% endif %}.svg">
 								</div>
 							</div>
 						</a>
@@ -137,10 +134,11 @@
 	</div>
 </div>
 <ul id="pages" class="pagination">
-	<li class="unavailable">Pages:</li>
-	<li class="current"><a href="">{{ results.page }}</a></li>
-	<li><a href="/q={{ q }}page_size={{ results.page_size }}&amp;page={{ results.page + 1 }}">2</a></li>
-	<li><a href="/cgi/search.pl?action=process&amp;search_terms=flocon%20d'avoine%20sans%20gluten&amp;sort_by=unique_scans_n&amp;page_size=24&amp;page=2" rel="next$nofollow">Next</a></li><li class="unavailable">({{ results.page_size }} products per page)</li>
+	<li class="unavailable" style="margin-right: 1rem">Pages:</li>
+	{% for page in pagination %}
+	<li {% if page.selected %}class="current"{% endif %}><a href="/?q={{ q|urlencode }}&amp;page_size={{ results.page_size }}&amp;page={{ page.page_id }}">{{ page.name }}</a></li>
+	{% endfor %}
+	<li class="unavailable">({{ results.page_size }} products per page)</li>
 </ul>
 
   </div>

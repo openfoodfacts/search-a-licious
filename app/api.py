@@ -123,11 +123,12 @@ If not provided, `['en']` is used."""
 
     projection = set(fields.split(",")) if fields else None
     response = result_processor.process(results, projection)
-
+    count = response["count"]
     return {
         **response,
         "page": page,
         "page_size": page_size,
+        "page_count": count // page_size + int(bool(count % page_size)),
         "debug": {
             "query": query.to_dict(),
         },
@@ -148,6 +149,26 @@ def html_search(
     else:
         return templates.TemplateResponse("search.html", {"request": request})
 
+    page_count = results["page_count"]
+    pagination = [
+        {"name": p, "selected": p == page, "page_id": p}
+        for p in range(1, page_count + 1)
+        # Allow to scroll over a window of 10 pages
+        if min(page - 5, page_count - 10) <= p <= max(page + 5, 10)
+    ]
+    if page > 1:
+        pagination.insert(
+            0, {"name": "Previous", "selected": False, "page_id": page - 1}
+        )
+    if page < page_count:
+        pagination.append({"name": "Next", "selected": False, "page_id": page + 1})
+
     return templates.TemplateResponse(
-        "display_results.html", {"q": q or "", "request": request, "results": results}
+        "display_results.html",
+        {
+            "q": q or "",
+            "request": request,
+            "results": results,
+            "pagination": pagination,
+        },
     )
