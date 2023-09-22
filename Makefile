@@ -53,3 +53,16 @@ livecheck:
 build:
 	@echo "🥫 building docker (for dev)"
 	docker-compose build
+
+
+up:
+ifdef service
+	${DOCKER_COMPOSE} up -d ${service} 2>&1
+else
+	${DOCKER_COMPOSE} up -d 2>&1
+endif
+
+
+down:
+	@echo "🥫 Bringing down containers …"
+	${DOCKER_COMPOSE} down
