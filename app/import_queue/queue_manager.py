@@ -5,6 +5,7 @@ from app.import_queue.product_client import ProductClient
 from app.import_queue.redis_client import RedisClient
 from app.indexing import DocumentProcessor
 from app.utils import get_logger
+from app.utils.log import init_sentry
 
 logger = get_logger(__name__)
 
@@ -76,6 +77,8 @@ def run_queue_safe(config: Config):
 if __name__ == "__main__":
     # Create root logger
     get_logger()
+    # Initialize sentry for bug tracking
+    init_sentry(settings.sentry_dns)
 
     # create elasticsearch connection
     from app.utils import connection

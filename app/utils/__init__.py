@@ -1,6 +1,6 @@
 import importlib
 
-from .log import get_logger
+from .log import get_logger, init_sentry
 
 
 def load_class_object_from_string(qualifier: str) -> type:

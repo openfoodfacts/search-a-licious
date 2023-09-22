@@ -3,10 +3,10 @@ from typing import Annotated
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query
 
-from app.config import CONFIG
+from app.config import CONFIG, settings
 from app.postprocessing import load_result_processor
 from app.query import build_search_query
-from app.utils import connection, get_logger
+from app.utils import connection, get_logger, init_sentry
 
 logger = get_logger()
 
@@ -22,6 +22,7 @@ app = FastAPI(
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
 )
+init_sentry(settings.sentry_dns)
 connection.get_connection()
 
 

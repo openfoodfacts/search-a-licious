@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     redis_host: str = "localhost"
     # TODO: this should be in the config below
     openfoodfacts_base_url: str = "https://world.openfoodfacts.org"
+    sentry_dns: str | None = None
 
 
 settings = Settings()
