@@ -112,10 +112,15 @@ def parse_lucene_dsl_query(
 
     if luqum_tree is not None:
         logger.debug("parsed luqum tree: %s", repr(luqum_tree))
-        # We join with space every non word not recognized by the parser
-        remaining_terms = " ".join(
-            item.value for item in luqum_tree.children if isinstance(item, Word)
-        )
+        if luqum_tree.children:
+            # We join with space every non word not recognized by the parser
+            remaining_terms = " ".join(
+                item.value for item in luqum_tree.children if isinstance(item, Word)
+            )
+        else:
+            # single term
+            remaining_terms = luqum_tree.value
+
         processed_tree = UnknownOperationRemover().visit(luqum_tree)
         logger.debug("processed luqum tree: %s", repr(processed_tree))
         if processed_tree.children:
