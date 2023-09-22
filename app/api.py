@@ -62,7 +62,7 @@ syntax (https://lucene.apache.org/core/3_6_0/queryparsersyntax.html). Words
 that are not recognized by the lucene query parser are searched as full text
 search.
 
-Example: `categories:"en:beverages" strawberry brands:"casino"` query use a
+Example: `categories_tags:"en:beverages" strawberry brands:"casino"` query use a
 filter clause for categories and brands and look for "strawberry" in multiple
 fields.
 
