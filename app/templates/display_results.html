@@ -1,24 +1,10 @@
-<html class=" js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage no-websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients no-cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers no-applicationcache svg inlinesvg smil svgclippaths" lang="en" data-serverdomain="openfoodfacts.org" dir="ltr" data-lt-installed="true"><link type="text/css" rel="stylesheet" id="dark-mode-custom-link"><link type="text/css" rel="stylesheet" id="dark-mode-general-link"><style lang="en" type="text/css" id="dark-mode-custom-style"></style><style lang="en" type="text/css" id="dark-mode-native-style"></style><style lang="en" type="text/css" id="dark-mode-native-sheet"></style>
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-lt-installed="true">
 <head>
-	<meta class="foundation-mq-small">
-	<meta class="foundation-mq-small-only">
-	<meta class="foundation-mq-medium">
-	<meta class="foundation-mq-medium-only">
-	<meta class="foundation-mq-large">
-	<meta class="foundation-mq-large-only">
-	<meta class="foundation-mq-xlarge">
-	<meta class="foundation-mq-xlarge-only">
-	<meta class="foundation-mq-xxlarge">
-	<meta class="foundation-data-attribute-namespace">
     <meta charset="utf-8">
     <title>Search-a-licious</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta property="og:image" content="https://static.openfoodfacts.org/images/logos/logo-vertical-white-social-media-preview.png">
-<meta name="theme-color" content="#ffffff">
     <link rel="stylesheet" href="https://static.openfoodfacts.org/css/dist/app-ltr.css?v=1695281325" data-base-layout="true">
-    <link rel="stylesheet" href="https://static.openfoodfacts.org/css/dist/jqueryui/themes/base/jquery-ui.css" data-base-layout="true">
-    <link rel="stylesheet" href="https://static.openfoodfacts.org/css/dist/select2.min.css">
-<meta class="foundation-mq-topbar">
 </head>
 <body class="products_page">
 	<div id="page">
@@ -176,19 +162,6 @@
 <script src="https://static.openfoodfacts.org/js/dist/foundation.js" data-base-layout="true"></script>
 <script src="https://static.openfoodfacts.org/js/dist/jquery.cookie.js"></script>
 <script src="https://static.openfoodfacts.org/js/dist/select2.min.js"></script>
-<script>
-$(document).foundation({
-	equalizer : {
-		equalize_on_stack: true
-	},
-	accordion: {
-		callback : function (accordion) {
-			$(document).foundation('equalizer', 'reflow');
-		}
-	}
-});
-
-</script>
 </body>
 <style type="text/css">
 /*
@@ -315,37 +288,10 @@ label { margin-top: 10px; }
 .data_table { margin-top: 7px; }
 td { line-height: 1rem; }
 input[type="checkbox"], input[type="radio"] { margin: 0; }
-.data_table td, .data_table th { padding: .1rem .1rem .1rem .4rem; }
-/*.data_table label { display: table-cell; }*/
-
-#image_box_front { margin-bottom: 1rem !important; }
-
-.unselectbuttondiv_front_fr {
-    text-align: center !important;
-}
-
-.unselectbutton_front_fr {
-    margin:0 0 0 0 !important;
-}
-
-/* Buttons Rotate left - Rotate right: 0.25rem vs 1.25 */
-.cropbox > div > a { margin: 0 0 0.25rem; }
-
-/* checkbox: Normalize colors and Photo on white background: try to remove the background */
-.cropbox > label { margin-top: 3px; }
-.cropbox > input { margin: 0 0 0.5rem 0; }
-
-
-/* ---------------- Height of input fields ------------------------- */
-.tagify__input { margin: 4 px; } /* instead of 5px */
 
 
 /* ---------------- Nutrition facts ------------------------- */
 
-
-.productLink::before {
-    content: " — ";
-}
 
 .hidden {
     display: none;
