@@ -1,177 +1,116 @@
-from __future__ import annotations
+from typing import Annotated
 
-from elasticsearch_dsl import Q
-from fastapi import FastAPI
-from fastapi import HTTPException
+from elasticsearch_dsl import Search
+from fastapi import FastAPI, HTTPException, Query
 
-from app.models.product import Product
-from app.models.request import AutocompleteRequest
-from app.models.request import SearchRequest
-from app.utils import connection
-from app.utils import constants
-from app.utils import dict_utils
-from app.utils import query_utils
-from app.utils import response
+from app.config import CONFIG
+from app.postprocessing import load_result_processor
+from app.query import build_search_query
+from app.utils import connection, get_logger
 
-app = FastAPI()
+logger = get_logger()
+
+app = FastAPI(
+    title="search-a-licious API",
+    contact={
+        "name": "The Open Food Facts team",
+        "url": "https://world.openfoodfacts.org",
+        "email": "contact@openfoodfacts.org",
+    },
+    license_info={
+        "name": " AGPL-3.0",
+        "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
+    },
+)
 connection.get_connection()
 
 
-@app.get("/{barcode}")
-def get_product(barcode: str):
-    results = Product.search().query("term", code=barcode).extra(size=1).execute()
+result_processor = load_result_processor(CONFIG)
+
+
+@app.get("/document/{identifier}")
+def get_document(identifier: str):
+    """Fetch a document from Elasticsearch with specific ID."""
+    id_field_name = CONFIG.index.id_field_name
+    results = (
+        Search(index=CONFIG.index.name)
+        .query("term", **{id_field_name: identifier})
+        .extra(size=1)
+        .execute()
+    )
     results_dict = [r.to_dict() for r in results]
 
     if not results_dict:
-        raise HTTPException(status_code=404, detail="Barcode not found")
+        raise HTTPException(status_code=404, detail="code not found")
 
     product = results_dict[0]
     return product
 
 
-@app.post("/autocomplete")
-def autocomplete(request: AutocompleteRequest):
-    if not request.search_fields:
-        request.search_fields = constants.AUTOCOMPLETE_FIELDS
-    for field in request.search_fields:
-        if field not in constants.AUTOCOMPLETE_FIELDS:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid field: {field}",
-            )
+@app.get("/search")
+def search(
+    q: Annotated[
+        str,
+        Query(
+            description="""The search query, it supports Lucene search query
+syntax (https://lucene.apache.org/core/3_6_0/queryparsersyntax.html). Words
+that are not recognized by the lucene query parser are searched as full text
+search.
 
-    match_queries = []
-    for field in request.search_fields:
-        autocomplete_field_name = f"{field}__autocomplete"
-        match_queries.append(
-            Q("match", **{autocomplete_field_name: request.text}),
+Example: `categories:"en:beverages" strawberry brands:"casino"` query use a
+filter clause for categories and brands and look for "strawberry" in multiple
+fields.
+
+ The query is optional, but `sort_by` value must then be provided."""
+        ),
+    ] = None,
+    langs: Annotated[
+        list[str] | None,
+        Query(
+            description="""A list of languages we want to support during search. This
+list should include the user expected language, and additional languages (such
+as english for example).
+
+This is currently used for language-specific subfields to choose in which
+subfields we're searching in.
+
+If not provided, `['en']` is used."""
+        ),
+    ] = None,
+    num_results: Annotated[
+        int, Query(description="The number of results to return")
+    ] = 10,
+    fields: Annotated[
+        list[str] | None,
+        Query(
+            description="Fields to include in the response, all other fields will be ignored."
+        ),
+    ] = None,
+    sort_by: Annotated[
+        str | None,
+        Query(
+            description="""Field name to use to sort results, the field should exist
+            and be sortable. If it is not provided, results are sorted by descending relevance score."""
+        ),
+    ] = None,
+):
+    if q is None and sort_by is None:
+        raise HTTPException(
+            status_code=400, detail="`sort_by` must be provided when `q` is missing"
         )
 
-    results = (
-        Product.search()
-        .query("bool", should=match_queries)
-        .extra(
-            size=request.get_num_results(),
-        )
-        .execute()
+    langs = set(langs or ["en"])
+    query = build_search_query(
+        q=q, langs=langs, num_results=num_results, config=CONFIG, sort_by=sort_by
     )
-    resp = response.create_response(results, request)
-    return resp
+    results = query.execute()
 
+    projection = set(fields) if fields else None
+    response = result_processor.process(results, projection)
 
-def validate_field(field, fields_to_types, valid_types, filter_type):
-    try:
-        field_value = dict_utils.get_nested_value(field, fields_to_types)
-    except KeyError:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Field {field} does not exist",
-        )
-    field_type = field_value["type"]
-    if field_type not in valid_types:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Field {field} is not of type {filter_type}",
-        )
-    return field_type
-
-
-def create_search_query(request: SearchRequest):
-    fields_to_types = Product._doc_type.mapping.properties.to_dict()["properties"]
-    must_queries = []
-    must_not_queries = []
-    range_queries = []
-
-    for filter in request.string_filters:
-        field = filter.field
-        field_type = validate_field(
-            field,
-            fields_to_types,
-            [
-                "text",
-                "keyword",
-            ],
-            "string",
-        )
-        # If it's a text field, use the raw nested field for the eq, ne case
-        if field_type == "text" and filter.operator in ["eq", "ne"]:
-            field = f"{field}__raw"
-
-        if filter.operator == "eq":
-            must_queries.append(
-                query_utils.create_query(
-                    "term",
-                    field,
-                    filter.value,
-                ),
-            )
-        elif filter.operator == "ne":
-            must_not_queries.append(
-                query_utils.create_query("term", field, filter.value),
-            )
-        elif filter.operator == "like":
-            must_queries.append(
-                query_utils.create_query(
-                    "match",
-                    field,
-                    filter.value,
-                ),
-            )
-
-    for filter in request.numeric_filters:
-        field = filter.field
-        validate_field(field, fields_to_types, ["double"], "numeric")
-
-        if filter.operator == "eq":
-            must_queries.append(
-                query_utils.create_query(
-                    "term",
-                    field,
-                    filter.value,
-                ),
-            )
-        elif filter.operator == "ne":
-            must_not_queries.append(
-                query_utils.create_query("term", field, filter.value),
-            )
-        elif filter.operator == "lt":
-            # range_queries.append(query_utils.create_range_query('lt', field, filter.value))
-            range_queries.append({field: {"lt": filter.value}})
-        elif filter.operator == "gt":
-            range_queries.append({field: {"gt": filter.value}})
-
-    for filter in request.date_time_filters:
-        field = filter.field
-        validate_field(field, fields_to_types, ["date"], "date_time")
-
-        if filter.operator == "lt":
-            range_queries.append({field: {"lt": filter.value}})  # type: ignore
-        elif filter.operator == "gt":
-            range_queries.append({field: {"gt": filter.value}})  # type: ignore
-
-    query = Product.search().query(
-        "bool",
-        must=must_queries,
-        must_not=must_not_queries,
-    )
-    if range_queries:
-        for range_query in range_queries:
-            query = query.filter(query_utils.create_range_query(range_query))
-    return query.extra(size=request.get_num_results())
-
-
-@app.post("/search")
-def search(request: SearchRequest):
-    if (
-        not request.string_filters
-        and not request.numeric_filters
-        and not request.date_time_filters
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="At least one filter must be used",
-        )
-
-    results = create_search_query(request).execute()
-    resp = response.create_response(results, request)
-    return resp
+    return {
+        **response,
+        "debug": {
+            "query": query.to_dict(),
+        },
+    }

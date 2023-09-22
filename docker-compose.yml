@@ -34,12 +34,12 @@ x-base-es-envs: &base-es-envs
   http.cors.allow-credentials: "true"
 
 
-x-searchservice-common: &searchservice-common
-  image: ghcr.io/openfoodfacts/search-a-licious/search_service_image:${TAG:-dev}
+x-api-common: &api-common
+  image: ghcr.io/openfoodfacts/search-a-licious/api:${TAG:-dev}
   restart: ${RESTART_POLICY}
   environment:
-    - ELASTICSEARCH_URL=es01:9200
-    - REDIS_HOST=searchredis
+    - ELASTICSEARCH_URL=http://es01:9200
+    - REDIS_HOST=redis
     - OPENFOODFACTS_API_URL
     # make it easier to run scripts
     - PYTHONPATH=/code
@@ -49,7 +49,6 @@ x-searchservice-common: &searchservice-common
 
 
 services:
-
   es01:
     <<: *base-es-service
     environment:
@@ -85,17 +84,17 @@ services:
     # because redefining entrypoint, oblige to redefine command…
     command: ["nginx", "-g", "daemon off;"]
 
-  searchservice:
-    <<: *searchservice-common
+  api:
+    <<: *api-common
     ports:
       - "${SEARCH_PORT}:8000"
 
   # service listening to redis for updates
-  searchupdate:
-    <<: *searchservice-common
+  updater:
+    <<: *api-common
     command: ["python3", "-m", "app.import_queue.queue_manager"]
 
-  searchredis:
+  redis:
     image: redis
     restart: ${RESTART_POLICY}
     command: redis-server --save 20 1 --loglevel warning

@@ -1,20 +1,21 @@
-from __future__ import annotations
-
 import atexit
 
+from app.config import CONFIG, Config
 from app.import_queue.product_client import ProductClient
 from app.import_queue.redis_client import RedisClient
-from app.models.product import create_product_from_dict
+from app.indexing import DocumentProcessor
 from app.utils import constants
 
 
 class QueueManager:
-    def __init__(self):
+    def __init__(self, config: Config):
         self.stop_received = False
         self.redis_client = RedisClient()
         self.product_client = ProductClient()
+        self.config = config
 
     def consume(self):
+        processor = DocumentProcessor(self.config)
         while not self.stop_received:
             code = self.redis_client.get_from_queue()
             if not code:
@@ -29,7 +30,7 @@ class QueueManager:
                 )
                 continue
             # As the code is unique (set in the save method), this will handle updates as well as new documents
-            product = create_product_from_dict(item)
+            product = processor.from_dict(item)
             product.save()
             print(
                 f"Received Redis update for product: {code} - {product.product_name}",
@@ -59,7 +60,7 @@ def handle_stop(queues):
         queue.stop()
 
 
-def run_queue_safe():
+def run_queue_safe(config: Config):
     """Spawn and consume queues until a clean stop happens"""
     print("Starting redis consumer", flush=True)
 
@@ -71,7 +72,7 @@ def run_queue_safe():
     alive = True
     while alive:
         try:
-            queues["current"] = QueueManager()
+            queues["current"] = QueueManager(config)
             queues["current"].consume()
             alive = False
         except Exception as e:
@@ -84,4 +85,4 @@ if __name__ == "__main__":
 
     connection.get_connection()
     # run queue
-    run_queue_safe()
+    run_queue_safe(CONFIG)
