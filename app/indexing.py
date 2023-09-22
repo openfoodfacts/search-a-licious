@@ -125,7 +125,9 @@ def process_taxonomy_field(
     taxonomy_source_config: TaxonomySourceConfig = taxonomy_sources_by_name[
         field.taxonomy_name
     ]
-    taxonomy = get_taxonomy(taxonomy_source_config.name, taxonomy_source_config.url)
+    taxonomy = get_taxonomy(
+        taxonomy_source_config.name, str(taxonomy_source_config.url)
+    )
 
     # to know in which language we should translate the tags using the
     # taxonomy, we use:
