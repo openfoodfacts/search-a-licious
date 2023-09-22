@@ -1,12 +1,10 @@
-from __future__ import annotations
-
-import os
-
 from elasticsearch_dsl.connections import connections
+
+from app.config import settings
 
 
 def get_connection(**kwargs):
     return connections.create_connection(
-        hosts=[os.getenv("ELASTICSEARCH_URL", "http://127.0.0.1:9200")],
+        hosts=[settings.elasticsearch_url],
         **kwargs,
     )

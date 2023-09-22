@@ -1,6 +1,19 @@
 from enum import StrEnum, auto
 
 from pydantic import BaseModel, Field, HttpUrl, model_validator
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    redis_expiration: int = 60 * 60 * 36  # 36h
+    redis_reader_timeout: int = 5
+    elasticsearch_url: str = "http://localhost:9200"
+    redis_host: str = "localhost"
+    # TODO: this should be in the config below
+    openfoodfacts_base_url: str = "https://world.openfoodfacts.org"
+
+
+settings = Settings()
 
 
 class TaxonomySourceConfig(BaseModel):

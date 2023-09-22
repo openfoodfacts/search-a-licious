@@ -1,12 +1,10 @@
-from __future__ import annotations
-
-import os
 import time
 
 from redis import Redis
 
+from app.config import settings
 from app.import_queue.product_client import ProductClient
-from app.utils import constants, get_logger
+from app.utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -14,7 +12,7 @@ logger = get_logger(__name__)
 class RedisClient:
     def __init__(self):
         self.redis = Redis(
-            host=os.getenv("REDIS_HOST", "localhost"),
+            host=settings.redis_host,
             port=6379,
             decode_responses=True,
         )
@@ -24,7 +22,7 @@ class RedisClient:
         # Blocks for N seconds
         pop_resp = self.redis.blpop(
             self.queue_key_name,
-            constants.REDIS_READER_TIMEOUT,
+            settings.redis_reader_timeout,
         )
         if not pop_resp:
             return None
@@ -39,7 +37,7 @@ class RedisClient:
         # nightly data dump
         self.redis.set(
             name=f"product:{int(time.time())}:{code}",
-            ex=constants.REDIS_EXPIRATION,
+            ex=settings.redis_expiration,
             value="",
         )
 

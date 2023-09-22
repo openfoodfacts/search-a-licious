@@ -1,10 +1,10 @@
 import atexit
 
-from app.config import CONFIG, Config
+from app.config import CONFIG, Config, settings
 from app.import_queue.product_client import ProductClient
 from app.import_queue.redis_client import RedisClient
 from app.indexing import DocumentProcessor
-from app.utils import constants, get_logger
+from app.utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -39,7 +39,7 @@ class QueueManager:
 
     def stop(self):
         logger.info(
-            "Stopping redis reader, may take %s seconds", constants.REDIS_READER_TIMEOUT
+            "Stopping redis reader, may take %s seconds", settings.redis_reader_timeout
         )
         self.stop_received = True
 

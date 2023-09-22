@@ -1,16 +1,11 @@
-from __future__ import annotations
-
-import os
-
 import requests
+
+from app.config import settings
 
 
 class ProductClient:
     def __init__(self):
-        self.server_url = os.getenv(
-            "OPENFOODFACTS_API_URL",
-            "https://world.openfoodfacts.org",
-        )
+        self.server_url = settings.openfoodfacts_base_url
 
     def get_product(self, code):
         url = f"{self.server_url}/api/v2/product/{code}"
