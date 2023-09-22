@@ -13,6 +13,8 @@ class BaseResultProcessor:
         output = {
             "took": response.took,
             "timed_out": response.timed_out,
+            "count": response.hits.total["value"],
+            "is_count_exact": response.hits.total["relation"] == "eq",
         }
         hits = []
         for hit in response.hits:
