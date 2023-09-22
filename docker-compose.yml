@@ -35,7 +35,7 @@ x-base-es-envs: &base-es-envs
 
 
 x-api-common: &api-common
-  image: ghcr.io/openfoodfacts/search-a-licious/api:${TAG:-dev}
+  image: ghcr.io/openfoodfacts/search-a-licious/search_service_image:${TAG:-dev}
   restart: ${RESTART_POLICY}
   environment:
     - ELASTICSEARCH_URL=http://es01:9200
