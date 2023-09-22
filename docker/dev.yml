@@ -1,7 +1,7 @@
 version: "3.7"
 # this file setup various thinks that are for dev environment
 
-x-searchservice-base: &searchservice-base
+x-api-base: &api-base
   build:
     context: .
     args:
@@ -16,9 +16,9 @@ services:
   es01:
     ports:
       - "${ES_PORT}:9200"
-  searchservice:
-    <<: *searchservice-base
+  api:
+    <<: *api-base
     # uvicorn in reload mode
     command: ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-  searchupdate:
-    <<: *searchservice-base
+  updater:
+    <<: *api-base

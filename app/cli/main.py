@@ -50,7 +50,7 @@ def write_to_redis():
     from redis import Redis
 
     redis = Redis(
-        host="searchredis",
+        host="redis",
         port=6379,
         decode_responses=True,
     )
