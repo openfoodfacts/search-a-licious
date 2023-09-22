@@ -1,4 +1,5 @@
 import copy
+import re
 
 from app.indexing import BaseDocumentPreprocessor
 from app.postprocessing import BaseResultProcessor
@@ -8,6 +9,71 @@ from app.types import JSONType
 COUNTRIES_TAXONOMY_URL = (
     "https://static.openfoodfacts.org/data/taxonomies/countries.full.json"
 )
+
+
+BARCODE_PATH_REGEX = re.compile(r"^(...)(...)(...)(.*)$")
+
+
+def split_barcode(barcode: str) -> list[str]:
+    """Split barcode in the same way as done by Product Opener to generate a
+    product image folder.
+
+    :param barcode: The barcode of the product. For the pro platform only,
+        it must be prefixed with the org ID using the format
+        `{ORG_ID}/{BARCODE}`
+    :raises ValueError: raise a ValueError if `barcode` is invalid
+    :return: a list containing the splitted barcode
+    """
+    org_id = None
+    if "/" in barcode:
+        # For the pro platform, `barcode` is expected to be in the format
+        # `{ORG_ID}/{BARCODE}` (ex: `org-lea-nature/3307130803004`)
+        org_id, barcode = barcode.split("/", maxsplit=1)
+
+    if not barcode.isdigit():
+        raise ValueError(f"unknown barcode format: {barcode}")
+
+    match = BARCODE_PATH_REGEX.fullmatch(barcode)
+
+    splits = [x for x in match.groups() if x] if match else [barcode]
+
+    if org_id is not None:
+        # For the pro platform only, images and OCRs belonging to an org
+        # are stored in a folder named after the org for all its products, ex:
+        # https://images.pro.openfoodfacts.org/images/products/org-lea-nature/330/713/080/3004/1.jpg
+        splits.append(org_id)
+
+    return splits
+
+
+def _generate_file_path(code: str, image_id: str, suffix: str):
+    splitted_barcode = split_barcode(code)
+    return f"/{'/'.join(splitted_barcode)}/{image_id}{suffix}"
+
+
+def generate_image_path(code: str, image_id: str) -> str:
+    """Generate an image path.
+
+    It's used to generate a unique identifier of an image for a product (and
+    to generate an URL to fetch this image from the server).
+
+    :param code: the product barcode
+    :param image_id: the image ID (ex: `1`, `ingredients_fr.full`,...)
+    :return: the full image path
+    """
+    return _generate_file_path(code, image_id, ".jpg")
+
+
+def generate_image_url(code: str, image_id: str) -> str:
+    """Generate the image URL for a specific product and image ID.
+
+    :param code: the product barcode
+    :param image_id: the image ID (ex: `1`, `ingredients_fr.full`,...)
+    :return: the generated image URL
+    """
+    return "https://images.openfoodfacts.org/images/products" + generate_image_path(
+        code, image_id
+    )
 
 
 class DocumentPreprocessor(BaseDocumentPreprocessor):
@@ -61,21 +127,20 @@ class ResultProcessor(BaseResultProcessor):
                 display_ids.append(f"{image_type}_{lang}")
 
             display_ids.append(image_type)
-            base_url = "https://images.openfoodfacts.org/images/products/"
             images = product.get("images", {})
 
             for display_id in display_ids:
                 if display_id in images and images[display_id].get("sizes"):
                     rev_id = images[display_id]["rev"]
-                    fields[
-                        f"image_{image_type}_url"
-                    ] = f"{base_url}{code}/{display_id}.{rev_id}.400.jpg"
-                    fields[
-                        f"image_{image_type}_small_url"
-                    ] = f"{base_url}{code}/{display_id}.{rev_id}.200.jpg"
-                    fields[
-                        f"image_{image_type}_thumb_url"
-                    ] = f"{base_url}{code}/{display_id}.{rev_id}.100.jpg"
+                    fields[f"image_{image_type}_url"] = generate_image_url(
+                        code, f"{display_id}.{rev_id}.400"
+                    )
+                    fields[f"image_{image_type}_small_url"] = generate_image_url(
+                        code, f"{display_id}.{rev_id}.200"
+                    )
+                    fields[f"image_{image_type}_thumb_url"] = generate_image_url(
+                        code, f"{display_id}.{rev_id}.100"
+                    )
 
                     if image_type == "front":
                         fields["image_url"] = fields[f"image_{image_type}_url"]
@@ -94,13 +159,19 @@ class ResultProcessor(BaseResultProcessor):
                             {
                                 image_type: {
                                     "display": {
-                                        language_code: f"{base_url}{code}/{image_id}.{rev_id}.400.jpg"
+                                        language_code: generate_image_url(
+                                            code, f"{image_id}.{rev_id}.400"
+                                        )
                                     },
                                     "small": {
-                                        language_code: f"{base_url}{code}/{image_id}.{rev_id}.200.jpg"
+                                        language_code: generate_image_url(
+                                            code, f"{image_id}.{rev_id}.200"
+                                        )
                                     },
                                     "thumb": {
-                                        language_code: f"{base_url}{code}/{image_id}.{rev_id}.100.jpg"
+                                        language_code: generate_image_url(
+                                            code, f"{image_id}.{rev_id}.100"
+                                        )
                                     },
                                 },
                             }

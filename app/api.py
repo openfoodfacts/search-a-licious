@@ -1,7 +1,10 @@
+from pathlib import Path
 from typing import Annotated
 
 from elasticsearch_dsl import Search
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from app.config import CONFIG, settings
 from app.postprocessing import load_result_processor
@@ -22,6 +25,7 @@ app = FastAPI(
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
 )
+templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 init_sentry(settings.sentry_dns)
 connection.get_connection()
 
@@ -112,7 +116,30 @@ If not provided, `['en']` is used."""
 
     return {
         **response,
+        "page": page,
+        "page_size": page_size,
         "debug": {
             "query": query.to_dict(),
         },
     }
+
+
+@app.get("/", response_class=HTMLResponse)
+def html_search(
+    request: Request,
+    q: str | None = None,
+    page: int = 1,
+    page_size: int = 24,
+    langs: str = "fr,en",
+    sort_by: str | None = None,
+):
+    logger.info("query: %s", q)
+    if q:
+        results = search(q, langs, page_size, page, sort_by)
+        logger.info(results)
+    else:
+        return templates.TemplateResponse("search.html", {"request": request})
+
+    return templates.TemplateResponse(
+        "display_results.html", {"q": q or "", "request": request, "results": results}
+    )
