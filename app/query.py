@@ -144,7 +144,8 @@ def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
 def build_search_query(
     q: str,
     langs: set[str],
-    num_results: int,
+    size: int,
+    page: int,
     config: Config,
     sort_by: str | None = None,
 ) -> Query:
@@ -165,6 +166,7 @@ def build_search_query(
         query = query.sort(sort_by)
 
     query = query.extra(
-        size=num_results,
+        size=size,
+        from_=size * (page - 1),
     )
     return query

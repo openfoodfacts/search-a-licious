@@ -78,9 +78,10 @@ subfields we're searching in.
 If not provided, `['en']` is used."""
         ),
     ] = None,
-    num_results: Annotated[
-        int, Query(description="The number of results to return")
+    page_size: Annotated[
+        int, Query(description="Number of results to return per page.")
     ] = 10,
+    page: Annotated[int, Query(ge=1, description="Page to request, starts at 1.")] = 1,
     fields: Annotated[
         str | None,
         Query(
@@ -102,7 +103,7 @@ If not provided, `['en']` is used."""
 
     langs = set(langs or ["en"])
     query = build_search_query(
-        q=q, langs=langs, num_results=num_results, config=CONFIG, sort_by=sort_by
+        q=q, langs=langs, size=page_size, page=page, config=CONFIG, sort_by=sort_by
     )
     results = query.execute()
 
