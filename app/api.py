@@ -119,6 +119,7 @@ If not provided, `['en']` is used."""
     query = build_search_query(
         q=q, langs=langs, size=page_size, page=page, config=CONFIG, sort_by=sort_by
     )
+    logger.debug("Elasticsearch query: %s", query.to_dict())
     results = query.execute()
 
     projection = set(fields.split(",")) if fields else None
@@ -144,11 +145,10 @@ def html_search(
     langs: str = "fr,en",
     sort_by: str | None = None,
 ):
-    if q:
-        results = search(q, langs, page_size, page, sort_by)
-    else:
+    if not q:
         return templates.TemplateResponse("search.html", {"request": request})
 
+    results = search(q=q, langs=langs, page_size=page_size, page=page, sort_by=sort_by)
     page_count = results["page_count"]
     pagination = [
         {"name": p, "selected": p == page, "page_id": p}
