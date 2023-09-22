@@ -8,6 +8,9 @@ from luqum.tree import Word
 
 from app.config import Config, FieldType
 from app.types import JSONType
+from app.utils import get_logger
+
+logger = get_logger(__name__)
 
 
 def build_elasticsearch_query_builder(config: Config) -> ElasticsearchQueryBuilder:
@@ -102,23 +105,29 @@ def parse_lucene_dsl_query(
     luqum_tree = None
     try:
         luqum_tree = parser.parse(q)
-    except ParseSyntaxError:
+    except ParseSyntaxError as e:
         # if the lucene syntax is invalid, consider the query as plain text
+        logger.warning("parsing error for query: '%s':\n%s", q, e)
         remaining_terms = q
 
     if luqum_tree is not None:
+        logger.debug("parsed luqum tree: %s", repr(luqum_tree))
         # We join with space every non word not recognized by the parser
         remaining_terms = " ".join(
             item.value for item in luqum_tree.children if isinstance(item, Word)
         )
         processed_tree = UnknownOperationRemover().visit(luqum_tree)
-        filter_query = filter_query_builder(processed_tree)
-        filter_clauses = filter_query.get("bool", {}).get("must", [])
+        logger.debug("processed luqum tree: %s", repr(processed_tree))
+        if processed_tree.children:
+            filter_query = filter_query_builder(processed_tree)
+        else:
+            filter_query = None
+        logger.debug("filter query from luqum: '%s'", filter_query)
     else:
-        filter_clauses = []
+        filter_query = None
         remaining_terms = q
 
-    return filter_clauses, remaining_terms
+    return filter_query, remaining_terms
 
 
 def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
@@ -150,7 +159,9 @@ def build_search_query(
     sort_by: str | None = None,
 ) -> Query:
     filter_query_builder = build_elasticsearch_query_builder(config)
-    filter_clauses, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
+    filter_query, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
+    logger.debug("filter query: %s", filter_query)
+    logger.debug("remaining terms: '%s'", remaining_terms)
 
     query = Search(index=config.index.name)
 
@@ -158,8 +169,8 @@ def build_search_query(
         base_multi_match_q = build_query_clause(remaining_terms, langs, config)
         query = query.query(base_multi_match_q)
 
-    if filter_clauses:
-        query = query.query("bool", filter=filter_clauses)
+    if filter_query:
+        query = query.query("bool", filter=filter_query)
 
     sort_by = parse_sort_by_parameter(sort_by, config)
     if sort_by is not None:

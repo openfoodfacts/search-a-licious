@@ -19,6 +19,11 @@ class TestUnknownOperationRemover:
                 'word1 (states_tags:"en:france" word2) word3 labels_tags:"en:organic"',
                 '(states_tags:"en:france" ) labels_tags:"en:organic"',
             ),
+            # We shouldn't change the tree if there is a single filter
+            (
+                'categories_tags:"en:textured-soy-protein"',
+                'categories_tags:"en:textured-soy-protein"',
+            ),
         ],
     )
     def test_transform(self, query: str, expected: str):
@@ -32,18 +37,33 @@ class TestUnknownOperationRemover:
     [
         (
             'word1 (states_tags:"en:france" OR states_tags:"en:germany") word2 labels_tags:"en:organic" word3',
-            [
-                {
-                    "bool": {
-                        "should": [
-                            {"term": {"states_tags": {"value": "en:france"}}},
-                            {"term": {"states_tags": {"value": "en:germany"}}},
-                        ]
-                    }
+            {
+                "bool": {
+                    "must": [
+                        {
+                            "bool": {
+                                "should": [
+                                    {"term": {"states_tags": {"value": "en:france"}}},
+                                    {"term": {"states_tags": {"value": "en:germany"}}},
+                                ]
+                            }
+                        },
+                        {"term": {"labels_tags": {"value": "en:organic"}}},
+                    ]
                 },
-                {"term": {"labels_tags": {"value": "en:organic"}}},
-            ],
+            },
             "word1 word2 word3",
+        ),
+        # only non-filter keywords
+        (
+            "word1 word2",
+            None,
+            "word1 word2",
+        ),
+        (
+            'states_tags:"en:spain"',
+            {"term": {"states_tags": {"value": "en:spain"}}},
+            "",
         ),
     ],
 )

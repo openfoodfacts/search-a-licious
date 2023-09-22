@@ -158,7 +158,8 @@ class Config(BaseModel):
 
     @model_validator(mode="after")
     def field_references_must_exist_and_be_valid(self):
-        """Validator that checks that every field reference in IndexConfig refers to an existing field and is valid."""
+        """Validator that checks that every field reference in IndexConfig
+        refers to an existing field and is valid."""
 
         fields_by_name = {f.name: f for f in self.fields}
 
