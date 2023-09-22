@@ -81,9 +81,9 @@ If not provided, `['en']` is used."""
         int, Query(description="The number of results to return")
     ] = 10,
     fields: Annotated[
-        list[str] | None,
+        str | None,
         Query(
-            description="Fields to include in the response, all other fields will be ignored."
+            description="Fields to include in the response, as a comma-separated value. All other fields will be ignored."
         ),
     ] = None,
     sort_by: Annotated[
@@ -105,7 +105,7 @@ If not provided, `['en']` is used."""
     )
     results = query.execute()
 
-    projection = set(fields) if fields else None
+    projection = set(fields.split(",")) if fields else None
     response = result_processor.process(results, projection)
 
     return {
