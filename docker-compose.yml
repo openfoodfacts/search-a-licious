@@ -42,6 +42,7 @@ x-api-common: &api-common
     - REDIS_HOST=redis
     - OPENFOODFACTS_API_URL
     - SENTRY_DNS
+    - LOG_LEVEL
     # make it easier to run scripts
     - PYTHONPATH=/code
   networks:
