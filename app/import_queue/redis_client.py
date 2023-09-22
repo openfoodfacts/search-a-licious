@@ -6,7 +6,9 @@ import time
 from redis import Redis
 
 from app.import_queue.product_client import ProductClient
-from app.utils import constants
+from app.utils import constants, get_logger
+
+logger = get_logger(__name__)
 
 
 class RedisClient:
@@ -31,8 +33,10 @@ class RedisClient:
 
     def write_processed(self, code):
         # Write a key that can be read for full imports
-        # Format should be: SET product:<timestamp>:<barcode> <full_product_definition> EX 129600
-        # 129600 is chosen as it's 36 hours, so enough time to cover between a nightly data dump
+        # Format should be:
+        # SET product:<timestamp>:<barcode> <full_product_definition> EX 129600
+        # 129600 is chosen as it's 36 hours, so enough time to cover between a
+        # nightly data dump
         self.redis.set(
             name=f"product:{int(time.time())}:{code}",
             ex=constants.REDIS_EXPIRATION,
@@ -44,10 +48,10 @@ class RedisClient:
         fetched_codes = set()
         timestamp_processed_values = []
         for key in self.redis.scan_iter("product:*"):
-            print(key)
+            logger.info(key)
             components = key.split(":")
             if len(components) != 3:
-                print(f"Invalid key: {key}")
+                logger.info("Invalid key: %s", key)
                 continue
 
             timestamp = components[1]
@@ -61,7 +65,7 @@ class RedisClient:
             fetched_codes.add(code)
             product = product_client.get_product(code)
             if not product:
-                print("Unable to retrieve product: {}".format(code))
+                logger.info("Unable to retrieve product: %s", code)
                 continue
 
             timestamp_processed_values.append((timestamp, product))

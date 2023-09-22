@@ -49,6 +49,9 @@ def write_to_redis():
 
     from redis import Redis
 
+    from app.utils import get_logger
+
+    logger = get_logger()
     redis = Redis(
         host="redis",
         port=6379,
@@ -61,7 +64,7 @@ def write_to_redis():
 
         redis.rpush(key_name, code)
         end_time = time.perf_counter()
-        print(f"Time: {end_time - start_time} seconds")
+        logger.info("Time: %s seconds", end_time - start_time)
 
 
 def main() -> None:

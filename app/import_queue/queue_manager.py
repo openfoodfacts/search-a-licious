@@ -4,7 +4,9 @@ from app.config import CONFIG, Config
 from app.import_queue.product_client import ProductClient
 from app.import_queue.redis_client import RedisClient
 from app.indexing import DocumentProcessor
-from app.utils import constants
+from app.utils import constants, get_logger
+
+logger = get_logger(__name__)
 
 
 class QueueManager:
@@ -22,30 +24,22 @@ class QueueManager:
                 continue
             item = self.product_client.get_product(code)
             if not item:
-                print(
-                    "Unable to retrieve product with code {}".format(
-                        code,
-                    ),
-                    flush=True,
-                )
+                logger.info("Unable to retrieve product with code %s", code)
                 continue
-            # As the code is unique (set in the save method), this will handle updates as well as new documents
+            # As the code is unique (set in the save method), this will handle
+            # updates as well as new documents
             product = processor.from_dict(item)
             product.save()
-            print(
-                f"Received Redis update for product: {code} - {product.product_name}",
-                flush=True,
+            logger.info(
+                "Received Redis update for product: %s - %s", code, product.product_name
             )
 
             # Now, write a key that can be read for full imports
             self.redis_client.write_processed(product.code)
 
     def stop(self):
-        print(
-            "Stopping redis reader, may take {} seconds".format(
-                constants.REDIS_READER_TIMEOUT,
-            ),
-            flush=True,
+        logger.info(
+            "Stopping redis reader, may take %s seconds", constants.REDIS_READER_TIMEOUT
         )
         self.stop_received = True
 
@@ -62,7 +56,7 @@ def handle_stop(queues):
 
 def run_queue_safe(config: Config):
     """Spawn and consume queues until a clean stop happens"""
-    print("Starting redis consumer", flush=True)
+    logger.info("Starting redis consumer")
 
     # we need a dict to have a reference
     queues = {"current": None}
@@ -76,10 +70,13 @@ def run_queue_safe(config: Config):
             queues["current"].consume()
             alive = False
         except Exception as e:
-            print(f"Received {e}, respawning a consumer", flush=True)
+            logger.info("Received %s, respawning a consumer", e)
 
 
 if __name__ == "__main__":
+    # Create root logger
+    get_logger()
+
     # create elasticsearch connection
     from app.utils import connection
 
