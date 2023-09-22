@@ -70,10 +70,10 @@ fields.
         ),
     ] = None,
     langs: Annotated[
-        list[str] | None,
+        str | None,
         Query(
-            description="""A list of languages we want to support during search. This
-list should include the user expected language, and additional languages (such
+            description="""A comma-separated list of languages we want to support during search.
+This list should include the user expected language, and additional languages (such
 as english for example).
 
 This is currently used for language-specific subfields to choose in which
@@ -105,7 +105,17 @@ If not provided, `['en']` is used."""
             status_code=400, detail="`sort_by` must be provided when `q` is missing"
         )
 
-    langs = set(langs or ["en"])
+    langs = set(langs.split(",") if langs else ["en"])
+    logger.debug(
+        "Received search query: q='%s', langs='%s', page=%d, "
+        "page_size=%d, fields='%s', sort_by='%s'",
+        q,
+        langs,
+        page,
+        page_size,
+        fields,
+        sort_by,
+    )
     query = build_search_query(
         q=q, langs=langs, size=page_size, page=page, config=CONFIG, sort_by=sort_by
     )
@@ -133,10 +143,8 @@ def html_search(
     langs: str = "fr,en",
     sort_by: str | None = None,
 ):
-    logger.info("query: %s", q)
     if q:
         results = search(q, langs, page_size, page, sort_by)
-        logger.info(results)
     else:
         return templates.TemplateResponse("search.html", {"request": request})
 
