@@ -177,5 +177,6 @@ def html_search(
             "request": request,
             "results": results,
             "pagination": pagination,
+            "sort_by": sort_by,
         },
     )
