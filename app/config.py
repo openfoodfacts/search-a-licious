@@ -102,8 +102,8 @@ class FieldConfig(BaseModel):
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_used_for_taxonomy_type_only(self):
-        """Validator that checks that `taxonomy_name` is only provided for fields
-        with type `taxonomy`."""
+        """Validator that checks that `taxonomy_name` is only provided for
+        fields with type `taxonomy`."""
         if self.type is not FieldType.taxonomy and self.taxonomy_name is not None:
             raise ValueError("taxonomy_name should be provided for taxonomy type only")
         return self
@@ -121,8 +121,8 @@ class IndexConfig(BaseModel):
     name: str
     # name of the field to use for `_id`
     id_field_name: str
-    # name of the field containing the date of last modification, used for incremental updates
-    # using Redis queues
+    # name of the field containing the date of last modification, used for
+    # incremental updates using Redis queues
     last_modified_field_name: str
     number_of_shards: int = 4
     number_of_replicas: int = 1
@@ -138,12 +138,12 @@ class Config(BaseModel):
     # and the language code, ex: product_name_it if lang_separator="_"
     lang_separator: str = "_"
     taxonomy: TaxonomyConfig
-    # The full qualified reference to the preprocessor to use before data import
-    # This is used to adapt the data schema or to add search-a-licious specific fields
-    # for example.
+    # The full qualified reference to the preprocessor to use before data
+    # import This is used to adapt the data schema or to add search-a-licious
+    # specific fields for example.
     preprocessor: str | None = None
-    # The full qualified reference to the elasticsearch result processor to use after search
-    # query to Elasticsearch.
+    # The full qualified reference to the elasticsearch result processor to use
+    # after search query to Elasticsearch.
     # This is used to add custom fields for example.
     result_processor: str | None = None
     # A list of supported languages, it is used to build index mapping
@@ -155,8 +155,8 @@ class Config(BaseModel):
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):
-        """Validator that checks that for if `taxonomy_type` is defined for a field,
-        it refers to a taxonomy defined in `taxonomy.sources`."""
+        """Validator that checks that for if `taxonomy_type` is defined for a
+        field, it refers to a taxonomy defined in `taxonomy.sources`."""
         defined_taxonomies = [source.name for source in self.taxonomy.sources]
         for field in self.fields:
             if (
