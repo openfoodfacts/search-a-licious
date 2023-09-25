@@ -116,6 +116,13 @@ If not provided, `['en']` is used."""
         fields,
         sort_by,
     )
+
+    if page * page_size > 10_000:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum number of returned results is 10 000 (here: page * page_size = {page * page_size})",
+        )
+
     query = build_search_query(
         q=q, langs=langs, size=page_size, page=page, config=CONFIG, sort_by=sort_by
     )
