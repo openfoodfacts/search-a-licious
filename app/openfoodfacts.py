@@ -77,9 +77,15 @@ def generate_image_url(code: str, image_id: str) -> str:
 
 
 class DocumentPreprocessor(BaseDocumentPreprocessor):
-    def preprocess(self, document: JSONType) -> JSONType:
+    def preprocess(self, document: JSONType) -> JSONType | None:
         # no need to have a deep-copy here
         document = copy.copy(document)
+        # convert obsolete field into bool
+        document["obsolete"] = bool(document.get("obsolete"))
+        document["supported_langs"] = self.get_supported_langs(document)
+        return document
+
+    def get_supported_langs(self, document: JSONType) -> list[str]:
         # We add `supported_langs` field to index taxonomized fields in
         # the language of the product. To determine the list of
         # `supported_langs`, we check:
@@ -104,8 +110,7 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                         lang_code for lang_code in lang_codes.split(",") if lang_code
                     )
 
-        document["supported_langs"] = list(supported_langs)
-        return document
+        return list(supported_langs)
 
 
 class ResultProcessor(BaseResultProcessor):

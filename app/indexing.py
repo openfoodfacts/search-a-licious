@@ -64,11 +64,13 @@ class BaseDocumentPreprocessor(abc.ABC):
         self.config = config
 
     @abc.abstractmethod
-    def preprocess(self, document: JSONType) -> JSONType:
+    def preprocess(self, document: JSONType) -> JSONType | None:
         """Preprocess the document before data ingestion in Elasticsearch.
 
         This can be used to make document schema compatible with the project
         schema or to add custom fields.
+
+        Is None is returned, the document is not indexed.
         """
         pass
 
@@ -174,6 +176,9 @@ class DocumentProcessor:
             "_id": _id,
         }
         d = self.preprocessor.preprocess(d) if self.preprocessor is not None else d
+
+        if d is None:
+            return None
 
         for field in self.config.fields:
             input_field = field.get_input_field()
