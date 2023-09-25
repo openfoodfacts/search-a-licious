@@ -4,6 +4,7 @@ import re
 from typing import Iterable
 
 from elasticsearch_dsl import (
+    Boolean,
     Date,
     Double,
     Float,
@@ -30,6 +31,8 @@ def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
             for lang in supported_langs
         }
         return Object(required=field.required, dynamic=False, properties=properties)
+    elif field.type == FieldType.object:
+        return Object(required=field.required, dynamic=True)
     elif field.type == FieldType.keyword:
         return Keyword(required=field.required, multi=field.multi)
     elif field.type == FieldType.text:
@@ -40,6 +43,8 @@ def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
         return Double(required=field.required, multi=field.multi)
     elif field.type == FieldType.integer:
         return Integer(required=field.required, multi=field.multi)
+    elif field.type == FieldType.bool:
+        return Boolean(required=field.required, multi=field.multi)
     elif field.type == FieldType.date:
         return Date(required=field.required, multi=field.multi)
     elif field.type == FieldType.disabled:

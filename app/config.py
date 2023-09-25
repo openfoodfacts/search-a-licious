@@ -57,12 +57,14 @@ class FieldType(StrEnum):
     double = auto()
     float = auto()
     integer = auto()
+    bool = auto()
     text = auto()
     text_lang = auto()
     taxonomy = auto()
     # if the field is not enabled (=not indexed and not parsed), see:
     # https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html
     disabled = auto()
+    object = auto()
 
     def is_numeric(self):
         return self in (FieldType.integer, FieldType.float, FieldType.double)
@@ -92,7 +94,7 @@ class FieldConfig(BaseModel):
         with specific types."""
         if (
             not (
-                self.type in (FieldType.keyword, FieldType.text)
+                self.type in (FieldType.keyword, FieldType.text, FieldType.bool)
                 or self.type.is_numeric()
             )
             and self.multi
@@ -231,6 +233,7 @@ CONFIG = Config(
     ),
     fields=[
         FieldConfig(name="code", type=FieldType.keyword, required=True),
+        FieldConfig(name="obsolete", type=FieldType.bool, required=True),
         FieldConfig(
             name="product_name", type=FieldType.text_lang, include_multi_match=True
         ),
@@ -270,6 +273,7 @@ CONFIG = Config(
         FieldConfig(name="countries_tags", type=FieldType.keyword, multi=True),
         FieldConfig(name="states_tags", type=FieldType.keyword, multi=True),
         FieldConfig(name="origins_tags", type=FieldType.keyword, multi=True),
+        FieldConfig(name="ingredients_tags", type=FieldType.keyword, multi=True),
         FieldConfig(name="unique_scans_n", type=FieldType.integer),
         FieldConfig(name="scans_n", type=FieldType.integer),
         FieldConfig(name="nutrition_grades", type=FieldType.keyword),
@@ -290,7 +294,7 @@ CONFIG = Config(
         FieldConfig(name="ingredients_n", type=FieldType.integer),
         FieldConfig(name="nova_group", type=FieldType.integer),
         FieldConfig(name="nutrient_levels", type=FieldType.disabled),
-        FieldConfig(name="nutriments", type=FieldType.disabled),
+        FieldConfig(name="nutriments", type=FieldType.object),
         FieldConfig(name="nutriscore_data", type=FieldType.disabled),
         FieldConfig(name="nutriscore_grade", type=FieldType.keyword),
         FieldConfig(name="traces_tags", type=FieldType.keyword, multi=True),
