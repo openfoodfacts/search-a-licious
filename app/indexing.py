@@ -25,6 +25,14 @@ from app.utils.analyzers import ANALYZER_LANG_MAPPING
 
 
 def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
+    """Generate Elasticsearch DSL field from a FieldConfig.
+
+    :param field: the field to use as input
+    :param supported_langs: a list of supported languages (2-letter codes).
+        This is used for to know which sub-fields to create for `text_lang`
+        and `taxonomy` field types
+    :return: the elasticsearch_dsl field
+    """
     if field.type in (FieldType.text_lang, FieldType.taxonomy):
         properties = {
             lang: Text(analyzer=analyzer(ANALYZER_LANG_MAPPING.get(lang, "standard")))
@@ -56,7 +64,9 @@ def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
         raise ValueError(f"unsupported field type: {field.type}")
 
 
-def preprocess_field(d: JSONType, input_field: str, split: bool, split_separator: str):
+def preprocess_field_value(
+    d: JSONType, input_field: str, split: bool, split_separator: str
+):
     input_value = d.get(input_field)
 
     if not input_value:
@@ -97,7 +107,7 @@ def process_text_lang_field(
         if re.fullmatch(rf"{re.escape(input_field)}{lang_separator}\w\w([-_]\w\w)?", k)
     ]
     for target_field in (input_field, *target_fields):
-        input_value = preprocess_field(
+        input_value = preprocess_field_value(
             data,
             target_field,
             split=split,
@@ -122,7 +132,7 @@ def process_taxonomy_field(
 ) -> JSONType | None:
     field_input = {}
     input_field = field.get_input_field()
-    input_value = preprocess_field(
+    input_value = preprocess_field_value(
         data, input_field, split=field.split, split_separator=config.split_separator
     )
     if input_value is None:
@@ -160,6 +170,10 @@ def process_taxonomy_field(
 
 
 class DocumentProcessor:
+    """`DocumentProcessor`s are responsible of converting an item to index
+    into a dict that is ready to be indexed by Elasticsearch.
+    """
+
     def __init__(self, config: Config) -> None:
         self.config = config
         self.preprocessor: BaseDocumentPreprocessor | None
@@ -204,7 +218,7 @@ class DocumentProcessor:
                 field_input = process_taxonomy_field(d, field, self.config)
 
             else:
-                field_input = preprocess_field(
+                field_input = preprocess_field_value(
                     d,
                     input_field,
                     split=field.split,
