@@ -30,6 +30,9 @@ def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
             lang: Text(analyzer=analyzer(ANALYZER_LANG_MAPPING.get(lang, "standard")))
             for lang in supported_langs
         }
+        if field.type is FieldType.text_lang:
+            # Add subfield used to save main language version for `text_lang`
+            properties["main"] = Text(analyzer=analyzer("standard"))
         return Object(required=field.required, dynamic=False, properties=properties)
     elif field.type == FieldType.object:
         return Object(required=field.required, dynamic=True)
