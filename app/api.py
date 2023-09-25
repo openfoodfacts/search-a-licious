@@ -8,10 +8,12 @@ from fastapi.templating import Jinja2Templates
 
 from app.config import CONFIG, settings
 from app.postprocessing import load_result_processor
-from app.query import build_search_query
+from app.query import build_elasticsearch_query_builder, build_search_query
 from app.utils import connection, get_logger, init_sentry
 
 logger = get_logger()
+
+FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(CONFIG)
 
 app = FastAPI(
     title="search-a-licious API",
@@ -124,7 +126,16 @@ If not provided, `['en']` is used."""
         )
 
     query = build_search_query(
-        q=q, langs=langs, size=page_size, page=page, config=CONFIG, sort_by=sort_by
+        q=q,
+        langs=langs,
+        size=page_size,
+        page=page,
+        config=CONFIG,
+        sort_by=sort_by,
+        # filter query builder is generated from elasticsearch mapping and
+        # takes ~40ms to generate, build-it before hand as we're using global
+        # Config
+        filter_query_builder=FILTER_QUERY_BUILDER,
     )
     logger.debug("Elasticsearch query: %s", query.to_dict())
     results = query.execute()

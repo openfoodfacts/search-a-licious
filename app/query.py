@@ -2,11 +2,13 @@ from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Query
 from luqum import visitor
 from luqum.elasticsearch import ElasticsearchQueryBuilder
+from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.exceptions import ParseSyntaxError
 from luqum.parser import parser
 from luqum.tree import Word
 
 from app.config import Config, FieldType
+from app.indexing import generate_index_object
 from app.types import JSONType
 from app.utils import get_logger
 
@@ -14,15 +16,10 @@ logger = get_logger(__name__)
 
 
 def build_elasticsearch_query_builder(config: Config) -> ElasticsearchQueryBuilder:
-    not_analyzed_fields = []
-    for field in config.fields:
-        if field.type in (FieldType.keyword, FieldType.disabled):
-            not_analyzed_fields.append(field.name)
-
-    return ElasticsearchQueryBuilder(
-        default_operator=ElasticsearchQueryBuilder.MUST,
-        not_analyzed_fields=not_analyzed_fields,
-    )
+    index = generate_index_object(config.index.name, config)
+    options = SchemaAnalyzer(index.to_dict()).query_builder_options()
+    options["default_operator"] = ElasticsearchQueryBuilder.MUST
+    return ElasticsearchQueryBuilder(**options)
 
 
 class UnknownOperationRemover(visitor.TreeTransformer):
@@ -162,8 +159,11 @@ def build_search_query(
     page: int,
     config: Config,
     sort_by: str | None = None,
+    filter_query_builder: ElasticsearchQueryBuilder | None = None,
 ) -> Query:
-    filter_query_builder = build_elasticsearch_query_builder(config)
+    if not filter_query_builder:
+        filter_query_builder = build_elasticsearch_query_builder(config)
+
     filter_query, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
     logger.debug("filter query: %s", filter_query)
     logger.debug("remaining terms: '%s'", remaining_terms)
