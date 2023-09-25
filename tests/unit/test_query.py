@@ -65,6 +65,11 @@ class TestUnknownOperationRemover:
             {"term": {"states_tags": {"value": "en:spain"}}},
             "",
         ),
+        (
+            "nutriments.salt_100g:[2 TO *]",
+            {"range": {"nutriments.salt_100g": {"gte": "2"}}},
+            "",
+        ),
     ],
 )
 def test_parse_lucene_dsl_query(
@@ -72,7 +77,8 @@ def test_parse_lucene_dsl_query(
 ):
     query_builder = ElasticsearchQueryBuilder(
         default_operator=ElasticsearchQueryBuilder.MUST,
-        not_analyzed_fields=["states_tags", "labels_tags"],
+        not_analyzed_fields=["states_tags", "labels_tags", "countries_tags"],
+        object_fields=["nutriments", "nutriments.salt_100g"],
     )
     filter_clauses, remaining_terms = parse_lucene_dsl_query(q, query_builder)
     assert filter_clauses == expected_filter_clauses
