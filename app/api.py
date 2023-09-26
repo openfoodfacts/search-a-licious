@@ -3,7 +3,7 @@ from typing import Annotated
 
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 from app.config import CONFIG, check_config_is_defined, settings
@@ -202,3 +202,8 @@ def html_search(
             "sort_by": sort_by,
         },
     )
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots_txt():
+    return """User-agent: *\nDisallow: /"""
