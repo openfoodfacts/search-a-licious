@@ -43,11 +43,11 @@ x-api-common: &api-common
     - OPENFOODFACTS_API_URL
     - SENTRY_DNS
     - LOG_LEVEL
-    # make it easier to run scripts
-    - PYTHONPATH=/code
   networks:
     - default
     - common_net
+  volumes:
+    - ./data:/opt/search/data
 
 
 services:

@@ -9,7 +9,8 @@ x-api-base: &api-base
       USER_GID: ${USER_GID:-1000}
   volumes:
     # mount code dynamically
-    - "./app:/code/app"
+    - "./app:/opt/search/app"
+    - "./data:/opt/search/data"
 
 
 services:

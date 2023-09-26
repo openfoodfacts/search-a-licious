@@ -11,12 +11,12 @@ ARG USER_GID
 RUN groupadd -g $USER_GID off && \
     useradd -u $USER_UID -g off -m off && \
     mkdir -p /home/off && \
-    mkdir -p /code && \
-    chown off:off -R /code /home/off
-WORKDIR /code
-COPY --chown=off:off ./requirements.txt /code/requirements.txt
-RUN  pip install --no-cache-dir --upgrade -r /code/requirements.txt
+    mkdir -p /opt/search && \
+    chown off:off -R /opt/search /home/off
+WORKDIR /opt/search
+COPY --chown=off:off requirements.txt requirements.txt
+RUN  pip install --no-cache-dir --upgrade -r requirements.txt
 
 USER off:off
-COPY --chown=off:off ./app /code/app
+COPY --chown=off:off app app
 CMD ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
