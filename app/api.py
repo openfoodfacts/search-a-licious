@@ -6,14 +6,26 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.config import CONFIG, settings
+from app.config import CONFIG, check_config_is_defined, settings
 from app.postprocessing import load_result_processor
 from app.query import build_elasticsearch_query_builder, build_search_query
 from app.utils import connection, get_logger, init_sentry
 
 logger = get_logger()
 
-FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(CONFIG)
+
+if CONFIG is None:
+    # We want to be able to import api.py (for tests for example) without
+    # failure, but we add a warning message as it's not expected in a
+    # production settings
+    logger.warning("Main configuration is not set, use CONFIG_PATH envvar")
+    FILTER_QUERY_BUILDER = None
+    RESULT_PROCESSOR = None
+else:
+    # we cache query builder and result processor here for faster processing
+    FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(CONFIG)
+    RESULT_PROCESSOR = load_result_processor(CONFIG)
+
 
 app = FastAPI(
     title="search-a-licious API",
@@ -32,12 +44,10 @@ init_sentry(settings.sentry_dns)
 connection.get_connection()
 
 
-result_processor = load_result_processor(CONFIG)
-
-
 @app.get("/document/{identifier}")
 def get_document(identifier: str):
     """Fetch a document from Elasticsearch with specific ID."""
+    check_config_is_defined()
     id_field_name = CONFIG.index.id_field_name
     results = (
         Search(index=CONFIG.index.name)
@@ -102,6 +112,7 @@ If not provided, `['en']` is used."""
         ),
     ] = None,
 ):
+    check_config_is_defined()
     if q is None and sort_by is None:
         raise HTTPException(
             status_code=400, detail="`sort_by` must be provided when `q` is missing"
@@ -141,7 +152,7 @@ If not provided, `['en']` is used."""
     results = query.execute()
 
     projection = set(fields.split(",")) if fields else None
-    response = result_processor.process(results, projection)
+    response = RESULT_PROCESSOR.process(results, projection)
     count = response["count"]
     return {
         **response,

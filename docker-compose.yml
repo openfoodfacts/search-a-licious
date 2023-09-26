@@ -43,7 +43,10 @@ x-api-common: &api-common
     - OPENFOODFACTS_API_URL
     - SENTRY_DNS
     - LOG_LEVEL
+    # Directory where we cache downloaded taxonomies files
     - TAXONOMY_CACHE_DIR
+    # Path of the yaml configuration file
+    - CONFIG_PATH
   networks:
     - default
     - common_net

@@ -1,6 +1,7 @@
 from enum import StrEnum, auto
 from pathlib import Path
 
+import yaml
 from pydantic import BaseModel, Field, HttpUrl, model_validator
 from pydantic_settings import BaseSettings
 
@@ -29,6 +30,8 @@ class LoggingLevel(StrEnum):
 
 
 class Settings(BaseSettings):
+    # Path of the search-a-licious yaml configuration file
+    config_path: Path | None = None
     redis_expiration: int = 60 * 60 * 36  # 36h
     redis_reader_timeout: int = 5
     elasticsearch_url: str = "http://localhost:9200"
@@ -226,266 +229,27 @@ class Config(BaseModel):
     def get_supported_langs(self) -> set[str]:
         return set(self.supported_langs or []) | set(self.taxonomy.supported_langs)
 
+    @classmethod
+    def from_yaml(cls, path: Path) -> "Config":
+        with path.open("r") as f:
+            data = yaml.safe_load(f)
+        return cls(**data)
 
-CONFIG = Config(
-    index=IndexConfig(
-        name="openfoodfacts",
-        id_field_name="code",
-        last_modified_field_name="last_modified_t",
-    ),
-    fields=[
-        FieldConfig(name="code", type=FieldType.keyword, required=True),
-        FieldConfig(name="obsolete", type=FieldType.bool, required=True),
-        FieldConfig(
-            name="product_name", type=FieldType.text_lang, include_multi_match=True
-        ),
-        FieldConfig(
-            name="generic_name", type=FieldType.text_lang, include_multi_match=True
-        ),
-        FieldConfig(name="abbreviated_product_name", type=FieldType.text_lang),
-        FieldConfig(
-            name="categories",
-            type=FieldType.taxonomy,
-            input_field="categories_tags",
-            taxonomy_name="category",
-            include_multi_match=True,
-        ),
-        FieldConfig(
-            name="labels",
-            type=FieldType.taxonomy,
-            input_field="labels_tags",
-            taxonomy_name="label",
-            include_multi_match=True,
-        ),
-        FieldConfig(
-            name="brands",
-            type=FieldType.text,
-            split=True,
-            multi=True,
-            include_multi_match=True,
-        ),
-        FieldConfig(name="stores", type=FieldType.text, split=True, multi=True),
-        FieldConfig(name="emb_codes", type=FieldType.text, split=True, multi=True),
-        FieldConfig(name="lang", type=FieldType.keyword),
-        FieldConfig(name="lc", type=FieldType.keyword),
-        FieldConfig(name="owner", type=FieldType.keyword),
-        FieldConfig(name="quantity", type=FieldType.text),
-        FieldConfig(name="categories_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="labels_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="countries_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="states_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="origins_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="ingredients_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="unique_scans_n", type=FieldType.integer),
-        FieldConfig(name="scans_n", type=FieldType.integer),
-        FieldConfig(name="nutrition_grades", type=FieldType.keyword),
-        FieldConfig(name="ecoscore_grade", type=FieldType.keyword),
-        FieldConfig(name="nova_groups", type=FieldType.keyword),
-        FieldConfig(name="last_modified_t", type=FieldType.date),
-        FieldConfig(name="created_t", type=FieldType.date),
-        FieldConfig(name="images", type=FieldType.disabled),
-        # required for personal search
-        FieldConfig(name="additives_n", type=FieldType.integer),
-        FieldConfig(name="allergens_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="ecoscore_data", type=FieldType.disabled),
-        FieldConfig(name="ecoscore_score", type=FieldType.integer),
-        FieldConfig(name="forest_footprint_data", type=FieldType.disabled),
-        FieldConfig(
-            name="ingredients_analysis_tags", type=FieldType.keyword, multi=True
-        ),
-        FieldConfig(name="ingredients_n", type=FieldType.integer),
-        FieldConfig(name="nova_group", type=FieldType.integer),
-        FieldConfig(name="nutrient_levels", type=FieldType.disabled),
-        FieldConfig(name="nutriments", type=FieldType.object),
-        FieldConfig(name="nutriscore_data", type=FieldType.disabled),
-        FieldConfig(name="nutriscore_grade", type=FieldType.keyword),
-        FieldConfig(name="traces_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="unknown_ingredients_n", type=FieldType.integer),
-        # used for sorting
-        FieldConfig(name="popularity_key", type=FieldType.integer),
-        FieldConfig(name="nutriscore_score", type=FieldType.integer),
-        FieldConfig(name="completeness", type=FieldType.float),
-    ],
-    taxonomy=TaxonomyConfig(
-        sources=[
-            TaxonomySourceConfig(
-                name="category",
-                url="https://static.openfoodfacts.org/data/taxonomies/categories.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="label",
-                url="https://static.openfoodfacts.org/data/taxonomies/labels.full.json",
-            ),
-        ],
-        supported_langs=["en", "fr", "es", "de", "it", "nl"],
-    ),
-    preprocessor="app.openfoodfacts.DocumentPreprocessor",
-    result_processor="app.openfoodfacts.ResultProcessor",
-    supported_langs=[
-        "aa",
-        "ab",
-        "ae",
-        "af",
-        "ak",
-        "am",
-        "ar",
-        "as",
-        "at",
-        "au",
-        "ay",
-        "az",
-        "be",
-        "bg",
-        "bi",
-        "bn",
-        "br",
-        "bs",
-        "ca",
-        "ch",
-        "co",
-        "cs",
-        "cu",
-        "cy",
-        "da",
-        "de",
-        "dv",
-        "dz",
-        "el",
-        "en",
-        "eo",
-        "es",
-        "et",
-        "eu",
-        "fa",
-        "fi",
-        "fj",
-        "fo",
-        "fr",
-        "fy",
-        "ga",
-        "gb",
-        "gd",
-        "gl",
-        "gn",
-        "gp",
-        "gu",
-        "gv",
-        "ha",
-        "he",
-        "hi",
-        "hk",
-        "ho",
-        "hr",
-        "ht",
-        "hu",
-        "hy",
-        "hz",
-        "id",
-        "in",
-        "io",
-        "is",
-        "it",
-        "iw",
-        "ja",
-        "jp",
-        "jv",
-        "ka",
-        "kk",
-        "kl",
-        "km",
-        "kn",
-        "ko",
-        "ku",
-        "ky",
-        "la",
-        "lb",
-        "lc",
-        "ln",
-        "lo",
-        "lt",
-        "lu",
-        "lv",
-        "mg",
-        "mh",
-        "mi",
-        "mk",
-        "ml",
-        "mn",
-        "mo",
-        "mr",
-        "ms",
-        "mt",
-        "my",
-        "na",
-        "nb",
-        "nd",
-        "ne",
-        "nl",
-        "nn",
-        "no",
-        "nr",
-        "ny",
-        "oc",
-        "om",
-        "pa",
-        "pl",
-        "ps",
-        "pt",
-        "qq",
-        "qu",
-        "re",
-        "rm",
-        "rn",
-        "ro",
-        "rs",
-        "ru",
-        "rw",
-        "sd",
-        "se",
-        "sg",
-        "sh",
-        "si",
-        "sk",
-        "sl",
-        "sm",
-        "sn",
-        "so",
-        "sq",
-        "sr",
-        "ss",
-        "st",
-        "sv",
-        "sw",
-        "ta",
-        "te",
-        "tg",
-        "th",
-        "ti",
-        "tk",
-        "tl",
-        "tn",
-        "to",
-        "tr",
-        "ts",
-        "ug",
-        "uk",
-        "ur",
-        "us",
-        "uz",
-        "ve",
-        "vi",
-        "wa",
-        "wo",
-        "xh",
-        "xx",
-        "yi",
-        "yo",
-        "zh",
-        "zu",
-    ],
-    match_phrase_boost=2.0,
-    document_denylist={
-        # Contains invalid chars (5.۹ in ingredients.percent)
-        "8901552007122"
-    },
-)
+
+# CONFIG is a global variable that contains the search-a-licious configuration
+# used. It is specified by the envvar CONFIG_PATH.
+CONFIG: Config | None = None
+if settings.config_path:
+    if not settings.config_path.is_file():
+        raise RuntimeError(f"config file does not exist: {settings.config_path}")
+
+    CONFIG = Config.from_yaml(settings.config_path)
+
+
+def check_config_is_defined():
+    """Raise a RuntimeError if the Config path is not set."""
+    if CONFIG is None:
+        raise RuntimeError(
+            "No configuration is configured, set envvar "
+            "CONFIG_PATH with the path of the yaml configuration file"
+        )
