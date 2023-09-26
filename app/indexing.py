@@ -17,7 +17,7 @@ from elasticsearch_dsl import (
     analyzer,
 )
 
-from app.config import CONFIG, Config, FieldConfig, FieldType, TaxonomySourceConfig
+from app.config import Config, FieldConfig, FieldType, TaxonomySourceConfig
 from app.taxonomy import get_taxonomy
 from app.types import JSONType
 from app.utils import load_class_object_from_string
@@ -233,7 +233,7 @@ class DocumentProcessor:
 
 def generate_mapping_object(config: Config) -> Mapping:
     mapping = Mapping()
-    supported_langs = CONFIG.get_supported_langs()
+    supported_langs = config.get_supported_langs()
     for field in config.fields:
         mapping.field(
             field.name, generate_dsl_field(field, supported_langs=supported_langs)
