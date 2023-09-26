@@ -350,3 +350,8 @@ def check_config_is_defined():
             "No configuration is configured, set envvar "
             "CONFIG_PATH with the path of the yaml configuration file"
         )
+
+
+def set_global_config(config_path: Path):
+    global CONFIG
+    CONFIG = Config.from_yaml(config_path)

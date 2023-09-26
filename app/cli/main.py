@@ -3,6 +3,8 @@ from typing import Optional
 
 import typer
 
+from app.config import check_config_is_defined
+
 app = typer.Typer()
 
 
@@ -21,17 +23,30 @@ def import_data(
     num_items: Optional[int] = typer.Option(
         default=None, help="How many items to import"
     ),
+    config_path: Optional[Path] = typer.Option(
+        default=None,
+        help="path of the yaml configuration file, it overrides CONFIG_PATH envvar",
+        dir_okay=False,
+        file_okay=True,
+        exists=True,
+    ),
 ):
     """Import data into Elasticsearch."""
     import time
 
     from app.cli.perform_import import perform_import
-    from app.config import CONFIG
+    from app.config import set_global_config
     from app.utils import get_logger
 
     logger = get_logger()
 
+    if config_path:
+        set_global_config(config_path)
+
+    from app.config import CONFIG
+
     start_time = time.perf_counter()
+    check_config_is_defined()
     perform_import(
         input_path,
         num_items,
@@ -44,7 +59,7 @@ def import_data(
 
 
 @app.command()
-def write_to_redis():
+def write_to_redis(doc_id: str):
     import time
 
     from app.utils import get_logger
@@ -53,13 +68,10 @@ def write_to_redis():
     logger = get_logger()
     redis = get_redis_client()
     key_name = "search_import_queue"
-    while True:
-        code = input("Please enter a product code:\n")
-        start_time = time.perf_counter()
-
-        redis.rpush(key_name, code)
-        end_time = time.perf_counter()
-        logger.info("Time: %s seconds", end_time - start_time)
+    start_time = time.perf_counter()
+    redis.rpush(key_name, doc_id)
+    end_time = time.perf_counter()
+    logger.info("Time: %s seconds", end_time - start_time)
 
 
 @app.command()
