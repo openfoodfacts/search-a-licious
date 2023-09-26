@@ -3,6 +3,7 @@ import datetime
 import re
 from typing import Iterable
 
+from elasticsearch import Elasticsearch
 from elasticsearch_dsl import (
     Boolean,
     Date,

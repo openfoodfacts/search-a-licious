@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     config_path: Path | None = None
     redis_expiration: int = 60 * 60 * 36  # 36h
     redis_reader_timeout: int = 5
+    # Prefix to use when saving documents to be processed after a new full
+    # import in Redis
+    redis_document_prefix: str = "product"
     elasticsearch_url: str = "http://localhost:9200"
     redis_host: str = "localhost"
     # TODO: this should be in the config below

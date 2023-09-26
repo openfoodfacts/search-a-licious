@@ -7,7 +7,7 @@ from app.config import Config, settings
 from app.indexing import DocumentProcessor
 from app.types import JSONType
 from app.utils import get_logger
-from app.utils.connection import get_redis_client
+from app.utils.connection import get_es_client, get_redis_client
 
 logger = get_logger(__name__)
 
@@ -28,24 +28,25 @@ class RedisClient:
         _, item = pop_resp
         return item
 
-    def write_processed(self, code):
+    def write_processed(self, id):
         # Write a key that can be read for full imports
         # Format should be:
-        # SET product:<timestamp>:<barcode> <full_product_definition> EX 129600
+        # SET {document_prefix}:<timestamp>:<barcode> <full_definition>
+        # EX 129600
         # 129600 is chosen as it's 36 hours, so enough time to cover between a
         # nightly data dump
         self.redis.set(
-            name=f"product:{int(time.time())}:{code}",
+            name=f"{settings.redis_document_prefix}:{int(time.time())}:{id}",
             ex=settings.redis_expiration,
             value="",
         )
 
     def get_processed_since(self, start_timestamp: int) -> list[tuple[int, JSONType]]:
-        product_client = ProductClient()
-        fetched_codes = set()
+        document_fetcher = DocumentFetcher()
+        fetched_ids = set()
         timestamp_processed_values = []
-        for key in self.redis.scan_iter("product:*"):
-            logger.info(key)
+        for key in self.redis.scan_iter(f"{settings.redis_document_prefix}:*"):
+            logger.debug("Fetched key: %s", key)
             components = key.split(":")
             if len(components) != 3:
                 logger.info("Invalid key: %s", key)
@@ -55,28 +56,28 @@ class RedisClient:
             if timestamp < start_timestamp:
                 continue
 
-            code = components[2]
-            # Avoid fetching the same code repeatedly
-            if code in fetched_codes:
+            _id = components[2]
+            # Avoid fetching the same ID repeatedly
+            if _id in fetched_ids:
                 continue
-            fetched_codes.add(code)
-            product = product_client.get_product(code)
-            if not product:
-                logger.info("Unable to retrieve product: %s", code)
+            fetched_ids.add(_id)
+            document = document_fetcher.get(_id)
+            if not document:
+                logger.info("Unable to retrieve document: %s", _id)
                 continue
 
-            timestamp_processed_values.append((timestamp, product))
+            timestamp_processed_values.append((timestamp, document))
 
         # Sort by timestamp
         timestamp_processed_values.sort(key=lambda x: x[0])
         return timestamp_processed_values
 
 
-class ProductClient:
+class DocumentFetcher:
     def __init__(self):
         self.server_url = settings.openfoodfacts_base_url
 
-    def get_product(self, code):
+    def get(self, code):
         url = f"{self.server_url}/api/v2/product/{code}"
         response = requests.get(url)
         json_response = response.json()
@@ -89,28 +90,33 @@ class QueueManager:
     def __init__(self, config: Config):
         self.stop_received = False
         self.redis_client = RedisClient()
-        self.product_client = ProductClient()
+        self.document_fetcher = DocumentFetcher()
+        self.es_client = get_es_client()
         self.processor = DocumentProcessor(config)
+
+        self.index_name = config.index.name
 
     def consume(self):
         while not self.stop_received:
-            code = self.redis_client.get_from_queue()
-            if not code:
+            _id = self.redis_client.get_from_queue()
+            if not _id:
                 continue
-            item = self.product_client.get_product(code)
+            item = self.document_fetcher.get(_id)
             if not item:
-                logger.info("Unable to retrieve product with code %s", code)
+                logger.info("Unable to retrieve document with ID %s", _id)
                 continue
-            # As the code is unique (set in the save method), this will handle
-            # updates as well as new documents
-            product = self.processor.from_dict(item)
-            product.save()
+            # As the _id is unique, this will handle updates as well as new
+            # documents
+            document = self.processor.from_dict(item)
+            _id = document.pop("_id")
+            result = self.es_client.index(index=self.index_name, body=document, id=_id)
             logger.info(
-                "Received Redis update for product: %s - %s", code, product.product_name
+                "Received Redis update for document: %s, indexation result: %s",
+                _id,
+                result,
             )
-
             # Now, write a key that can be read for full imports
-            self.redis_client.write_processed(product.code)
+            self.redis_client.write_processed(_id)
 
     def stop(self):
         logger.info(
