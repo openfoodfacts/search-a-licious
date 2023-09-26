@@ -1,4 +1,5 @@
 from enum import StrEnum, auto
+from pathlib import Path
 
 from pydantic import BaseModel, Field, HttpUrl, model_validator
 from pydantic_settings import BaseSettings
@@ -36,6 +37,7 @@ class Settings(BaseSettings):
     openfoodfacts_base_url: str = "https://world.openfoodfacts.org"
     sentry_dns: str | None = None
     log_level: LoggingLevel = LoggingLevel.INFO
+    taxonomy_cache_dir: Path = Path("/opt/search/data/taxonomies")
 
 
 settings = Settings()

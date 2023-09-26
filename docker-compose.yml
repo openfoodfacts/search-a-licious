@@ -43,6 +43,7 @@ x-api-common: &api-common
     - OPENFOODFACTS_API_URL
     - SENTRY_DNS
     - LOG_LEVEL
+    - TAXONOMY_CACHE_DIR
   networks:
     - default
     - common_net
