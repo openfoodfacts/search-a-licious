@@ -1,8 +1,11 @@
+import json
 from enum import StrEnum, auto
 from pathlib import Path
+from typing import Annotated
 
 import yaml
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
+from pydantic.json_schema import GenerateJsonSchema
 from pydantic_settings import BaseSettings
 
 
@@ -46,14 +49,42 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
+class ConfigGenerateJsonSchema(GenerateJsonSchema):
+    """Config to add fields to generated JSON schema for Config."""
+
+    def generate(self, schema, mode="validation"):
+        json_schema = super().generate(schema, mode=mode)
+        json_schema["title"] = "JSON schema for search-a-licious configuration file"
+        json_schema["$schema"] = self.schema_dialect
+        return json_schema
+
+
 class TaxonomySourceConfig(BaseModel):
-    name: str
-    url: HttpUrl
+    name: Annotated[str, Field(description="name of the taxonomy")]
+    url: Annotated[
+        HttpUrl,
+        Field(
+            description="URL of the taxonomy, must be in JSON format and follows Open Food Facts "
+            "taxonomy format."
+        ),
+    ]
 
 
 class TaxonomyConfig(BaseModel):
-    sources: list[TaxonomySourceConfig]
-    supported_langs: list[str]
+    sources: Annotated[
+        list[TaxonomySourceConfig],
+        Field(description="configurations of used taxonomies"),
+    ]
+    supported_langs: Annotated[
+        list[str],
+        Field(
+            description="a list of languages for which we want taxonomized fields "
+            "to be always exported during indexing. During indexation, we use the taxonomy "
+            "to translate every taxonomized field in a language-specific subfield. The list "
+            "of language depends on the value defined here`supported_langs` and on the optional "
+            "`supported_langs` field that can be defined in each document."
+        ),
+    ]
 
 
 class FieldType(StrEnum):
@@ -78,23 +109,41 @@ class FieldType(StrEnum):
 class FieldConfig(BaseModel):
     # name of the field (internal field), it's added here for convenience
     _name: str = ""
-    # type of the field, see `FieldType` for possible values
-    type: FieldType
-    # if required=True, the field is required in the input data
-    required: bool = False
-    # name of the input field to use when importing data
-    input_field: str | None = None
-    # do we split the input field with `split_separator`
-    split: bool = False
-    # do we include the field in the multi-match query used as baseline results
-    include_multi_match: bool = False
-    # only for taxonomy field type
-    taxonomy_name: str | None = None
-    # can the keyword field contain multiple value (keyword type only)
-    multi: bool = False
+    type: Annotated[
+        FieldType,
+        Field(description="type of the field, see `FieldType` for possible values"),
+    ]
+    required: Annotated[
+        bool,
+        Field(description="if required=True, the field is required in the input data"),
+    ] = False
+    input_field: Annotated[
+        str | None,
+        Field(description="name of the input field to use when importing data"),
+    ] = None
+    #
+    split: Annotated[
+        bool, Field(description="do we split the input field with `split_separator`")
+    ] = False
+    include_multi_match: Annotated[
+        bool,
+        Field(
+            description="do we include the field in the multi-match query used as baseline results"
+        ),
+    ] = False
+    taxonomy_name: Annotated[
+        str | None, Field(description="only for taxonomy field type")
+    ] = None
+    multi: Annotated[
+        bool,
+        Field(
+            description="can the keyword field contain multiple value (keyword type only)"
+        ),
+    ] = False
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """Get field name."""
         return self._name
 
     @model_validator(mode="after")
@@ -128,42 +177,78 @@ class FieldConfig(BaseModel):
 
 
 class IndexConfig(BaseModel):
-    # name of the index alias to use
-    name: str
-    # name of the field to use for `_id`
-    id_field_name: str
-    # name of the field containing the date of last modification, used for
-    # incremental updates using Redis queues
-    last_modified_field_name: str
-    number_of_shards: int = 4
-    number_of_replicas: int = 1
+    name: Annotated[str, Field(description="name of the index alias to use")]
+    id_field_name: Annotated[
+        str, Field(description="name of the field to use for `_id`")
+    ]
+    last_modified_field_name: Annotated[
+        str,
+        Field(
+            description="name of the field containing the date of last modification, "
+            "used for incremental updates using Redis queues"
+        ),
+    ]
+    number_of_shards: Annotated[
+        int, Field(description="number of shards to use for the index")
+    ] = 4
+    number_of_replicas: Annotated[
+        int, Field(description="number of replicas to use for the index")
+    ] = 1
 
 
 class Config(BaseModel):
-    # configuration of the index
-    index: IndexConfig
-    # configuration of all fields in the index, keys are field names and values
-    # contain the field configuration
-    fields: dict[str, FieldConfig]
-    split_separator: str = ","
-    # for `text_lang` FieldType, the separator between the name of the field
-    # and the language code, ex: product_name_it if lang_separator="_"
-    lang_separator: str = "_"
-    taxonomy: TaxonomyConfig
-    # The full qualified reference to the preprocessor to use before data
-    # import This is used to adapt the data schema or to add search-a-licious
-    # specific fields for example.
-    preprocessor: str | None = None
-    # The full qualified reference to the elasticsearch result processor to use
-    # after search query to Elasticsearch.
-    # This is used to add custom fields for example.
-    result_processor: str | None = None
-    # A list of supported languages, it is used to build index mapping
-    supported_langs: list[str] | None = None
-    # How much we boost exact matches on individual fields
-    match_phrase_boost: float = 2.0
-    # list of documents IDs to ignore
-    document_denylist: set[str] = Field(default_factory=set)
+    index: Annotated[IndexConfig, Field(description="configuration of the index")]
+    fields: Annotated[
+        dict[str, FieldConfig],
+        Field(
+            description="configuration of all fields in the index, keys are field "
+            "names and values contain the field configuration"
+        ),
+    ]
+    split_separator: Annotated[
+        str,
+        Field(
+            description="separator to use when splitting values, for fields that have split=True"
+        ),
+    ] = ","
+    lang_separator: Annotated[
+        str,
+        Field(
+            description="for `text_lang` FieldType, the separator between the name of the field "
+            'and the language code, ex: product_name_it if lang_separator="_"'
+        ),
+    ] = "_"
+    taxonomy: Annotated[
+        TaxonomyConfig, Field(description="configuration of the taxonomies used")
+    ]
+    preprocessor: Annotated[
+        str,
+        Field(
+            description="The full qualified reference to the preprocessor to use before "
+            "data import. This is used to adapt the data schema or to add search-a-licious "
+            "specific fields for example."
+        ),
+    ] | None = None
+    result_processor: Annotated[
+        str,
+        Field(
+            description="The full qualified reference to the elasticsearch result processor "
+            "to use after search query to Elasticsearch. This is used to add custom fields "
+            "for example."
+        ),
+    ] | None = None
+    supported_langs: Annotated[
+        list[str] | None,
+        Field(
+            description="A list of supported languages, it is used to build index mapping"
+        ),
+    ] = None
+    match_phrase_boost: Annotated[
+        float, Field(description="How much we boost exact matches on individual fields")
+    ] = 2.0
+    document_denylist: Annotated[
+        set[str], Field(description="list of documents IDs to ignore")
+    ] = Field(default_factory=set)
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):
@@ -232,6 +317,16 @@ class Config(BaseModel):
         with path.open("r") as f:
             data = yaml.safe_load(f)
         return cls(**data)
+
+    @classmethod
+    def export_json_schema(cls):
+        """Export JSON schema."""
+        (Path(__file__).parent.parent / "json_schema.json").write_text(
+            json.dumps(
+                cls.model_json_schema(schema_generator=ConfigGenerateJsonSchema),
+                indent=4,
+            )
+        )
 
 
 # CONFIG is a global variable that contains the search-a-licious configuration

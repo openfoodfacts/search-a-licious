@@ -3,10 +3,16 @@
         "FieldConfig": {
             "properties": {
                 "type": {
-                    "$ref": "#/$defs/FieldType"
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/FieldType"
+                        }
+                    ],
+                    "description": "type of the field, see `FieldType` for possible values"
                 },
                 "required": {
                     "default": false,
+                    "description": "if required=True, the field is required in the input data",
                     "title": "Required",
                     "type": "boolean"
                 },
@@ -20,15 +26,18 @@
                         }
                     ],
                     "default": null,
+                    "description": "name of the input field to use when importing data",
                     "title": "Input Field"
                 },
                 "split": {
                     "default": false,
+                    "description": "do we split the input field with `split_separator`",
                     "title": "Split",
                     "type": "boolean"
                 },
                 "include_multi_match": {
                     "default": false,
+                    "description": "do we include the field in the multi-match query used as baseline results",
                     "title": "Include Multi Match",
                     "type": "boolean"
                 },
@@ -42,10 +51,12 @@
                         }
                     ],
                     "default": null,
+                    "description": "only for taxonomy field type",
                     "title": "Taxonomy Name"
                 },
                 "multi": {
                     "default": false,
+                    "description": "can the keyword field contain multiple value (keyword type only)",
                     "title": "Multi",
                     "type": "boolean"
                 }
@@ -76,24 +87,29 @@
         "IndexConfig": {
             "properties": {
                 "name": {
+                    "description": "name of the index alias to use",
                     "title": "Name",
                     "type": "string"
                 },
                 "id_field_name": {
+                    "description": "name of the field to use for `_id`",
                     "title": "Id Field Name",
                     "type": "string"
                 },
                 "last_modified_field_name": {
+                    "description": "name of the field containing the date of last modification, used for incremental updates using Redis queues",
                     "title": "Last Modified Field Name",
                     "type": "string"
                 },
                 "number_of_shards": {
                     "default": 4,
+                    "description": "number of shards to use for the index",
                     "title": "Number Of Shards",
                     "type": "integer"
                 },
                 "number_of_replicas": {
                     "default": 1,
+                    "description": "number of replicas to use for the index",
                     "title": "Number Of Replicas",
                     "type": "integer"
                 }
@@ -109,6 +125,7 @@
         "TaxonomyConfig": {
             "properties": {
                 "sources": {
+                    "description": "configurations of used taxonomies",
                     "items": {
                         "$ref": "#/$defs/TaxonomySourceConfig"
                     },
@@ -116,6 +133,7 @@
                     "type": "array"
                 },
                 "supported_langs": {
+                    "description": "a list of languages for which we want taxonomized fields to be always exported during indexing. During indexation, we use the taxonomy to translate every taxonomized field in a language-specific subfield. The list of language depends on the value defined here`supported_langs` and on the optional `supported_langs` field that can be defined in each document.",
                     "items": {
                         "type": "string"
                     },
@@ -133,10 +151,12 @@
         "TaxonomySourceConfig": {
             "properties": {
                 "name": {
+                    "description": "name of the taxonomy",
                     "title": "Name",
                     "type": "string"
                 },
                 "url": {
+                    "description": "URL of the taxonomy, must be in JSON format and follows Open Food Facts taxonomy format.",
                     "format": "uri",
                     "maxLength": 2083,
                     "minLength": 1,
@@ -154,31 +174,45 @@
     },
     "properties": {
         "index": {
-            "$ref": "#/$defs/IndexConfig"
+            "allOf": [
+                {
+                    "$ref": "#/$defs/IndexConfig"
+                }
+            ],
+            "description": "configuration of the index"
         },
         "fields": {
             "additionalProperties": {
                 "$ref": "#/$defs/FieldConfig"
             },
+            "description": "configuration of all fields in the index, keys are field names and values contain the field configuration",
             "title": "Fields",
             "type": "object"
         },
         "split_separator": {
             "default": ",",
+            "description": "separator to use when splitting values, for fields that have split=True",
             "title": "Split Separator",
             "type": "string"
         },
         "lang_separator": {
             "default": "_",
+            "description": "for `text_lang` FieldType, the separator between the name of the field and the language code, ex: product_name_it if lang_separator=\"_\"",
             "title": "Lang Separator",
             "type": "string"
         },
         "taxonomy": {
-            "$ref": "#/$defs/TaxonomyConfig"
+            "allOf": [
+                {
+                    "$ref": "#/$defs/TaxonomyConfig"
+                }
+            ],
+            "description": "configuration of the taxonomies used"
         },
         "preprocessor": {
             "anyOf": [
                 {
+                    "description": "The full qualified reference to the preprocessor to use before data import. This is used to adapt the data schema or to add search-a-licious specific fields for example.",
                     "type": "string"
                 },
                 {
@@ -191,6 +225,7 @@
         "result_processor": {
             "anyOf": [
                 {
+                    "description": "The full qualified reference to the elasticsearch result processor to use after search query to Elasticsearch. This is used to add custom fields for example.",
                     "type": "string"
                 },
                 {
@@ -213,14 +248,17 @@
                 }
             ],
             "default": null,
+            "description": "A list of supported languages, it is used to build index mapping",
             "title": "Supported Langs"
         },
         "match_phrase_boost": {
             "default": 2.0,
+            "description": "How much we boost exact matches on individual fields",
             "title": "Match Phrase Boost",
             "type": "number"
         },
         "document_denylist": {
+            "description": "list of documents IDs to ignore",
             "items": {
                 "type": "string"
             },
@@ -234,6 +272,7 @@
         "fields",
         "taxonomy"
     ],
-    "title": "Config",
-    "type": "object"
+    "title": "JSON schema for search-a-licious configuration file",
+    "type": "object",
+    "$schema": "https://json-schema.org/draft/2020-12/schema"
 }
