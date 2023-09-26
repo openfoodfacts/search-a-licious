@@ -1,13 +1,12 @@
 import atexit
 import time
 
-import requests
-
 from app.config import Config, settings
 from app.indexing import DocumentProcessor
 from app.types import JSONType
 from app.utils import get_logger
 from app.utils.connection import get_es_client, get_redis_client
+from app.utils.download import http_session
 
 logger = get_logger(__name__)
 
@@ -79,7 +78,7 @@ class DocumentFetcher:
 
     def get(self, code):
         url = f"{self.server_url}/api/v2/product/{code}"
-        response = requests.get(url)
+        response = http_session.get(url)
         json_response = response.json()
         if not json_response or not json_response.get("product"):
             return None

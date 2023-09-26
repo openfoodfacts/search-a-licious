@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     sentry_dns: str | None = None
     log_level: LoggingLevel = LoggingLevel.INFO
     taxonomy_cache_dir: Path = Path("data/taxonomies")
+    # User-Agent used when fetching resources (taxonomies) or documents
+    user_agent: str = "search-a-licious"
 
 
 settings = Settings()
@@ -188,7 +190,8 @@ class IndexConfig(BaseModel):
         str,
         Field(
             description="name of the field containing the date of last modification, "
-            "used for incremental updates using Redis queues"
+            "used for incremental updates using Redis queues. The field value must be an "
+            "int/float representing the timestamp."
         ),
     ]
     number_of_shards: Annotated[

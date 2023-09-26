@@ -122,12 +122,9 @@ def import_parallel(
 
 
 def get_redis_products(
-    processor: DocumentProcessor, next_index: str, last_updated_timestamp
+    processor: DocumentProcessor, next_index: str, last_updated_timestamp: int
 ):
-    """Fetch ids of products to update from redis index
-
-    Those ids are set by productopener on products updates
-    """
+    """Fetch IDs of documents to update from Redis."""
     redis_client = RedisClient()
     logger.info("Processing redis updates since %s", last_updated_timestamp)
     timestamp_processed_values = redis_client.get_processed_since(
@@ -145,14 +142,14 @@ def get_redis_updates(next_index: str, config: Config):
     es = connection.get_es_client()
     # Ensure all documents are searchable after the import
     Index(next_index).refresh()
-    field_name = config.index.last_modified_field_name
-    query = Search(index=next_index).sort(f"-{field_name}").extra(size=1)
+    last_modified_field_name = config.index.last_modified_field_name
+    query = Search(index=next_index).sort(f"-{last_modified_field_name}").extra(size=1)
     # Note that we can't use index() because we don't want to also query the
     # main alias
     query._index = [next_index]
     results = query.execute()
     results_dict = [r.to_dict() for r in results]
-    last_updated_timestamp = results_dict[0][field_name]
+    last_updated_timestamp: int = results_dict[0][last_modified_field_name]
 
     # Since this is only done by a single process, we can use parallel_bulk
     for success, info in parallel_bulk(
