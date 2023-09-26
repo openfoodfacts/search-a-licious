@@ -1,0 +1,239 @@
+{
+    "$defs": {
+        "FieldConfig": {
+            "properties": {
+                "type": {
+                    "$ref": "#/$defs/FieldType"
+                },
+                "required": {
+                    "default": false,
+                    "title": "Required",
+                    "type": "boolean"
+                },
+                "input_field": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Input Field"
+                },
+                "split": {
+                    "default": false,
+                    "title": "Split",
+                    "type": "boolean"
+                },
+                "include_multi_match": {
+                    "default": false,
+                    "title": "Include Multi Match",
+                    "type": "boolean"
+                },
+                "taxonomy_name": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Taxonomy Name"
+                },
+                "multi": {
+                    "default": false,
+                    "title": "Multi",
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "title": "FieldConfig",
+            "type": "object"
+        },
+        "FieldType": {
+            "enum": [
+                "keyword",
+                "date",
+                "double",
+                "float",
+                "integer",
+                "bool",
+                "text",
+                "text_lang",
+                "taxonomy",
+                "disabled",
+                "object"
+            ],
+            "title": "FieldType",
+            "type": "string"
+        },
+        "IndexConfig": {
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "id_field_name": {
+                    "title": "Id Field Name",
+                    "type": "string"
+                },
+                "last_modified_field_name": {
+                    "title": "Last Modified Field Name",
+                    "type": "string"
+                },
+                "number_of_shards": {
+                    "default": 4,
+                    "title": "Number Of Shards",
+                    "type": "integer"
+                },
+                "number_of_replicas": {
+                    "default": 1,
+                    "title": "Number Of Replicas",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "name",
+                "id_field_name",
+                "last_modified_field_name"
+            ],
+            "title": "IndexConfig",
+            "type": "object"
+        },
+        "TaxonomyConfig": {
+            "properties": {
+                "sources": {
+                    "items": {
+                        "$ref": "#/$defs/TaxonomySourceConfig"
+                    },
+                    "title": "Sources",
+                    "type": "array"
+                },
+                "supported_langs": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Supported Langs",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "sources",
+                "supported_langs"
+            ],
+            "title": "TaxonomyConfig",
+            "type": "object"
+        },
+        "TaxonomySourceConfig": {
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "url": {
+                    "format": "uri",
+                    "maxLength": 2083,
+                    "minLength": 1,
+                    "title": "Url",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "url"
+            ],
+            "title": "TaxonomySourceConfig",
+            "type": "object"
+        }
+    },
+    "properties": {
+        "index": {
+            "$ref": "#/$defs/IndexConfig"
+        },
+        "fields": {
+            "additionalProperties": {
+                "$ref": "#/$defs/FieldConfig"
+            },
+            "title": "Fields",
+            "type": "object"
+        },
+        "split_separator": {
+            "default": ",",
+            "title": "Split Separator",
+            "type": "string"
+        },
+        "lang_separator": {
+            "default": "_",
+            "title": "Lang Separator",
+            "type": "string"
+        },
+        "taxonomy": {
+            "$ref": "#/$defs/TaxonomyConfig"
+        },
+        "preprocessor": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null,
+            "title": "Preprocessor"
+        },
+        "result_processor": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null,
+            "title": "Result Processor"
+        },
+        "supported_langs": {
+            "anyOf": [
+                {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null,
+            "title": "Supported Langs"
+        },
+        "match_phrase_boost": {
+            "default": 2.0,
+            "title": "Match Phrase Boost",
+            "type": "number"
+        },
+        "document_denylist": {
+            "items": {
+                "type": "string"
+            },
+            "title": "Document Denylist",
+            "type": "array",
+            "uniqueItems": true
+        }
+    },
+    "required": [
+        "index",
+        "fields",
+        "taxonomy"
+    ],
+    "title": "Config",
+    "type": "object"
+}

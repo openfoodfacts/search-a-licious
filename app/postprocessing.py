@@ -21,7 +21,7 @@ class BaseResultProcessor:
             result = hit.to_dict()
             result["_score"] = hit.meta.score
 
-            for field in self.config.fields:
+            for field in self.config.fields.values():
                 if field.name not in result:
                     continue
 

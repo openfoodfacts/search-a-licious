@@ -2,7 +2,7 @@ from enum import StrEnum, auto
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, Field, HttpUrl, model_validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -76,8 +76,8 @@ class FieldType(StrEnum):
 
 
 class FieldConfig(BaseModel):
-    # name of the field, must be unique across the config
-    name: str
+    # name of the field (internal field), it's added here for convenience
+    _name: str = ""
     # type of the field, see `FieldType` for possible values
     type: FieldType
     # if required=True, the field is required in the input data
@@ -92,6 +92,10 @@ class FieldConfig(BaseModel):
     taxonomy_name: str | None = None
     # can the keyword field contain multiple value (keyword type only)
     multi: bool = False
+
+    @property
+    def name(self):
+        return self._name
 
     @model_validator(mode="after")
     def multi_should_be_used_for_selected_type_only(self):
@@ -138,8 +142,9 @@ class IndexConfig(BaseModel):
 class Config(BaseModel):
     # configuration of the index
     index: IndexConfig
-    # configuration of all fields in the index
-    fields: list[FieldConfig]
+    # configuration of all fields in the index, keys are field names and values
+    # contain the field configuration
+    fields: dict[str, FieldConfig]
     split_separator: str = ","
     # for `text_lang` FieldType, the separator between the name of the field
     # and the language code, ex: product_name_it if lang_separator="_"
@@ -165,7 +170,7 @@ class Config(BaseModel):
         """Validator that checks that for if `taxonomy_type` is defined for a
         field, it refers to a taxonomy defined in `taxonomy.sources`."""
         defined_taxonomies = [source.name for source in self.taxonomy.sources]
-        for field in self.fields:
+        for field in self.fields.values():
             if (
                 field.taxonomy_name is not None
                 and field.taxonomy_name not in defined_taxonomies
@@ -176,35 +181,20 @@ class Config(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def field_name_should_be_unique(self):
-        """Validator that checks that all fields have unique names."""
-        seen: set[str] = set()
-        for field in self.fields:
-            if field.name in seen:
-                raise ValueError(
-                    f"each field name should be unique, duplicate found: '{field.name}'"
-                )
-            seen.add(field.name)
-        return self
-
-    @model_validator(mode="after")
     def field_references_must_exist_and_be_valid(self):
         """Validator that checks that every field reference in IndexConfig
         refers to an existing field and is valid."""
-
-        fields_by_name = {f.name: f for f in self.fields}
-
-        if self.index.id_field_name not in fields_by_name:
+        if self.index.id_field_name not in self.fields:
             raise ValueError(
                 f"id_field_name={self.index.id_field_name} but field was not declared"
             )
 
-        if self.index.last_modified_field_name not in fields_by_name:
+        if self.index.last_modified_field_name not in self.fields:
             raise ValueError(
                 f"last_modified_field_name={self.index.last_modified_field_name} but field was not declared"
             )
 
-        last_modified_field = fields_by_name[self.index.last_modified_field_name]
+        last_modified_field = self.fields[self.index.last_modified_field_name]
 
         if last_modified_field.type != FieldType.date:
             raise ValueError(
@@ -216,13 +206,20 @@ class Config(BaseModel):
     @model_validator(mode="after")
     def if_split_should_be_multi(self):
         """Validator that checks that multi=True if split=True.."""
-        for field in self.fields:
+        for field in self.fields.values():
             if field.split and not field.multi:
                 raise ValueError("multi should be True if split=True")
         return self
 
+    @field_validator("fields")
+    @classmethod
+    def add_field_name_to_each_field(cls, fields):
+        for field_name, field_item in fields.items():
+            field_item._name = field_name
+        return fields
+
     def get_input_fields(self) -> set[str]:
-        return {field.name for field in self.fields} | {
+        return set(self.fields) | {
             field.input_field for field in self.fields if field.input_field is not None
         }
 
@@ -231,6 +228,7 @@ class Config(BaseModel):
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Config":
+        """Create a Config from a yaml configuration file."""
         with path.open("r") as f:
             data = yaml.safe_load(f)
         return cls(**data)

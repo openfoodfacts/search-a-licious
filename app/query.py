@@ -45,7 +45,7 @@ def build_query_clause(query: str, langs: set[str], config: Config) -> Query:
     supported_langs = config.get_supported_langs()
     match_phrase_boost_queries = []
 
-    for field in config.fields:
+    for field in config.fields.values():
         # We don't include all fields in the multi-match clause, only a subset
         # of them
         if field.include_multi_match:
@@ -139,7 +139,7 @@ def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
     if negative_operator := sort_by.startswith("-"):
         sort_by = sort_by[1:]
 
-    for field in config.fields:
+    for field in config.fields.values():
         if field.name == sort_by:
             if field.type is FieldType.text_lang:
                 # use 'main' language subfield for sorting

@@ -202,7 +202,7 @@ class DocumentProcessor:
         if d is None:
             return None
 
-        for field in self.config.fields:
+        for field in self.config.fields.values():
             input_field = field.get_input_field()
 
             if field.type == FieldType.text_lang:
@@ -234,7 +234,7 @@ class DocumentProcessor:
 def generate_mapping_object(config: Config) -> Mapping:
     mapping = Mapping()
     supported_langs = config.get_supported_langs()
-    for field in config.fields:
+    for field in config.fields.values():
         mapping.field(
             field.name, generate_dsl_field(field, supported_langs=supported_langs)
         )

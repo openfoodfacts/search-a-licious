@@ -5,122 +5,122 @@ index:
   number_of_replicas: 1
   number_of_shards: 4
 fields:
-- name: code
-  required: true
-  type: keyword
-- name: obsolete
-  required: true
-  type: bool
-- include_multi_match: true
-  name: product_name
-  type: text_lang
-- include_multi_match: true
-  name: generic_name
-  type: text_lang
-- name: abbreviated_product_name
-  type: text_lang
-- include_multi_match: true
-  input_field: categories_tags
-  name: categories
-  taxonomy_name: category
-  type: taxonomy
-- include_multi_match: true
-  input_field: labels_tags
-  name: labels
-  taxonomy_name: label
-  type: taxonomy
-- include_multi_match: true
-  multi: true
-  name: brands
-  split: true
-  type: text
-- multi: true
-  name: stores
-  split: true
-  type: text
-- multi: true
-  name: emb_codes
-  split: true
-  type: text
-- name: lang
-  type: keyword
-- name: lc
-  type: keyword
-- name: owner
-  type: keyword
-- name: quantity
-  type: text
-- multi: true
-  name: categories_tags
-  type: keyword
-- multi: true
-  name: labels_tags
-  type: keyword
-- multi: true
-  name: countries_tags
-  type: keyword
-- multi: true
-  name: states_tags
-  type: keyword
-- multi: true
-  name: origins_tags
-  type: keyword
-- multi: true
-  name: ingredients_tags
-  type: keyword
-- name: unique_scans_n
-  type: integer
-- name: scans_n
-  type: integer
-- name: nutrition_grades
-  type: keyword
-- name: ecoscore_grade
-  type: keyword
-- name: nova_groups
-  type: keyword
-- name: last_modified_t
-  type: date
-- name: created_t
-  type: date
-- name: images
-  type: disabled
-- name: additives_n
-  type: integer
-- multi: true
-  name: allergens_tags
-  type: keyword
-- name: ecoscore_data
-  type: disabled
-- name: ecoscore_score
-  type: integer
-- name: forest_footprint_data
-  type: disabled
-- multi: true
-  name: ingredients_analysis_tags
-  type: keyword
-- name: ingredients_n
-  type: integer
-- name: nova_group
-  type: integer
-- name: nutrient_levels
-  type: disabled
-- name: nutriments
-  type: object
-- name: nutriscore_data
-  type: disabled
-- name: nutriscore_grade
-  type: keyword
-- multi: true
-  name: traces_tags
-  type: keyword
-- name: unknown_ingredients_n
-  type: integer
-- name: popularity_key
-  type: integer
-- name: nutriscore_score
-  type: integer
-- name: completeness
-  type: float
+  code:
+    required: true
+    type: keyword
+  obsolete:
+    required: true
+    type: bool
+  product_name:
+    include_multi_match: true
+    type: text_lang
+  generic_name:
+    include_multi_match: true
+    type: text_lang
+  abbreviated_product_name:
+    type: text_lang
+  categories:
+    include_multi_match: true
+    input_field: categories_tags
+    taxonomy_name: category
+    type: taxonomy
+  labels:
+    include_multi_match: true
+    input_field: labels_tags
+    taxonomy_name: label
+    type: taxonomy
+  brands:
+    include_multi_match: true
+    multi: true
+    split: true
+    type: text
+  stores:
+    multi: true
+    split: true
+    type: text
+  emb_codes:
+    multi: true
+    split: true
+    type: text
+  lang:
+    type: keyword
+  lc:
+    type: keyword
+  owner:
+    type: keyword
+  quantity:
+    type: text
+  categories_tags:
+    multi: true
+    type: keyword
+  labels_tags:
+    multi: true
+    type: keyword
+  countries_tags:
+    multi: true
+    type: keyword
+  states_tags:
+    multi: true
+    type: keyword
+  origins_tags:
+    multi: true
+    type: keyword
+  ingredients_tags:
+    multi: true
+    type: keyword
+  unique_scans_n:
+    type: integer
+  scans_n:
+    type: integer
+  nutrition_grades:
+    type: keyword
+  ecoscore_grade:
+    type: keyword
+  nova_groups:
+    type: keyword
+  last_modified_t:
+    type: date
+  created_t:
+    type: date
+  images:
+    type: disabled
+  additives_n:
+    type: integer
+  allergens_tags:
+    multi: true
+    type: keyword
+  ecoscore_data:
+    type: disabled
+  ecoscore_score:
+    type: integer
+  forest_footprint_data:
+    type: disabled
+  ingredients_analysis_tags:
+    multi: true
+    type: keyword
+  ingredients_n:
+    type: integer
+  nova_group:
+    type: integer
+  nutrient_levels:
+    type: disabled
+  nutriments:
+    type: object
+  nutriscore_data:
+    type: disabled
+  nutriscore_grade:
+    type: keyword
+  traces_tags:
+    multi: true
+    type: keyword
+  unknown_ingredients_n:
+    type: integer
+  popularity_key:
+    type: integer
+  nutriscore_score:
+    type: integer
+  completeness:
+    type: float
 document_denylist:
 - '8901552007122'
 lang_separator: _
