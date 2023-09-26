@@ -81,7 +81,7 @@ class TaxonomyConfig(BaseModel):
             description="a list of languages for which we want taxonomized fields "
             "to be always exported during indexing. During indexation, we use the taxonomy "
             "to translate every taxonomized field in a language-specific subfield. The list "
-            "of language depends on the value defined here`supported_langs` and on the optional "
+            "of language depends on the value defined here and on the optional "
             "`supported_langs` field that can be defined in each document."
         ),
     ]
@@ -240,7 +240,7 @@ class Config(BaseModel):
     supported_langs: Annotated[
         list[str] | None,
         Field(
-            description="A list of supported languages, it is used to build index mapping"
+            description="A list of all supported languages, it is used to build index mapping"
         ),
     ] = None
     match_phrase_boost: Annotated[
@@ -309,6 +309,7 @@ class Config(BaseModel):
         }
 
     def get_supported_langs(self) -> set[str]:
+        """Return the set of supported languages."""
         return set(self.supported_langs or []) | set(self.taxonomy.supported_langs)
 
     @classmethod

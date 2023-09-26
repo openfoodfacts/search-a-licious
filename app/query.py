@@ -133,6 +133,13 @@ def parse_lucene_dsl_query(
 
 
 def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
+    """Parse `sort_by` parameter, special handling is performed for `text_lang`
+    subfield.
+
+    :param sort_by: the raw `sort_by` value
+    :param config: the Config to use
+    :return: None if `sort_by` is not provided or the final value otherwise
+    """
     if sort_by is None:
         return None
 
@@ -158,12 +165,21 @@ def build_search_query(
     size: int,
     page: int,
     config: Config,
+    filter_query_builder: ElasticsearchQueryBuilder,
     sort_by: str | None = None,
-    filter_query_builder: ElasticsearchQueryBuilder | None = None,
 ) -> Query:
-    if not filter_query_builder:
-        filter_query_builder = build_elasticsearch_query_builder(config)
+    """Build an elasticsearch_dsl Query.
 
+    :param q: the user raw query
+    :param langs: the set of languages we want to support, it is used to
+      select language subfields for some field types
+    :param size: number of results to return
+    :param page: requested page (starts at 1).
+    :param config: configuration to use
+    :param filter_query_builder: luqum elasticsearch query builder
+    :param sort_by: sorting key, defaults to None (=relevance-based sorting)
+    :return: the built Query
+    """
     filter_query, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
     logger.debug("filter query: %s", filter_query)
     logger.debug("remaining terms: '%s'", remaining_terms)
