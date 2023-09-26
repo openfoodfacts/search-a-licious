@@ -47,16 +47,11 @@ def import_data(
 def write_to_redis():
     import time
 
-    from redis import Redis
-
     from app.utils import get_logger
+    from app.utils.connection import get_redis_client
 
     logger = get_logger()
-    redis = Redis(
-        host="redis",
-        port=6379,
-        decode_responses=True,
-    )
+    redis = get_redis_client()
     key_name = "search_import_queue"
     while True:
         code = input("Please enter a product code:\n")
@@ -65,6 +60,26 @@ def write_to_redis():
         redis.rpush(key_name, code)
         end_time = time.perf_counter()
         logger.info("Time: %s seconds", end_time - start_time)
+
+
+@app.command()
+def import_from_queue():
+    from app.config import CONFIG, check_config_is_defined, settings
+    from app.queue import run_queue_safe
+    from app.utils import connection, get_logger, init_sentry
+
+    # Create root logger
+    get_logger()
+    # Initialize sentry for bug tracking
+    init_sentry(settings.sentry_dns)
+
+    # create elasticsearch connection
+    connection.get_es_client()
+
+    check_config_is_defined()
+
+    # run queue
+    run_queue_safe(CONFIG)
 
 
 def main() -> None:

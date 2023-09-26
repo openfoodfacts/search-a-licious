@@ -41,7 +41,7 @@ app = FastAPI(
 )
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 init_sentry(settings.sentry_dns)
-connection.get_connection()
+connection.get_es_client()
 
 
 @app.get("/document/{identifier}")

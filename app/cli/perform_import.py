@@ -8,8 +8,8 @@ from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Index, Search
 
 from app.config import Config
-from app.import_queue.redis_client import RedisClient
 from app.indexing import DocumentProcessor, generate_index_object
+from app.queue import RedisClient
 from app.types import JSONType
 from app.utils import connection, get_logger
 from app.utils.io import jsonl_iter
@@ -98,10 +98,11 @@ def import_parallel(
     """
     processor = DocumentProcessor(config)
     # open a connection for this process
-    es = connection.get_connection(timeout=120, retry_on_timeout=True)
+    es = connection.get_es_client(timeout=120, retry_on_timeout=True)
     # Note that bulk works better than parallel bulk for our usecase.
-    # The preprocessing in this file is non-trivial, so it's better to parallelize that. If we then do parallel_bulk
-    # here, this causes queueing and a lot of memory usage in the importer process.
+    # The preprocessing in this file is non-trivial, so it's better to
+    # parallelize that. If we then do parallel_bulk here, this causes queueing
+    # and a lot of memory usage in the importer process.
     success, errors = bulk(
         es,
         gen_documents(
@@ -129,7 +130,7 @@ def get_redis_products(
     redis_client = RedisClient()
     logger.info("Processing redis updates since %s", last_updated_timestamp)
     timestamp_processed_values = redis_client.get_processed_since(
-        last_updated_timestamp,
+        last_updated_timestamp
     )
     for _, row in timestamp_processed_values:
         document_dict = get_document_dict(processor, row, next_index)
@@ -140,7 +141,7 @@ def get_redis_products(
 
 def get_redis_updates(next_index: str, config: Config):
     processor = DocumentProcessor(config)
-    es = connection.get_connection()
+    es = connection.get_es_client()
     # Ensure all documents are searchable after the import
     Index(next_index).refresh()
     field_name = config.index.last_modified_field_name
@@ -167,7 +168,7 @@ def perform_import(
     config: Config,
 ):
     """Main function running the import sequence"""
-    es = connection.get_connection()
+    es = connection.get_es_client()
     # we create a temporary index to import to
     # at the end we will change alias to point to it
     index_date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")

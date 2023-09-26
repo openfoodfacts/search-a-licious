@@ -98,7 +98,7 @@ services:
   # service listening to redis for updates
   updater:
     <<: *api-common
-    command: ["python3", "-m", "app.import_queue.queue_manager"]
+    command: ["python3", "-m", "app", "import-from-queue"]
 
   redis:
     image: redis
