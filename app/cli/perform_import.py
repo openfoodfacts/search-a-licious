@@ -94,7 +94,8 @@ def import_parallel(
     :param float start_time: the start time
     :param int num_items: max number of items to import, default to no limit
     :param int num_processes: total number of processes
-    :param int process_id: the index of the process (from 0 to num_processes - 1)
+    :param int process_id: the index of the process
+        (from 0 to num_processes - 1)
     """
     processor = DocumentProcessor(config)
     # open a connection for this process
@@ -146,7 +147,8 @@ def get_redis_updates(next_index: str, config: Config):
     Index(next_index).refresh()
     field_name = config.index.last_modified_field_name
     query = Search(index=next_index).sort(f"-{field_name}").extra(size=1)
-    # Note that we can't use index() because we don't want to also query the main alias
+    # Note that we can't use index() because we don't want to also query the
+    # main alias
     query._index = [next_index]
     results = query.execute()
     results_dict = [r.to_dict() for r in results]
