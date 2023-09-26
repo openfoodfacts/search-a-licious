@@ -130,3 +130,10 @@ dmypy.json
 # Pycharm
 .idea/
 .DS_Store
+
+# vscode
+.vscode
+*.code-workspace
+
+# Project-specific
+data/taxonomies
