@@ -3,7 +3,7 @@ from typing import Optional
 
 import typer
 
-from app.config import check_config_is_defined
+from app.config import check_config_is_defined, set_global_config
 
 app = typer.Typer()
 
@@ -34,6 +34,7 @@ def import_data(
     """Import data into Elasticsearch."""
     import time
 
+    from app import config
     from app.cli.perform_import import perform_import
     from app.config import set_global_config
     from app.utils import get_logger
@@ -43,8 +44,6 @@ def import_data(
     if config_path:
         set_global_config(config_path)
 
-    from app.config import CONFIG
-
     start_time = time.perf_counter()
     check_config_is_defined()
     perform_import(
@@ -52,7 +51,7 @@ def import_data(
         num_items,
         num_processes,
         start_time,
-        CONFIG,
+        config.CONFIG,
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
@@ -75,8 +74,17 @@ def write_to_redis(doc_id: str):
 
 
 @app.command()
-def import_from_queue():
-    from app.config import CONFIG, check_config_is_defined, settings
+def import_from_queue(
+    config_path: Optional[Path] = typer.Option(
+        default=None,
+        help="path of the yaml configuration file, it overrides CONFIG_PATH envvar",
+        dir_okay=False,
+        file_okay=True,
+        exists=True,
+    ),
+):
+    from app import config
+    from app.config import check_config_is_defined, settings
     from app.queue import run_queue_safe
     from app.utils import connection, get_logger, init_sentry
 
@@ -85,13 +93,16 @@ def import_from_queue():
     # Initialize sentry for bug tracking
     init_sentry(settings.sentry_dns)
 
+    if config_path:
+        set_global_config(config_path)
+
     # create elasticsearch connection
     connection.get_es_client()
 
     check_config_is_defined()
 
     # run queue
-    run_queue_safe(CONFIG)
+    run_queue_safe(config.CONFIG)
 
 
 def main() -> None:

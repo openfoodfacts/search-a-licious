@@ -6,7 +6,8 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
-from app.config import CONFIG, check_config_is_defined, settings
+from app import config
+from app.config import check_config_is_defined, settings
 from app.postprocessing import load_result_processor
 from app.query import build_elasticsearch_query_builder, build_search_query
 from app.utils import connection, get_logger, init_sentry
@@ -14,7 +15,7 @@ from app.utils import connection, get_logger, init_sentry
 logger = get_logger()
 
 
-if CONFIG is None:
+if config.CONFIG is None:
     # We want to be able to import api.py (for tests for example) without
     # failure, but we add a warning message as it's not expected in a
     # production settings
@@ -23,8 +24,8 @@ if CONFIG is None:
     RESULT_PROCESSOR = None
 else:
     # we cache query builder and result processor here for faster processing
-    FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(CONFIG)
-    RESULT_PROCESSOR = load_result_processor(CONFIG)
+    FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(config.CONFIG)
+    RESULT_PROCESSOR = load_result_processor(config.CONFIG)
 
 
 app = FastAPI(
@@ -48,9 +49,9 @@ connection.get_es_client()
 def get_document(identifier: str):
     """Fetch a document from Elasticsearch with specific ID."""
     check_config_is_defined()
-    id_field_name = CONFIG.index.id_field_name
+    id_field_name = config.CONFIG.index.id_field_name
     results = (
-        Search(index=CONFIG.index.name)
+        Search(index=config.CONFIG.index.name)
         .query("term", **{id_field_name: identifier})
         .extra(size=1)
         .execute()
@@ -141,7 +142,7 @@ If not provided, `['en']` is used."""
         langs=langs,
         size=page_size,
         page=page,
-        config=CONFIG,
+        config=config.CONFIG,
         sort_by=sort_by,
         # filter query builder is generated from elasticsearch mapping and
         # takes ~40ms to generate, build-it before hand as we're using global
