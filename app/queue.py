@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 class RedisClient:
     def __init__(self):
         self.redis = get_redis_client()
-        self.queue_key_name = "search_import_queue"
+        self.queue_key_name = settings.redis_import_queue
 
     def get_from_queue(self):
         # Blocks for N seconds

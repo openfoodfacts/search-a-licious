@@ -61,14 +61,14 @@ def import_data(
 def write_to_redis(doc_id: str):
     import time
 
+    from app.config import settings
     from app.utils import get_logger
     from app.utils.connection import get_redis_client
 
     logger = get_logger()
     redis = get_redis_client()
-    key_name = "search_import_queue"
     start_time = time.perf_counter()
-    redis.rpush(key_name, doc_id)
+    redis.rpush(settings.redis_import_queue, doc_id)
     end_time = time.perf_counter()
     logger.info("Time: %s seconds", end_time - start_time)
 

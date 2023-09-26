@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     redis_document_prefix: str = "product"
     elasticsearch_url: str = "http://localhost:9200"
     redis_host: str = "localhost"
+    # the name of the Redis list to read from when listening to product updates
+    redis_import_queue: str = "search_import_queue"
     # TODO: this should be in the config below
     openfoodfacts_base_url: str = "https://world.openfoodfacts.org"
     sentry_dns: str | None = None
