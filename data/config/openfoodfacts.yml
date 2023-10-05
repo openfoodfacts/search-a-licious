@@ -31,15 +31,12 @@ fields:
     type: taxonomy
   brands:
     include_multi_match: true
-    multi: true
     split: true
     type: text
   stores:
-    multi: true
     split: true
     type: text
   emb_codes:
-    multi: true
     split: true
     type: text
   lang:
@@ -51,22 +48,16 @@ fields:
   quantity:
     type: text
   categories_tags:
-    multi: true
     type: keyword
   labels_tags:
-    multi: true
     type: keyword
   countries_tags:
-    multi: true
     type: keyword
   states_tags:
-    multi: true
     type: keyword
   origins_tags:
-    multi: true
     type: keyword
   ingredients_tags:
-    multi: true
     type: keyword
   unique_scans_n:
     type: integer
@@ -87,7 +78,6 @@ fields:
   additives_n:
     type: integer
   allergens_tags:
-    multi: true
     type: keyword
   ecoscore_data:
     type: disabled
@@ -96,7 +86,6 @@ fields:
   forest_footprint_data:
     type: disabled
   ingredients_analysis_tags:
-    multi: true
     type: keyword
   ingredients_n:
     type: integer
@@ -111,7 +100,6 @@ fields:
   nutriscore_grade:
     type: keyword
   traces_tags:
-    multi: true
     type: keyword
   unknown_ingredients_n:
     type: integer

@@ -56,19 +56,19 @@ def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
     elif field.type == FieldType.object:
         return Object(required=field.required, dynamic=True)
     elif field.type == FieldType.keyword:
-        return Keyword(required=field.required, multi=field.multi)
+        return Keyword(required=field.required)
     elif field.type == FieldType.text:
-        return Text(required=field.required, multi=field.multi)
+        return Text(required=field.required)
     elif field.type == FieldType.float:
-        return Float(required=field.required, multi=field.multi)
+        return Float(required=field.required)
     elif field.type == FieldType.double:
-        return Double(required=field.required, multi=field.multi)
+        return Double(required=field.required)
     elif field.type == FieldType.integer:
-        return Integer(required=field.required, multi=field.multi)
+        return Integer(required=field.required)
     elif field.type == FieldType.bool:
-        return Boolean(required=field.required, multi=field.multi)
+        return Boolean(required=field.required)
     elif field.type == FieldType.date:
-        return Date(required=field.required, multi=field.multi)
+        return Date(required=field.required)
     elif field.type == FieldType.disabled:
         return Object(required=field.required, enabled=False)
     else:

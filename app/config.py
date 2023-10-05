@@ -179,31 +179,11 @@ class FieldConfig(BaseModel):
     taxonomy_name: Annotated[
         str | None, Field(description="only for taxonomy field type")
     ] = None
-    multi: Annotated[
-        bool,
-        Field(
-            description="can the keyword field contain multiple value (keyword type only)"
-        ),
-    ] = False
 
     @property
     def name(self) -> str:
         """Get field name."""
         return self._name
-
-    @model_validator(mode="after")
-    def multi_should_be_used_for_selected_type_only(self):
-        """Validator that checks that `multi` flag is only True for fields
-        with specific types."""
-        if (
-            not (
-                self.type in (FieldType.keyword, FieldType.text, FieldType.bool)
-                or self.type.is_numeric()
-            )
-            and self.multi
-        ):
-            raise ValueError(f"multi=True is not compatible with type={self.type}")
-        return self
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_used_for_taxonomy_type_only(self):
@@ -332,14 +312,6 @@ class Config(BaseModel):
                 "last_modified_field_name is expected to be of type FieldType.Date"
             )
 
-        return self
-
-    @model_validator(mode="after")
-    def if_split_should_be_multi(self):
-        """Validator that checks that multi=True if split=True.."""
-        for field in self.fields.values():
-            if field.split and not field.multi:
-                raise ValueError("multi should be True if split=True")
         return self
 
     @field_validator("fields")
