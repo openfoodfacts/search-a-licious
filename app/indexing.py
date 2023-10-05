@@ -17,11 +17,17 @@ from elasticsearch_dsl import (
     analyzer,
 )
 
-from app.config import Config, FieldConfig, FieldType, TaxonomySourceConfig
+from app.config import (
+    ANALYZER_LANG_MAPPING,
+    Config,
+    FieldConfig,
+    FieldType,
+    TaxonomyConfig,
+    TaxonomySourceConfig,
+)
 from app.taxonomy import get_taxonomy
 from app.types import JSONType
 from app.utils import load_class_object_from_string
-from app.utils.analyzers import ANALYZER_LANG_MAPPING
 
 
 def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
@@ -34,13 +40,18 @@ def generate_dsl_field(field: FieldConfig, supported_langs: Iterable[str]):
     :return: the elasticsearch_dsl field
     """
     if field.type in (FieldType.text_lang, FieldType.taxonomy):
-        properties = {
-            lang: Text(analyzer=analyzer(ANALYZER_LANG_MAPPING.get(lang, "standard")))
-            for lang in supported_langs
-        }
+        # in `other`, we store the text of all languages that don't have a
+        # built-in ES analyzer. By using a single field, we don't create as
+        # many subfields as there are supported languages
+        properties = {"other": Text(analyzer=analyzer("standard"))}
+        for lang in supported_langs:
+            if lang in ANALYZER_LANG_MAPPING:
+                properties[lang] = Text(analyzer=analyzer(ANALYZER_LANG_MAPPING[lang]))
+
         if field.type is FieldType.text_lang:
             # Add subfield used to save main language version for `text_lang`
             properties["main"] = Text(analyzer=analyzer("standard"))
+
         return Object(required=field.required, dynamic=False, properties=properties)
     elif field.type == FieldType.object:
         return Object(required=field.required, dynamic=True)
@@ -99,6 +110,7 @@ def process_text_lang_field(
     split: bool,
     lang_separator: str,
     split_separator: str,
+    supported_langs: set[str],
 ) -> JSONType | None:
     field_input = {}
     target_fields = [
@@ -121,24 +133,36 @@ def process_text_lang_field(
             # subfield
             key = "main"
         else:
+            # here key is the lang 2-letters code
             key = target_field.rsplit(lang_separator, maxsplit=1)[-1]
+            # Here we check whether the language is supported, otherwise
+            # we use the default "other" field, that aggregate texts
+            # from all unsupported languages
+            # it's the only subfield that is a list instead of a string
+            if key not in supported_langs:
+                field_input.setdefault("other", []).append(input_value)
+                continue
+
         field_input[key] = input_value
 
     return field_input if field_input else None
 
 
 def process_taxonomy_field(
-    data: JSONType, field: FieldConfig, config: Config
+    data: JSONType,
+    field: FieldConfig,
+    taxonomy_config: TaxonomyConfig,
+    split_separator: str,
+    supported_langs: set[str],
 ) -> JSONType | None:
     field_input = {}
     input_field = field.get_input_field()
     input_value = preprocess_field_value(
-        data, input_field, split=field.split, split_separator=config.split_separator
+        data, input_field, split=field.split, split_separator=split_separator
     )
     if input_value is None:
         return None
 
-    taxonomy_config = config.taxonomy
     taxonomy_sources_by_name = {
         source.name: source for source in taxonomy_config.sources
     }
@@ -155,13 +179,14 @@ def process_taxonomy_field(
     #   translate the tags for this list of languages
     # - a custom list of supported languages for the item, this is used to
     #   allow indexing tags for an item that is available in specific countries
-    supported_langs = set(taxonomy_config.supported_langs) | set(
-        data.get("supported_langs", [])
-    )
-    for lang in supported_langs:
+    langs = set(taxonomy_config.supported_langs) | set(data.get("supported_langs", []))
+    for lang in langs:
         for single_tag in input_value:
             if (value := taxonomy.get_localized_name(single_tag, lang)) is not None:
-                field_input.setdefault(lang, []).append(value)
+                # If language is not supported (=no elasticsearch specific
+                # analyzers), we store the data in a "other" field
+                key = lang if lang in supported_langs else "other"
+                field_input.setdefault(key, []).append(value)
 
     if field.name in data:
         field_input["original"] = data[field.name]
@@ -176,6 +201,7 @@ class DocumentProcessor:
 
     def __init__(self, config: Config) -> None:
         self.config = config
+        self.supported_langs = config.get_supported_langs()
         self.preprocessor: BaseDocumentPreprocessor | None
 
         if config.preprocessor is not None:
@@ -212,10 +238,17 @@ class DocumentProcessor:
                     split=field.split,
                     lang_separator=self.config.lang_separator,
                     split_separator=self.config.split_separator,
+                    supported_langs=self.supported_langs,
                 )
 
             elif field.type == FieldType.taxonomy:
-                field_input = process_taxonomy_field(d, field, self.config)
+                field_input = process_taxonomy_field(
+                    data=d,
+                    field=field,
+                    taxonomy_config=self.config.taxonomy,
+                    split_separator=self.config.split_separator,
+                    supported_langs=self.supported_langs,
+                )
 
             else:
                 field_input = preprocess_field_value(

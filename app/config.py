@@ -56,6 +56,44 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
+# Mapping from language 2-letter code to Elasticsearch language analyzer names
+ANALYZER_LANG_MAPPING = {
+    "en": "english",
+    "fr": "french",
+    "it": "italian",
+    "es": "spanish",
+    "de": "german",
+    "nl": "dutch",
+    "ar": "arabic",
+    "hy": "armenian",
+    "eu": "basque",
+    "bn": "bengali",
+    "pt-BR": "brazilian",
+    "bg": "bulgarian",
+    "ca": "catalan",
+    "cz": "czech",
+    "da": "danish",
+    "et": "estonian",
+    "fi": "finnish",
+    "gl": "galician",
+    "el": "greek",
+    "hi": "hindi",
+    "hu": "hungarian",
+    "id": "indonesian",
+    "ga": "irish",
+    "lv": "latvian",
+    "lt": "lithuanian",
+    "no": "norwegian",
+    "fa": "persian",
+    "pt": "portuguese",
+    "ro": "romanian",
+    "ru": "russian",
+    "sv": "swedish",
+    "tr": "turkish",
+    "th": "thai",
+}
+
+
 class ConfigGenerateJsonSchema(GenerateJsonSchema):
     """Config to add fields to generated JSON schema for Config."""
 
@@ -317,8 +355,14 @@ class Config(BaseModel):
         }
 
     def get_supported_langs(self) -> set[str]:
-        """Return the set of supported languages."""
-        return set(self.supported_langs or []) | set(self.taxonomy.supported_langs)
+        """Return the set of supported languages.
+
+        It's used for `text_lang` and `taxonomy` fields to know which
+        language-specific subfields to create.
+        """
+        return (set(self.supported_langs or []) & set(ANALYZER_LANG_MAPPING)) | set(
+            self.taxonomy.supported_langs
+        )
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Config":
