@@ -108,8 +108,6 @@ class QueueManager:
             # documents
             document = self.processor.from_dict(item)
             _id = document.pop("_id")
-            logger.info(document)
-            logger.info(self.index_name)
             result = self.es_client.index(
                 index=self.index_name, document=document, id=_id
             )
