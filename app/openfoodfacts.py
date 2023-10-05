@@ -83,6 +83,8 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         # convert obsolete field into bool
         document["obsolete"] = bool(document.get("obsolete"))
         document["supported_langs"] = self.get_supported_langs(document)
+        # Don't keep all nutriment values
+        self.select_nutriments(document)
         return document
 
     def get_supported_langs(self, document: JSONType) -> list[str]:
@@ -111,6 +113,31 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                     )
 
         return list(supported_langs)
+
+    def select_nutriments(self, document: JSONType):
+        """Only selected interesting nutriments, as there are hundreds of
+        possible values and we're limited to 1000 fields (total) by
+        Elasticsearch.
+
+        Update `document` in place.
+        """
+        nutriments = document.get("nutriments", {})
+
+        for key in list(nutriments):
+            # Only keep some nutriment values per 100g
+            if key not in (
+                "energy-kj_100g",
+                "energy-kcal_100g",
+                "fiber_100g",
+                "fat_100g",
+                "saturated-fat_100g",
+                "carbohydrates_100g",
+                "sugars_100g",
+                "proteins_100g",
+                "salt_100g",
+                "sodium_100g",
+            ):
+                nutriments.pop(key)
 
 
 class ResultProcessor(BaseResultProcessor):
