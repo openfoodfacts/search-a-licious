@@ -1,0 +1,62 @@
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match_phrase": {
+            "product_name.fr": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "generic_name.fr": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "categories.fr": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "labels.fr": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "brands": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "multi_match": {
+            "query": "flocons d'avoine",
+            "fields": [
+              "product_name.fr",
+              "generic_name.fr",
+              "categories.fr",
+              "labels.fr",
+              "brands"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "size": 10,
+  "from": 0
+}

@@ -3,11 +3,9 @@ import json
 from pathlib import Path
 from typing import Callable, Iterable
 
-_orjson_available = True
-try:
-    import orjson
-except ImportError:
-    _orjson_available = False
+import orjson
+
+from app.types import JSONType
 
 
 def load_json(filepath: str | Path) -> dict | list:
@@ -17,10 +15,7 @@ def load_json(filepath: str | Path) -> dict | list:
     """
     open = get_open_fn(filepath)
     with open(filepath, "rb") as f:
-        if _orjson_available:
-            return orjson.loads(f.read())
-        else:
-            return json.loads(f.read().decode("utf-8"))
+        return orjson.loads(f.read())
 
 
 def jsonl_iter(jsonl_path: str | Path) -> Iterable[dict]:
@@ -48,7 +43,15 @@ def jsonl_iter_fp(fp) -> Iterable[dict]:
     for line in fp:
         line = line.strip("\n")
         if line:
-            if _orjson_available:
-                yield orjson.loads(line)
-            else:
-                yield json.loads(line)
+            yield orjson.loads(line)
+
+
+def dump_json(path: str | Path, item: JSONType, **kwargs):
+    """Dump an object in a JSON file.
+
+    :param path: the path of the file
+    :param item: the item to serialize
+    """
+    open_fn = get_open_fn(path)
+    with open_fn(str(path), "wb") as f:
+        f.write(orjson.dumps(item, **kwargs))

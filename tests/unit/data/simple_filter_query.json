@@ -1,0 +1,17 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "countries_tags": {
+              "value": "en:italy"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "size": 25,
+  "from": 25
+}
