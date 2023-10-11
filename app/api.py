@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Annotated
 
@@ -9,7 +10,12 @@ from fastapi.templating import Jinja2Templates
 from app import config
 from app.config import check_config_is_defined, settings
 from app.postprocessing import load_result_processor
-from app.query import build_elasticsearch_query_builder, build_search_query
+from app.query import (
+    build_elasticsearch_query_builder,
+    build_search_query,
+    execute_query,
+)
+from app.types import SearchResponse
 from app.utils import connection, get_logger, init_sentry
 
 logger = get_logger()
@@ -112,7 +118,7 @@ If not provided, `['en']` is used."""
             and be sortable. If it is not provided, results are sorted by descending relevance score."""
         ),
     ] = None,
-):
+) -> SearchResponse:
     check_config_is_defined()
     if q is None and sort_by is None:
         raise HTTPException(
@@ -150,20 +156,11 @@ If not provided, `['en']` is used."""
         filter_query_builder=FILTER_QUERY_BUILDER,
     )
     logger.debug("Elasticsearch query: %s", query.to_dict())
-    results = query.execute()
 
     projection = set(fields.split(",")) if fields else None
-    response = RESULT_PROCESSOR.process(results, projection)
-    count = response["count"]
-    return {
-        **response,
-        "page": page,
-        "page_size": page_size,
-        "page_count": count // page_size + int(bool(count % page_size)),
-        "debug": {
-            "query": query.to_dict(),
-        },
-    }
+    return execute_query(
+        query, RESULT_PROCESSOR, page=page, page_size=page_size, projection=projection
+    )
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -179,29 +176,33 @@ def html_search(
         return templates.TemplateResponse("search.html", {"request": request})
 
     results = search(q=q, langs=langs, page_size=page_size, page=page, sort_by=sort_by)
-    page_count = results["page_count"]
-    pagination = [
-        {"name": p, "selected": p == page, "page_id": p}
-        for p in range(1, page_count + 1)
-        # Allow to scroll over a window of 10 pages
-        if min(page - 5, page_count - 10) <= p <= max(page + 5, 10)
-    ]
-    if page > 1:
-        pagination.insert(
-            0, {"name": "Previous", "selected": False, "page_id": page - 1}
-        )
-    if page < page_count:
-        pagination.append({"name": "Next", "selected": False, "page_id": page + 1})
+    template_data = {
+        "q": q or "",
+        "request": request,
+        "sort_by": sort_by,
+        "results": results,
+        "es_query": json.dumps(results.debug.query, indent=4),
+    }
+    if results.is_success():
+        page_count = results.page_count
+        pagination = [
+            {"name": p, "selected": p == page, "page_id": p}
+            for p in range(1, page_count + 1)
+            # Allow to scroll over a window of 10 pages
+            if min(page - 5, page_count - 10) <= p <= max(page + 5, 10)
+        ]
+        if page > 1:
+            pagination.insert(
+                0, {"name": "Previous", "selected": False, "page_id": page - 1}
+            )
+        if page < page_count:
+            pagination.append({"name": "Next", "selected": False, "page_id": page + 1})
+
+        template_data["pagination"] = pagination
 
     return templates.TemplateResponse(
         "display_results.html",
-        {
-            "q": q or "",
-            "request": request,
-            "results": results,
-            "pagination": pagination,
-            "sort_by": sort_by,
-        },
+        template_data,
     )
 
 

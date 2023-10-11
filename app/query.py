@@ -1,3 +1,4 @@
+import elastic_transport
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Query
 from luqum import visitor
@@ -9,7 +10,15 @@ from luqum.tree import Word
 
 from app.config import Config, FieldType
 from app.indexing import generate_index_object
-from app.types import JSONType
+from app.postprocessing import BaseResultProcessor
+from app.types import (
+    ErrorSearchResponse,
+    JSONType,
+    SearchResponse,
+    SearchResponseDebug,
+    SearchResponseError,
+    SuccessSearchResponse,
+)
 from app.utils import get_logger
 
 logger = get_logger(__name__)
@@ -202,3 +211,31 @@ def build_search_query(
         from_=size * (page - 1),
     )
     return query
+
+
+def execute_query(
+    query: Query,
+    result_processor: BaseResultProcessor,
+    page: int,
+    page_size: int,
+    projection: set[str] | None = None,
+) -> SearchResponse:
+    errors = []
+    debug = SearchResponseDebug(query=query.to_dict())
+    try:
+        results = query.execute()
+    except elastic_transport.ConnectionError as e:
+        errors.append(
+            SearchResponseError(title="es_connection_error", description=str(e))
+        )
+        return ErrorSearchResponse(debug=debug, errors=errors)
+
+    response = result_processor.process(results, projection)
+    count = response["count"]
+    return SuccessSearchResponse(
+        page=page,
+        page_size=page_size,
+        page_count=count // page_size + int(bool(count % page_size)),
+        debug=debug,
+        **response,
+    )

@@ -114,6 +114,12 @@
 									<div id="search_results" style="clear:left;">
 										<div id="products_tabs_content" class="tabs-content">
 											<div class="tabs content active" id="products_all">
+												{% if results.errors %}
+													<h3>Runtime errors</h3>
+													{% for error in results.errors %}
+													<p><b>{{ error.title }}</b>: <code>{{ error.description }}</code></p>
+													{% endfor %}
+												{% else %}
 												<ul class="search_results small-block-grid-1 medium-block-grid-4 large-block-grid-6 xlarge-block-grid-8 xxlarge-block-grid-10" id="products_match_all" style="list-style:none">
 													{% for product in results.hits %}
 													<li data-code="{{ product.code }}">
@@ -132,10 +138,12 @@
 														</a>
 													</li>
 													{% endfor %}
+												{% endif %}
 											</ul>
 										</div>
 									</div>
 								</div>
+								{% if not results.errors %}
 								<ul id="pages" class="pagination">
 									<li class="unavailable" style="margin-right: 1rem">Pages:</li>
 									{% for page in pagination %}
@@ -143,6 +151,11 @@
 									{% endfor %}
 									<li class="unavailable">({{ results.page_size }} products per page)</li>
 								</ul>
+								{% endif %}
+								{% if es_query %}
+									<h3>Elasticsearch query</h3>
+									<pre><code>{{ es_query }}</code></pre>
+								{% endif %}
 							</div>
 							</div>
 						</div>
