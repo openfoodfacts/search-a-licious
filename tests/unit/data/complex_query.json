@@ -1,0 +1,118 @@
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match_phrase": {
+            "product_name.en": {
+              "query": "bacon de boeuf",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "generic_name.en": {
+              "query": "bacon de boeuf",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "categories.en": {
+              "query": "bacon de boeuf",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "labels.en": {
+              "query": "bacon de boeuf",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "brands": {
+              "query": "bacon de boeuf",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "multi_match": {
+            "query": "bacon de boeuf",
+            "fields": [
+              "product_name.en",
+              "generic_name.en",
+              "categories.en",
+              "labels.en",
+              "brands"
+            ]
+          }
+        }
+      ],
+      "filter": [
+        {
+          "bool": {
+            "must": [
+              {
+                "bool": {
+                  "must": [
+                    {
+                      "term": {
+                        "countries_tags": {
+                          "value": "en:italy"
+                        }
+                      }
+                    },
+                    {
+                      "bool": {
+                        "must": [
+                          {
+                            "term": {
+                              "categories_tags": {
+                                "value": "en:beef"
+                              }
+                            }
+                          },
+                          {
+                            "bool": {
+                              "should": [
+                                {
+                                  "range": {
+                                    "nutriments.salt_100g": {
+                                      "gte": "2"
+                                    }
+                                  }
+                                },
+                                {
+                                  "range": {
+                                    "nutriments.salt_100g": {
+                                      "lte": "0.05",
+                                      "gte": "0"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "minimum_should_match": 1
+    }
+  },
+  "size": 25,
+  "from": 25
+}

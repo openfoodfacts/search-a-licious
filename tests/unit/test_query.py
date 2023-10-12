@@ -104,7 +104,28 @@ def test_parse_lucene_dsl_query(
     "id_,q,langs,size,page,sort_by",
     [
         ("simple_full_text_query", "flocons d'avoine", {"fr"}, 10, 1, None),
+        # sort by descending number of scan count
+        ("sort_by_query", "flocons d'avoine", {"fr"}, 10, 1, "-unique_scans_n"),
+        # we change number of results (25 instead of 10) and request page 2
         ("simple_filter_query", 'countries_tags:"en:italy"', {"en"}, 25, 2, None),
+        (
+            "complex_query",
+            'bacon de boeuf (countries_tags:"en:italy" AND (categories_tags:"en:beef" AND '
+            "(nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
+            {"en"},
+            25,
+            2,
+            None,
+        ),
+        (
+            "non_existing_filter_field",
+            'bacon de boeuf (countries_tags:"en:italy" AND (categories_tags:"en:beef" AND '
+            "(nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
+            {"en"},
+            25,
+            2,
+            None,
+        ),
     ],
 )
 def test_build_search_query(
