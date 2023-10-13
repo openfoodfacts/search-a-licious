@@ -6,7 +6,7 @@ from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.exceptions import ParseSyntaxError
 from luqum.parser import parser
-from luqum.tree import Word
+from luqum.tree import UnknownOperation, Word
 
 from app.config import Config, FieldType
 from app.indexing import generate_index_object
@@ -108,7 +108,22 @@ def build_query_clause(query: str, langs: set[str], config: Config) -> Query:
 def parse_lucene_dsl_query(
     q: str, filter_query_builder: ElasticsearchQueryBuilder
 ) -> tuple[list[JSONType], str]:
+    """Parse query using Lucene DSL.
+
+    We decompose the query into two parts:
+
+    - a Lucene DSL query, which is used as a filter clause in the
+      Elasticsearch query. Luqum library is used to transform the
+      Lucene DSL into Elasticsearch DSL.
+    - remaining terms, used for full text search.
+
+    :param q: the user query
+    :param filter_query_builder: Luqum query builder
+    :return: a tuple containing the Elasticsearch filter clause and
+      the remaining terms for full text search
+    """
     luqum_tree = None
+    remaining_terms = ""
     try:
         luqum_tree = parser.parse(q)
     except ParseSyntaxError as e:
@@ -117,13 +132,14 @@ def parse_lucene_dsl_query(
         remaining_terms = q
 
     if luqum_tree is not None:
+        # Successful parsing
         logger.debug("parsed luqum tree: %s", repr(luqum_tree))
-        if luqum_tree.children:
+        if isinstance(luqum_tree, UnknownOperation):
             # We join with space every non word not recognized by the parser
             remaining_terms = " ".join(
                 item.value for item in luqum_tree.children if isinstance(item, Word)
             )
-        else:
+        elif isinstance(luqum_tree, Word):
             # single term
             remaining_terms = luqum_tree.value
 

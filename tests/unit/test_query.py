@@ -50,6 +50,12 @@ class TestUnknownOperationRemover:
 @pytest.mark.parametrize(
     "q,expected_filter_clauses,expected_remaining_terms",
     [
+        # single term
+        (
+            "word",
+            None,
+            "word",
+        ),
         (
             'word1 (states_tags:"en:france" OR states_tags:"en:germany") word2 labels_tags:"en:organic" word3',
             {
@@ -83,6 +89,15 @@ class TestUnknownOperationRemover:
         (
             "nutriments.salt_100g:[2 TO *]",
             {"range": {"nutriments.salt_100g": {"gte": "2"}}},
+            "",
+        ),
+        (
+            "non_existing_field:value",
+            {
+                "match": {
+                    "non_existing_field": {"query": "value", "zero_terms_query": "none"}
+                }
+            },
             "",
         ),
     ],
@@ -119,8 +134,7 @@ def test_parse_lucene_dsl_query(
         ),
         (
             "non_existing_filter_field",
-            'bacon de boeuf (countries_tags:"en:italy" AND (categories_tags:"en:beef" AND '
-            "(nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
+            "non_existing_field:value",
             {"en"},
             25,
             2,

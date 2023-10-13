@@ -1,0 +1,18 @@
+{
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "match": {
+            "non_existing_field": {
+              "query": "value",
+              "zero_terms_query": "none"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "size": 25,
+  "from": 25
+}
