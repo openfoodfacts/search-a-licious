@@ -351,7 +351,7 @@ class Config(BaseModel):
     @classmethod
     def export_json_schema(cls):
         """Export JSON schema."""
-        (Path(__file__).parent.parent / "json_schema.json").write_text(
+        (Path(__file__).parent.parent / "config_schema.json").write_text(
             json.dumps(
                 cls.model_json_schema(schema_generator=ConfigGenerateJsonSchema),
                 indent=4,

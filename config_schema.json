@@ -53,12 +53,6 @@
                     "default": null,
                     "description": "only for taxonomy field type",
                     "title": "Taxonomy Name"
-                },
-                "multi": {
-                    "default": false,
-                    "description": "can the keyword field contain multiple value (keyword type only)",
-                    "title": "Multi",
-                    "type": "boolean"
                 }
             },
             "required": [
@@ -97,7 +91,7 @@
                     "type": "string"
                 },
                 "last_modified_field_name": {
-                    "description": "name of the field containing the date of last modification, used for incremental updates using Redis queues",
+                    "description": "name of the field containing the date of last modification, used for incremental updates using Redis queues. The field value must be an int/float representing the timestamp.",
                     "title": "Last Modified Field Name",
                     "type": "string"
                 },
@@ -132,18 +126,18 @@
                     "title": "Sources",
                     "type": "array"
                 },
-                "supported_langs": {
-                    "description": "a list of languages for which we want taxonomized fields to be always exported during indexing. During indexation, we use the taxonomy to translate every taxonomized field in a language-specific subfield. The list of language depends on the value defined here`supported_langs` and on the optional `supported_langs` field that can be defined in each document.",
+                "exported_langs": {
+                    "description": "a list of languages for which we want taxonomized fields to be always exported during indexing. During indexing, we use the taxonomy to translate every taxonomized field in a language-specific subfield. The list of language depends on the value defined here and on the optional `taxonomy_langs` field that can be defined in each document.",
                     "items": {
                         "type": "string"
                     },
-                    "title": "Supported Langs",
+                    "title": "Exported Langs",
                     "type": "array"
                 }
             },
             "required": [
                 "sources",
-                "supported_langs"
+                "exported_langs"
             ],
             "title": "TaxonomyConfig",
             "type": "object"
@@ -248,7 +242,7 @@
                 }
             ],
             "default": null,
-            "description": "A list of supported languages, it is used to build index mapping",
+            "description": "A list of all supported languages, it is used to build index mapping",
             "title": "Supported Langs"
         },
         "match_phrase_boost": {
