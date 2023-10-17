@@ -241,7 +241,7 @@ class DocumentProcessor:
             return None
 
         inputs = {
-            "last_indexed_datetime": datetime.datetime.utcnow(),
+            "last_indexed_datetime": datetime.datetime.utcnow().isoformat(),
             "_id": _id,
         }
         processed_data = (
