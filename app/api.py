@@ -74,7 +74,7 @@ def get_document(identifier: str):
 @app.get("/search")
 def search(
     q: Annotated[
-        str,
+        str | None,
         Query(
             description="""The search query, it supports Lucene search query
 syntax (https://lucene.apache.org/core/3_6_0/queryparsersyntax.html). Words
@@ -125,12 +125,12 @@ If not provided, `['en']` is used."""
             status_code=400, detail="`sort_by` must be provided when `q` is missing"
         )
 
-    langs = set(langs.split(",") if langs else ["en"])
+    langs_set = set(langs.split(",") if langs else ["en"])
     logger.debug(
         "Received search query: q='%s', langs='%s', page=%d, "
         "page_size=%d, fields='%s', sort_by='%s'",
         q,
-        langs,
+        langs_set,
         page,
         page_size,
         fields,
@@ -145,7 +145,7 @@ If not provided, `['en']` is used."""
 
     query = build_search_query(
         q=q,
-        langs=langs,
+        langs=langs_set,
         size=page_size,
         page=page,
         config=config.CONFIG,
