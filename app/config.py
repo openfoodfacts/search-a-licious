@@ -120,14 +120,14 @@ class TaxonomyConfig(BaseModel):
         list[TaxonomySourceConfig],
         Field(description="configurations of used taxonomies"),
     ]
-    supported_langs: Annotated[
+    exported_langs: Annotated[
         list[str],
         Field(
             description="a list of languages for which we want taxonomized fields "
-            "to be always exported during indexing. During indexation, we use the taxonomy "
+            "to be always exported during indexing. During indexing, we use the taxonomy "
             "to translate every taxonomized field in a language-specific subfield. The list "
             "of language depends on the value defined here and on the optional "
-            "`supported_langs` field that can be defined in each document."
+            "`taxonomy_langs` field that can be defined in each document."
         ),
     ]
 
@@ -321,20 +321,25 @@ class Config(BaseModel):
             field_item._name = field_name
         return fields
 
-    def get_input_fields(self) -> set[str]:
-        return set(self.fields) | {
-            field.input_field for field in self.fields if field.input_field is not None
-        }
-
     def get_supported_langs(self) -> set[str]:
-        """Return the set of supported languages.
+        """Return the set of supported languages for `text_lang` fields.
 
-        It's used for `text_lang` and `taxonomy` fields to know which
-        language-specific subfields to create.
+        It's used to know which language-specific subfields to create.
         """
-        return (set(self.supported_langs or []) & set(ANALYZER_LANG_MAPPING)) | set(
-            self.taxonomy.supported_langs
-        )
+        return (
+            set(self.supported_langs or [])
+            # only keep langs for which a built-in analyzer built-in, other
+            # langs will be stored in a unique `other` subfield
+        ) & set(ANALYZER_LANG_MAPPING)
+
+    def get_taxonomy_langs(self) -> set[str]:
+        """Return the set of exported languages for `taxonomy` fields.
+
+        It's used to know which language-specific subfields to create.
+        """
+        # only keep langs for which a built-in analyzer built-in, other
+        # langs will be stored in a unique `other` subfield
+        return (set(self.taxonomy.exported_langs)) & set(ANALYZER_LANG_MAPPING)
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Config":

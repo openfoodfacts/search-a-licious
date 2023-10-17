@@ -82,19 +82,19 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         document = copy.copy(document)
         # convert obsolete field into bool
         document["obsolete"] = bool(document.get("obsolete"))
-        document["supported_langs"] = self.get_supported_langs(document)
+        document["taxonomy_langs"] = self.get_taxonomy_langs(document)
         # Don't keep all nutriment values
         self.select_nutriments(document)
         return document
 
-    def get_supported_langs(self, document: JSONType) -> list[str]:
-        # We add `supported_langs` field to index taxonomized fields in
+    def get_taxonomy_langs(self, document: JSONType) -> list[str]:
+        # We add `taxonomy_langs` field to index taxonomized fields in
         # the language of the product. To determine the list of
-        # `supported_langs`, we check:
+        # `taxonomy_langs`, we check:
         # - `languages_code`
         # - `countries_tags`: we add every official language of the countries
         #   where the product can be found.
-        supported_langs = set(document.get("languages_codes", []))
+        taxonomy_langs = set(document.get("languages_codes", []))
         countries_tags = document.get("countries_tags", [])
         country_taxonomy = get_taxonomy("country", COUNTRIES_TAXONOMY_URL)
 
@@ -102,17 +102,17 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
             # Check that `country_tag` is in taxonomy
             if (country_node := country_taxonomy[country_tag]) is not None:
                 # Get all official languages of the country, and add them to
-                # `supported_langs`
+                # `taxonomy_langs`
                 if (
                     lang_codes := country_node.properties.get("language_codes", {}).get(
                         "en"
                     )
                 ) is not None:
-                    supported_langs |= set(
+                    taxonomy_langs |= set(
                         lang_code for lang_code in lang_codes.split(",") if lang_code
                     )
 
-        return list(supported_langs)
+        return list(taxonomy_langs)
 
     def select_nutriments(self, document: JSONType):
         """Only selected interesting nutriments, as there are hundreds of

@@ -52,15 +52,23 @@ class UnknownOperationRemover(visitor.TreeTransformer):
 def build_query_clause(query: str, langs: set[str], config: Config) -> Query:
     fields = []
     supported_langs = config.get_supported_langs()
+    taxonomy_langs = config.get_taxonomy_langs()
     match_phrase_boost_queries = []
 
     for field in config.fields.values():
         # We don't include all fields in the multi-match clause, only a subset
         # of them
         if field.include_multi_match:
-            if field.has_lang_subfield():
+            if field.type in (FieldType.taxonomy, FieldType.text_lang):
+                # language subfields are not the same depending on whether the
+                # field is a `taxonomy` or a `text_lang` field
+                langs_subset = (
+                    supported_langs
+                    if field.type is FieldType.text_lang
+                    else taxonomy_langs
+                )
                 field_match_phrase_boost_queries = []
-                for lang in (_lang for _lang in langs if _lang in supported_langs):
+                for lang in (_lang for _lang in langs if _lang in langs_subset):
                     subfield_name = f"{field.name}.{lang}"
                     fields.append(subfield_name)
                     field_match_phrase_boost_queries.append(
