@@ -170,10 +170,12 @@ class FieldConfig(BaseModel):
     split: Annotated[
         bool, Field(description="do we split the input field with `split_separator`")
     ] = False
-    include_multi_match: Annotated[
+    full_text_search: Annotated[
         bool,
         Field(
-            description="do we include the field in the multi-match query used as baseline results"
+            description="do we include perform full text search using this field. If "
+            "false, the field is only used during search when filters involving this "
+            "field are provided."
         ),
     ] = False
     taxonomy_name: Annotated[

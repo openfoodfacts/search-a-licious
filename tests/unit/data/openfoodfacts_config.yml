@@ -12,25 +12,25 @@ fields:
     required: true
     type: bool
   product_name:
-    include_multi_match: true
+    full_text_search: true
     type: text_lang
   generic_name:
-    include_multi_match: true
+    full_text_search: true
     type: text_lang
   abbreviated_product_name:
     type: text_lang
   categories:
-    include_multi_match: true
+    full_text_search: true
     input_field: categories_tags
     taxonomy_name: category
     type: taxonomy
   labels:
-    include_multi_match: true
+    full_text_search: true
     input_field: labels_tags
     taxonomy_name: label
     type: taxonomy
   brands:
-    include_multi_match: true
+    full_text_search: true
     split: true
     type: text
   stores:

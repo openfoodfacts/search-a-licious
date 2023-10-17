@@ -58,7 +58,7 @@ def build_query_clause(query: str, langs: set[str], config: Config) -> Query:
     for field in config.fields.values():
         # We don't include all fields in the multi-match clause, only a subset
         # of them
-        if field.include_multi_match:
+        if field.full_text_search:
             if field.type in (FieldType.taxonomy, FieldType.text_lang):
                 # language subfields are not the same depending on whether the
                 # field is a `taxonomy` or a `text_lang` field
