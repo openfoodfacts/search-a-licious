@@ -38,6 +38,7 @@ class BaseResultProcessor:
                 result = dict((k, v) for k, v in result.items() if k in projection)
             hits.append(result)
         output["hits"] = hits
+        output["aggregations"] = response.aggregations.to_dict()
         return output
 
     def process_after(self, result: JSONType) -> JSONType:

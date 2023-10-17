@@ -1,5 +1,6 @@
 import elastic_transport
-from elasticsearch_dsl import Q, Search
+from elasticsearch_dsl import A, Q, Search
+from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Query
 from luqum import visitor
 from luqum.elasticsearch import ElasticsearchQueryBuilder
@@ -192,6 +193,17 @@ def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
     return sort_by
 
 
+def create_aggregation_clauses(config: Config) -> dict[str, Agg]:
+    """Create term bucket aggregation clauses for all relevant fields as
+    defined in the config.
+    """
+    clauses = {}
+    for field in config.fields.values():
+        if field.bucket_agg:
+            clauses[field.name] = A("terms", field=field.name)
+    return clauses
+
+
 def build_search_query(
     q: str,
     langs: set[str],
@@ -225,6 +237,9 @@ def build_search_query(
 
     if filter_query:
         query = query.query("bool", filter=filter_query)
+
+    for agg_name, agg in create_aggregation_clauses(config).items():
+        query.aggs.bucket(agg_name, agg)
 
     sort_by = parse_sort_by_parameter(sort_by, config)
     if sort_by is not None:

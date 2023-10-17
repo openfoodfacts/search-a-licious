@@ -178,6 +178,14 @@ class FieldConfig(BaseModel):
             "field are provided."
         ),
     ] = False
+    bucket_agg: Annotated[
+        bool,
+        Field(
+            description="do we add an bucket aggregation to the elasticsearch query for this field. "
+            "It is used to return a 'faceted-view' with the number of results for each facet value. "
+            "Only valid for keyword or numeric field types."
+        ),
+    ] = False
     taxonomy_name: Annotated[
         str | None, Field(description="only for taxonomy field type")
     ] = None
@@ -193,6 +201,18 @@ class FieldConfig(BaseModel):
         fields with type `taxonomy`."""
         if self.type is not FieldType.taxonomy and self.taxonomy_name is not None:
             raise ValueError("taxonomy_name should be provided for taxonomy type only")
+        return self
+
+    @model_validator(mode="after")
+    def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
+        """Validator that checks that `bucket_agg` is only provided for
+        fields with types `keyword`, `double`, `float`, `integer` or `bool`."""
+        if self.bucket_agg and not (
+            self.type.is_numeric() or self.type in (FieldType.keyword, FieldType.bool)
+        ):
+            raise ValueError(
+                "bucket_agg should be provided for taxonomy or numeric type only"
+            )
         return self
 
     def get_input_field(self):

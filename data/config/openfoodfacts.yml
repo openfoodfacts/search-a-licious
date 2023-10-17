@@ -33,6 +33,9 @@ fields:
     full_text_search: true
     split: true
     type: text
+  brands_tags:
+    type: keyword
+    bucket_agg: true
   stores:
     split: true
     type: text
@@ -41,20 +44,26 @@ fields:
     type: text
   lang:
     type: keyword
+    bucket_agg: true
   lc:
     type: keyword
   owner:
     type: keyword
+    bucket_agg: true
   quantity:
     type: text
   categories_tags:
     type: keyword
+    bucket_agg: true
   labels_tags:
     type: keyword
+    bucket_agg: true
   countries_tags:
     type: keyword
+    bucket_agg: true
   states_tags:
     type: keyword
+    bucket_agg: true
   origins_tags:
     type: keyword
   ingredients_tags:
@@ -65,10 +74,13 @@ fields:
     type: integer
   nutrition_grades:
     type: keyword
+    bucket_agg: true
   ecoscore_grade:
     type: keyword
+    bucket_agg: true
   nova_groups:
     type: keyword
+    bucket_agg: true
   last_modified_t:
     type: date
   created_t:

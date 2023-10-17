@@ -26,6 +26,7 @@ class ErrorSearchResponse(BaseModel):
 
 class SuccessSearchResponse(BaseModel):
     hits: list[JSONType]
+    aggregations: JSONType
     page: int
     page_size: int
     page_count: int
