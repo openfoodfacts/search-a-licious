@@ -110,7 +110,19 @@
 							</div>
 							</div>
 							<div class="row" style="padding-top: 1rem;">
-								<div class="large-12 columns">
+								<div class="large-2 columns">
+									{% if aggregations %}
+									{% for group, aggregation in aggregations.items() %}
+										<strong>{{ group }}</strong>
+										<ul>
+											{% for bucket in aggregation.buckets %}
+												<li>{{ bucket.key }} ({{ bucket.doc_count }})</li>
+											{% endfor %}
+										</ul>
+									{% endfor %}
+									{% endif %}
+								</div>
+								<div class="large-10 columns">
 									<div id="search_results" style="clear:left;">
 										<div id="products_tabs_content" class="tabs-content">
 											<div class="tabs content active" id="products_all">

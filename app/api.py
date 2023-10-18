@@ -184,6 +184,7 @@ def html_search(
         "es_query": json.dumps(results.debug.query, indent=4),
     }
     if results.is_success():
+        template_data["aggregations"] = results.aggregations
         page_count = results.page_count
         pagination = [
             {"name": p, "selected": p == page, "page_id": p}
