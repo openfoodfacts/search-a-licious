@@ -16,6 +16,7 @@ from elasticsearch_dsl import (
     Object,
     Text,
     analyzer,
+    Completion,
 )
 
 from app.config import (
@@ -64,6 +65,19 @@ def generate_dsl_field(
         for lang in supported_langs:
             if lang in ANALYZER_LANG_MAPPING:
                 properties[lang] = Text(analyzer=analyzer(ANALYZER_LANG_MAPPING[lang]))
+        return Object(required=field.required, dynamic=False, properties=properties)
+
+    elif field.type is FieldType.text_lang_completion:
+        properties = {
+            # we use `other` field for the same reason as for the `taxonomy`
+            # type
+            "other": Text(analyzer=analyzer("standard")),
+            # Add subfield used to save main language version for `text_lang`
+            "main": Text(analyzer=analyzer("standard")),
+        }
+        for lang in supported_langs:
+            if lang in ANALYZER_LANG_MAPPING:
+                properties[lang] = Completion(analyzer=analyzer(ANALYZER_LANG_MAPPING[lang]))
         return Object(required=field.required, dynamic=False, properties=properties)
 
     elif field.type == FieldType.object:
@@ -257,6 +271,15 @@ class DocumentProcessor:
             input_field = field.get_input_field()
 
             if field.type == FieldType.text_lang:
+                field_input = process_text_lang_field(
+                    processed_data,
+                    input_field=field.get_input_field(),
+                    split=field.split,
+                    lang_separator=self.config.lang_separator,
+                    split_separator=self.config.split_separator,
+                    supported_langs=self.supported_langs,
+                )
+            if field.type == FieldType.text_lang_completion:
                 field_input = process_text_lang_field(
                     processed_data,
                     input_field=field.get_input_field(),

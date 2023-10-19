@@ -102,7 +102,7 @@ def import_from_queue(
 ):
     from app import config
     from app.config import check_config_is_defined, settings
-    from app.queue import run_queue_safe
+    from app.queue_helpers import run_queue_safe
     from app.utils import connection, get_logger, init_sentry
 
     # Create root logger

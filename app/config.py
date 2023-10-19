@@ -141,6 +141,7 @@ class FieldType(StrEnum):
     bool = auto()
     text = auto()
     text_lang = auto()
+    text_lang_completion = auto()
     taxonomy = auto()
     # if the field is not enabled (=not indexed and not parsed), see:
     # https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html

@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from typing import Annotated
 
-import uvicorn
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
@@ -15,6 +14,7 @@ from app.query import (
     build_elasticsearch_query_builder,
     build_search_query,
     execute_query,
+    build_completion_query,
 )
 from app._types import SearchResponse
 from app.utils import connection, get_logger, init_sentry
@@ -39,11 +39,9 @@ if config.TAXONOMY_CONFIG is None:
     # failure, but we add a warning message as it's not expected in a
     # production settings
     logger.warning("Main configuration is not set, use TAXONOMY_CONFIG_PATH envvar")
-    TAXONOMY_FILTER_QUERY_BUILDER = None
     TAXONOMY_RESULT_PROCESSOR = None
 else:
     # we cache query builder and result processor here for faster processing
-    TAXONOMY_FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(config.TAXONOMY_CONFIG)
     TAXONOMY_RESULT_PROCESSOR = load_result_processor(config.TAXONOMY_CONFIG)
 
 app = FastAPI(
@@ -174,34 +172,24 @@ If not provided, `['en']` is used."""
         query, RESULT_PROCESSOR, page=page, page_size=page_size, projection=projection
     )
 
+
 @app.get("/taxonomy")
 def taxonomy_autocomplete(
         q: Annotated[
-            str,
-            Query(
-                description=""""""
-            ),
-        ] = None,
-        langs: Annotated[
-            list[str] | None,
-            Query(
-                description="""A list of languages we want to support during search. This
-list should include the user expected language, and additional languages (such
-as english for example).
-
-This is currently used for language-specific subfields to choose in which
-subfields we're searching in.
-
-If not provided, `['en']` is used."""
-            ),
-        ] = None,
+            str, Query(description="Give the user input string to autocomplete.)")
+        ],
+        taxonomy_name: Annotated[
+            str, Query(description="Give the taxonomy name to search in.")
+        ],
+        lang: Annotated[
+            str, Query(description="Give the language to search in, defaults to 'en'.)")
+        ] = "en",
         size: Annotated[
             int, Query(description="Number of results to return.")
         ] = 10
 ):
-    langs = set(langs or ["en"])
-    query = build_search_query(
-        q=q, langs=langs, size=size, page=1, config=config.TAXONOMY_CONFIG, filter_query_builder=TAXONOMY_FILTER_QUERY_BUILDER,
+    query = build_completion_query(
+        q=q, taxonomy_name=taxonomy_name, lang=lang, size=size,  config=config.TAXONOMY_CONFIG
     )
     results = query.execute()
 
@@ -262,6 +250,3 @@ def html_search(
 @app.get("/robots.txt", response_class=PlainTextResponse)
 def robots_txt():
     return """User-agent: *\nDisallow: /"""
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)

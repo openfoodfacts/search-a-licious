@@ -9,7 +9,7 @@ from elasticsearch_dsl import Index, Search
 
 from app.config import Config, TaxonomyConfig
 from app.indexing import DocumentProcessor, generate_index_object
-from app.queue import RedisClient
+from app.queue_helpers import RedisClient
 from app._types import JSONType
 from app.taxonomy import get_taxonomy
 from app.utils import connection, get_logger
@@ -65,7 +65,6 @@ def gen_documents(
 def gen_taxonomies(
         processor: DocumentProcessor,
         next_index: str,
-        start_time,
         taxonomies: TaxonomyConfig
 ):
     """Generate documents to index for process number process_id
@@ -87,7 +86,7 @@ def gen_taxonomies(
             if not document_dict:
                 continue
 
-        yield document_dict
+            yield document_dict
 
 
 def update_alias(es, next_index: str, index_alias: str):
@@ -170,7 +169,6 @@ def import_taxonomies(
         gen_taxonomies(
             processor,
             next_index,
-            start_time,
             config.taxonomy
         ),
         raise_on_error=False,

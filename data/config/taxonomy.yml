@@ -14,11 +14,11 @@ fields:
     type: text
   labels:
     full_text_search: true
-    type: text_lang
+    type: text_lang_completion
 lang_separator: _
 match_phrase_boost: 2.0
 preprocessor: app.openfoodfacts.DocumentPreprocessor
-result_processor: app.openfoodfacts.ResultProcessor
+result_processor: app.openfoodfacts.CompletionProcessor
 split_separator: ','
 taxonomy:
   sources:
@@ -26,23 +26,23 @@ taxonomy:
       url: https://static.openfoodfacts.org/data/taxonomies/additives.full.json
     - name: allergens
       url: https://static.openfoodfacts.org/data/taxonomies/allergens.full.json
-    - name: amino acids
+    - name: amino_acids
       url: https://static.openfoodfacts.org/data/taxonomies/amino_acids.full.json
     - name: categories
       url: https://static.openfoodfacts.org/data/taxonomies/categories.full.json
     - name: countries
       url: https://static.openfoodfacts.org/data/taxonomies/countries.full.json
-    - name: data quality
+    - name: data_quality
       url: https://static.openfoodfacts.org/data/taxonomies/data_quality.full.json
-    - name: food groups
+    - name: food_groups
       url: https://static.openfoodfacts.org/data/taxonomies/food_groups.full.json
     - name: improvements
       url: https://static.openfoodfacts.org/data/taxonomies/improvements.full.json
     - name: ingredients
       url: https://static.openfoodfacts.org/data/taxonomies/ingredients.full.json
-    - name: ingredients analysis
+    - name: ingredients_analysis
       url: https://static.openfoodfacts.org/data/taxonomies/ingredients_analysis.full.json
-    - name: ingredients processing
+    - name: ingredients_processing
       url: https://static.openfoodfacts.org/data/taxonomies/ingredients_processing.full.json
     - name: labels
       url: https://static.openfoodfacts.org/data/taxonomies/labels.full.json
@@ -52,7 +52,7 @@ taxonomy:
       url: https://static.openfoodfacts.org/data/taxonomies/minerals.full.json
     - name: misc
       url: https://static.openfoodfacts.org/data/taxonomies/misc.full.json
-    - name: nova groups
+    - name: nova_groups
       url: https://static.openfoodfacts.org/data/taxonomies/nova_groups.full.json
     - name: nucleotides
       url: https://static.openfoodfacts.org/data/taxonomies/nucleotides.full.json
@@ -60,22 +60,20 @@ taxonomy:
       url: https://static.openfoodfacts.org/data/taxonomies/nutrients.full.json
     - name: origins
       url: https://static.openfoodfacts.org/data/taxonomies/origins.full.json
-    - name: other nutritional substances
+    - name: other_nutritional_substances
       url: https://static.openfoodfacts.org/data/taxonomies/other_nutritional_substances.full.json
-    - name: packaging materials
+    - name: packaging_materials
       url: https://static.openfoodfacts.org/data/taxonomies/packaging_materials.full.json
-    - name: packaging recycling
+    - name: packaging_recycling
       url: https://static.openfoodfacts.org/data/taxonomies/packaging_recycling.full.json
-    - name: packaging shapes
+    - name: packaging_shapes
       url: https://static.openfoodfacts.org/data/taxonomies/packaging_shapes.full.json
-    - name: periods after opening
+    - name: periods_after_opening
       url: https://static.openfoodfacts.org/data/taxonomies/periods_after_opening.full.json
     - name: preservation
       url: https://static.openfoodfacts.org/data/taxonomies/preservation.full.json
     - name: states
       url: https://static.openfoodfacts.org/data/taxonomies/states.full.json
-    - name: test
-      url: https://static.openfoodfacts.org/data/taxonomies/test.full.json
     - name: vitamins
       url: https://static.openfoodfacts.org/data/taxonomies/vitamins.full.json
   exported_langs:
