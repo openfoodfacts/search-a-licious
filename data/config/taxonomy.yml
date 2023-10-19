@@ -15,7 +15,6 @@ fields:
   labels:
     full_text_search: true
     type: text_lang
-document_denylist:
 lang_separator: _
 match_phrase_boost: 2.0
 preprocessor: app.openfoodfacts.DocumentPreprocessor

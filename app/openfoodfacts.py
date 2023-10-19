@@ -125,16 +125,16 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         for key in list(nutriments):
             # Only keep some nutriment values per 100g
             if key not in (
-                    "energy-kj_100g",
-                    "energy-kcal_100g",
-                    "fiber_100g",
-                    "fat_100g",
-                    "saturated-fat_100g",
-                    "carbohydrates_100g",
-                    "sugars_100g",
-                    "proteins_100g",
-                    "salt_100g",
-                    "sodium_100g",
+                "energy-kj_100g",
+                "energy-kcal_100g",
+                "fiber_100g",
+                "fat_100g",
+                "saturated-fat_100g",
+                "carbohydrates_100g",
+                "sugars_100g",
+                "proteins_100g",
+                "salt_100g",
+                "sodium_100g",
             ):
                 nutriments.pop(key)
 

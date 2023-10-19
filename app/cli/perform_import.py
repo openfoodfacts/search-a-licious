@@ -78,7 +78,7 @@ def gen_taxonomies(
         )
         for x, node in taxonomy.nodes.items():
             taxonomy_dict = {
-                "id": node.id,
+                "code": node.id,
                 "taxonomy_name": taxonomy_source_config.name.replace(" ", "_")
             }
             for key, values in node.synonyms.items():
@@ -161,7 +161,7 @@ def import_taxonomies(
     """
     processor = DocumentProcessor(config)
     # open a connection for this process
-    es = connection.get_connection(timeout=120, retry_on_timeout=True)
+    es = connection.get_es_client(timeout=120, retry_on_timeout=True)
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to parallelize that. If we then do parallel_bulk
     # here, this causes queueing and a lot of memory usage in the importer process.

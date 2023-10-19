@@ -38,7 +38,7 @@ if config.TAXONOMY_CONFIG is None:
     # We want to be able to import api.py (for tests for example) without
     # failure, but we add a warning message as it's not expected in a
     # production settings
-    logger.warning("Main configuration is not set, use CONFIG_PATH envvar")
+    logger.warning("Main configuration is not set, use TAXONOMY_CONFIG_PATH envvar")
     TAXONOMY_FILTER_QUERY_BUILDER = None
     TAXONOMY_RESULT_PROCESSOR = None
 else:
