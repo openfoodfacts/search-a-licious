@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Union
 import cachetools
 import requests
 
-from app.types import JSONType
+from app._types import JSONType
 from app.utils import get_logger
 from app.utils.download import (
     download_file,

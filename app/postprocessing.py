@@ -1,7 +1,7 @@
 from elasticsearch_dsl.response import Response
 
 from app.config import Config, FieldType
-from app.types import JSONType
+from app._types import JSONType
 from app.utils import load_class_object_from_string
 
 

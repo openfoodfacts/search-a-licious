@@ -7,7 +7,7 @@ from luqum.parser import parser
 from luqum.tree import Word
 
 from app.config import Config, FieldType
-from app.types import JSONType
+from app._types import JSONType
 
 
 def build_elasticsearch_query_builder(config: Config) -> ElasticsearchQueryBuilder:
@@ -97,7 +97,7 @@ def build_query_clause(query: str, langs: set[str], config: Config) -> Query:
 
 
 def parse_lucene_dsl_query(
-    q: str, filter_query_builder: ElasticsearchQueryBuilder
+        q: str, filter_query_builder: ElasticsearchQueryBuilder
 ) -> tuple[list[JSONType], str]:
     luqum_tree = None
     try:
@@ -142,12 +142,12 @@ def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
 
 
 def build_search_query(
-    q: str,
-    langs: set[str],
-    size: int,
-    page: int,
-    config: Config,
-    sort_by: str | None = None,
+        q: str,
+        langs: set[str],
+        size: int,
+        page: int,
+        config: Config,
+        sort_by: str | None = None,
 ) -> Query:
     filter_query_builder = build_elasticsearch_query_builder(config)
     filter_clauses, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)

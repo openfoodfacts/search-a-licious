@@ -3,24 +3,26 @@ from typing import Optional
 
 import typer
 
+from app.cli.perform_import import perform_taxonomies_import
+
 app = typer.Typer()
 
 
 @app.command(name="import")
 def import_data(
-    input_path: Path = typer.Argument(
-        ...,
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        help="Path of the JSONL data file",
-    ),
-    num_processes: int = typer.Option(
-        default=2, help="How many import processes to run in parallel"
-    ),
-    num_items: Optional[int] = typer.Option(
-        default=None, help="How many items to import"
-    ),
+        input_path: Path = typer.Argument(
+            ...,
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            help="Path of the JSONL data file",
+        ),
+        num_processes: int = typer.Option(
+            default=2, help="How many import processes to run in parallel"
+        ),
+        num_items: Optional[int] = typer.Option(
+            default=None, help="How many items to import"
+        ),
 ):
     """Import data into Elasticsearch."""
     import time
@@ -38,6 +40,25 @@ def import_data(
         num_processes,
         start_time,
         CONFIG,
+    )
+    end_time = time.perf_counter()
+    logger.info("Import time: %s seconds", end_time - start_time)
+
+
+@app.command(name="import-taxonomies")
+def import_taxonomies():
+    """Import taxonomies into Elasticsearch."""
+    import time
+
+    from app.config import TAXONOMY_CONFIG
+    from app.utils import get_logger
+
+    logger = get_logger()
+
+    start_time = time.perf_counter()
+    perform_taxonomies_import(
+        start_time,
+        TAXONOMY_CONFIG,
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)

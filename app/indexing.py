@@ -18,7 +18,7 @@ from elasticsearch_dsl import (
 
 from app.config import CONFIG, Config, FieldConfig, FieldType, TaxonomySourceConfig
 from app.taxonomy import get_taxonomy
-from app.types import JSONType
+from app._types import JSONType
 from app.utils import load_class_object_from_string
 from app.utils.analyzers import ANALYZER_LANG_MAPPING
 
@@ -74,11 +74,11 @@ class BaseDocumentPreprocessor(abc.ABC):
 
 
 def process_text_lang_field(
-    data: JSONType,
-    input_field: str,
-    split: bool,
-    lang_separator: str,
-    split_separator: str,
+        data: JSONType,
+        input_field: str,
+        split: bool,
+        lang_separator: str,
+        split_separator: str,
 ) -> JSONType | None:
     field_input = {}
     target_fields = [
@@ -108,7 +108,7 @@ def process_text_lang_field(
 
 
 def process_taxonomy_field(
-    data: JSONType, field: FieldConfig, config: Config
+        data: JSONType, field: FieldConfig, config: Config
 ) -> JSONType | None:
     field_input = {}
     input_field = field.get_input_field()
@@ -150,6 +150,61 @@ def process_taxonomy_field(
 
 
 class DocumentProcessor:
+    def __init__(self, config: Config) -> None:
+        self.config = config
+        self.preprocessor: BaseDocumentPreprocessor | None
+
+        if config.preprocessor is not None:
+            preprocessor_cls = load_class_object_from_string(config.preprocessor)
+            self.preprocessor = preprocessor_cls(config)
+        else:
+            self.preprocessor = None
+
+    def from_dict(self, d: JSONType) -> JSONType | None:
+        id_field_name = self.config.index.id_field_name
+
+        _id = d.get(id_field_name)
+        if _id is None or _id in self.config.document_denylist:
+            # We don't process the document if it has no ID or if it's in the
+            # denylist
+            return None
+
+        inputs = {
+            "last_indexed_datetime": datetime.datetime.utcnow(),
+            "_id": _id,
+        }
+        d = self.preprocessor.preprocess(d) if self.preprocessor is not None else d
+
+        for field in self.config.fields:
+            input_field = field.get_input_field()
+
+            if field.type == FieldType.text_lang:
+                field_input = process_text_lang_field(
+                    d,
+                    input_field=field.get_input_field(),
+                    split=field.split,
+                    lang_separator=self.config.lang_separator,
+                    split_separator=self.config.split_separator,
+                )
+
+            elif field.type == FieldType.taxonomy:
+                field_input = process_taxonomy_field(d, field, self.config)
+
+            else:
+                field_input = preprocess_field(
+                    d,
+                    input_field,
+                    split=field.split,
+                    split_separator=self.config.split_separator,
+                )
+
+            if field_input:
+                inputs[field.name] = field_input
+
+        return inputs
+
+
+class TaxonomyProcessor:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.preprocessor: BaseDocumentPreprocessor | None

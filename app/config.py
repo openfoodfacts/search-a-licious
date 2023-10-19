@@ -67,11 +67,11 @@ class FieldConfig(BaseModel):
         """Validator that checks that `multi` flag is only True for fields
         with specific types."""
         if (
-            not (
-                self.type in (FieldType.keyword, FieldType.text)
-                or self.type.is_numeric()
-            )
-            and self.multi
+                not (
+                        self.type in (FieldType.keyword, FieldType.text)
+                        or self.type.is_numeric()
+                )
+                and self.multi
         ):
             raise ValueError(f"multi=True is not compatible with type={self.type}")
         return self
@@ -136,8 +136,8 @@ class Config(BaseModel):
         defined_taxonomies = [source.name for source in self.taxonomy.sources]
         for field in self.fields:
             if (
-                field.taxonomy_name is not None
-                and field.taxonomy_name not in defined_taxonomies
+                    field.taxonomy_name is not None
+                    and field.taxonomy_name not in defined_taxonomies
             ):
                 raise ValueError(
                     f"'{field.taxonomy_name}' should be defined in `taxonomy.sources`"
@@ -457,4 +457,307 @@ CONFIG = Config(
         # Contains invalid chars (5.۹ in ingredients.percent)
         "8901552007122"
     },
+)
+
+TAXONOMY_CONFIG = Config(
+    index=IndexConfig(
+        name="taxonomy",
+        id_field_name="id",
+        last_modified_field_name="last_modified_t",
+    ),
+    fields=[
+        FieldConfig(name="id", type=FieldType.keyword, required=True),
+        FieldConfig(name="last_modified_t", type=FieldType.date),
+        FieldConfig(
+            name="taxonomy_name",
+            type=FieldType.text
+        ),
+        FieldConfig(
+            name="labels",
+            type=FieldType.text_lang,
+            include_multi_match=True,
+        ),
+    ],
+    taxonomy=TaxonomyConfig(
+        sources=[
+            TaxonomySourceConfig(
+                name="additives",
+                url="https://static.openfoodfacts.org/data/taxonomies/additives.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="allergens",
+                url="https://static.openfoodfacts.org/data/taxonomies/allergens.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="amino acids",
+                url="https://static.openfoodfacts.org/data/taxonomies/amino_acids.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="categories",
+                url="https://static.openfoodfacts.org/data/taxonomies/categories.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="countries",
+                url="https://static.openfoodfacts.org/data/taxonomies/countries.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="data quality",
+                url="https://static.openfoodfacts.org/data/taxonomies/data_quality.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="food groups",
+                url="https://static.openfoodfacts.org/data/taxonomies/food_groups.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="improvements",
+                url="https://static.openfoodfacts.org/data/taxonomies/improvements.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="ingredients",
+                url="https://static.openfoodfacts.org/data/taxonomies/ingredients.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="ingredients analysis",
+                url="https://static.openfoodfacts.org/data/taxonomies/ingredients_analysis.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="ingredients processing",
+                url="https://static.openfoodfacts.org/data/taxonomies/ingredients_processing.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="labels",
+                url="https://static.openfoodfacts.org/data/taxonomies/labels.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="languages",
+                url="https://static.openfoodfacts.org/data/taxonomies/languages.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="minerals",
+                url="https://static.openfoodfacts.org/data/taxonomies/minerals.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="misc",
+                url="https://static.openfoodfacts.org/data/taxonomies/misc.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="nova groups",
+                url="https://static.openfoodfacts.org/data/taxonomies/nova_groups.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="nucleotides",
+                url="https://static.openfoodfacts.org/data/taxonomies/nucleotides.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="nutrients",
+                url="https://static.openfoodfacts.org/data/taxonomies/nutrients.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="origins",
+                url="https://static.openfoodfacts.org/data/taxonomies/origins.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="other nutritional substances",
+                url="https://static.openfoodfacts.org/data/taxonomies/other_nutritional_substances.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="packaging materials",
+                url="https://static.openfoodfacts.org/data/taxonomies/packaging_materials.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="packaging recycling",
+                url="https://static.openfoodfacts.org/data/taxonomies/packaging_recycling.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="packaging shapes",
+                url="https://static.openfoodfacts.org/data/taxonomies/packaging_shapes.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="periods after opening",
+                url="https://static.openfoodfacts.org/data/taxonomies/periods_after_opening.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="preservation",
+                url="https://static.openfoodfacts.org/data/taxonomies/preservation.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="states",
+                url="https://static.openfoodfacts.org/data/taxonomies/states.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="test",
+                url="https://static.openfoodfacts.org/data/taxonomies/test.full.json",
+            ),
+            TaxonomySourceConfig(
+                name="vitamins",
+                url="https://static.openfoodfacts.org/data/taxonomies/vitamins.full.json",
+            ),
+        ],
+        supported_langs=[
+            "aa",
+            "ab",
+            "ae",
+            "af",
+            "ak",
+            "am",
+            "ar",
+            "as",
+            "at",
+            "au",
+            "ay",
+            "az",
+            "be",
+            "bg",
+            "bi",
+            "bn",
+            "br",
+            "bs",
+            "ca",
+            "ch",
+            "co",
+            "cs",
+            "cu",
+            "cy",
+            "da",
+            "de",
+            "dv",
+            "dz",
+            "el",
+            "en",
+            "eo",
+            "es",
+            "et",
+            "eu",
+            "fa",
+            "fi",
+            "fj",
+            "fo",
+            "fr",
+            "fy",
+            "ga",
+            "gb",
+            "gd",
+            "gl",
+            "gn",
+            "gp",
+            "gu",
+            "gv",
+            "ha",
+            "he",
+            "hi",
+            "hk",
+            "ho",
+            "hr",
+            "ht",
+            "hu",
+            "hy",
+            "hz",
+            "id",
+            "in",
+            "io",
+            "is",
+            "it",
+            "iw",
+            "ja",
+            "jp",
+            "jv",
+            "ka",
+            "kk",
+            "kl",
+            "km",
+            "kn",
+            "ko",
+            "ku",
+            "ky",
+            "la",
+            "lb",
+            "lc",
+            "ln",
+            "lo",
+            "lt",
+            "lu",
+            "lv",
+            "mg",
+            "mh",
+            "mi",
+            "mk",
+            "ml",
+            "mn",
+            "mo",
+            "mr",
+            "ms",
+            "mt",
+            "my",
+            "na",
+            "nb",
+            "nd",
+            "ne",
+            "nl",
+            "nn",
+            "no",
+            "nr",
+            "ny",
+            "oc",
+            "om",
+            "pa",
+            "pl",
+            "ps",
+            "pt",
+            "qq",
+            "qu",
+            "re",
+            "rm",
+            "rn",
+            "ro",
+            "rs",
+            "ru",
+            "rw",
+            "sd",
+            "se",
+            "sg",
+            "sh",
+            "si",
+            "sk",
+            "sl",
+            "sm",
+            "sn",
+            "so",
+            "sq",
+            "sr",
+            "ss",
+            "st",
+            "sv",
+            "sw",
+            "ta",
+            "te",
+            "tg",
+            "th",
+            "ti",
+            "tk",
+            "tl",
+            "tn",
+            "to",
+            "tr",
+            "ts",
+            "ug",
+            "uk",
+            "ur",
+            "us",
+            "uz",
+            "ve",
+            "vi",
+            "wa",
+            "wo",
+            "xh",
+            "xx",
+            "yi",
+            "yo",
+            "zh",
+            "zu",
+        ]
+    ),
+    preprocessor="app.openfoodfacts.TaxonomyPreprocessor",
+    result_processor="app.openfoodfacts.ResultProcessor",
+    supported_langs=[],
+    match_phrase_boost=2.0
 )

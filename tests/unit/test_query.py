@@ -3,7 +3,7 @@ from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.parser import parser
 
 from app.query import UnknownOperationRemover, parse_lucene_dsl_query
-from app.types import JSONType
+from app._types import JSONType
 
 
 class TestUnknownOperationRemover:

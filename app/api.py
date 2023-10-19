@@ -1,9 +1,10 @@
 from typing import Annotated
 
+import uvicorn
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query
 
-from app.config import CONFIG, settings
+from app.config import CONFIG, settings, TAXONOMY_CONFIG
 from app.postprocessing import load_result_processor
 from app.query import build_search_query
 from app.utils import connection, get_logger, init_sentry
@@ -25,8 +26,8 @@ app = FastAPI(
 init_sentry(settings.sentry_dns)
 connection.get_connection()
 
-
 result_processor = load_result_processor(CONFIG)
+taxonomy_result_processor = load_result_processor(TAXONOMY_CONFIG)
 
 
 @app.get("/document/{identifier}")
@@ -116,3 +117,47 @@ If not provided, `['en']` is used."""
             "query": query.to_dict(),
         },
     }
+
+
+@app.get("/taxonomy/autocomplete")
+def taxonomy_autocomplete(
+        q: Annotated[
+            str,
+            Query(
+                description=""""""
+            ),
+        ] = None,
+        langs: Annotated[
+            list[str] | None,
+            Query(
+                description="""A list of languages we want to support during search. This
+list should include the user expected language, and additional languages (such
+as english for example).
+
+This is currently used for language-specific subfields to choose in which
+subfields we're searching in.
+
+If not provided, `['en']` is used."""
+            ),
+        ] = None,
+        size: Annotated[
+            int, Query(description="Number of results to return.")
+        ] = 10
+):
+    langs = set(langs or ["en"])
+    query = build_search_query(
+        q=q, langs=langs, size=size, page=1, config=TAXONOMY_CONFIG
+    )
+    results = query.execute()
+
+    response = taxonomy_result_processor.process(results, None)
+
+    return {
+        **response,
+        "debug": {
+            "query": query.to_dict(),
+        },
+    }
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
