@@ -125,6 +125,7 @@ jobs:
           # use simple quotes to avoid interpolation of $apr1$ !
           echo 'NGINX_BASIC_AUTH_USER_PASSWD=${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}' >> .env
           echo "SENTRY_DNS=${{ secrets.SENTRY_DSN }}" >> .env
+          echo "CONFIG_PATH=data/config/openfoodfacts.yml" >> .env
 
     - name: Create Docker volumes
       uses: appleboy/ssh-action@master

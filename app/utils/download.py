@@ -7,7 +7,10 @@ from typing import Optional
 import requests
 import tqdm
 
+from ..config import settings
+
 http_session = requests.Session()
+http_session.headers.update({"User-Agent": settings.user_agent})
 
 
 def _sanitize_file_path(file_path: Path, suffix: str = "") -> Path:

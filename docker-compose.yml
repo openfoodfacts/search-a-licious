@@ -42,11 +42,16 @@ x-api-common: &api-common
     - REDIS_HOST=redis
     - OPENFOODFACTS_API_URL
     - SENTRY_DNS
-    # make it easier to run scripts
-    - PYTHONPATH=/code
+    - LOG_LEVEL
+    # Directory where we cache downloaded taxonomies files
+    - TAXONOMY_CACHE_DIR
+    # Path of the yaml configuration file
+    - CONFIG_PATH
   networks:
     - default
     - common_net
+  volumes:
+    - ./data:/opt/search/data
 
 
 services:
@@ -93,7 +98,7 @@ services:
   # service listening to redis for updates
   updater:
     <<: *api-common
-    command: ["python3", "-m", "app.import_queue.queue_manager"]
+    command: ["python3", "-m", "app", "import-from-queue"]
 
   redis:
     image: redis

@@ -4,13 +4,18 @@ import sentry_sdk
 from sentry_sdk.integrations import Integration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
+from app.config import settings
 
-def get_logger(name=None, level: int = logging.INFO) -> logging.Logger:
+
+def get_logger(name=None) -> logging.Logger:
     logger = logging.getLogger(name)
-    logger.setLevel(level)
 
     if name is None:
+        level = settings.log_level.to_int()
+        logger.setLevel(level)
         configure_root_logger(logger, level)
+    else:
+        logger.setLevel(logging.NOTSET)
 
     return logger
 
@@ -20,7 +25,6 @@ def configure_root_logger(
     level: int = logging.INFO,
     formatter_string: str | None = None,
 ):
-    logger.setLevel(level)
     handler = logging.StreamHandler()
 
     if formatter_string is None:

@@ -1,30 +1,135 @@
+import json
 from enum import StrEnum, auto
+from pathlib import Path
+from typing import Annotated
 
-from pydantic import BaseModel, Field, HttpUrl, model_validator
+import yaml
+from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
+from pydantic.json_schema import GenerateJsonSchema
 from pydantic_settings import BaseSettings
 
 
+class LoggingLevel(StrEnum):
+    NOTSET = "NOTSET"
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+    def to_int(self):
+        if self is LoggingLevel.NOTSET:
+            return 0
+        elif self is LoggingLevel.DEBUG:
+            return 10
+        elif self is LoggingLevel.INFO:
+            return 20
+        elif self is LoggingLevel.WARNING:
+            return 30
+        elif self is LoggingLevel.ERROR:
+            return 40
+        elif self is LoggingLevel.CRITICAL:
+            return 50
+
+
 class Settings(BaseSettings):
+    # Path of the search-a-licious yaml configuration file
+    config_path: Path | None = None
+    taxonomy_config_path: Path | None = None
     redis_expiration: int = 60 * 60 * 36  # 36h
     redis_reader_timeout: int = 5
+    # Prefix to use when saving documents to be processed after a new full
+    # import in Redis
+    redis_document_prefix: str = "product"
     elasticsearch_url: str = "http://localhost:9200"
     redis_host: str = "localhost"
+    # the name of the Redis list to read from when listening to product updates
+    redis_import_queue: str = "search_import_queue"
     # TODO: this should be in the config below
     openfoodfacts_base_url: str = "https://world.openfoodfacts.org"
     sentry_dns: str | None = None
+    log_level: LoggingLevel = LoggingLevel.INFO
+    taxonomy_cache_dir: Path = Path("data/taxonomies")
+    # User-Agent used when fetching resources (taxonomies) or documents
+    user_agent: str = "search-a-licious"
 
 
 settings = Settings()
 
+# Mapping from language 2-letter code to Elasticsearch language analyzer names
+ANALYZER_LANG_MAPPING = {
+    "en": "english",
+    "fr": "french",
+    "it": "italian",
+    "es": "spanish",
+    "de": "german",
+    "nl": "dutch",
+    "ar": "arabic",
+    "hy": "armenian",
+    "eu": "basque",
+    "bn": "bengali",
+    "pt-BR": "brazilian",
+    "bg": "bulgarian",
+    "ca": "catalan",
+    "cz": "czech",
+    "da": "danish",
+    "et": "estonian",
+    "fi": "finnish",
+    "gl": "galician",
+    "el": "greek",
+    "hi": "hindi",
+    "hu": "hungarian",
+    "id": "indonesian",
+    "ga": "irish",
+    "lv": "latvian",
+    "lt": "lithuanian",
+    "no": "norwegian",
+    "fa": "persian",
+    "pt": "portuguese",
+    "ro": "romanian",
+    "ru": "russian",
+    "sv": "swedish",
+    "tr": "turkish",
+    "th": "thai",
+}
+
+
+class ConfigGenerateJsonSchema(GenerateJsonSchema):
+    """Config to add fields to generated JSON schema for Config."""
+
+    def generate(self, schema, mode="validation"):
+        json_schema = super().generate(schema, mode=mode)
+        json_schema["title"] = "JSON schema for search-a-licious configuration file"
+        json_schema["$schema"] = self.schema_dialect
+        return json_schema
+
 
 class TaxonomySourceConfig(BaseModel):
-    name: str
-    url: HttpUrl
+    name: Annotated[str, Field(description="name of the taxonomy")]
+    url: Annotated[
+        HttpUrl,
+        Field(
+            description="URL of the taxonomy, must be in JSON format and follows Open Food Facts "
+                        "taxonomy format."
+        ),
+    ]
 
 
 class TaxonomyConfig(BaseModel):
-    sources: list[TaxonomySourceConfig]
-    supported_langs: list[str]
+    sources: Annotated[
+        list[TaxonomySourceConfig],
+        Field(description="configurations of used taxonomies"),
+    ]
+    exported_langs: Annotated[
+        list[str],
+        Field(
+            description="a list of languages for which we want taxonomized fields "
+                        "to be always exported during indexing. During indexing, we use the taxonomy "
+                        "to translate every taxonomized field in a language-specific subfield. The list "
+                        "of language depends on the value defined here and on the optional "
+                        "`taxonomy_langs` field that can be defined in each document."
+        ),
+    ]
 
 
 class FieldType(StrEnum):
@@ -33,55 +138,81 @@ class FieldType(StrEnum):
     double = auto()
     float = auto()
     integer = auto()
+    bool = auto()
     text = auto()
     text_lang = auto()
     taxonomy = auto()
     # if the field is not enabled (=not indexed and not parsed), see:
     # https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html
     disabled = auto()
+    object = auto()
 
     def is_numeric(self):
         return self in (FieldType.integer, FieldType.float, FieldType.double)
 
 
 class FieldConfig(BaseModel):
-    # name of the field, must be unique across the config
-    name: str
-    # type of the field, see `FieldType` for possible values
-    type: FieldType
-    # if required=True, the field is required in the input data
-    required: bool = False
-    # name of the input field to use when importing data
-    input_field: str | None = None
-    # do we split the input field with `split_separator`
-    split: bool = False
-    # do we include the field in the multi-match query used as baseline results
-    include_multi_match: bool = False
-    # only for taxonomy field type
-    taxonomy_name: str | None = None
-    # can the keyword field contain multiple value (keyword type only)
-    multi: bool = False
+    # name of the field (internal field), it's added here for convenience
+    _name: str = ""
+    type: Annotated[
+        FieldType,
+        Field(description="type of the field, see `FieldType` for possible values"),
+    ]
+    required: Annotated[
+        bool,
+        Field(description="if required=True, the field is required in the input data"),
+    ] = False
+    input_field: Annotated[
+        str | None,
+        Field(description="name of the input field to use when importing data"),
+    ] = None
+    #
+    split: Annotated[
+        bool, Field(description="do we split the input field with `split_separator`")
+    ] = False
+    full_text_search: Annotated[
+        bool,
+        Field(
+            description="do we include perform full text search using this field. If "
+                        "false, the field is only used during search when filters involving this "
+                        "field are provided."
+        ),
+    ] = False
+    bucket_agg: Annotated[
+        bool,
+        Field(
+            description="do we add an bucket aggregation to the elasticsearch query for this field. "
+                        "It is used to return a 'faceted-view' with the number of results for each facet value. "
+                        "Only valid for keyword or numeric field types."
+        ),
+    ] = False
+    taxonomy_name: Annotated[
+        str | None, Field(description="only for taxonomy field type")
+    ] = None
 
-    @model_validator(mode="after")
-    def multi_should_be_used_for_selected_type_only(self):
-        """Validator that checks that `multi` flag is only True for fields
-        with specific types."""
-        if (
-                not (
-                        self.type in (FieldType.keyword, FieldType.text)
-                        or self.type.is_numeric()
-                )
-                and self.multi
-        ):
-            raise ValueError(f"multi=True is not compatible with type={self.type}")
-        return self
+    @property
+    def name(self) -> str:
+        """Get field name."""
+        return self._name
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_used_for_taxonomy_type_only(self):
-        """Validator that checks that `taxonomy_name` is only provided for fields
-        with type `taxonomy`."""
+        """Validator that checks that `taxonomy_name` is only provided for
+        fields with type `taxonomy`."""
         if self.type is not FieldType.taxonomy and self.taxonomy_name is not None:
             raise ValueError("taxonomy_name should be provided for taxonomy type only")
+        return self
+
+    @model_validator(mode="after")
+    def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
+        """Validator that checks that `bucket_agg` is only provided for
+        fields with types `keyword`, `double`, `float`, `integer` or `bool`."""
+        if self.bucket_agg and not (
+                self.type.is_numeric() or self.type in (FieldType.keyword, FieldType.bool)
+        ):
+            raise ValueError(
+                "bucket_agg should be provided for taxonomy or numeric type only"
+            )
         return self
 
     def get_input_field(self):
@@ -93,48 +224,86 @@ class FieldConfig(BaseModel):
 
 
 class IndexConfig(BaseModel):
-    # name of the index alias to use
-    name: str
-    # name of the field to use for `_id`
-    id_field_name: str
-    # name of the field containing the date of last modification, used for incremental updates
-    # using Redis queues
-    last_modified_field_name: str
-    number_of_shards: int = 4
-    number_of_replicas: int = 1
+    name: Annotated[str, Field(description="name of the index alias to use")]
+    id_field_name: Annotated[
+        str, Field(description="name of the field to use for `_id`")
+    ]
+    last_modified_field_name: Annotated[
+        str,
+        Field(
+            description="name of the field containing the date of last modification, "
+                        "used for incremental updates using Redis queues. The field value must be an "
+                        "int/float representing the timestamp."
+        ),
+    ]
+    number_of_shards: Annotated[
+        int, Field(description="number of shards to use for the index")
+    ] = 4
+    number_of_replicas: Annotated[
+        int, Field(description="number of replicas to use for the index")
+    ] = 1
 
 
 class Config(BaseModel):
-    # configuration of the index
-    index: IndexConfig
-    # configuration of all fields in the index
-    fields: list[FieldConfig]
-    split_separator: str = ","
-    # for `text_lang` FieldType, the separator between the name of the field
-    # and the language code, ex: product_name_it if lang_separator="_"
-    lang_separator: str = "_"
-    taxonomy: TaxonomyConfig
-    # The full qualified reference to the preprocessor to use before data import
-    # This is used to adapt the data schema or to add search-a-licious specific fields
-    # for example.
-    preprocessor: str | None = None
-    # The full qualified reference to the elasticsearch result processor to use after search
-    # query to Elasticsearch.
-    # This is used to add custom fields for example.
-    result_processor: str | None = None
-    # A list of supported languages, it is used to build index mapping
-    supported_langs: list[str] | None = None
-    # How much we boost exact matches on individual fields
-    match_phrase_boost: float = 2.0
-    # list of documents IDs to ignore
-    document_denylist: set[str] = Field(default_factory=set)
+    index: Annotated[IndexConfig, Field(description="configuration of the index")]
+    fields: Annotated[
+        dict[str, FieldConfig],
+        Field(
+            description="configuration of all fields in the index, keys are field "
+                        "names and values contain the field configuration"
+        ),
+    ]
+    split_separator: Annotated[
+        str,
+        Field(
+            description="separator to use when splitting values, for fields that have split=True"
+        ),
+    ] = ","
+    lang_separator: Annotated[
+        str,
+        Field(
+            description="for `text_lang` FieldType, the separator between the name of the field "
+                        'and the language code, ex: product_name_it if lang_separator="_"'
+        ),
+    ] = "_"
+    taxonomy: Annotated[
+        TaxonomyConfig, Field(description="configuration of the taxonomies used")
+    ]
+    preprocessor: Annotated[
+                      str,
+                      Field(
+                          description="The full qualified reference to the preprocessor to use before "
+                                      "data import. This is used to adapt the data schema or to add search-a-licious "
+                                      "specific fields for example."
+                      ),
+                  ] | None = None
+    result_processor: Annotated[
+                          str,
+                          Field(
+                              description="The full qualified reference to the elasticsearch result processor "
+                                          "to use after search query to Elasticsearch. This is used to add custom fields "
+                                          "for example."
+                          ),
+                      ] | None = None
+    supported_langs: Annotated[
+        list[str] | None,
+        Field(
+            description="A list of all supported languages, it is used to build index mapping"
+        ),
+    ] = None
+    match_phrase_boost: Annotated[
+        float, Field(description="How much we boost exact matches on individual fields")
+    ] = 2.0
+    document_denylist: Annotated[
+        set[str], Field(description="list of documents IDs to ignore")
+    ] = Field(default_factory=set)
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):
-        """Validator that checks that for if `taxonomy_type` is defined for a field,
-        it refers to a taxonomy defined in `taxonomy.sources`."""
+        """Validator that checks that for if `taxonomy_type` is defined for a
+        field, it refers to a taxonomy defined in `taxonomy.sources`."""
         defined_taxonomies = [source.name for source in self.taxonomy.sources]
-        for field in self.fields:
+        for field in self.fields.values():
             if (
                     field.taxonomy_name is not None
                     and field.taxonomy_name not in defined_taxonomies
@@ -145,34 +314,20 @@ class Config(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def field_name_should_be_unique(self):
-        """Validator that checks that all fields have unique names."""
-        seen: set[str] = set()
-        for field in self.fields:
-            if field.name in seen:
-                raise ValueError(
-                    f"each field name should be unique, duplicate found: '{field.name}'"
-                )
-            seen.add(field.name)
-        return self
-
-    @model_validator(mode="after")
     def field_references_must_exist_and_be_valid(self):
-        """Validator that checks that every field reference in IndexConfig refers to an existing field and is valid."""
-
-        fields_by_name = {f.name: f for f in self.fields}
-
-        if self.index.id_field_name not in fields_by_name:
+        """Validator that checks that every field reference in IndexConfig
+        refers to an existing field and is valid."""
+        if self.index.id_field_name not in self.fields:
             raise ValueError(
                 f"id_field_name={self.index.id_field_name} but field was not declared"
             )
 
-        if self.index.last_modified_field_name not in fields_by_name:
+        if self.index.last_modified_field_name not in self.fields:
             raise ValueError(
                 f"last_modified_field_name={self.index.last_modified_field_name} but field was not declared"
             )
 
-        last_modified_field = fields_by_name[self.index.last_modified_field_name]
+        last_modified_field = self.fields[self.index.last_modified_field_name]
 
         if last_modified_field.type != FieldType.date:
             raise ValueError(
@@ -181,583 +336,77 @@ class Config(BaseModel):
 
         return self
 
-    @model_validator(mode="after")
-    def if_split_should_be_multi(self):
-        """Validator that checks that multi=True if split=True.."""
-        for field in self.fields:
-            if field.split and not field.multi:
-                raise ValueError("multi should be True if split=True")
-        return self
-
-    def get_input_fields(self) -> set[str]:
-        return {field.name for field in self.fields} | {
-            field.input_field for field in self.fields if field.input_field is not None
-        }
+    @field_validator("fields")
+    @classmethod
+    def add_field_name_to_each_field(cls, fields):
+        for field_name, field_item in fields.items():
+            field_item._name = field_name
+        return fields
 
     def get_supported_langs(self) -> set[str]:
-        return set(self.supported_langs or []) | set(self.taxonomy.supported_langs)
+        """Return the set of supported languages for `text_lang` fields.
+
+        It's used to know which language-specific subfields to create.
+        """
+        return (
+            set(self.supported_langs or [])
+            # only keep langs for which a built-in analyzer built-in, other
+            # langs will be stored in a unique `other` subfield
+        ) & set(ANALYZER_LANG_MAPPING)
+
+    def get_taxonomy_langs(self) -> set[str]:
+        """Return the set of exported languages for `taxonomy` fields.
+
+        It's used to know which language-specific subfields to create.
+        """
+        # only keep langs for which a built-in analyzer built-in, other
+        # langs will be stored in a unique `other` subfield
+        return (set(self.taxonomy.exported_langs)) & set(ANALYZER_LANG_MAPPING)
+
+    @classmethod
+    def from_yaml(cls, path: Path) -> "Config":
+        """Create a Config from a yaml configuration file."""
+        with path.open("r") as f:
+            data = yaml.safe_load(f)
+        return cls(**data)
+
+    @classmethod
+    def export_json_schema(cls):
+        """Export JSON schema."""
+        (Path(__file__).parent.parent / "config_schema.json").write_text(
+            json.dumps(
+                cls.model_json_schema(schema_generator=ConfigGenerateJsonSchema),
+                indent=4,
+            )
+        )
 
 
-CONFIG = Config(
-    index=IndexConfig(
-        name="openfoodfacts",
-        id_field_name="code",
-        last_modified_field_name="last_modified_t",
-    ),
-    fields=[
-        FieldConfig(name="code", type=FieldType.keyword, required=True),
-        FieldConfig(
-            name="product_name", type=FieldType.text_lang, include_multi_match=True
-        ),
-        FieldConfig(
-            name="generic_name", type=FieldType.text_lang, include_multi_match=True
-        ),
-        FieldConfig(name="abbreviated_product_name", type=FieldType.text_lang),
-        FieldConfig(
-            name="categories",
-            type=FieldType.taxonomy,
-            input_field="categories_tags",
-            taxonomy_name="category",
-            include_multi_match=True,
-        ),
-        FieldConfig(
-            name="labels",
-            type=FieldType.taxonomy,
-            input_field="labels_tags",
-            taxonomy_name="label",
-            include_multi_match=True,
-        ),
-        FieldConfig(
-            name="brands",
-            type=FieldType.text,
-            split=True,
-            multi=True,
-            include_multi_match=True,
-        ),
-        FieldConfig(name="stores", type=FieldType.text, split=True, multi=True),
-        FieldConfig(name="emb_codes", type=FieldType.text, split=True, multi=True),
-        FieldConfig(name="lang", type=FieldType.keyword),
-        FieldConfig(name="lc", type=FieldType.keyword),
-        FieldConfig(name="owner", type=FieldType.keyword),
-        FieldConfig(name="quantity", type=FieldType.text),
-        FieldConfig(name="categories_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="labels_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="countries_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="states_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="origins_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="unique_scans_n", type=FieldType.integer),
-        FieldConfig(name="scans_n", type=FieldType.integer),
-        FieldConfig(name="nutrition_grades", type=FieldType.keyword),
-        FieldConfig(name="ecoscore_grade", type=FieldType.keyword),
-        FieldConfig(name="nova_groups", type=FieldType.keyword),
-        FieldConfig(name="last_modified_t", type=FieldType.date),
-        FieldConfig(name="created_t", type=FieldType.date),
-        FieldConfig(name="images", type=FieldType.disabled),
-        # required for personal search
-        FieldConfig(name="additives_n", type=FieldType.integer),
-        FieldConfig(name="allergens_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="ecoscore_data", type=FieldType.disabled),
-        FieldConfig(name="ecoscore_score", type=FieldType.integer),
-        FieldConfig(name="forest_footprint_data", type=FieldType.disabled),
-        FieldConfig(
-            name="ingredients_analysis_tags", type=FieldType.keyword, multi=True
-        ),
-        FieldConfig(name="ingredients_n", type=FieldType.integer),
-        FieldConfig(name="nova_group", type=FieldType.integer),
-        FieldConfig(name="nutrient_levels", type=FieldType.disabled),
-        FieldConfig(name="nutriments", type=FieldType.disabled),
-        FieldConfig(name="nutriscore_data", type=FieldType.disabled),
-        FieldConfig(name="nutriscore_grade", type=FieldType.keyword),
-        FieldConfig(name="traces_tags", type=FieldType.keyword, multi=True),
-        FieldConfig(name="unknown_ingredients_n", type=FieldType.integer),
-        # used for sorting
-        FieldConfig(name="popularity_key", type=FieldType.integer),
-        FieldConfig(name="nutriscore_score", type=FieldType.integer),
-        FieldConfig(name="completeness", type=FieldType.float),
-    ],
-    taxonomy=TaxonomyConfig(
-        sources=[
-            TaxonomySourceConfig(
-                name="category",
-                url="https://static.openfoodfacts.org/data/taxonomies/categories.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="label",
-                url="https://static.openfoodfacts.org/data/taxonomies/labels.full.json",
-            ),
-        ],
-        supported_langs=["en", "fr", "es", "de", "it", "nl"],
-    ),
-    preprocessor="app.openfoodfacts.DocumentPreprocessor",
-    result_processor="app.openfoodfacts.ResultProcessor",
-    supported_langs=[
-        "aa",
-        "ab",
-        "ae",
-        "af",
-        "ak",
-        "am",
-        "ar",
-        "as",
-        "at",
-        "au",
-        "ay",
-        "az",
-        "be",
-        "bg",
-        "bi",
-        "bn",
-        "br",
-        "bs",
-        "ca",
-        "ch",
-        "co",
-        "cs",
-        "cu",
-        "cy",
-        "da",
-        "de",
-        "dv",
-        "dz",
-        "el",
-        "en",
-        "eo",
-        "es",
-        "et",
-        "eu",
-        "fa",
-        "fi",
-        "fj",
-        "fo",
-        "fr",
-        "fy",
-        "ga",
-        "gb",
-        "gd",
-        "gl",
-        "gn",
-        "gp",
-        "gu",
-        "gv",
-        "ha",
-        "he",
-        "hi",
-        "hk",
-        "ho",
-        "hr",
-        "ht",
-        "hu",
-        "hy",
-        "hz",
-        "id",
-        "in",
-        "io",
-        "is",
-        "it",
-        "iw",
-        "ja",
-        "jp",
-        "jv",
-        "ka",
-        "kk",
-        "kl",
-        "km",
-        "kn",
-        "ko",
-        "ku",
-        "ky",
-        "la",
-        "lb",
-        "lc",
-        "ln",
-        "lo",
-        "lt",
-        "lu",
-        "lv",
-        "mg",
-        "mh",
-        "mi",
-        "mk",
-        "ml",
-        "mn",
-        "mo",
-        "mr",
-        "ms",
-        "mt",
-        "my",
-        "na",
-        "nb",
-        "nd",
-        "ne",
-        "nl",
-        "nn",
-        "no",
-        "nr",
-        "ny",
-        "oc",
-        "om",
-        "pa",
-        "pl",
-        "ps",
-        "pt",
-        "qq",
-        "qu",
-        "re",
-        "rm",
-        "rn",
-        "ro",
-        "rs",
-        "ru",
-        "rw",
-        "sd",
-        "se",
-        "sg",
-        "sh",
-        "si",
-        "sk",
-        "sl",
-        "sm",
-        "sn",
-        "so",
-        "sq",
-        "sr",
-        "ss",
-        "st",
-        "sv",
-        "sw",
-        "ta",
-        "te",
-        "tg",
-        "th",
-        "ti",
-        "tk",
-        "tl",
-        "tn",
-        "to",
-        "tr",
-        "ts",
-        "ug",
-        "uk",
-        "ur",
-        "us",
-        "uz",
-        "ve",
-        "vi",
-        "wa",
-        "wo",
-        "xh",
-        "xx",
-        "yi",
-        "yo",
-        "zh",
-        "zu",
-    ],
-    match_phrase_boost=2.0,
-    document_denylist={
-        # Contains invalid chars (5.۹ in ingredients.percent)
-        "8901552007122"
-    },
-)
+# CONFIG is a global variable that contains the search-a-licious configuration
+# used. It is specified by the envvar CONFIG_PATH.
+CONFIG: Config | None = None
+if settings.config_path:
+    if not settings.config_path.is_file():
+        raise RuntimeError(f"config file does not exist: {settings.config_path}")
 
-TAXONOMY_CONFIG = Config(
-    index=IndexConfig(
-        name="taxonomy",
-        id_field_name="id",
-        last_modified_field_name="last_modified_t",
-    ),
-    fields=[
-        FieldConfig(name="id", type=FieldType.keyword, required=True),
-        FieldConfig(name="last_modified_t", type=FieldType.date),
-        FieldConfig(
-            name="taxonomy_name",
-            type=FieldType.text
-        ),
-        FieldConfig(
-            name="labels",
-            type=FieldType.text_lang,
-            include_multi_match=True,
-        ),
-    ],
-    taxonomy=TaxonomyConfig(
-        sources=[
-            TaxonomySourceConfig(
-                name="additives",
-                url="https://static.openfoodfacts.org/data/taxonomies/additives.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="allergens",
-                url="https://static.openfoodfacts.org/data/taxonomies/allergens.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="amino acids",
-                url="https://static.openfoodfacts.org/data/taxonomies/amino_acids.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="categories",
-                url="https://static.openfoodfacts.org/data/taxonomies/categories.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="countries",
-                url="https://static.openfoodfacts.org/data/taxonomies/countries.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="data quality",
-                url="https://static.openfoodfacts.org/data/taxonomies/data_quality.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="food groups",
-                url="https://static.openfoodfacts.org/data/taxonomies/food_groups.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="improvements",
-                url="https://static.openfoodfacts.org/data/taxonomies/improvements.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="ingredients",
-                url="https://static.openfoodfacts.org/data/taxonomies/ingredients.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="ingredients analysis",
-                url="https://static.openfoodfacts.org/data/taxonomies/ingredients_analysis.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="ingredients processing",
-                url="https://static.openfoodfacts.org/data/taxonomies/ingredients_processing.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="labels",
-                url="https://static.openfoodfacts.org/data/taxonomies/labels.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="languages",
-                url="https://static.openfoodfacts.org/data/taxonomies/languages.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="minerals",
-                url="https://static.openfoodfacts.org/data/taxonomies/minerals.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="misc",
-                url="https://static.openfoodfacts.org/data/taxonomies/misc.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="nova groups",
-                url="https://static.openfoodfacts.org/data/taxonomies/nova_groups.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="nucleotides",
-                url="https://static.openfoodfacts.org/data/taxonomies/nucleotides.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="nutrients",
-                url="https://static.openfoodfacts.org/data/taxonomies/nutrients.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="origins",
-                url="https://static.openfoodfacts.org/data/taxonomies/origins.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="other nutritional substances",
-                url="https://static.openfoodfacts.org/data/taxonomies/other_nutritional_substances.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="packaging materials",
-                url="https://static.openfoodfacts.org/data/taxonomies/packaging_materials.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="packaging recycling",
-                url="https://static.openfoodfacts.org/data/taxonomies/packaging_recycling.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="packaging shapes",
-                url="https://static.openfoodfacts.org/data/taxonomies/packaging_shapes.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="periods after opening",
-                url="https://static.openfoodfacts.org/data/taxonomies/periods_after_opening.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="preservation",
-                url="https://static.openfoodfacts.org/data/taxonomies/preservation.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="states",
-                url="https://static.openfoodfacts.org/data/taxonomies/states.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="test",
-                url="https://static.openfoodfacts.org/data/taxonomies/test.full.json",
-            ),
-            TaxonomySourceConfig(
-                name="vitamins",
-                url="https://static.openfoodfacts.org/data/taxonomies/vitamins.full.json",
-            ),
-        ],
-        supported_langs=[
-            "aa",
-            "ab",
-            "ae",
-            "af",
-            "ak",
-            "am",
-            "ar",
-            "as",
-            "at",
-            "au",
-            "ay",
-            "az",
-            "be",
-            "bg",
-            "bi",
-            "bn",
-            "br",
-            "bs",
-            "ca",
-            "ch",
-            "co",
-            "cs",
-            "cu",
-            "cy",
-            "da",
-            "de",
-            "dv",
-            "dz",
-            "el",
-            "en",
-            "eo",
-            "es",
-            "et",
-            "eu",
-            "fa",
-            "fi",
-            "fj",
-            "fo",
-            "fr",
-            "fy",
-            "ga",
-            "gb",
-            "gd",
-            "gl",
-            "gn",
-            "gp",
-            "gu",
-            "gv",
-            "ha",
-            "he",
-            "hi",
-            "hk",
-            "ho",
-            "hr",
-            "ht",
-            "hu",
-            "hy",
-            "hz",
-            "id",
-            "in",
-            "io",
-            "is",
-            "it",
-            "iw",
-            "ja",
-            "jp",
-            "jv",
-            "ka",
-            "kk",
-            "kl",
-            "km",
-            "kn",
-            "ko",
-            "ku",
-            "ky",
-            "la",
-            "lb",
-            "lc",
-            "ln",
-            "lo",
-            "lt",
-            "lu",
-            "lv",
-            "mg",
-            "mh",
-            "mi",
-            "mk",
-            "ml",
-            "mn",
-            "mo",
-            "mr",
-            "ms",
-            "mt",
-            "my",
-            "na",
-            "nb",
-            "nd",
-            "ne",
-            "nl",
-            "nn",
-            "no",
-            "nr",
-            "ny",
-            "oc",
-            "om",
-            "pa",
-            "pl",
-            "ps",
-            "pt",
-            "qq",
-            "qu",
-            "re",
-            "rm",
-            "rn",
-            "ro",
-            "rs",
-            "ru",
-            "rw",
-            "sd",
-            "se",
-            "sg",
-            "sh",
-            "si",
-            "sk",
-            "sl",
-            "sm",
-            "sn",
-            "so",
-            "sq",
-            "sr",
-            "ss",
-            "st",
-            "sv",
-            "sw",
-            "ta",
-            "te",
-            "tg",
-            "th",
-            "ti",
-            "tk",
-            "tl",
-            "tn",
-            "to",
-            "tr",
-            "ts",
-            "ug",
-            "uk",
-            "ur",
-            "us",
-            "uz",
-            "ve",
-            "vi",
-            "wa",
-            "wo",
-            "xh",
-            "xx",
-            "yi",
-            "yo",
-            "zh",
-            "zu",
-        ]
-    ),
-    preprocessor="app.openfoodfacts.TaxonomyPreprocessor",
-    result_processor="app.openfoodfacts.ResultProcessor",
-    supported_langs=[],
-    match_phrase_boost=2.0
-)
+    CONFIG = Config.from_yaml(settings.config_path)
+
+TAXONOMY_CONFIG: Config | None = None
+if settings.taxonomy_config_path:
+    if not settings.taxonomy_config_path.is_file():
+        raise RuntimeError(f"config file does not exist: {settings.taxonomy_config_path}")
+
+    TAXONOMY_CONFIG = Config.from_yaml(settings.taxonomy_config_path)
+
+
+def check_config_is_defined():
+    """Raise a RuntimeError if the Config path is not set."""
+    if CONFIG is None:
+        raise RuntimeError(
+            "No configuration is configured, set envvar "
+            "CONFIG_PATH with the path of the yaml configuration file"
+        )
+
+
+def set_global_config(config_path: Path):
+    global CONFIG
+    CONFIG = Config.from_yaml(config_path)

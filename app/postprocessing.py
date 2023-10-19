@@ -21,7 +21,7 @@ class BaseResultProcessor:
             result = hit.to_dict()
             result["_score"] = hit.meta.score
 
-            for field in self.config.fields:
+            for field in self.config.fields.values():
                 if field.name not in result:
                     continue
 
@@ -38,6 +38,7 @@ class BaseResultProcessor:
                 result = dict((k, v) for k, v in result.items() if k in projection)
             hits.append(result)
         output["hits"] = hits
+        output["aggregations"] = response.aggregations.to_dict()
         return output
 
     def process_after(self, result: JSONType) -> JSONType:

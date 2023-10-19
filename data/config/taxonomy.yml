@@ -1,0 +1,404 @@
+index:
+  id_field_name: code
+  last_modified_field_name: last_modified_t
+  name: taxonomy
+  number_of_replicas: 1
+  number_of_shards: 4
+fields:
+  code:
+    required: true
+    type: keyword
+  last_modified_t:
+    type: date
+  taxonomy_name:
+    type: text
+  labels:
+    full_text_search: true
+    type: text_lang
+document_denylist:
+lang_separator: _
+match_phrase_boost: 2.0
+preprocessor: app.openfoodfacts.DocumentPreprocessor
+result_processor: app.openfoodfacts.ResultProcessor
+split_separator: ','
+taxonomy:
+  sources:
+    - name: additives
+      url: https://static.openfoodfacts.org/data/taxonomies/additives.full.json
+    - name: allergens
+      url: https://static.openfoodfacts.org/data/taxonomies/allergens.full.json
+    - name: amino acids
+      url: https://static.openfoodfacts.org/data/taxonomies/amino_acids.full.json
+    - name: categories
+      url: https://static.openfoodfacts.org/data/taxonomies/categories.full.json
+    - name: countries
+      url: https://static.openfoodfacts.org/data/taxonomies/countries.full.json
+    - name: data quality
+      url: https://static.openfoodfacts.org/data/taxonomies/data_quality.full.json
+    - name: food groups
+      url: https://static.openfoodfacts.org/data/taxonomies/food_groups.full.json
+    - name: improvements
+      url: https://static.openfoodfacts.org/data/taxonomies/improvements.full.json
+    - name: ingredients
+      url: https://static.openfoodfacts.org/data/taxonomies/ingredients.full.json
+    - name: ingredients analysis
+      url: https://static.openfoodfacts.org/data/taxonomies/ingredients_analysis.full.json
+    - name: ingredients processing
+      url: https://static.openfoodfacts.org/data/taxonomies/ingredients_processing.full.json
+    - name: labels
+      url: https://static.openfoodfacts.org/data/taxonomies/labels.full.json
+    - name: languages
+      url: https://static.openfoodfacts.org/data/taxonomies/languages.full.json
+    - name: minerals
+      url: https://static.openfoodfacts.org/data/taxonomies/minerals.full.json
+    - name: misc
+      url: https://static.openfoodfacts.org/data/taxonomies/misc.full.json
+    - name: nova groups
+      url: https://static.openfoodfacts.org/data/taxonomies/nova_groups.full.json
+    - name: nucleotides
+      url: https://static.openfoodfacts.org/data/taxonomies/nucleotides.full.json
+    - name: nutrients
+      url: https://static.openfoodfacts.org/data/taxonomies/nutrients.full.json
+    - name: origins
+      url: https://static.openfoodfacts.org/data/taxonomies/origins.full.json
+    - name: other nutritional substances
+      url: https://static.openfoodfacts.org/data/taxonomies/other_nutritional_substances.full.json
+    - name: packaging materials
+      url: https://static.openfoodfacts.org/data/taxonomies/packaging_materials.full.json
+    - name: packaging recycling
+      url: https://static.openfoodfacts.org/data/taxonomies/packaging_recycling.full.json
+    - name: packaging shapes
+      url: https://static.openfoodfacts.org/data/taxonomies/packaging_shapes.full.json
+    - name: periods after opening
+      url: https://static.openfoodfacts.org/data/taxonomies/periods_after_opening.full.json
+    - name: preservation
+      url: https://static.openfoodfacts.org/data/taxonomies/preservation.full.json
+    - name: states
+      url: https://static.openfoodfacts.org/data/taxonomies/states.full.json
+    - name: test
+      url: https://static.openfoodfacts.org/data/taxonomies/test.full.json
+    - name: vitamins
+      url: https://static.openfoodfacts.org/data/taxonomies/vitamins.full.json
+  exported_langs:
+    - aa
+    - ab
+    - ae
+    - af
+    - ak
+    - am
+    - ar
+    - as
+    - at
+    - au
+    - ay
+    - az
+    - be
+    - bg
+    - bi
+    - bn
+    - br
+    - bs
+    - ca
+    - ch
+    - co
+    - cs
+    - cu
+    - cy
+    - da
+    - de
+    - dv
+    - dz
+    - el
+    - en
+    - eo
+    - es
+    - et
+    - eu
+    - fa
+    - fi
+    - fj
+    - fo
+    - fr
+    - fy
+    - ga
+    - gb
+    - gd
+    - gl
+    - gn
+    - gp
+    - gu
+    - gv
+    - ha
+    - he
+    - hi
+    - hk
+    - ho
+    - hr
+    - ht
+    - hu
+    - hy
+    - hz
+    - id
+    - in
+    - io
+    - is
+    - it
+    - iw
+    - ja
+    - jp
+    - jv
+    - ka
+    - kk
+    - kl
+    - km
+    - kn
+    - ko
+    - ku
+    - ky
+    - la
+    - lb
+    - lc
+    - ln
+    - lo
+    - lt
+    - lu
+    - lv
+    - mg
+    - mh
+    - mi
+    - mk
+    - ml
+    - mn
+    - mo
+    - mr
+    - ms
+    - mt
+    - my
+    - na
+    - nb
+    - nd
+    - ne
+    - nl
+    - nn
+    - 'no'
+    - nr
+    - ny
+    - oc
+    - om
+    - pa
+    - pl
+    - ps
+    - pt
+    - qq
+    - qu
+    - re
+    - rm
+    - rn
+    - ro
+    - rs
+    - ru
+    - rw
+    - sd
+    - se
+    - sg
+    - sh
+    - si
+    - sk
+    - sl
+    - sm
+    - sn
+    - so
+    - sq
+    - sr
+    - ss
+    - st
+    - sv
+    - sw
+    - ta
+    - te
+    - tg
+    - th
+    - ti
+    - tk
+    - tl
+    - tn
+    - to
+    - tr
+    - ts
+    - ug
+    - uk
+    - ur
+    - us
+    - uz
+    - ve
+    - vi
+    - wa
+    - wo
+    - xh
+    - xx
+    - yi
+    - yo
+    - zh
+    - zu
+
+supported_langs:
+- aa
+- ab
+- ae
+- af
+- ak
+- am
+- ar
+- as
+- at
+- au
+- ay
+- az
+- be
+- bg
+- bi
+- bn
+- br
+- bs
+- ca
+- ch
+- co
+- cs
+- cu
+- cy
+- da
+- de
+- dv
+- dz
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fa
+- fi
+- fj
+- fo
+- fr
+- fy
+- ga
+- gb
+- gd
+- gl
+- gn
+- gp
+- gu
+- gv
+- ha
+- he
+- hi
+- hk
+- ho
+- hr
+- ht
+- hu
+- hy
+- hz
+- id
+- in
+- io
+- is
+- it
+- iw
+- ja
+- jp
+- jv
+- ka
+- kk
+- kl
+- km
+- kn
+- ko
+- ku
+- ky
+- la
+- lb
+- lc
+- ln
+- lo
+- lt
+- lu
+- lv
+- mg
+- mh
+- mi
+- mk
+- ml
+- mn
+- mo
+- mr
+- ms
+- mt
+- my
+- na
+- nb
+- nd
+- ne
+- nl
+- nn
+- 'no'
+- nr
+- ny
+- oc
+- om
+- pa
+- pl
+- ps
+- pt
+- qq
+- qu
+- re
+- rm
+- rn
+- ro
+- rs
+- ru
+- rw
+- sd
+- se
+- sg
+- sh
+- si
+- sk
+- sl
+- sm
+- sn
+- so
+- sq
+- sr
+- ss
+- st
+- sv
+- sw
+- ta
+- te
+- tg
+- th
+- ti
+- tk
+- tl
+- tn
+- to
+- tr
+- ts
+- ug
+- uk
+- ur
+- us
+- uz
+- ve
+- vi
+- wa
+- wo
+- xh
+- xx
+- yi
+- yo
+- zh
+- zu
