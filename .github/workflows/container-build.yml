@@ -49,6 +49,8 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
+        # Use runtime target, so that dev dependencies are not included
+        target: runtime
         push: true
         file: Dockerfile
         cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.image_name }}:buildcache

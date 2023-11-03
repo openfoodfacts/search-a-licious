@@ -11,7 +11,11 @@ x-api-base: &api-base
     # mount code dynamically
     - "./app:/opt/search/app"
     - "./data:/opt/search/data"
-
+    - ./pyproject.toml:/opt/robotoff/pyproject.toml
+    - ./poetry.lock:/opt/robotoff/poetry.lock
+    # make tests available
+    - ./tests:/opt/search/tests
+    - ./.cov:/opt/search/.cov
 
 services:
   es01:
