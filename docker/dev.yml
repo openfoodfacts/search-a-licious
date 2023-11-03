@@ -4,15 +4,17 @@ version: "3.7"
 x-api-base: &api-base
   build:
     context: .
+    target: runtime-dev
     args:
       USER_UID: ${USER_UID:-1000}
       USER_GID: ${USER_GID:-1000}
+      PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
   volumes:
     # mount code dynamically
     - "./app:/opt/search/app"
     - "./data:/opt/search/data"
-    - ./pyproject.toml:/opt/robotoff/pyproject.toml
-    - ./poetry.lock:/opt/robotoff/poetry.lock
+    - ./pyproject.toml:/opt/search/pyproject.toml
+    - ./poetry.lock:/opt/search/poetry.lock
     # make tests available
     - ./tests:/opt/search/tests
     - ./.cov:/opt/search/.cov

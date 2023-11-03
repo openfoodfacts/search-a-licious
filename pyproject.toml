@@ -45,3 +45,14 @@ exclude = '''
 
 [tool.mypy]
 ignore_missing_imports = true
+
+
+[tool.coverage.run]
+data_file = ".cov/.coverage"
+source = ["app"]
+
+[tool.coverage.xml]
+output = ".cov/coverage.xml"
+
+[tool.coverage.html]
+directory = ".cov/htmlcov"
