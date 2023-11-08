@@ -46,13 +46,13 @@ class BaseResultProcessor:
         return result
 
 
-def load_result_processor(config: Config) -> BaseResultProcessor | None:
+def load_result_processor(result_processor: str) -> BaseResultProcessor | None:
     result_processor_cls = (
-        load_class_object_from_string(config.result_processor)
-        if config.result_processor
+        load_class_object_from_string(result_processor)
+        if result_processor
         else BaseResultProcessor
     )
-    return result_processor_cls(config)
+    return result_processor_cls(result_processor)
 
 
 class CompletionProcessor(BaseResultProcessor):

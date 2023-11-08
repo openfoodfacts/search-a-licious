@@ -32,17 +32,9 @@ if config.CONFIG is None:
 else:
     # we cache query builder and result processor here for faster processing
     FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(config.CONFIG)
-    RESULT_PROCESSOR = load_result_processor(config.CONFIG)
+    RESULT_PROCESSOR = load_result_processor(config.CONFIG.result_processor)
+    TAXONOMY_RESULT_PROCESSOR = load_result_processor(config.CONFIG.taxonomy.autocomplete.result_processor)
 
-if config.TAXONOMY_CONFIG is None:
-    # We want to be able to import api.py (for tests for example) without
-    # failure, but we add a warning message as it's not expected in a
-    # production settings
-    logger.warning("Main configuration is not set, use TAXONOMY_CONFIG_PATH envvar")
-    TAXONOMY_RESULT_PROCESSOR = None
-else:
-    # we cache query builder and result processor here for faster processing
-    TAXONOMY_RESULT_PROCESSOR = load_result_processor(config.TAXONOMY_CONFIG)
 
 app = FastAPI(
     title="search-a-licious API",
@@ -189,7 +181,7 @@ def taxonomy_autocomplete(
         ] = 10
 ):
     query = build_completion_query(
-        q=q, taxonomy_name=taxonomy_name, lang=lang, size=size,  config=config.TAXONOMY_CONFIG
+        q=q, taxonomy_name=taxonomy_name, lang=lang, size=size,  config=config.CONFIG
     )
     results = query.execute()
 

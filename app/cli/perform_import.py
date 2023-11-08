@@ -29,13 +29,13 @@ def get_document_dict(processor: DocumentProcessor, row, next_index: str) -> JSO
 
 
 def gen_documents(
-    processor: DocumentProcessor,
-    file_path: Path,
-    next_index: str,
-    start_time,
-    num_items: int | None,
-    num_processes: int,
-    process_id: int,
+        processor: DocumentProcessor,
+        file_path: Path,
+        next_index: str,
+        start_time,
+        num_items: int | None,
+        num_processes: int,
+        process_id: int,
 ):
     """Generate documents to index for process number process_id
 
@@ -106,13 +106,13 @@ def update_alias(es, next_index: str, index_alias: str):
 
 
 def import_parallel(
-    config: Config,
-    file_path: Path,
-    next_index: str,
-    start_time: float,
-    num_items: int | None,
-    num_processes: int,
-    process_id: int,
+        config: Config,
+        file_path: Path,
+        next_index: str,
+        start_time: float,
+        num_items: int | None,
+        num_processes: int,
+        process_id: int,
 ):
     """One task of import.
 
@@ -177,7 +177,7 @@ def import_taxonomies(
 
 
 def get_redis_products(
-    processor: DocumentProcessor, next_index: str, last_updated_timestamp: int
+        processor: DocumentProcessor, next_index: str, last_updated_timestamp: int
 ):
     """Fetch IDs of documents to update from Redis."""
     redis_client = RedisClient()
@@ -208,18 +208,18 @@ def get_redis_updates(next_index: str, config: Config):
 
     # Since this is only done by a single process, we can use parallel_bulk
     for success, info in parallel_bulk(
-        es, get_redis_products(processor, next_index, last_updated_timestamp)
+            es, get_redis_products(processor, next_index, last_updated_timestamp)
     ):
         if not success:
             logger.warning("A document failed: %s", info)
 
 
 def perform_import(
-    file_path: Path,
-    num_items: int | None,
-    num_processes: int,
-    start_time: float,
-    config: Config,
+        file_path: Path,
+        num_items: int | None,
+        num_processes: int,
+        start_time: float,
+        config: Config,
 ):
     """Main function running the import sequence"""
     es = connection.get_es_client()
@@ -261,16 +261,18 @@ def perform_taxonomies_import(
 ):
     """Main function running the import sequence"""
     es = connection.get_es_client()
+    merged_dict = {**config.dict(), **config.taxonomy.autocomplete.dict()}
+    taxonomy_config: Config = Config(**merged_dict)
     # we create a temporary index to import to
     # at the end we will change alias to point to it
     index_date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
-    next_index = f"{config.index.name}-{index_date}"
+    next_index = f"{taxonomy_config.index.name}-{index_date}"
 
-    index = generate_index_object(next_index, config)
+    index = generate_index_object(next_index, taxonomy_config)
     # create the index
     index.save()
 
-    import_taxonomies(config, next_index, start_time)
+    import_taxonomies(taxonomy_config, next_index, start_time)
 
     # make alias point to new index
-    update_alias(es, next_index, config.index.name)
+    update_alias(es, next_index, taxonomy_config.index.name)

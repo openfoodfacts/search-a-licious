@@ -25,7 +25,7 @@ from app.config import (
     FieldConfig,
     FieldType,
     TaxonomyConfig,
-    TaxonomySourceConfig,
+    TaxonomySourceConfig, TaxonomyAutocompleteConfig,
 )
 from app.taxonomy import get_taxonomy
 from app._types import JSONType

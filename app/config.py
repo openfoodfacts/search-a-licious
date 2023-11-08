@@ -115,23 +115,6 @@ class TaxonomySourceConfig(BaseModel):
     ]
 
 
-class TaxonomyConfig(BaseModel):
-    sources: Annotated[
-        list[TaxonomySourceConfig],
-        Field(description="configurations of used taxonomies"),
-    ]
-    exported_langs: Annotated[
-        list[str],
-        Field(
-            description="a list of languages for which we want taxonomized fields "
-                        "to be always exported during indexing. During indexing, we use the taxonomy "
-                        "to translate every taxonomized field in a language-specific subfield. The list "
-                        "of language depends on the value defined here and on the optional "
-                        "`taxonomy_langs` field that can be defined in each document."
-        ),
-    ]
-
-
 class FieldType(StrEnum):
     keyword = auto()
     date = auto()
@@ -254,6 +237,49 @@ class IndexConfig(BaseModel):
     number_of_replicas: Annotated[
         int, Field(description="number of replicas to use for the index")
     ] = 1
+
+
+class TaxonomyAutocompleteConfig(BaseModel):
+    index: Annotated[IndexConfig, Field(description="configuration of the index")]
+    fields: Annotated[
+        dict[str, FieldConfig],
+        Field(
+            description="configuration of all fields in the index, keys are field "
+                        "names and values contain the field configuration"
+        ),
+    ]
+    result_processor: Annotated[
+                          str,
+                          Field(
+                              description="The full qualified reference to the elasticsearch result processor "
+                                          "to use after search query to Elasticsearch. This is used to add custom fields "
+                                          "for example."
+                          ),
+                      ] | None = None
+    sources: Annotated[
+        list[TaxonomySourceConfig],
+        Field(description="configurations of used taxonomies"),
+    ]
+
+
+class TaxonomyConfig(BaseModel):
+    sources: Annotated[
+        list[TaxonomySourceConfig],
+        Field(description="configurations of used taxonomies"),
+    ]
+    exported_langs: Annotated[
+        list[str],
+        Field(
+            description="a list of languages for which we want taxonomized fields "
+                        "to be always exported during indexing. During indexing, we use the taxonomy "
+                        "to translate every taxonomized field in a language-specific subfield. The list "
+                        "of language depends on the value defined here and on the optional "
+                        "`taxonomy_langs` field that can be defined in each document."
+        ),
+    ]
+    autocomplete: Annotated[
+        TaxonomyAutocompleteConfig, Field(description="configuration of the taxonomies used")
+    ]
 
 
 class Config(BaseModel):
@@ -401,14 +427,6 @@ if settings.config_path:
         raise RuntimeError(f"config file does not exist: {settings.config_path}")
 
     CONFIG = Config.from_yaml(settings.config_path)
-
-TAXONOMY_CONFIG: Config | None = None
-if settings.taxonomy_config_path:
-    if not settings.taxonomy_config_path.is_file():
-        raise RuntimeError(f"config file does not exist: {settings.taxonomy_config_path}")
-
-    TAXONOMY_CONFIG = Config.from_yaml(settings.taxonomy_config_path)
-
 
 def check_config_is_defined():
     """Raise a RuntimeError if the Config path is not set."""

@@ -68,7 +68,7 @@ def import_taxonomies():
     start_time = time.perf_counter()
     perform_taxonomies_import(
         start_time,
-        config.TAXONOMY_CONFIG,
+        config.CONFIG,
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
