@@ -12,9 +12,10 @@ fields:
     type: date
   taxonomy_name:
     type: text
-  names:
-    full_text_search: true
-    type: text_lang_completion
+  name:
+    completion_analyser: true
+    nested_lang_source: true
+    type: text_lang
 lang_separator: _
 match_phrase_boost: 2.0
 preprocessor: app.openfoodfacts.DocumentPreprocessor

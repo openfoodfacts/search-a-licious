@@ -78,10 +78,9 @@ def gen_taxonomies(
         for x, node in taxonomy.nodes.items():
             taxonomy_dict = {
                 "code": node.id,
-                "taxonomy_name": taxonomy_source_config.name.replace(" ", "_")
+                "taxonomy_name": taxonomy_source_config.name.replace(" ", "_"),
+                "name": node.synonyms
             }
-            for key, values in node.synonyms.items():
-                taxonomy_dict["names_" + key] = values
             document_dict = get_document_dict(processor, taxonomy_dict, next_index)
             if not document_dict:
                 continue

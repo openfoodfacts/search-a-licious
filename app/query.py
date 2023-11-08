@@ -270,7 +270,7 @@ def build_completion_query(
     """
 
     query = Search(index=config.index.name)
-    query = query.suggest('names', q, completion={'field': f"names.{lang}", 'size':size})
+    query = query.suggest('name', q, completion={'field': f"name.{lang}", 'size':size})
     query = query.query('bool', filter=[Q('term', taxonomy_name=taxonomy_name)])
     return query
 

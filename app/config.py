@@ -141,7 +141,6 @@ class FieldType(StrEnum):
     bool = auto()
     text = auto()
     text_lang = auto()
-    text_lang_completion = auto()
     taxonomy = auto()
     # if the field is not enabled (=not indexed and not parsed), see:
     # https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html
@@ -177,6 +176,18 @@ class FieldConfig(BaseModel):
             description="do we include perform full text search using this field. If "
                         "false, the field is only used during search when filters involving this "
                         "field are provided."
+        ),
+    ] = False
+    completion_analyser: Annotated[
+        bool,
+        Field(
+            description="do we use the standard analyser or the completion analyser."
+        ),
+    ] = False
+    nested_lang_source: Annotated[
+        bool,
+        Field(
+            description="does the source data have nested lang structure for the text"
         ),
     ] = False
     bucket_agg: Annotated[
