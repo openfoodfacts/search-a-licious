@@ -12,13 +12,13 @@ fields:
     type: date
   taxonomy_name:
     type: text
-  labels:
+  names:
     full_text_search: true
     type: text_lang_completion
 lang_separator: _
 match_phrase_boost: 2.0
 preprocessor: app.openfoodfacts.DocumentPreprocessor
-result_processor: app.openfoodfacts.CompletionProcessor
+result_processor: app.postprocessing.CompletionProcessor
 split_separator: ','
 taxonomy:
   sources:

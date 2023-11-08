@@ -81,7 +81,7 @@ def gen_taxonomies(
                 "taxonomy_name": taxonomy_source_config.name.replace(" ", "_")
             }
             for key, values in node.synonyms.items():
-                taxonomy_dict["labels_" + key] = values
+                taxonomy_dict["names_" + key] = values
             document_dict = get_document_dict(processor, taxonomy_dict, next_index)
             if not document_dict:
                 continue

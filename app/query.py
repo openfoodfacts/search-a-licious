@@ -260,16 +260,17 @@ def build_completion_query(
     config: Config
 ):
     """Build an elasticsearch_dsl Query.
+
     :param q: the user raw query
     :param taxonomy_name: the taxonomy we want to search in
-    :param lang: the languages we want to support
+    :param lang: the language we want search in
     :param size: number of results to return
     :param config: configuration to use
     :return: the built Query
     """
 
     query = Search(index=config.index.name)
-    query = query.suggest('labels', q, completion={'field': f"labels.{lang}", 'size':size})
+    query = query.suggest('names', q, completion={'field': f"names.{lang}", 'size':size})
     query = query.query('bool', filter=[Q('term', taxonomy_name=taxonomy_name)])
     return query
 

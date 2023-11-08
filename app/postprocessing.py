@@ -53,3 +53,20 @@ def load_result_processor(config: Config) -> BaseResultProcessor | None:
         else BaseResultProcessor
     )
     return result_processor_cls(config)
+
+
+class CompletionProcessor(BaseResultProcessor):
+    def process(self, response: Response, projection: set[str] | None) -> JSONType:
+        output = {
+            "took": response.took,
+            "timed_out": response.timed_out,
+            "count": response.hits.total["value"]
+        }
+        options = []
+        for field in response.suggest:
+            suggestion = response.suggest[field][0]
+            for option in suggestion.options:
+                result = {"text": option.text, "code": option._source["code"]}
+                options.append(result)
+        output["options"] = options
+        return output
