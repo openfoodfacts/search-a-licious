@@ -1,0 +1,114 @@
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "match_phrase": {
+            "product_name.fr": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "generic_name.fr": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "categories.fr": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "labels.fr": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "match_phrase": {
+            "brands": {
+              "query": "flocons d'avoine",
+              "boost": 2.0
+            }
+          }
+        },
+        {
+          "multi_match": {
+            "query": "flocons d'avoine",
+            "fields": [
+              "product_name.fr",
+              "generic_name.fr",
+              "categories.fr",
+              "labels.fr",
+              "brands"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "brands_tags": {
+      "terms": {
+        "field": "brands_tags"
+      }
+    },
+    "lang": {
+      "terms": {
+        "field": "lang"
+      }
+    },
+    "owner": {
+      "terms": {
+        "field": "owner"
+      }
+    },
+    "categories_tags": {
+      "terms": {
+        "field": "categories_tags"
+      }
+    },
+    "labels_tags": {
+      "terms": {
+        "field": "labels_tags"
+      }
+    },
+    "countries_tags": {
+      "terms": {
+        "field": "countries_tags"
+      }
+    },
+    "states_tags": {
+      "terms": {
+        "field": "states_tags"
+      }
+    },
+    "nutrition_grades": {
+      "terms": {
+        "field": "nutrition_grades"
+      }
+    },
+    "ecoscore_grade": {
+      "terms": {
+        "field": "ecoscore_grade"
+      }
+    },
+    "nova_groups": {
+      "terms": {
+        "field": "nova_groups"
+      }
+    }
+  },
+  "size": 10,
+  "from": 0
+}

@@ -12,6 +12,7 @@ export COMPOSE_DOCKER_CLI_BUILD=1
 # take it form env, or from env file
 COMPOSE_PROJECT_NAME ?= $(shell grep COMPOSE_PROJECT_NAME ${ENV_FILE} | cut -d '=' -f 2)
 DOCKER_COMPOSE=docker-compose --env-file=${ENV_FILE}
+DOCKER_COMPOSE_TEST=COMPOSE_PROJECT_NAME=search_test docker-compose --env-file=${ENV_FILE}
 
 #------------#
 # Production #
@@ -52,4 +53,27 @@ livecheck:
 
 build:
 	@echo "🥫 building docker (for dev)"
-	docker-compose build
+	docker-compose build --progress=plain api
+
+
+up:
+ifdef service
+	${DOCKER_COMPOSE} up -d ${service} 2>&1
+else
+	${DOCKER_COMPOSE} up -d 2>&1
+endif
+
+
+down:
+	@echo "🥫 Bringing down containers …"
+	${DOCKER_COMPOSE} down
+
+
+#-------#
+# Tests #
+#-------#
+
+unit-tests:
+	@echo "🥫 Running unit tests …"
+	# change project name to run in isolation
+	${DOCKER_COMPOSE_TEST} run --rm api poetry run pytest --cov-report xml --cov=app tests/unit

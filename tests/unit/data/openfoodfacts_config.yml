@@ -1,0 +1,304 @@
+index:
+  id_field_name: code
+  last_modified_field_name: last_modified_t
+  name: openfoodfacts
+  number_of_replicas: 1
+  number_of_shards: 4
+fields:
+  code:
+    required: true
+    type: keyword
+  obsolete:
+    required: true
+    type: bool
+  product_name:
+    full_text_search: true
+    type: text_lang
+  generic_name:
+    full_text_search: true
+    type: text_lang
+  abbreviated_product_name:
+    type: text_lang
+  categories:
+    full_text_search: true
+    input_field: categories_tags
+    taxonomy_name: category
+    type: taxonomy
+  labels:
+    full_text_search: true
+    input_field: labels_tags
+    taxonomy_name: label
+    type: taxonomy
+  brands:
+    full_text_search: true
+    split: true
+    type: text
+  brands_tags:
+    type: keyword
+    bucket_agg: true
+  stores:
+    split: true
+    type: text
+  emb_codes:
+    split: true
+    type: text
+  lang:
+    type: keyword
+    bucket_agg: true
+  lc:
+    type: keyword
+  owner:
+    type: keyword
+    bucket_agg: true
+  quantity:
+    type: text
+  categories_tags:
+    type: keyword
+    bucket_agg: true
+  labels_tags:
+    type: keyword
+    bucket_agg: true
+  countries_tags:
+    type: keyword
+    bucket_agg: true
+  states_tags:
+    type: keyword
+    bucket_agg: true
+  origins_tags:
+    type: keyword
+  ingredients_tags:
+    type: keyword
+  unique_scans_n:
+    type: integer
+  scans_n:
+    type: integer
+  nutrition_grades:
+    type: keyword
+    bucket_agg: true
+  ecoscore_grade:
+    type: keyword
+    bucket_agg: true
+  nova_groups:
+    type: keyword
+    bucket_agg: true
+  last_modified_t:
+    type: date
+  created_t:
+    type: date
+  images:
+    type: disabled
+  additives_n:
+    type: integer
+  allergens_tags:
+    type: keyword
+  ecoscore_data:
+    type: disabled
+  ecoscore_score:
+    type: integer
+  forest_footprint_data:
+    type: disabled
+  ingredients_analysis_tags:
+    type: keyword
+  ingredients_n:
+    type: integer
+  nova_group:
+    type: integer
+  nutrient_levels:
+    type: disabled
+  nutriments:
+    type: object
+  nutriscore_data:
+    type: disabled
+  nutriscore_grade:
+    type: keyword
+  traces_tags:
+    type: keyword
+  unknown_ingredients_n:
+    type: integer
+  popularity_key:
+    type: integer
+  nutriscore_score:
+    type: integer
+  completeness:
+    type: float
+document_denylist:
+- '8901552007122'
+lang_separator: _
+match_phrase_boost: 2.0
+preprocessor: app.openfoodfacts.DocumentPreprocessor
+result_processor: app.openfoodfacts.ResultProcessor
+split_separator: ','
+taxonomy:
+  sources:
+  - name: category
+    url: https://static.openfoodfacts.org/data/taxonomies/categories.full.json
+  - name: label
+    url: https://static.openfoodfacts.org/data/taxonomies/labels.full.json
+  exported_langs:
+  - en
+  - fr
+  - es
+  - de
+  - it
+  - nl
+supported_langs:
+- aa
+- ab
+- ae
+- af
+- ak
+- am
+- ar
+- as
+- at
+- au
+- ay
+- az
+- be
+- bg
+- bi
+- bn
+- br
+- bs
+- ca
+- ch
+- co
+- cs
+- cu
+- cy
+- da
+- de
+- dv
+- dz
+- el
+- en
+- eo
+- es
+- et
+- eu
+- fa
+- fi
+- fj
+- fo
+- fr
+- fy
+- ga
+- gb
+- gd
+- gl
+- gn
+- gp
+- gu
+- gv
+- ha
+- he
+- hi
+- hk
+- ho
+- hr
+- ht
+- hu
+- hy
+- hz
+- id
+- in
+- io
+- is
+- it
+- iw
+- ja
+- jp
+- jv
+- ka
+- kk
+- kl
+- km
+- kn
+- ko
+- ku
+- ky
+- la
+- lb
+- lc
+- ln
+- lo
+- lt
+- lu
+- lv
+- mg
+- mh
+- mi
+- mk
+- ml
+- mn
+- mo
+- mr
+- ms
+- mt
+- my
+- na
+- nb
+- nd
+- ne
+- nl
+- nn
+- 'no'
+- nr
+- ny
+- oc
+- om
+- pa
+- pl
+- ps
+- pt
+- qq
+- qu
+- re
+- rm
+- rn
+- ro
+- rs
+- ru
+- rw
+- sd
+- se
+- sg
+- sh
+- si
+- sk
+- sl
+- sm
+- sn
+- so
+- sq
+- sr
+- ss
+- st
+- sv
+- sw
+- ta
+- te
+- tg
+- th
+- ti
+- tk
+- tl
+- tn
+- to
+- tr
+- ts
+- ug
+- uk
+- ur
+- us
+- uz
+- ve
+- vi
+- wa
+- wo
+- xh
+- xx
+- yi
+- yo
+- zh
+- zu

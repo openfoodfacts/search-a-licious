@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-lt-installed="true">
+<head>
+    <meta charset="utf-8">
+    <title>Search-a-licious</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://static.openfoodfacts.org/css/dist/app-ltr.css?v=1695281325" data-base-layout="true">
+</head>
+<body class="products_page">
+	<div id="page">
+		<div id="main_container" style="position:relative" class="block_latte">
+			<div class="topbarsticky" style="position: static; left: auto; width: 1496px;">
+				<div class="contain-to-grid " id="offNav">
+					<nav class="top-bar" data-topbar="" role="navigation">
+						<ul class="title-area">
+							<li class="name">
+								<div style="position:relative;max-width:292px;">
+									<a href="/">
+									<img id="logo" src="https://static.openfoodfacts.org/images/logos/off-logo-horizontal-light.svg" alt="Open Food Facts logo" style="margin:8px;height:48px;width:auto;">
+								</a>
+								</div>
+							</li>
+						</ul>
+					<section class="top-bar-section">
+							<ul class="left small-4" style="margin-right:2rem;">
+								<li class="search-li">
+									<form action="/">
+									<div class="row"><div class="small-12">
+									<div class="row collapse postfix-round">
+										<div class="columns">
+										<input type="text" placeholder="Search for a product" name="q" value="{{ q }}" style="background-color:white">
+										</div>
+										<div class="columns">
+										<button type="submit" title="Search" class="button postfix" style="line-height:normal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></button>
+										</div>
+									</div>
+									</div></div>
+									</form>
+								</li>
+							</ul>
+						</section></nav>
+				</div>
+			</div>
+	
+			<nav class="tab-bar hide">
+				<div class="middle tab-bar-section">
+					<form action="/cgi/search.pl">
+						<div class="row collapse">
+							<div class="small-8 columns">
+								<input type="text" placeholder="Search for a product" name="search_terms">
+							</div>
+							<div class="small-2 columns">
+								<button type="submit" class="button postfix"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></button>
+							</div>
+							<div class="small-2 columns">
+								<a href="/cgi/search.pl" title="Advanced search"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon" aria-hidden="true" focusable="false"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></a>
+							</div>
+						</div>
+					</form>
+				</div>
+			</nav>
+
+			<div id="content" class="off-canvas-wrap block_latte" data-offcanvas="">
+				<div class="inner-wrap">
+					<a class="exit-off-canvas"></a>
+					<div class="main block_light">
+						<div id="main_column">
+							<div class="block short block_ristreto">
+							<div class="row">
+								<div class="small-12 columns filterProducts">
+								<div>
+									<span class="filterProducts__results">
+									<span class="material-icons">search</span>
+									{{ results.count }}{% if not results.is_count_exact %}+{% endif %} products, found in {{ results.took }} ms
+									</span>
+								</div>
+								<div class="filterProducts__buttons">
+									<div>
+									<button href="#" data-dropdown="drop_sort" aria-controls="drop_sort" aria-expanded="false" class="button round dropdown small secondary unmarged">
+										<span class="material-icons">swap_vert</span>
+										{% if not sort_by %}Relevance{% elif sort_by == "-unique_scans_n" %}Most scanned products{% elif sort_by == "nutriscore_score" %}Products with the best Nutri-Score{% elif sort_by == "-ecoscore_score" %}Products with the best Eco-Score{% elif sort_by == "created_t" %}Recently added products{% elif sort_by == "last_modified_t" %}Recently modified products{% endif %}
+									</button>
+									<ul id="drop_sort" data-dropdown-content="" class="f-dropdown" aria-hidden="true" style="position: absolute; left: -99999px; top: 38px;">
+										<li>
+											<a href="/?q={{ q|urlencode }}&amp;page_size={{ results.page_size }}">Relevance</a>
+											</li>
+										<li>
+										<a href="/?q={{ q|urlencode }}&amp;sort_by=-unique_scans_n&amp;page_size={{ results.page_size }}">Most scanned products</a>
+										</li>
+									
+										<li>
+										<a href="/?q={{ q|urlencode }}&amp;sort_by=nutriscore_score&amp;page_size={{ results.page_size }}">Products with the best Nutri-Score</a>
+										</li>
+									
+										<li>
+										<a href="/?q={{ q|urlencode }}&amp;sort_by=-ecoscore_score&amp;page_size={{ results.page_size }}">Products with the best Eco-Score</a>
+										</li>
+									
+										<li>
+										<a href="/?q={{ q|urlencode }}&amp;sort_by=created_t&amp;page_size={{ results.page_size }}">Recently added products</a>
+										</li>
+									
+										<li>
+										<a href="/?q={{ q|urlencode }}&amp;sort_by=last_modified_t&amp;page_size={{ results.page_size }}">Recently modified products</a>
+										</li>
+									</ul>
+									</div>
+								</div>
+								</div>
+							</div>
+							</div>
+							<div class="row" style="padding-top: 1rem;">
+								<div class="large-2 columns">
+									{% if aggregations %}
+									{% for group, aggregation in aggregations.items() %}
+										<strong>{{ group }}</strong>
+										<ul>
+											{% for bucket in aggregation.buckets %}
+												<li>{{ bucket.key }} ({{ bucket.doc_count }})</li>
+											{% endfor %}
+										</ul>
+									{% endfor %}
+									{% endif %}
+								</div>
+								<div class="large-10 columns">
+									<div id="search_results" style="clear:left;">
+										<div id="products_tabs_content" class="tabs-content">
+											<div class="tabs content active" id="products_all">
+												{% if results.errors %}
+													<h3>Runtime errors</h3>
+													{% for error in results.errors %}
+													<p><b>{{ error.title }}</b>: <code>{{ error.description }}</code></p>
+													{% endfor %}
+												{% else %}
+												<ul class="search_results small-block-grid-1 medium-block-grid-4 large-block-grid-6 xlarge-block-grid-8 xxlarge-block-grid-10" id="products_match_all" style="list-style:none">
+													{% for product in results.hits %}
+													<li data-code="{{ product.code }}">
+														<a href="https://world.openfoodfacts.org/product/{{ product.code }}" class="list_product_a">
+															<div class="list_product_banner list_product_banner_very_good_match">{{ product._score }}</div>
+															<div class="list_product_content">
+																<div class="list_product_img_div">
+																	<img {% if product.image_small_url %}src="{{ product.image_small_url }}"{% else %}src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg" style="filter:invert(.9)"{% endif %} class="list_product_img">
+																</div>
+																<div class="list_product_name v-space-tiny">{{ product.product_name }}</div>
+																<div class="list_product_sc">
+																	<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/ecoscore-{{ product.ecoscore_grade }}.svg">
+																	<img class="list_product_icons" src="https://static.openfoodfacts.org/images/attributes/nutriscore-{% if product.nutriscore_grade %}{{ product.nutriscore_grade }}{% else %}unknown{% endif %}.svg">
+																</div>
+															</div>
+														</a>
+													</li>
+													{% endfor %}
+												{% endif %}
+											</ul>
+										</div>
+									</div>
+								</div>
+								{% if not results.errors %}
+								<ul id="pages" class="pagination">
+									<li class="unavailable" style="margin-right: 1rem">Pages:</li>
+									{% for page in pagination %}
+									<li {% if page.selected %}class="current"{% endif %}><a href="/?q={{ q|urlencode }}&amp;page_size={{ results.page_size }}&amp;page={{ page.page_id }}">{{ page.name }}</a></li>
+									{% endfor %}
+									<li class="unavailable">({{ results.page_size }} products per page)</li>
+								</ul>
+								{% endif %}
+								{% if es_query %}
+									<h3>Elasticsearch query</h3>
+									<pre><code>{{ es_query }}</code></pre>
+								{% endif %}
+							</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="https://static.openfoodfacts.org/js/dist/modernizr.js"></script>
+	<script src="https://static.openfoodfacts.org/js/dist/jquery.js"></script>
+	<script src="https://static.openfoodfacts.org/js/dist/jquery-ui.js"></script>
+	<script src="https://static.openfoodfacts.org/js/dist/hc-sticky.js"></script>
+	<script src="https://static.openfoodfacts.org/js/dist/display.js"></script>
+	<script src="https://static.openfoodfacts.org/js/dist/stikelem.js"></script>
+	<script src="https://static.openfoodfacts.org/js/dist/scrollNav.js"></script>
+
+	<script src="https://static.openfoodfacts.org/js/dist/foundation.js" data-base-layout="true"></script>
+	<script src="https://static.openfoodfacts.org/js/dist/jquery.cookie.js"></script>
+	<script src="https://static.openfoodfacts.org/js/dist/select2.min.js"></script>
+	<script>
+		$(document).foundation({
+			equalizer : {
+				equalize_on_stack: true
+			},
+			accordion: {
+				callback : function (accordion) {
+					$(document).foundation('equalizer', 'reflow');
+				}
+			}
+		});
+	</script>
+</body>
+<style type="text/css">
+/*
+ * OFF web app already load jquery-ui.css but it doesn't work properly with "dialog" function.
+ * We add the CSS this way so that the embedded, relatively linked images load correctly.
+ * (Use //ajax... so that https or http is selected as appropriate to avoid "mixed content".)
+ */
+
+.ui-dialog {
+	position: absolute;
+	top: 0;
+	left: 0;
+	padding: .2em;
+	outline: 0;
+}
+.ui-dialog .ui-dialog-titlebar {
+	padding: .4em 1em;
+	position: relative;
+}
+.ui-dialog .ui-dialog-title {
+	float: left;
+	margin: .1em 0;
+	white-space: nowrap;
+	width: 90%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.ui-dialog .ui-dialog-titlebar-close {
+	position: absolute;
+	right: .3em;
+	top: 50%;
+	width: 20px;
+	margin: -10px 0 0 0;
+	padding: 1px;
+	height: 20px;
+}
+.ui-dialog .ui-dialog-content {
+	position: relative;
+	border: 0;
+	padding: .5em 1em;
+	background: none;
+	overflow: auto;
+}
+.ui-dialog .ui-dialog-buttonpane {
+	text-align: left;
+	border-width: 1px 0 0 0;
+	background-image: none;
+	margin-top: .5em;
+	padding: .3em 1em .5em .4em;
+}
+.ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset {
+	float: right;
+}
+.ui-dialog .ui-dialog-buttonpane button {
+	margin: .5em .4em .5em 0;
+	cursor: pointer;
+}
+
+.ui-dialog .ui-resizable-n {
+	height: 2px;
+	top: 0;
+}
+.ui-dialog .ui-resizable-e {
+	width: 2px;
+	right: 0;
+}
+.ui-dialog .ui-resizable-s {
+	height: 2px;
+	bottom: 0;
+}
+.ui-dialog .ui-resizable-w {
+	width: 2px;
+	left: 0;
+}
+.ui-dialog .ui-resizable-se,
+.ui-dialog .ui-resizable-sw,
+.ui-dialog .ui-resizable-ne,
+.ui-dialog .ui-resizable-nw {
+	width: 7px;
+	height: 7px;
+}
+.ui-dialog .ui-resizable-se {
+	right: 0;
+	bottom: 0;
+}
+.ui-dialog .ui-resizable-sw {
+	left: 0;
+	bottom: 0;
+}
+.ui-dialog .ui-resizable-ne {
+	right: 0;
+	top: 0;
+}
+.ui-dialog .ui-resizable-nw {
+	left: 0;
+	top: 0;
+}
+.ui-draggable .ui-dialog-titlebar {
+	cursor: move;
+}
+/** End of jquery-ui requirements **/
+
+
+/* .row { width: 80% !important; margin: 0 0 !important; } */
+
+/* Special color for barcode */
+span[property="food:code"] { color: Olive; }
+
+/* Enhancements to better distinguish sections: Product information, Ingredients and Nutriments facts */
+#main_column > div > h2 { margin-top: 1.6rem !important;
+margin-bottom: 0.2rem !important;
+border-bottom: 1px solid lightgrey; }
+
+/* Special background color for all input fieds */
+textarea, .tagify, input[type=text] { background-color: LightYellow !important; }
+input.nutriment_value { background-color: LightYellow; }
+textarea:focus, .tagify__input:focus, .tagify:focus, input[type=text]:focus, input.nutriment_value:focus { background-color: lightblue !important; }
+
+/* Small enhancements */
+p { margin-bottom: 0.6rem; }
+input[type=text] { margin: 1px 0; } /* reduce vertical space between fields and notes */
+.note, .example { margin: 1px 0; }
+label { margin-top: 10px; }
+.data_table { margin-top: 7px; }
+td { line-height: 1rem; }
+input[type="checkbox"], input[type="radio"] { margin: 0; }
+
+
+/* ---------------- Nutrition facts ------------------------- */
+
+
+.hidden {
+    display: none;
+}
+
+/* ingredients box alternative font */
+textarea.monospace {
+    font-family: Consolas, Lucida Console, monospace;
+}
+
+.ul[id^='products_'].search_results a.with_barcode { margin-top: 0; padding-top: 0; }
+</style>
+</html>

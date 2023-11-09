@@ -1,24 +1,31 @@
 version: "3.7"
 # this file setup various thinks that are for dev environment
 
-x-searchservice-base: &searchservice-base
+x-api-base: &api-base
   build:
     context: .
+    target: runtime-dev
     args:
       USER_UID: ${USER_UID:-1000}
       USER_GID: ${USER_GID:-1000}
+      PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
   volumes:
     # mount code dynamically
-    - "./app:/code/app"
-
+    - "./app:/opt/search/app"
+    - "./data:/opt/search/data"
+    - ./pyproject.toml:/opt/search/pyproject.toml
+    - ./poetry.lock:/opt/search/poetry.lock
+    # make tests available
+    - ./tests:/opt/search/tests
+    - ./.cov:/opt/search/.cov
 
 services:
   es01:
     ports:
       - "${ES_PORT}:9200"
-  searchservice:
-    <<: *searchservice-base
+  api:
+    <<: *api-base
     # uvicorn in reload mode
     command: ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-  searchupdate:
-    <<: *searchservice-base
+  updater:
+    <<: *api-base

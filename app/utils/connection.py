@@ -1,12 +1,19 @@
-from __future__ import annotations
-
-import os
-
 from elasticsearch_dsl.connections import connections
+from redis import Redis
+
+from app.config import settings
 
 
-def get_connection(**kwargs):
+def get_es_client(**kwargs):
     return connections.create_connection(
-        hosts=[os.getenv("ELASTICSEARCH_URL", "127.0.0.1:9200")],
+        hosts=[settings.elasticsearch_url],
         **kwargs,
+    )
+
+
+def get_redis_client() -> Redis:
+    return Redis(
+        host="redis",
+        port=6379,
+        decode_responses=True,
     )
