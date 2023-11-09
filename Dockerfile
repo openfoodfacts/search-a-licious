@@ -45,7 +45,7 @@ RUN groupadd -g $OFF_GID off && \
     mkdir -p /home/off && \
     mkdir -p /opt/search && \
     chown off:off -R /opt/search /home/off
-COPY --chown=off:off app app
+COPY --chown=off:off app /opt/search/app
 
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
