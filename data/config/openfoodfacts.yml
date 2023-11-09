@@ -154,8 +154,6 @@ taxonomy:
     url: https://static.openfoodfacts.org/data/taxonomies/ingredients_analysis.full.json
   - name: ingredients_processing
     url: https://static.openfoodfacts.org/data/taxonomies/ingredients_processing.full.json
-  - name: label
-    url: https://static.openfoodfacts.org/data/taxonomies/labels.full.json
   - name: language
     url: https://static.openfoodfacts.org/data/taxonomies/languages.full.json
   - name: mineral
