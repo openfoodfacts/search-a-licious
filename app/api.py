@@ -170,20 +170,32 @@ If not provided, `['en']` is used."""
 @app.get("/autocomplete")
 def taxonomy_autocomplete(
     q: Annotated[str, Query(description="User autocomplete query.")],
-    taxonomy_name: Annotated[
-        list[str],
+    # We can't yet use list[str] as there an error is raised when passing an
+    # empty list:
+    # https://github.com/tiangolo/fastapi/issues/9920
+    taxonomy_names: Annotated[
+        str,
         Query(
-            description="Name(s) of the taxonomy to search in, pass "
-            "several time the parameter to search in several taxonomies."
+            description="Name(s) of the taxonomy to search in, as a comma-separated value."
         ),
     ],
     lang: Annotated[
         str, Query(description="Language to search in, defaults to 'en'.")
     ] = "en",
     size: Annotated[int, Query(description="Number of results to return.")] = 10,
+    fuzziness: Annotated[
+        int | None,
+        Query(description="Fuzziness level to use, default to no fuzziness."),
+    ] = None,
 ):
+    taxonomy_names_list = taxonomy_names.split(",")
     query = build_completion_query(
-        q=q, taxonomy_names=taxonomy_name, lang=lang, size=size, config=config.CONFIG
+        q=q,
+        taxonomy_names=taxonomy_names_list,
+        lang=lang,
+        size=size,
+        config=config.CONFIG,
+        fuzziness=fuzziness,
     )
     es_response = query.execute()
     response = process_taxonomy_completion_response(es_response)
