@@ -83,11 +83,15 @@ def gen_taxonomy_documents(
             taxonomy_source_config.name, str(taxonomy_source_config.url)
         )
         for node in taxonomy.iter_nodes():
-            names = {
-                lang: lang_names
-                for lang, lang_names in node.synonyms.items()
-                if lang in supported_langs
-            }
+            names = {}
+            for lang in supported_langs:
+                lang_names = set()
+                if lang in node.names:
+                    lang_names.add(node.names[lang])
+                if lang in node.synonyms:
+                    lang_names |= set(node.synonyms[lang])
+                names[lang] = list(lang_names)
+
             yield {
                 "_index": next_index,
                 "_source": {
