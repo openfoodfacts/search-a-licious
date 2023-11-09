@@ -55,16 +55,16 @@ def load_result_processor(result_processor: str | None) -> BaseResultProcessor |
     return result_processor_cls(result_processor)
 
 
-class CompletionProcessor(BaseResultProcessor):
-    def process(self, response: Response) -> JSONType:
-        output = {"took": response.took, "timed_out": response.timed_out}
-        options = []
-        suggestion = response.suggest["taxonomy_suggest"][0]
-        for option in suggestion.options:
-            result = {
-                "id": option._source["id"],
-                "text": option.text,
-            }
-            options.append(result)
-        output["options"] = options
-        return output
+def process_taxonomy_completion_response(response: Response) -> JSONType:
+    output = {"took": response.took, "timed_out": response.timed_out}
+    options = []
+    suggestion = response.suggest["taxonomy_suggest"][0]
+    for option in suggestion.options:
+        result = {
+            "id": option._source["id"],
+            "text": option.text,
+            "taxonomy_name": option._source["taxonomy_name"],
+        }
+        options.append(result)
+    output["options"] = options
+    return output

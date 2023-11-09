@@ -253,23 +253,39 @@ def build_search_query(
 
 
 def build_completion_query(
-    q: str, taxonomy_name: str, lang: str, size: int, config: Config
+    q: str,
+    taxonomy_names: list[str],
+    lang: str,
+    size: int,
+    config: Config,
+    fuzziness: int | None = 2,
 ):
-    """Build an elasticsearch_dsl Query.
+    """Build an elasticsearch_dsl completion Query.
 
-    :param q: the user raw query
-    :param taxonomy_name: the taxonomy we want to search in
+    :param q: the user autocomplete query
+    :param taxonomy_names: a list of taxonomies we want to search in
     :param lang: the language we want search in
     :param size: number of results to return
     :param config: configuration to use
+    :param fuzziness: fuzziness parameter for completion query
     :return: the built Query
     """
 
-    query = Search(index=config.taxonomy.autocomplete.index.name)
+    completion_clause = {
+        "field": f"names.{lang}",
+        "size": size,
+        "contexts": {"taxonomy_name": taxonomy_names},
+    }
+
+    if fuzziness is not None:
+        completion_clause["fuzzy"] = {"fuzziness": fuzziness}
+
+    query = Search(index=config.taxonomy.index.name)
     query = query.suggest(
-        "taxonomy_suggest", q, completion={"field": f"names.{lang}", "size": size}
+        "taxonomy_suggest",
+        q,
+        completion=completion_clause,
     )
-    query = query.query("bool", filter=[Q("term", taxonomy_name=taxonomy_name)])
     return query
 
 

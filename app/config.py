@@ -241,26 +241,6 @@ class TaxonomyIndexConfig(BaseModel):
     ] = 1
 
 
-class TaxonomyAutocompleteConfig(BaseModel):
-    index: Annotated[
-        TaxonomyIndexConfig,
-        Field(
-            description="configuration of the taxonomy index. There is a single index for all taxonomies."
-        ),
-    ]
-    result_processor: Annotated[
-        str,
-        Field(
-            description="The full qualified reference to the Elasticsearch result processor "
-            "to use after search query to Elasticsearch."
-        ),
-    ] | None = None
-    sources: Annotated[
-        list[TaxonomySourceConfig],
-        Field(description="configurations of the taxonomy sources (taxonomy URLs)"),
-    ]
-
-
 class TaxonomyConfig(BaseModel):
     sources: Annotated[
         list[TaxonomySourceConfig],
@@ -276,9 +256,11 @@ class TaxonomyConfig(BaseModel):
             "`taxonomy_langs` field that can be defined in each document."
         ),
     ]
-    autocomplete: Annotated[
-        TaxonomyAutocompleteConfig,
-        Field(description="configuration of taxonomy autocomplete"),
+    index: Annotated[
+        TaxonomyIndexConfig,
+        Field(
+            description="configuration of the taxonomy index. There is a single index for all taxonomies."
+        ),
     ]
 
 

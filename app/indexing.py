@@ -328,7 +328,18 @@ def generate_taxonomy_mapping_object(config: Config) -> Mapping:
         Object(
             required=True,
             dynamic=False,
-            properties={lang: Completion() for lang in supported_langs},
+            properties={
+                lang: Completion(
+                    contexts=[
+                        {
+                            "name": "taxonomy_name",
+                            "path": "taxonomy_name",
+                            "type": "category",
+                        }
+                    ],
+                )
+                for lang in supported_langs
+            },
         ),
     )
     return mapping
@@ -336,7 +347,7 @@ def generate_taxonomy_mapping_object(config: Config) -> Mapping:
 
 def generate_taxonomy_index_object(index_name: str, config: Config) -> Index:
     index = Index(index_name)
-    taxonomy_index_config = config.taxonomy.autocomplete.index
+    taxonomy_index_config = config.taxonomy.index
     index.settings(
         number_of_shards=taxonomy_index_config.number_of_shards,
         number_of_replicas=taxonomy_index_config.number_of_replicas,

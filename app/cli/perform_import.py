@@ -272,7 +272,7 @@ def perform_taxonomy_import(config: Config):
     # we create a temporary index to import to
     # at the end we will change alias to point to it
     index_date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
-    next_index = f"{config.taxonomy.autocomplete.index.name}-{index_date}"
+    next_index = f"{config.taxonomy.index.name}-{index_date}"
 
     index = generate_taxonomy_index_object(next_index, config)
     # create the index
@@ -281,4 +281,4 @@ def perform_taxonomy_import(config: Config):
     import_taxonomies(config, next_index)
 
     # make alias point to new index
-    update_alias(es, next_index, config.taxonomy.autocomplete.index.name)
+    update_alias(es, next_index, config.taxonomy.index.name)
