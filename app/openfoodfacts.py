@@ -1,15 +1,17 @@
 import copy
 import re
 
+from elasticsearch_dsl.response import Response
+
+from app.config import FieldType
 from app.indexing import BaseDocumentPreprocessor
 from app.postprocessing import BaseResultProcessor
 from app.taxonomy import get_taxonomy
-from app.types import JSONType
+from app._types import JSONType
 
 COUNTRIES_TAXONOMY_URL = (
     "https://static.openfoodfacts.org/data/taxonomies/countries.full.json"
 )
-
 
 BARCODE_PATH_REGEX = re.compile(r"^(...)(...)(...)(.*)$")
 
@@ -104,9 +106,9 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                 # Get all official languages of the country, and add them to
                 # `taxonomy_langs`
                 if (
-                    lang_codes := country_node.properties.get("language_codes", {}).get(
-                        "en"
-                    )
+                        lang_codes := country_node.properties.get("language_codes", {}).get(
+                            "en"
+                        )
                 ) is not None:
                     taxonomy_langs |= set(
                         lang_code for lang_code in lang_codes.split(",") if lang_code
@@ -140,6 +142,11 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                 nutriments.pop(key)
 
 
+class TaxonomyPreprocessor(BaseDocumentPreprocessor):
+    def preprocess(self, document: JSONType) -> JSONType:
+        return document
+
+
 class ResultProcessor(BaseResultProcessor):
     def process_after(self, result: JSONType) -> JSONType:
         result |= ResultProcessor.build_image_fields(result)
@@ -151,7 +158,8 @@ class ResultProcessor(BaseResultProcessor):
         # https://github.com/openfoodfacts/openfoodfacts-server/blob/b297ed858d526332649562cdec5f1d36be184984/lib/ProductOpener/Display.pm#L10128
         code = product["code"]
         fields = {}
-
+        if "code" not in product:
+            return fields
         for image_type in ["front", "ingredients", "nutrition", "packaging"]:
             display_ids = []
             lang = product.get("lang")
@@ -210,3 +218,5 @@ class ResultProcessor(BaseResultProcessor):
                         )
 
             return fields
+
+

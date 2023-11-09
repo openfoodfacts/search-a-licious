@@ -7,10 +7,11 @@ import tqdm
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Index, Search
 
-from app.config import Config
+from app.config import Config, TaxonomyConfig
 from app.indexing import DocumentProcessor, generate_index_object
-from app.queue import RedisClient
-from app.types import JSONType
+from app.queue_helpers import RedisClient
+from app._types import JSONType
+from app.taxonomy import get_taxonomy
 from app.utils import connection, get_logger
 from app.utils.io import jsonl_iter
 
@@ -28,13 +29,13 @@ def get_document_dict(processor: DocumentProcessor, row, next_index: str) -> JSO
 
 
 def gen_documents(
-    processor: DocumentProcessor,
-    file_path: Path,
-    next_index: str,
-    start_time,
-    num_items: int | None,
-    num_processes: int,
-    process_id: int,
+        processor: DocumentProcessor,
+        file_path: Path,
+        next_index: str,
+        start_time,
+        num_items: int | None,
+        num_processes: int,
+        process_id: int,
 ):
     """Generate documents to index for process number process_id
 
@@ -61,6 +62,32 @@ def gen_documents(
         yield document_dict
 
 
+def gen_taxonomies(
+        processor: DocumentProcessor,
+        next_index: str,
+        taxonomies: TaxonomyConfig
+):
+    """Generate documents to index for process number process_id
+
+    We chunk documents based on document num % process_id
+    """
+    for i, taxonomy_source_config in enumerate(tqdm.tqdm(taxonomies.sources)):
+        taxonomy = get_taxonomy(
+            taxonomy_source_config.name, str(taxonomy_source_config.url)
+        )
+        for x, node in taxonomy.nodes.items():
+            taxonomy_dict = {
+                "code": node.id,
+                "taxonomy_name": taxonomy_source_config.name.replace(" ", "_"),
+                "name": node.synonyms
+            }
+            document_dict = get_document_dict(processor, taxonomy_dict, next_index)
+            if not document_dict:
+                continue
+
+            yield document_dict
+
+
 def update_alias(es, next_index: str, index_alias: str):
     """repoint the alias to point to the newly created Index"""
     es.indices.update_aliases(
@@ -79,13 +106,13 @@ def update_alias(es, next_index: str, index_alias: str):
 
 
 def import_parallel(
-    config: Config,
-    file_path: Path,
-    next_index: str,
-    start_time: float,
-    num_items: int | None,
-    num_processes: int,
-    process_id: int,
+        config: Config,
+        file_path: Path,
+        next_index: str,
+        start_time: float,
+        num_items: int | None,
+        num_processes: int,
+        process_id: int,
 ):
     """One task of import.
 
@@ -121,8 +148,36 @@ def import_parallel(
         logger.error("Encountered errors: %s", errors)
 
 
+def import_taxonomies(
+        config: Config,
+        next_index: str,
+        start_time: float
+):
+    """One task of import.
+    :param str next_index: the index to write to
+    :param float start_time: the start time
+    """
+    processor = DocumentProcessor(config)
+    # open a connection for this process
+    es = connection.get_es_client(timeout=120, retry_on_timeout=True)
+    # Note that bulk works better than parallel bulk for our usecase.
+    # The preprocessing in this file is non-trivial, so it's better to parallelize that. If we then do parallel_bulk
+    # here, this causes queueing and a lot of memory usage in the importer process.
+    success, errors = bulk(
+        es,
+        gen_taxonomies(
+            processor,
+            next_index,
+            config.taxonomy
+        ),
+        raise_on_error=False,
+    )
+    if not success:
+        logger.error("Encountered errors: %s", errors)
+
+
 def get_redis_products(
-    processor: DocumentProcessor, next_index: str, last_updated_timestamp: int
+        processor: DocumentProcessor, next_index: str, last_updated_timestamp: int
 ):
     """Fetch IDs of documents to update from Redis."""
     redis_client = RedisClient()
@@ -153,18 +208,18 @@ def get_redis_updates(next_index: str, config: Config):
 
     # Since this is only done by a single process, we can use parallel_bulk
     for success, info in parallel_bulk(
-        es, get_redis_products(processor, next_index, last_updated_timestamp)
+            es, get_redis_products(processor, next_index, last_updated_timestamp)
     ):
         if not success:
             logger.warning("A document failed: %s", info)
 
 
 def perform_import(
-    file_path: Path,
-    num_items: int | None,
-    num_processes: int,
-    start_time: float,
-    config: Config,
+        file_path: Path,
+        num_items: int | None,
+        num_processes: int,
+        start_time: float,
+        config: Config,
 ):
     """Main function running the import sequence"""
     es = connection.get_es_client()
@@ -198,3 +253,26 @@ def perform_import(
     get_redis_updates(next_index, config)
     # make alias point to new index
     update_alias(es, next_index, config.index.name)
+
+
+def perform_taxonomies_import(
+        start_time: float,
+        config: Config,
+):
+    """Main function running the import sequence"""
+    es = connection.get_es_client()
+    merged_dict = {**config.dict(), **config.taxonomy.autocomplete.dict()}
+    taxonomy_config: Config = Config(**merged_dict)
+    # we create a temporary index to import to
+    # at the end we will change alias to point to it
+    index_date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
+    next_index = f"{taxonomy_config.index.name}-{index_date}"
+
+    index = generate_index_object(next_index, taxonomy_config)
+    # create the index
+    index.save()
+
+    import_taxonomies(taxonomy_config, next_index, start_time)
+
+    # make alias point to new index
+    update_alias(es, next_index, taxonomy_config.index.name)

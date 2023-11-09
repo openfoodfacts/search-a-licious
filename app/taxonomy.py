@@ -5,7 +5,7 @@ import cachetools
 import requests
 
 from app.config import settings
-from app.types import JSONType
+from app._types import JSONType
 from app.utils import get_logger
 from app.utils.download import download_file, http_session, should_download_file
 from app.utils.io import load_json

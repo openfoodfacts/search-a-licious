@@ -35,6 +35,7 @@ class LoggingLevel(StrEnum):
 class Settings(BaseSettings):
     # Path of the search-a-licious yaml configuration file
     config_path: Path | None = None
+    taxonomy_config_path: Path | None = None
     redis_expiration: int = 60 * 60 * 36  # 36h
     redis_reader_timeout: int = 5
     # Prefix to use when saving documents to be processed after a new full
@@ -54,7 +55,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
 
 # Mapping from language 2-letter code to Elasticsearch language analyzer names
 ANALYZER_LANG_MAPPING = {
@@ -110,24 +110,7 @@ class TaxonomySourceConfig(BaseModel):
         HttpUrl,
         Field(
             description="URL of the taxonomy, must be in JSON format and follows Open Food Facts "
-            "taxonomy format."
-        ),
-    ]
-
-
-class TaxonomyConfig(BaseModel):
-    sources: Annotated[
-        list[TaxonomySourceConfig],
-        Field(description="configurations of used taxonomies"),
-    ]
-    exported_langs: Annotated[
-        list[str],
-        Field(
-            description="a list of languages for which we want taxonomized fields "
-            "to be always exported during indexing. During indexing, we use the taxonomy "
-            "to translate every taxonomized field in a language-specific subfield. The list "
-            "of language depends on the value defined here and on the optional "
-            "`taxonomy_langs` field that can be defined in each document."
+                        "taxonomy format."
         ),
     ]
 
@@ -174,16 +157,28 @@ class FieldConfig(BaseModel):
         bool,
         Field(
             description="do we include perform full text search using this field. If "
-            "false, the field is only used during search when filters involving this "
-            "field are provided."
+                        "false, the field is only used during search when filters involving this "
+                        "field are provided."
+        ),
+    ] = False
+    completion_analyser: Annotated[
+        bool,
+        Field(
+            description="do we use the standard analyser or the completion analyser."
+        ),
+    ] = False
+    nested_lang_source: Annotated[
+        bool,
+        Field(
+            description="does the source data have nested lang structure for the text"
         ),
     ] = False
     bucket_agg: Annotated[
         bool,
         Field(
             description="do we add an bucket aggregation to the elasticsearch query for this field. "
-            "It is used to return a 'faceted-view' with the number of results for each facet value. "
-            "Only valid for keyword or numeric field types."
+                        "It is used to return a 'faceted-view' with the number of results for each facet value. "
+                        "Only valid for keyword or numeric field types."
         ),
     ] = False
     taxonomy_name: Annotated[
@@ -208,7 +203,7 @@ class FieldConfig(BaseModel):
         """Validator that checks that `bucket_agg` is only provided for
         fields with types `keyword`, `double`, `float`, `integer` or `bool`."""
         if self.bucket_agg and not (
-            self.type.is_numeric() or self.type in (FieldType.keyword, FieldType.bool)
+                self.type.is_numeric() or self.type in (FieldType.keyword, FieldType.bool)
         ):
             raise ValueError(
                 "bucket_agg should be provided for taxonomy or numeric type only"
@@ -232,8 +227,8 @@ class IndexConfig(BaseModel):
         str,
         Field(
             description="name of the field containing the date of last modification, "
-            "used for incremental updates using Redis queues. The field value must be an "
-            "int/float representing the timestamp."
+                        "used for incremental updates using Redis queues. The field value must be an "
+                        "int/float representing the timestamp."
         ),
     ]
     number_of_shards: Annotated[
@@ -244,13 +239,56 @@ class IndexConfig(BaseModel):
     ] = 1
 
 
+class TaxonomyAutocompleteConfig(BaseModel):
+    index: Annotated[IndexConfig, Field(description="configuration of the index")]
+    fields: Annotated[
+        dict[str, FieldConfig],
+        Field(
+            description="configuration of all fields in the index, keys are field "
+                        "names and values contain the field configuration"
+        ),
+    ]
+    result_processor: Annotated[
+                          str,
+                          Field(
+                              description="The full qualified reference to the elasticsearch result processor "
+                                          "to use after search query to Elasticsearch. This is used to add custom fields "
+                                          "for example."
+                          ),
+                      ] | None = None
+    sources: Annotated[
+        list[TaxonomySourceConfig],
+        Field(description="configurations of used taxonomies"),
+    ]
+
+
+class TaxonomyConfig(BaseModel):
+    sources: Annotated[
+        list[TaxonomySourceConfig],
+        Field(description="configurations of used taxonomies"),
+    ]
+    exported_langs: Annotated[
+        list[str],
+        Field(
+            description="a list of languages for which we want taxonomized fields "
+                        "to be always exported during indexing. During indexing, we use the taxonomy "
+                        "to translate every taxonomized field in a language-specific subfield. The list "
+                        "of language depends on the value defined here and on the optional "
+                        "`taxonomy_langs` field that can be defined in each document."
+        ),
+    ]
+    autocomplete: Annotated[
+        TaxonomyAutocompleteConfig, Field(description="configuration of the taxonomies used")
+    ]
+
+
 class Config(BaseModel):
     index: Annotated[IndexConfig, Field(description="configuration of the index")]
     fields: Annotated[
         dict[str, FieldConfig],
         Field(
             description="configuration of all fields in the index, keys are field "
-            "names and values contain the field configuration"
+                        "names and values contain the field configuration"
         ),
     ]
     split_separator: Annotated[
@@ -263,28 +301,28 @@ class Config(BaseModel):
         str,
         Field(
             description="for `text_lang` FieldType, the separator between the name of the field "
-            'and the language code, ex: product_name_it if lang_separator="_"'
+                        'and the language code, ex: product_name_it if lang_separator="_"'
         ),
     ] = "_"
     taxonomy: Annotated[
         TaxonomyConfig, Field(description="configuration of the taxonomies used")
     ]
     preprocessor: Annotated[
-        str,
-        Field(
-            description="The full qualified reference to the preprocessor to use before "
-            "data import. This is used to adapt the data schema or to add search-a-licious "
-            "specific fields for example."
-        ),
-    ] | None = None
+                      str,
+                      Field(
+                          description="The full qualified reference to the preprocessor to use before "
+                                      "data import. This is used to adapt the data schema or to add search-a-licious "
+                                      "specific fields for example."
+                      ),
+                  ] | None = None
     result_processor: Annotated[
-        str,
-        Field(
-            description="The full qualified reference to the elasticsearch result processor "
-            "to use after search query to Elasticsearch. This is used to add custom fields "
-            "for example."
-        ),
-    ] | None = None
+                          str,
+                          Field(
+                              description="The full qualified reference to the elasticsearch result processor "
+                                          "to use after search query to Elasticsearch. This is used to add custom fields "
+                                          "for example."
+                          ),
+                      ] | None = None
     supported_langs: Annotated[
         list[str] | None,
         Field(
@@ -305,8 +343,8 @@ class Config(BaseModel):
         defined_taxonomies = [source.name for source in self.taxonomy.sources]
         for field in self.fields.values():
             if (
-                field.taxonomy_name is not None
-                and field.taxonomy_name not in defined_taxonomies
+                    field.taxonomy_name is not None
+                    and field.taxonomy_name not in defined_taxonomies
             ):
                 raise ValueError(
                     f"'{field.taxonomy_name}' should be defined in `taxonomy.sources`"
@@ -389,7 +427,6 @@ if settings.config_path:
         raise RuntimeError(f"config file does not exist: {settings.config_path}")
 
     CONFIG = Config.from_yaml(settings.config_path)
-
 
 def check_config_is_defined():
     """Raise a RuntimeError if the Config path is not set."""

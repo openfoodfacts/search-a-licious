@@ -3,6 +3,7 @@ from typing import Optional
 
 import typer
 
+from app.cli.perform_import import perform_taxonomies_import
 from app.config import check_config_is_defined, set_global_config
 
 app = typer.Typer()
@@ -57,6 +58,22 @@ def import_data(
     logger.info("Import time: %s seconds", end_time - start_time)
 
 
+@app.command(name="import-taxonomies")
+def import_taxonomies():
+    """Import taxonomies into Elasticsearch."""
+    import time
+    from app.utils import get_logger
+    from app import config
+    logger = get_logger()
+    start_time = time.perf_counter()
+    perform_taxonomies_import(
+        start_time,
+        config.CONFIG,
+    )
+    end_time = time.perf_counter()
+    logger.info("Import time: %s seconds", end_time - start_time)
+
+
 @app.command()
 def write_to_redis(doc_id: str):
     import time
@@ -85,7 +102,7 @@ def import_from_queue(
 ):
     from app import config
     from app.config import check_config_is_defined, settings
-    from app.queue import run_queue_safe
+    from app.queue_helpers import run_queue_safe
     from app.utils import connection, get_logger, init_sentry
 
     # Create root logger

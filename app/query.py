@@ -12,7 +12,7 @@ from luqum.tree import UnknownOperation, Word
 from app.config import Config, FieldType
 from app.indexing import generate_index_object
 from app.postprocessing import BaseResultProcessor
-from app.types import (
+from app._types import (
     ErrorSearchResponse,
     JSONType,
     SearchResponse,
@@ -249,6 +249,29 @@ def build_search_query(
         size=size,
         from_=size * (page - 1),
     )
+    return query
+
+
+def build_completion_query(
+    q: str,
+    taxonomy_name: str,
+    lang: str,
+    size: int,
+    config: Config
+):
+    """Build an elasticsearch_dsl Query.
+
+    :param q: the user raw query
+    :param taxonomy_name: the taxonomy we want to search in
+    :param lang: the language we want search in
+    :param size: number of results to return
+    :param config: configuration to use
+    :return: the built Query
+    """
+
+    query = Search(index=config.index.name)
+    query = query.suggest('name', q, completion={'field': f"name.{lang}", 'size':size})
+    query = query.query('bool', filter=[Q('term', taxonomy_name=taxonomy_name)])
     return query
 
 

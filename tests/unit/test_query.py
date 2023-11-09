@@ -11,7 +11,7 @@ from app.query import (
     build_search_query,
     parse_lucene_dsl_query,
 )
-from app.types import JSONType
+from app._types import JSONType
 from app.utils.io import dump_json, load_json
 
 DATA_DIR = Path(__file__).parent / "data"

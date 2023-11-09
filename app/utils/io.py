@@ -5,7 +5,7 @@ from typing import Callable, Iterable
 
 import orjson
 
-from app.types import JSONType
+from app._types import JSONType
 
 
 def load_json(filepath: str | Path) -> dict | list:
