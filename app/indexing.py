@@ -30,6 +30,7 @@ from app.config import (
 )
 from app.taxonomy import get_taxonomy
 from app.utils import load_class_object_from_string
+from app.utils.analyzers import AUTOCOMPLETE_ANALYZERS
 
 
 def generate_dsl_field(
@@ -181,7 +182,7 @@ def process_taxonomy_field(
         source.name: source for source in taxonomy_config.sources
     }
     taxonomy_source_config: TaxonomySourceConfig = taxonomy_sources_by_name[
-        field.taxonomy_name
+        field.taxonomy_name  # type: ignore
     ]
     taxonomy = get_taxonomy(
         taxonomy_source_config.name, str(taxonomy_source_config.url)
@@ -330,6 +331,7 @@ def generate_taxonomy_mapping_object(config: Config) -> Mapping:
             dynamic=False,
             properties={
                 lang: Completion(
+                    analyzer=AUTOCOMPLETE_ANALYZERS.get(lang, "simple"),
                     contexts=[
                         {
                             "name": "taxonomy_name",

@@ -1,25 +1,12 @@
-from __future__ import annotations
+from elasticsearch_dsl import analyzer
 
-from elasticsearch_dsl import analyzer, tokenizer
-
-autocomplete = analyzer(
-    "autocomplete",
-    tokenizer=tokenizer(
-        "bigram",
-        "edge_ngram",
-        min_gram=2,
-        max_gram=25,
-        token_chars=[
-            "letter",
-            "digit",
-            "punctuation",
-        ],
+AUTOCOMPLETE_ANALYZERS = {
+    "fr": analyzer(
+        "autocomplete_fr", tokenizer="standard", filter=["lowercase", "asciifolding"]
     ),
-    filter=["lowercase", "asciifolding"],
-)
-
-text_like = analyzer(
-    "text_like",
-    tokenizer="standard",
-    filter=["snowball", "lowercase", "asciifolding"],
-)
+    "de": analyzer(
+        "autocomplete_de",
+        tokenizer="standard",
+        filter=["lowercase", "german_normalization"],
+    ),
+}
