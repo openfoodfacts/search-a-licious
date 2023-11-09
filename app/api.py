@@ -8,15 +8,15 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 from app import config
+from app._types import SearchResponse
 from app.config import check_config_is_defined, settings
 from app.postprocessing import load_result_processor
 from app.query import (
+    build_completion_query,
     build_elasticsearch_query_builder,
     build_search_query,
     execute_query,
-    build_completion_query,
 )
-from app._types import SearchResponse
 from app.utils import connection, get_logger, init_sentry
 
 logger = get_logger()
@@ -29,11 +29,14 @@ if config.CONFIG is None:
     logger.warning("Main configuration is not set, use CONFIG_PATH envvar")
     FILTER_QUERY_BUILDER = None
     RESULT_PROCESSOR = None
+    TAXONOMY_RESULT_PROCESSOR = None
 else:
     # we cache query builder and result processor here for faster processing
     FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(config.CONFIG)
     RESULT_PROCESSOR = load_result_processor(config.CONFIG.result_processor)
-    TAXONOMY_RESULT_PROCESSOR = load_result_processor(config.CONFIG.taxonomy.autocomplete.result_processor)
+    TAXONOMY_RESULT_PROCESSOR = load_result_processor(
+        config.CONFIG.taxonomy.autocomplete.result_processor
+    )
 
 
 app = FastAPI(
@@ -167,25 +170,21 @@ If not provided, `['en']` is used."""
 
 @app.get("/taxonomy")
 def taxonomy_autocomplete(
-        q: Annotated[
-            str, Query(description="Give the user input string to autocomplete.)")
-        ],
-        taxonomy_name: Annotated[
-            str, Query(description="Give the taxonomy name to search in.")
-        ],
-        lang: Annotated[
-            str, Query(description="Give the language to search in, defaults to 'en'.)")
-        ] = "en",
-        size: Annotated[
-            int, Query(description="Number of results to return.")
-        ] = 10
+    q: Annotated[str, Query(description="User autocomplete query.")],
+    taxonomy_name: Annotated[
+        str, Query(description="Name of the taxonomy to search in.")
+    ],
+    lang: Annotated[
+        str, Query(description="Language to search in, defaults to 'en'.")
+    ] = "en",
+    size: Annotated[int, Query(description="Number of results to return.")] = 10,
 ):
     query = build_completion_query(
-        q=q, taxonomy_name=taxonomy_name, lang=lang, size=size,  config=config.CONFIG
+        q=q, taxonomy_name=taxonomy_name, lang=lang, size=size, config=config.CONFIG
     )
     results = query.execute()
 
-    response = TAXONOMY_RESULT_PROCESSOR.process(results, None)
+    response = TAXONOMY_RESULT_PROCESSOR.process(results)
 
     return {
         **response,

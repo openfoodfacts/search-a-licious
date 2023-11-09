@@ -1,9 +1,9 @@
 import atexit
 import time
 
+from app._types import JSONType
 from app.config import Config, settings
 from app.indexing import DocumentProcessor
-from app._types import JSONType
 from app.utils import get_logger
 from app.utils.connection import get_es_client, get_redis_client
 from app.utils.download import http_session

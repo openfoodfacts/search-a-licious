@@ -3,9 +3,6 @@ from typing import Optional
 
 import typer
 
-from app.cli.perform_import import perform_taxonomies_import
-from app.config import check_config_is_defined, set_global_config
-
 app = typer.Typer()
 
 
@@ -37,7 +34,7 @@ def import_data(
 
     from app import config
     from app.cli.perform_import import perform_import
-    from app.config import set_global_config
+    from app.config import check_config_is_defined, set_global_config
     from app.utils import get_logger
 
     logger = get_logger()
@@ -52,24 +49,39 @@ def import_data(
         num_items,
         num_processes,
         start_time,
-        config.CONFIG,
+        config.CONFIG,  # type: ignore
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
 
 
-@app.command(name="import-taxonomies")
-def import_taxonomies():
+@app.command()
+def import_taxonomies(
+    config_path: Optional[Path] = typer.Option(
+        default=None,
+        help="path of the yaml configuration file, it overrides CONFIG_PATH envvar",
+        dir_okay=False,
+        file_okay=True,
+        exists=True,
+    ),
+):
     """Import taxonomies into Elasticsearch."""
     import time
-    from app.utils import get_logger
+
     from app import config
+    from app.cli.perform_import import perform_taxonomy_import
+    from app.config import check_config_is_defined, set_global_config
+    from app.utils import get_logger
+
     logger = get_logger()
+
+    if config_path:
+        set_global_config(config_path)
+
+    check_config_is_defined()
+
     start_time = time.perf_counter()
-    perform_taxonomies_import(
-        start_time,
-        config.CONFIG,
-    )
+    perform_taxonomy_import(config.CONFIG)
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
 
@@ -101,7 +113,7 @@ def import_from_queue(
     ),
 ):
     from app import config
-    from app.config import check_config_is_defined, settings
+    from app.config import check_config_is_defined, set_global_config, settings
     from app.queue_helpers import run_queue_safe
     from app.utils import connection, get_logger, init_sentry
 
@@ -119,7 +131,7 @@ def import_from_queue(
     check_config_is_defined()
 
     # run queue
-    run_queue_safe(config.CONFIG)
+    run_queue_safe(config.CONFIG)  # type: ignore
 
 
 def main() -> None:

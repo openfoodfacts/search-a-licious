@@ -5,6 +5,7 @@ from typing import Iterable
 
 from elasticsearch_dsl import (
     Boolean,
+    Completion,
     Date,
     Double,
     Field,
@@ -16,24 +17,23 @@ from elasticsearch_dsl import (
     Object,
     Text,
     analyzer,
-    Completion,
 )
 
+from app._types import JSONType
 from app.config import (
     ANALYZER_LANG_MAPPING,
     Config,
     FieldConfig,
     FieldType,
     TaxonomyConfig,
-    TaxonomySourceConfig, TaxonomyAutocompleteConfig,
+    TaxonomySourceConfig,
 )
 from app.taxonomy import get_taxonomy
-from app._types import JSONType
 from app.utils import load_class_object_from_string
 
 
 def generate_dsl_field(
-        field: FieldConfig, supported_langs: Iterable[str], taxonomy_langs: Iterable[str]
+    field: FieldConfig, supported_langs: Iterable[str], taxonomy_langs: Iterable[str]
 ) -> Field:
     """Generate Elasticsearch DSL field from a FieldConfig.
 
@@ -64,10 +64,7 @@ def generate_dsl_field(
         }
         for lang in supported_langs:
             if lang in ANALYZER_LANG_MAPPING:
-                if field.completion_analyser:
-                    properties[lang] = Completion(analyzer=analyzer(ANALYZER_LANG_MAPPING[lang]))
-                else:
-                    properties[lang] = Text(analyzer=analyzer(ANALYZER_LANG_MAPPING[lang]))
+                properties[lang] = Text(analyzer=analyzer(ANALYZER_LANG_MAPPING[lang]))
         return Object(required=field.required, dynamic=False, properties=properties)
 
     elif field.type == FieldType.object:
@@ -93,7 +90,7 @@ def generate_dsl_field(
 
 
 def preprocess_field_value(
-        d: JSONType, input_field: str, split: bool, split_separator: str
+    d: JSONType, input_field: str, split: bool, split_separator: str
 ):
     input_value = d.get(input_field)
 
@@ -122,12 +119,12 @@ class BaseDocumentPreprocessor(abc.ABC):
 
 
 def process_text_lang_field(
-        data: JSONType,
-        input_field: str,
-        split: bool,
-        lang_separator: str,
-        split_separator: str,
-        supported_langs: set[str],
+    data: JSONType,
+    input_field: str,
+    split: bool,
+    lang_separator: str,
+    split_separator: str,
+    supported_langs: set[str],
 ) -> JSONType | None:
     field_input: JSONType = {}
     target_fields = [
@@ -165,27 +162,12 @@ def process_text_lang_field(
     return field_input if field_input else None
 
 
-def process_text_nested_lang_field(
-        data: JSONType,
-        input_field: str,
-        supported_langs: set[str],
-) -> JSONType | None:
-    field_input: JSONType = {}
-    input_value = data.get(input_field)
-    for lang, items in input_value.items():
-        if lang in supported_langs:
-            field_input[lang] = items
-        else:
-            field_input.setdefault("other", []).extend(items)
-    return field_input if field_input else None
-
-
 def process_taxonomy_field(
-        data: JSONType,
-        field: FieldConfig,
-        taxonomy_config: TaxonomyConfig,
-        split_separator: str,
-        taxonomy_langs: set[str],
+    data: JSONType,
+    field: FieldConfig,
+    taxonomy_config: TaxonomyConfig,
+    split_separator: str,
+    taxonomy_langs: set[str],
 ) -> JSONType | None:
     field_input: JSONType = {}
     input_field = field.get_input_field()
@@ -276,21 +258,14 @@ class DocumentProcessor:
             input_field = field.get_input_field()
 
             if field.type == FieldType.text_lang:
-                if field.nested_lang_source:
-                    field_input = process_text_nested_lang_field(
-                        processed_data,
-                        input_field=field.get_input_field(),
-                        supported_langs=self.supported_langs,
-                    )
-                else:
-                    field_input = process_text_lang_field(
-                        processed_data,
-                        input_field=field.get_input_field(),
-                        split=field.split,
-                        lang_separator=self.config.lang_separator,
-                        split_separator=self.config.split_separator,
-                        supported_langs=self.supported_langs,
-                    )
+                field_input = process_text_lang_field(
+                    processed_data,
+                    input_field=field.get_input_field(),
+                    split=field.split,
+                    lang_separator=self.config.lang_separator,
+                    split_separator=self.config.split_separator,
+                    supported_langs=self.supported_langs,
+                )
 
             elif field.type == FieldType.taxonomy:
                 field_input = process_taxonomy_field(
@@ -339,5 +314,33 @@ def generate_index_object(index_name: str, config: Config) -> Index:
         number_of_replicas=config.index.number_of_replicas,
     )
     mapping = generate_mapping_object(config)
+    index.mapping(mapping)
+    return index
+
+
+def generate_taxonomy_mapping_object(config: Config) -> Mapping:
+    mapping = Mapping()
+    supported_langs = config.supported_langs
+    mapping.field("id", Keyword(required=True))
+    mapping.field("taxonomy_name", Keyword(required=True))
+    mapping.field(
+        "names",
+        Object(
+            required=True,
+            dynamic=False,
+            properties={lang: Completion() for lang in supported_langs},
+        ),
+    )
+    return mapping
+
+
+def generate_taxonomy_index_object(index_name: str, config: Config) -> Index:
+    index = Index(index_name)
+    taxonomy_index_config = config.taxonomy.autocomplete.index
+    index.settings(
+        number_of_shards=taxonomy_index_config.number_of_shards,
+        number_of_replicas=taxonomy_index_config.number_of_replicas,
+    )
+    mapping = generate_taxonomy_mapping_object(config)
     index.mapping(mapping)
     return index

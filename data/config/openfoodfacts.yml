@@ -143,23 +143,8 @@ taxonomy:
   - nl
   autocomplete:
     index:
-      id_field_name: code
-      last_modified_field_name: last_modified_t
-      name: taxonomy
       number_of_replicas: 1
       number_of_shards: 4
-    fields:
-      code:
-        required: true
-        type: keyword
-      last_modified_t:
-        type: date
-      taxonomy_name:
-        type: text
-      name:
-        completion_analyser: true
-        nested_lang_source: true
-        type: text_lang
     result_processor: app.postprocessing.CompletionProcessor
     sources:
       - name: additives

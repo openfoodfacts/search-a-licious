@@ -5,13 +5,10 @@ import pytest
 from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.parser import parser
 
-from app.config import Config
-from app.query import (
-    UnknownOperationRemover,
-    build_search_query,
-    parse_lucene_dsl_query,
-)
 from app._types import JSONType
+from app.config import Config
+from app.query import (UnknownOperationRemover, build_search_query,
+                       parse_lucene_dsl_query)
 from app.utils.io import dump_json, load_json
 
 DATA_DIR = Path(__file__).parent / "data"

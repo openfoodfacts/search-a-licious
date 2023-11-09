@@ -4,10 +4,11 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Union
 import cachetools
 import requests
 
-from app.config import settings
 from app._types import JSONType
+from app.config import settings
 from app.utils import get_logger
-from app.utils.download import download_file, http_session, should_download_file
+from app.utils.download import (download_file, http_session,
+                                should_download_file)
 from app.utils.io import load_json
 
 DEFAULT_CACHE_DIR = settings.taxonomy_cache_dir.expanduser()

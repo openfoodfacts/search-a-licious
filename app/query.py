@@ -9,9 +9,6 @@ from luqum.exceptions import ParseSyntaxError
 from luqum.parser import parser
 from luqum.tree import UnknownOperation, Word
 
-from app.config import Config, FieldType
-from app.indexing import generate_index_object
-from app.postprocessing import BaseResultProcessor
 from app._types import (
     ErrorSearchResponse,
     JSONType,
@@ -20,6 +17,9 @@ from app._types import (
     SearchResponseError,
     SuccessSearchResponse,
 )
+from app.config import Config, FieldType
+from app.indexing import generate_index_object
+from app.postprocessing import BaseResultProcessor
 from app.utils import get_logger
 
 logger = get_logger(__name__)
@@ -253,11 +253,7 @@ def build_search_query(
 
 
 def build_completion_query(
-    q: str,
-    taxonomy_name: str,
-    lang: str,
-    size: int,
-    config: Config
+    q: str, taxonomy_name: str, lang: str, size: int, config: Config
 ):
     """Build an elasticsearch_dsl Query.
 
@@ -269,9 +265,11 @@ def build_completion_query(
     :return: the built Query
     """
 
-    query = Search(index=config.index.name)
-    query = query.suggest('name', q, completion={'field': f"name.{lang}", 'size':size})
-    query = query.query('bool', filter=[Q('term', taxonomy_name=taxonomy_name)])
+    query = Search(index=config.taxonomy.autocomplete.index.name)
+    query = query.suggest(
+        "taxonomy_suggest", q, completion={"field": f"names.{lang}", "size": size}
+    )
+    query = query.query("bool", filter=[Q("term", taxonomy_name=taxonomy_name)])
     return query
 
 
