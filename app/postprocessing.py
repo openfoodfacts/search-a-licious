@@ -46,13 +46,18 @@ class BaseResultProcessor:
         return result
 
 
-def load_result_processor(result_processor: str | None) -> BaseResultProcessor | None:
+def load_result_processor(config: Config) -> BaseResultProcessor | None:
+    """Load the result processor class from the config.
+
+    :param config: the config object
+    :return: the initialized result processor
+    """
     result_processor_cls = (
-        load_class_object_from_string(result_processor)
-        if result_processor is not None
+        load_class_object_from_string(config.result_processor)
+        if config.result_processor is not None
         else BaseResultProcessor
     )
-    return result_processor_cls(result_processor)
+    return result_processor_cls(config)
 
 
 def process_taxonomy_completion_response(response: Response) -> JSONType:

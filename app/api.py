@@ -35,7 +35,7 @@ if config.CONFIG is None:
 else:
     # we cache query builder and result processor here for faster processing
     FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(config.CONFIG)
-    RESULT_PROCESSOR = load_result_processor(config.CONFIG.result_processor)
+    RESULT_PROCESSOR = load_result_processor(config.CONFIG)
 
 
 app = FastAPI(
