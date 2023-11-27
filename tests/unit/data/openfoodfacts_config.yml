@@ -134,6 +134,58 @@ taxonomy:
     url: https://static.openfoodfacts.org/data/taxonomies/categories.full.json
   - name: label
     url: https://static.openfoodfacts.org/data/taxonomies/labels.full.json
+  - name: additive
+    url: https://static.openfoodfacts.org/data/taxonomies/additives.full.json
+  - name: allergen
+    url: https://static.openfoodfacts.org/data/taxonomies/allergens.full.json
+  - name: amino_acid
+    url: https://static.openfoodfacts.org/data/taxonomies/amino_acids.full.json
+  - name: country
+    url: https://static.openfoodfacts.org/data/taxonomies/countries.full.json
+  - name: data_quality
+    url: https://static.openfoodfacts.org/data/taxonomies/data_quality.full.json
+  - name: food_group
+    url: https://static.openfoodfacts.org/data/taxonomies/food_groups.full.json
+  - name: improvement
+    url: https://static.openfoodfacts.org/data/taxonomies/improvements.full.json
+  - name: ingredient
+    url: https://static.openfoodfacts.org/data/taxonomies/ingredients.full.json
+  - name: ingredients_analysis
+    url: https://static.openfoodfacts.org/data/taxonomies/ingredients_analysis.full.json
+  - name: ingredients_processing
+    url: https://static.openfoodfacts.org/data/taxonomies/ingredients_processing.full.json
+  - name: language
+    url: https://static.openfoodfacts.org/data/taxonomies/languages.full.json
+  - name: mineral
+    url: https://static.openfoodfacts.org/data/taxonomies/minerals.full.json
+  - name: misc
+    url: https://static.openfoodfacts.org/data/taxonomies/misc.full.json
+  - name: nova_group
+    url: https://static.openfoodfacts.org/data/taxonomies/nova_groups.full.json
+  - name: nucleotide
+    url: https://static.openfoodfacts.org/data/taxonomies/nucleotides.full.json
+  - name: nutrient
+    url: https://static.openfoodfacts.org/data/taxonomies/nutrients.full.json
+  - name: origin
+    url: https://static.openfoodfacts.org/data/taxonomies/origins.full.json
+  - name: other_nutritional_substance
+    url: https://static.openfoodfacts.org/data/taxonomies/other_nutritional_substances.full.json
+  - name: packaging_material
+    url: https://static.openfoodfacts.org/data/taxonomies/packaging_materials.full.json
+  - name: packaging_recycling
+    url: https://static.openfoodfacts.org/data/taxonomies/packaging_recycling.full.json
+  - name: packaging_shape
+    url: https://static.openfoodfacts.org/data/taxonomies/packaging_shapes.full.json
+  - name: periods_after_opening
+    url: https://static.openfoodfacts.org/data/taxonomies/periods_after_opening.full.json
+  - name: preservation
+    url: https://static.openfoodfacts.org/data/taxonomies/preservation.full.json
+  - name: state
+    url: https://static.openfoodfacts.org/data/taxonomies/states.full.json
+  - name: vitamin
+    url: https://static.openfoodfacts.org/data/taxonomies/vitamins.full.json
+  - name: brand
+    url: https://static.openfoodfacts.org/data/taxonomies/brands.full.json
   exported_langs:
   - en
   - fr
@@ -141,6 +193,9 @@ taxonomy:
   - de
   - it
   - nl
+  index:
+    number_of_replicas: 1
+    number_of_shards: 4
 supported_langs:
 - aa
 - ab
