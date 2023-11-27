@@ -134,8 +134,9 @@ class FieldType(StrEnum):
 
 
 class FieldConfig(BaseModel):
-    # name of the field (internal field), it's added here for convenience
-    _name: str = ""
+    # name of the field (internal field), it's added here for convenience.
+    # It's set by the `add_field_name_to_each_field` classmethod.
+    name: Annotated[str, Field(description="name of the field, must be unique")] = ""
     type: Annotated[
         FieldType,
         Field(description="type of the field, see `FieldType` for possible values"),
@@ -169,13 +170,19 @@ class FieldConfig(BaseModel):
         ),
     ] = False
     taxonomy_name: Annotated[
-        str | None, Field(description="only for taxonomy field type")
+        str | None,
+        Field(
+            description="the name of the taxonomy associated with this field. "
+            "It must only be provided for taxonomy field type."
+        ),
     ] = None
-
-    @property
-    def name(self) -> str:
-        """Get field name."""
-        return self._name
+    add_taxonomy_synonyms: Annotated[
+        bool,
+        Field(
+            description="if True, add all synonyms of the taxonomy values to the index. "
+            "The flag is ignored if the field type is not `taxonomy`."
+        ),
+    ] = True
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_used_for_taxonomy_type_only(self):
@@ -358,9 +365,9 @@ class Config(BaseModel):
 
     @field_validator("fields")
     @classmethod
-    def add_field_name_to_each_field(cls, fields):
+    def add_field_name_to_each_field(cls, fields: dict[str, FieldConfig]):
         for field_name, field_item in fields.items():
-            field_item._name = field_name
+            field_item.name = field_name
         return fields
 
     def get_supported_langs(self) -> set[str]:

@@ -127,6 +127,23 @@ def process_text_lang_field(
     split_separator: str,
     supported_langs: set[str],
 ) -> JSONType | None:
+    """Process data for a `text_lang` field type.
+
+    Generates a dict ready to be indexed by Elasticsearch, with a subfield for
+    each language.
+
+    :param data: input data, as a dict
+    :param input_field: the name of the field to use as input
+    :param split: whether to split the input field value, using
+        `split_separator` as separator
+    :param lang_separator: the separator used to separate the language code
+        from the field name
+    :param split_separator: the separator used to split the input field value,
+        in case of multi-valued input (if `split` is True)
+    :param supported_langs: a set of supported languages (2-letter codes), used
+        to know which sub-fields to create
+    :return: the processed data, as a dict
+    """
     field_input: JSONType = {}
     target_fields = [
         k
@@ -170,6 +187,26 @@ def process_taxonomy_field(
     split_separator: str,
     taxonomy_langs: set[str],
 ) -> JSONType | None:
+    """Process data for a `taxonomy` field type.
+
+    Generates a dict ready to be indexed by Elasticsearch, with a subfield for
+    each language. Two other subfields are added:
+    - `original`: the original value of the field. For example, if the field
+        name is `categories` and `categories` already exist in the document,
+        we will save its value in the `original` subfield. This subfield is
+        only added if the field is present in the input data.
+    - `other`: the value of the field for languages that are not supported by
+        the project (no elasticsearch specific analyzers)
+
+    :param data: input data, as a dict
+    :param field: the field config
+    :param taxonomy_config: the taxonomy config
+    :param split_separator: the separator used to split the input field value,
+        in case of multi-valued input (if `field.split` is True)
+    :param taxonomy_langs: a set of supported languages (2-letter codes), used
+        to know which sub-fields to create.
+    :return: the processed data, as a dict
+    """
     field_input: JSONType = {}
     input_field = field.get_input_field()
     input_value = preprocess_field_value(
@@ -198,11 +235,25 @@ def process_taxonomy_field(
     langs = taxonomy_langs | set(data.get("taxonomy_langs", []))
     for lang in langs:
         for single_tag in input_value:
-            if (value := taxonomy.get_localized_name(single_tag, lang)) is not None:
-                # If language is not supported (=no elasticsearch specific
-                # analyzers), we store the data in a "other" field
-                key = lang if lang in ANALYZER_LANG_MAPPING else "other"
-                field_input.setdefault(key, []).append(value)
+            if single_tag not in taxonomy:
+                continue
+
+            node = taxonomy[single_tag]
+            values = {node.get_localized_name(lang)}
+
+            if field.add_taxonomy_synonyms:
+                values |= set(node.get_synonyms(lang))
+
+                # Add international version of the name
+                if "xx" in node.names:
+                    values |= set(node.get_synonyms("xx"))
+
+            for value in values:
+                if value is not None:
+                    # If language is not supported (=no elasticsearch specific
+                    # analyzers), we store the data in a "other" field
+                    key = lang if lang in ANALYZER_LANG_MAPPING else "other"
+                    field_input.setdefault(key, []).append(value)
 
     if field.name in data:
         field_input["original"] = data[field.name]
