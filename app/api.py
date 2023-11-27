@@ -59,9 +59,10 @@ connection.get_es_client()
 def get_document(identifier: str):
     """Fetch a document from Elasticsearch with specific ID."""
     check_config_is_defined()
-    id_field_name = config.CONFIG.index.id_field_name
+    id_field_name: str = config.CONFIG.index.id_field_name  # type: ignore
+    index_name: str = config.CONFIG.index.name  # type: ignore
     results = (
-        Search(index=config.CONFIG.index.name)
+        Search(index=index_name)
         .query("term", **{id_field_name: identifier})
         .extra(size=1)
         .execute()

@@ -141,15 +141,16 @@ def run_queue_safe(config: Config):
     logger.info("Starting redis consumer")
 
     # we need a dict to have a reference
-    queues = {"current": None}
+    queues: dict[str, QueueManager | None] = {"current": None}
 
     atexit.register(handle_stop, queues)
 
     alive = True
     while alive:
         try:
-            queues["current"] = QueueManager(config)
-            queues["current"].consume()
+            queue = QueueManager(config)
+            queues["current"] = queue
+            queue.consume()
             alive = False
         except Exception as e:
             logger.info("Received %s, respawning a consumer", e)
