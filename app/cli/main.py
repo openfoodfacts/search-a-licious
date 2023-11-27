@@ -31,6 +31,7 @@ def import_data(
 ):
     """Import data into Elasticsearch."""
     import time
+    from typing import cast
 
     from app import config
     from app.cli.perform_import import perform_import
@@ -44,12 +45,13 @@ def import_data(
 
     start_time = time.perf_counter()
     check_config_is_defined()
+    global_config = cast(config.Config, config.CONFIG)
     perform_import(
         input_path,
         num_items,
         num_processes,
         start_time,
-        config.CONFIG,  # type: ignore
+        global_config,
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
@@ -67,6 +69,7 @@ def import_taxonomies(
 ):
     """Import taxonomies into Elasticsearch."""
     import time
+    from typing import cast
 
     from app import config
     from app.cli.perform_import import perform_taxonomy_import
@@ -79,9 +82,10 @@ def import_taxonomies(
         set_global_config(config_path)
 
     check_config_is_defined()
+    global_config = cast(config.Config, config.CONFIG)
 
     start_time = time.perf_counter()
-    perform_taxonomy_import(config.CONFIG)
+    perform_taxonomy_import(global_config)
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
 
@@ -112,6 +116,8 @@ def import_from_queue(
         exists=True,
     ),
 ):
+    from typing import cast
+
     from app import config
     from app.config import check_config_is_defined, set_global_config, settings
     from app.queue_helpers import run_queue_safe
@@ -129,9 +135,10 @@ def import_from_queue(
     connection.get_es_client()
 
     check_config_is_defined()
+    global_config = cast(config.Config, config.CONFIG)
 
     # run queue
-    run_queue_safe(config.CONFIG)  # type: ignore
+    run_queue_safe(global_config)
 
 
 def main() -> None:

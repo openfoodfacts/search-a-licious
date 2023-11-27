@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any, cast
 
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query, Request
@@ -8,9 +8,10 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 from app import config
-from app._types import SearchResponse
+from app._types import SearchResponse, SuccessSearchResponse
 from app.config import check_config_is_defined, settings
 from app.postprocessing import (
+    BaseResultProcessor,
     load_result_processor,
     process_taxonomy_completion_response,
 )
@@ -59,10 +60,10 @@ connection.get_es_client()
 def get_document(identifier: str):
     """Fetch a document from Elasticsearch with specific ID."""
     check_config_is_defined()
-    id_field_name: str = config.CONFIG.index.id_field_name  # type: ignore
-    index_name: str = config.CONFIG.index.name  # type: ignore
+    global_config = cast(config.Config, config.CONFIG)
+    id_field_name = global_config.index.id_field_name
     results = (
-        Search(index=index_name)
+        Search(index=global_config.index.name)
         .query("term", **{id_field_name: identifier})
         .extra(size=1)
         .execute()
@@ -125,6 +126,8 @@ If not provided, `['en']` is used."""
     ] = None,
 ) -> SearchResponse:
     check_config_is_defined()
+    global_config = cast(config.Config, config.CONFIG)
+    result_processor = cast(BaseResultProcessor, RESULT_PROCESSOR)
     if q is None and sort_by is None:
         raise HTTPException(
             status_code=400, detail="`sort_by` must be provided when `q` is missing"
@@ -153,7 +156,7 @@ If not provided, `['en']` is used."""
         langs=langs_set,
         size=page_size,
         page=page,
-        config=config.CONFIG,
+        config=global_config,
         sort_by=sort_by,
         # filter query builder is generated from elasticsearch mapping and
         # takes ~40ms to generate, build-it before hand as we're using global
@@ -164,7 +167,11 @@ If not provided, `['en']` is used."""
 
     projection = set(fields.split(",")) if fields else None
     return execute_query(
-        query, RESULT_PROCESSOR, page=page, page_size=page_size, projection=projection
+        query,
+        result_processor,
+        page=page,
+        page_size=page_size,
+        projection=projection,
     )
 
 
@@ -189,13 +196,15 @@ def taxonomy_autocomplete(
         Query(description="Fuzziness level to use, default to no fuzziness."),
     ] = None,
 ):
+    check_config_is_defined()
+    global_config = cast(config.Config, config.CONFIG)
     taxonomy_names_list = taxonomy_names.split(",")
     query = build_completion_query(
         q=q,
         taxonomy_names=taxonomy_names_list,
         lang=lang,
         size=size,
-        config=config.CONFIG,
+        config=global_config,
         fuzziness=fuzziness,
     )
     es_response = query.execute()
@@ -222,7 +231,7 @@ def html_search(
         return templates.TemplateResponse("search.html", {"request": request})
 
     results = search(q=q, langs=langs, page_size=page_size, page=page, sort_by=sort_by)
-    template_data = {
+    template_data: dict[str, Any] = {
         "q": q or "",
         "request": request,
         "sort_by": sort_by,
@@ -230,9 +239,10 @@ def html_search(
         "es_query": json.dumps(results.debug.query, indent=4),
     }
     if results.is_success():
+        results = cast(SuccessSearchResponse, results)
         template_data["aggregations"] = results.aggregations
         page_count = results.page_count
-        pagination = [
+        pagination: list[dict[str, Any]] = [
             {"name": p, "selected": p == page, "page_id": p}
             for p in range(1, page_count + 1)
             # Allow to scroll over a window of 10 pages
