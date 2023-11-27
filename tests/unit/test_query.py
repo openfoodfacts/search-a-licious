@@ -140,6 +140,14 @@ def test_parse_lucene_dsl_query(
             2,
             None,
         ),
+        (
+            "empty_query_with_sort_by",
+            None,
+            {"en"},
+            25,
+            2,
+            "unique_scans_n",
+        ),
     ],
 )
 def test_build_search_query(

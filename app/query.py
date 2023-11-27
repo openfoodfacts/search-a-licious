@@ -225,7 +225,12 @@ def build_search_query(
     :param sort_by: sorting key, defaults to None (=relevance-based sorting)
     :return: the built Query
     """
-    filter_query, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
+    if q is None:
+        filter_query = []
+        remaining_terms = ""
+    else:
+        filter_query, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
+
     logger.debug("filter query: %s", filter_query)
     logger.debug("remaining terms: '%s'", remaining_terms)
 
