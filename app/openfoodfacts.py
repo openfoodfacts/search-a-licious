@@ -1,5 +1,6 @@
 import copy
 import re
+from typing import Any
 
 from app._types import JSONType
 from app.indexing import BaseDocumentPreprocessor
@@ -149,7 +150,7 @@ class ResultProcessor(BaseResultProcessor):
         # Python copy of the code from
         # https://github.com/openfoodfacts/openfoodfacts-server/blob/b297ed858d526332649562cdec5f1d36be184984/lib/ProductOpener/Display.pm#L10128
         code = product["code"]
-        fields = {}
+        fields: dict[str, Any] = {}
 
         for image_type in ["front", "ingredients", "nutrition", "packaging"]:
             display_ids = []
@@ -186,7 +187,9 @@ class ResultProcessor(BaseResultProcessor):
                 for language_code in product["languages_codes"]:
                     image_id = f"{image_type}_{language_code}"
                     if images and images.get(image_id) and images[image_id]["sizes"]:
-                        fields.setdefault("selected_images", {}).update(
+                        if "selected_images" not in fields:
+                            fields["selected_images"] = {}
+                        fields["selected_images"].update(
                             {
                                 image_type: {
                                     "display": {

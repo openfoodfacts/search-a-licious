@@ -225,6 +225,7 @@ def build_search_query(
     :param sort_by: sorting key, defaults to None (=relevance-based sorting)
     :return: the built Query
     """
+    filter_query: list[JSONType]
     if q is None:
         filter_query = []
         remaining_terms = ""
