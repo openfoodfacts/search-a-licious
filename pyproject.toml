@@ -51,6 +51,8 @@ exclude = '''
 [tool.mypy]
 ignore_missing_imports = true
 
+[tool.isort]
+profile = "black"
 
 [tool.coverage.run]
 data_file = ".cov/.coverage"
