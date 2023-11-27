@@ -205,7 +205,7 @@ def create_aggregation_clauses(config: Config) -> dict[str, Agg]:
 
 
 def build_search_query(
-    q: str,
+    q: str | None,
     langs: set[str],
     size: int,
     page: int,

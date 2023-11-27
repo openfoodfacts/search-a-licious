@@ -236,10 +236,8 @@ class IndexConfig(BaseModel):
 class TaxonomyIndexConfig(BaseModel):
     name: Annotated[
         str,
-        Field(
-            default="taxonomy", description="name of the taxonomy index alias to use"
-        ),
-    ]
+        Field(description="name of the taxonomy index alias to use"),
+    ] = "taxonomy"
     number_of_shards: Annotated[
         int, Field(description="number of shards to use for the index")
     ] = 4

@@ -66,7 +66,7 @@ taxonomy_config = TaxonomyConfig(
     sources=[
         TaxonomySourceConfig(
             name="category",
-            url="https://static.openfoodfacts.org/data/taxonomies/categories.full.json",
+            url="https://static.openfoodfacts.org/data/taxonomies/categories.full.json",  # type: ignore
         )
     ],
     exported_langs=["en"],
