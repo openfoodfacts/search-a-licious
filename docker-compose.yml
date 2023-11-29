@@ -40,7 +40,6 @@ x-api-common: &api-common
   environment:
     - ELASTICSEARCH_URL=http://es01:9200
     - REDIS_HOST=redis
-    - OPENFOODFACTS_API_URL
     - SENTRY_DNS
     - LOG_LEVEL
     # Directory where we cache downloaded taxonomies files

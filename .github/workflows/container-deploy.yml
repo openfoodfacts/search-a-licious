@@ -5,9 +5,8 @@ on:
     branches:
       - main
       - deploy-*
-# only staging for now, not prod
-#     tags:
-#       - v*.*.*
+    tags:
+      - v*.*.*
 
 
 # Note on secrets used for connection
@@ -30,15 +29,18 @@ jobs:
     environment: ${{ matrix.env }}
     concurrency: ${{ matrix.env }}
     steps:
+    - name: Set common variables
+      run: |
+        echo "SSH_PROXY_HOST=ovh1.openfoodfacts.org" >> $GITHUB_ENV
+        echo "SSH_USERNAME=off" >> $GITHUB_ENV
     - name: Set various variable for staging (net) deployment
       if: matrix.env == 'off-search-net'
       run: |
-        # direct container access
-        echo "OPENFOODFACTS_API_URL=https://off:off@world.openfoodfacts.net" >> $GITHUB_ENV
-        # deploy target
         echo "SSH_HOST=10.1.0.200" >> $GITHUB_ENV
-        echo "SSH_PROXY_HOST=ovh1.openfoodfacts.org" >> $GITHUB_ENV
-        echo "SSH_USERNAME=off" >> $GITHUB_ENV
+    - name: Set various variable for production deployment
+      if: matrix.env == 'robotoff-org'
+      run: |
+        echo "SSH_HOST=10.1.0.201" >> $GITHUB_ENV
     - name: Wait for search image container build workflow
       uses: tomchv/wait-my-workflow@v1.1.0
       id: wait-build
@@ -120,9 +122,8 @@ jobs:
           echo "MEM_LIMIT=4294967296" >> .env
           # this is the network shared with productopener
           echo "COMMON_NET_NAME=po_webnet">> .env
-          echo "OPENFOODFACTS_API_URL=${{ env.OPENFOODFACTS_API_URL }}" >> .env
           # This secret is to be generated using htpasswd, see .env file
-          # use simple quotes to avoid interpolation of $apr1$ !
+          # use simple quotes to avoid interpolation of $apr1$!
           echo 'NGINX_BASIC_AUTH_USER_PASSWD=${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}' >> .env
           echo "SENTRY_DNS=${{ secrets.SENTRY_DSN }}" >> .env
           echo "CONFIG_PATH=data/config/openfoodfacts.yml" >> .env
