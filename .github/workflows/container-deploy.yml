@@ -22,10 +22,7 @@ jobs:
     strategy:
       matrix:
         env:
-          # only stagging for now
-          # Note: env is also the name of the directory on the server
-          - off-search-net
-          # - ${{ startsWith(github.ref, 'refs/tags/v') && 'off-search-org' || 'off-search-net' }}
+          - ${{ startsWith(github.ref, 'refs/tags/v') && 'off-search-org' || 'off-search-net' }}
     environment: ${{ matrix.env }}
     concurrency: ${{ matrix.env }}
     steps:
