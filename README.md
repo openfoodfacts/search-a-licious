@@ -77,3 +77,10 @@ docker-compose run --rm -v $(pwd)/path/to/products.jsonl.gz:/mnt/products.jsonl.
 If you get errors, try adding more RAM (12GB works well if you have that spare), or slow down the indexing process by setting `num_processes` to 1 in the command above.
 
 Typical import time is 45-60 minutes.
+
+## Fundings
+
+This project has received financial support from the NGI Search (New Generation Internet) program, funded by the European Commission.
+
+![NGI-search logo](./assets/NGISearch_logo_tag_icon.svg "NGI-search logo"){height=100px}
+![European flag](./assets/europa-flag.jpg "European flag"){height=100px}
