@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from typing import Annotated, Any, cast
 
+import elasticsearch
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
@@ -207,7 +208,14 @@ def taxonomy_autocomplete(
         config=global_config,
         fuzziness=fuzziness,
     )
-    es_response = query.execute()
+    try:
+        es_response = query.execute()
+    except elasticsearch.NotFoundError:
+        raise HTTPException(
+            status_code=500,
+            detail="taxonomy index not found, taxonomies need to be imported first",
+        )
+
     response = process_taxonomy_completion_response(es_response)
 
     return {
