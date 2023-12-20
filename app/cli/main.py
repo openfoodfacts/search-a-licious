@@ -34,7 +34,7 @@ def import_data(
     from typing import cast
 
     from app import config
-    from app.cli.perform_import import perform_import
+    from app._import import run_full_import
     from app.config import check_config_is_defined, set_global_config
     from app.utils import get_logger
 
@@ -46,12 +46,11 @@ def import_data(
     start_time = time.perf_counter()
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
-    perform_import(
+    run_full_import(
         input_path,
-        num_items,
         num_processes,
-        start_time,
         global_config,
+        num_items=num_items,
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
@@ -72,7 +71,7 @@ def import_taxonomies(
     from typing import cast
 
     from app import config
-    from app.cli.perform_import import perform_taxonomy_import
+    from app._import import perform_taxonomy_import
     from app.config import check_config_is_defined, set_global_config
     from app.utils import get_logger
 
@@ -91,23 +90,7 @@ def import_taxonomies(
 
 
 @app.command()
-def write_to_redis(doc_id: str):
-    import time
-
-    from app.config import settings
-    from app.utils import get_logger
-    from app.utils.connection import get_redis_client
-
-    logger = get_logger()
-    redis = get_redis_client()
-    start_time = time.perf_counter()
-    redis.rpush(settings.redis_import_queue, doc_id)
-    end_time = time.perf_counter()
-    logger.info("Time: %s seconds", end_time - start_time)
-
-
-@app.command()
-def import_from_queue(
+def run_update_daemon(
     config_path: Optional[Path] = typer.Option(
         default=None,
         help="path of the yaml configuration file, it overrides CONFIG_PATH envvar",
@@ -116,12 +99,14 @@ def import_from_queue(
         exists=True,
     ),
 ):
+    """Run the daemon responsible for listening to document updates from Redis
+    Stream and updating the Elasticsearch index."""
     from typing import cast
 
     from app import config
+    from app._import import run_update_daemon
     from app.config import check_config_is_defined, set_global_config, settings
-    from app.queue_helpers import run_queue_safe
-    from app.utils import connection, get_logger, init_sentry
+    from app.utils import get_logger, init_sentry
 
     # Create root logger
     get_logger()
@@ -131,14 +116,9 @@ def import_from_queue(
     if config_path:
         set_global_config(config_path)
 
-    # create elasticsearch connection
-    connection.get_es_client()
-
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
-
-    # run queue
-    run_queue_safe(global_config)
+    run_update_daemon(global_config)
 
 
 def main() -> None:

@@ -126,6 +126,7 @@ document_denylist:
 lang_separator: _
 match_phrase_boost: 2.0
 preprocessor: app.openfoodfacts.DocumentPreprocessor
+document_fetcher: app.openfoodfacts.DocumentFetcher
 result_processor: app.openfoodfacts.ResultProcessor
 split_separator: ','
 taxonomy:

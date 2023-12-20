@@ -35,15 +35,12 @@ class LoggingLevel(StrEnum):
 class Settings(BaseSettings):
     # Path of the search-a-licious yaml configuration file
     config_path: Path | None = None
-    redis_expiration: int = 60 * 60 * 36  # 36h
     redis_reader_timeout: int = 5
-    # Prefix to use when saving documents to be processed after a new full
-    # import in Redis
-    redis_document_prefix: str = "product"
     elasticsearch_url: str = "http://localhost:9200"
     redis_host: str = "localhost"
-    # the name of the Redis list to read from when listening to product updates
-    redis_import_queue: str = "search_import_queue"
+    # the name of the Redis stream to read from when listening to product
+    # updates
+    redis_import_stream_name: str = "product_update"
     # TODO: this should be in the config below
     openfoodfacts_base_url: str = "https://world.openfoodfacts.org"
     sentry_dns: str | None = None
@@ -300,12 +297,22 @@ class Config(BaseModel):
             description="A list of all supported languages, it is used to build index mapping"
         ),
     ]
+    document_fetcher: Annotated[
+        str,
+        Field(
+            description="The full qualified reference to the document fetcher, i.e. the class "
+            "responsible from fetching the document using the document ID present in the Redis "
+            "Stream.",
+            examples=["app.openfoodfacts.DocumentFetcher"],
+        ),
+    ]
     preprocessor: Annotated[
         str,
         Field(
             description="The full qualified reference to the preprocessor to use before "
             "data import. This is used to adapt the data schema or to add search-a-licious "
-            "specific fields for example."
+            "specific fields for example.",
+            examples=["app.openfoodfacts.DocumentPreprocessor"],
         ),
     ] | None = None
     result_processor: Annotated[
@@ -313,7 +320,8 @@ class Config(BaseModel):
         Field(
             description="The full qualified reference to the elasticsearch result processor "
             "to use after search query to Elasticsearch. This is used to add custom fields "
-            "for example."
+            "for example.",
+            examples=["app.openfoodfacts.ResultProcessor"],
         ),
     ] | None = None
     match_phrase_boost: Annotated[
