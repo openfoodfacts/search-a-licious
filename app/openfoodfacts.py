@@ -1,11 +1,19 @@
 import copy
+import os
 import re
 from typing import Any
 
+import requests
+
+from app._import import BaseDocumentFetcher
 from app._types import JSONType
 from app.indexing import BaseDocumentPreprocessor
 from app.postprocessing import BaseResultProcessor
 from app.taxonomy import get_taxonomy
+from app.utils.download import http_session
+from app.utils.log import get_logger
+
+logger = get_logger(__name__)
 
 COUNTRIES_TAXONOMY_URL = (
     "https://static.openfoodfacts.org/data/taxonomies/countries.full.json"
@@ -74,6 +82,30 @@ def generate_image_url(code: str, image_id: str) -> str:
     return "https://images.openfoodfacts.org/images/products" + generate_image_path(
         code, image_id
     )
+
+
+# This is not part of search-a-licious, so we don't use the settings object
+OFF_API_URL = os.environ.get("OFF_API_URL", "https://world.openfoodfacts.org")
+
+
+class DocumentFetcher(BaseDocumentFetcher):
+    def fetch_document(self, stream_name: str, item: JSONType) -> JSONType | None:
+        code = item["code"]
+        url = f"{OFF_API_URL}/api/v2/product/{code}"
+        try:
+            response = http_session.get(url)
+        except requests.exceptions.RequestException as exc:
+            logger.warning("Failed to fetch %s: %s", url, exc)
+            return None
+        try:
+            json_response = response.json()
+        except requests.exceptions.JSONDecodeError as exc:
+            logger.warning("Failed to decode JSON response from %s: %s", url, exc)
+            return None
+
+        if not json_response or not json_response.get("product"):
+            return None
+        return json_response["product"]
 
 
 class DocumentPreprocessor(BaseDocumentPreprocessor):

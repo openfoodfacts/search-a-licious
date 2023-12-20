@@ -46,6 +46,8 @@ x-api-common: &api-common
     - TAXONOMY_CACHE_DIR
     # Path of the yaml configuration file
     - CONFIG_PATH
+    # URL of the OFF API
+    - OFF_API_URL
   networks:
     - default
     - common_net
@@ -97,19 +99,7 @@ services:
   # service listening to redis for updates
   updater:
     <<: *api-common
-    command: ["python3", "-m", "app", "import-from-queue"]
-
-  redis:
-    image: redis
-    restart: ${RESTART_POLICY}
-    command: redis-server --save 20 1 --loglevel warning
-    volumes:
-      - rediscache:/data
-    ports:
-      - "${REDIS_PORT}:6379"
-    networks:
-      - default
-      - common_net
+    command: ["python3", "-m", "app", "run-update-daemon"]
 
 volumes:
   esdata01:
