@@ -90,10 +90,12 @@ def get_processed_since(
             timestamp = int(timestamp_id.split("-")[0])
             # Avoid fetching the same ID repeatedly
             if id_ in fetched_ids:
+                logger.debug(f"Skipping ID {id_} because it was already fetched")
                 continue
             fetched_ids.add(id_)
             document = document_fetcher.fetch_document(stream_name, item)
             if document is None:
+                logger.debug(f"Skipping ID {id_} because it was not found")
                 continue
             yield timestamp, document
 
@@ -137,6 +139,7 @@ def get_new_updates(
             timestamp = int(timestamp_id.split("-")[0])
             document = document_fetcher.fetch_document(stream_name, item)
             if document is None:
+                logger.debug(f"Skipping ID {id_} because it was not found")
                 continue
             yield timestamp, document
 
