@@ -22,7 +22,7 @@ x-api-base: &api-base
 services:
   es01:
     ports:
-      - "${ES_PORT}:9200"
+      - "${ES_EXPOSE}:9200"
   api:
     <<: *api-base
     # uvicorn in reload mode

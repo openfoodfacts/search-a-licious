@@ -13,7 +13,7 @@ def get_es_client(**kwargs):
 
 def get_redis_client() -> Redis:
     return Redis(
-        host="redis",
-        port=6379,
+        host=settings.redis_host,
+        port=settings.redis_port,
         decode_responses=True,
     )

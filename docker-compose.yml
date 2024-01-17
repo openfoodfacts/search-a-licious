@@ -39,9 +39,10 @@ x-api-common: &api-common
   restart: ${RESTART_POLICY}
   environment:
     - ELASTICSEARCH_URL=http://es01:9200
-    - REDIS_HOST=redis
     - SENTRY_DNS
     - LOG_LEVEL
+    - REDIS_HOST
+    - REDIS_PORT
     # Directory where we cache downloaded taxonomies files
     - TAXONOMY_CACHE_DIR
     # Path of the yaml configuration file
@@ -83,7 +84,7 @@ services:
     environment:
       - NGINX_BASIC_AUTH_USER_PASSWD
     ports:
-      - "${ES_VUE_PORT}:8080"
+      - "${ES_VUE_EXPOSE}:8080"
     volumes:
       # we add an entrypoint to eventually add basic auth
       - ./docker/elasticvue-entrypoint.sh:/bin/elasticvue-entrypoint.sh:ro
@@ -94,7 +95,7 @@ services:
   api:
     <<: *api-common
     ports:
-      - "${SEARCH_PORT}:8000"
+      - "${SEARCH_EXPOSE}:8000"
 
   # service listening to redis for updates
   updater:

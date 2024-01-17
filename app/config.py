@@ -38,6 +38,7 @@ class Settings(BaseSettings):
     redis_reader_timeout: int = 5
     elasticsearch_url: str = "http://localhost:9200"
     redis_host: str = "localhost"
+    redis_port: int = 6379
     # the name of the Redis stream to read from when listening to product
     # updates
     redis_import_stream_name: str = "product_update"
