@@ -123,7 +123,7 @@ jobs:
           echo "SEARCH_EXPOSE=8180" >> .env
           echo "ES_VUE_EXPOSE=8181" >> .env
           echo "REDIS_HOST=redis" >> .env
-          echo "REDIS_PORT=8182" >> .env
+          echo "REDIS_PORT=6379" >> .env
           echo "MEM_LIMIT=4294967296" >> .env
           # this is the network shared with productopener
           echo "COMMON_NET_NAME=${{ env.COMMON_NET_NAME }}">> .env
