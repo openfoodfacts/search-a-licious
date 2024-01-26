@@ -3,21 +3,8 @@ import datetime
 import re
 from typing import Iterable
 
-from elasticsearch_dsl import (
-    Boolean,
-    Completion,
-    Date,
-    Double,
-    Field,
-    Float,
-    Index,
-    Integer,
-    Keyword,
-    Mapping,
-    Object,
-    Text,
-    analyzer,
-)
+from elasticsearch_dsl import Index, Mapping, analyzer
+from elasticsearch_dsl import field as dsl_field
 
 from app._types import JSONType
 from app.config import (
@@ -32,10 +19,25 @@ from app.taxonomy import get_taxonomy
 from app.utils import load_class_object_from_string
 from app.utils.analyzers import AUTOCOMPLETE_ANALYZERS
 
+FIELD_TYPE_TO_DSL_TYPE = {
+    FieldType.keyword: dsl_field.Keyword,
+    FieldType.date: dsl_field.Date,
+    FieldType.half_float: dsl_field.HalfFloat,
+    FieldType.scaled_float: dsl_field.ScaledFloat,
+    FieldType.float: dsl_field.Float,
+    FieldType.double: dsl_field.Double,
+    FieldType.integer: dsl_field.Integer,
+    FieldType.short: dsl_field.Short,
+    FieldType.long: dsl_field.Long,
+    FieldType.unsigned_long: dsl_field.Long,
+    FieldType.bool: dsl_field.Boolean,
+    FieldType.text: dsl_field.Text,
+}
+
 
 def generate_dsl_field(
     field: FieldConfig, supported_langs: Iterable[str], taxonomy_langs: Iterable[str]
-) -> Field:
+) -> dsl_field.Field:
     """Generate Elasticsearch DSL field from a FieldConfig.
 
     :param field: the field to use as input
@@ -49,45 +51,40 @@ def generate_dsl_field(
         # in `other`, we store the text of all languages that don't have a
         # built-in ES analyzer. By using a single field, we don't create as
         # many subfields as there are supported languages
-        properties = {"other": Text(analyzer=analyzer("standard"))}
+        properties = {"other": dsl_field.Text(analyzer=analyzer("standard"))}
         for lang in taxonomy_langs:
             if lang in ANALYZER_LANG_MAPPING:
-                properties[lang] = Text(analyzer=analyzer(ANALYZER_LANG_MAPPING[lang]))
-        return Object(required=field.required, dynamic=False, properties=properties)
+                properties[lang] = dsl_field.Text(
+                    analyzer=analyzer(ANALYZER_LANG_MAPPING[lang])
+                )
+        return dsl_field.Object(
+            required=field.required, dynamic=False, properties=properties
+        )
 
     elif field.type is FieldType.text_lang:
         properties = {
             # we use `other` field for the same reason as for the `taxonomy`
             # type
-            "other": Text(analyzer=analyzer("standard")),
+            "other": dsl_field.Text(analyzer=analyzer("standard")),
             # Add subfield used to save main language version for `text_lang`
-            "main": Text(analyzer=analyzer("standard")),
+            "main": dsl_field.Text(analyzer=analyzer("standard")),
         }
         for lang in supported_langs:
             if lang in ANALYZER_LANG_MAPPING:
-                properties[lang] = Text(analyzer=analyzer(ANALYZER_LANG_MAPPING[lang]))
-        return Object(required=field.required, dynamic=False, properties=properties)
+                properties[lang] = dsl_field.Text(
+                    analyzer=analyzer(ANALYZER_LANG_MAPPING[lang])
+                )
+        return dsl_field.Object(dynamic=False, properties=properties)
 
     elif field.type == FieldType.object:
-        return Object(required=field.required, dynamic=True)
-    elif field.type == FieldType.keyword:
-        return Keyword(required=field.required)
-    elif field.type == FieldType.text:
-        return Text(required=field.required)
-    elif field.type == FieldType.float:
-        return Float(required=field.required)
-    elif field.type == FieldType.double:
-        return Double(required=field.required)
-    elif field.type == FieldType.integer:
-        return Integer(required=field.required)
-    elif field.type == FieldType.bool:
-        return Boolean(required=field.required)
-    elif field.type == FieldType.date:
-        return Date(required=field.required)
+        return dsl_field.Object(dynamic=True)
     elif field.type == FieldType.disabled:
-        return Object(required=field.required, enabled=False)
+        return dsl_field.Object(enabled=False)
     else:
-        raise ValueError(f"unsupported field type: {field.type}")
+        cls_ = FIELD_TYPE_TO_DSL_TYPE.get(field.type)
+        if cls_ is None:
+            raise ValueError(f"unsupported field type: {field.type}")
+        return cls_()
 
 
 def preprocess_field_value(
@@ -355,7 +352,7 @@ def generate_mapping_object(config: Config) -> Mapping:
         )
 
     # date of last index for the purposes of search
-    mapping.field("last_indexed_datetime", Date(required=True))
+    mapping.field("last_indexed_datetime", dsl_field.Date(required=True))
     return mapping
 
 
@@ -373,15 +370,15 @@ def generate_index_object(index_name: str, config: Config) -> Index:
 def generate_taxonomy_mapping_object(config: Config) -> Mapping:
     mapping = Mapping()
     supported_langs = config.supported_langs
-    mapping.field("id", Keyword(required=True))
-    mapping.field("taxonomy_name", Keyword(required=True))
+    mapping.field("id", dsl_field.Keyword(required=True))
+    mapping.field("taxonomy_name", dsl_field.Keyword(required=True))
     mapping.field(
         "names",
-        Object(
+        dsl_field.Object(
             required=True,
             dynamic=False,
             properties={
-                lang: Completion(
+                lang: dsl_field.Completion(
                     analyzer=AUTOCOMPLETE_ANALYZERS.get(lang, "simple"),
                     contexts=[
                         {
