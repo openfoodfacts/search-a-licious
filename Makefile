@@ -69,6 +69,22 @@ down:
 	${DOCKER_COMPOSE} down
 
 
+#-----------#
+# Utilities #
+#-----------#
+
+guard-%: # guard clause for targets that require an environment variable (usually used as an argument)
+	@ if [ "${${*}}" = "" ]; then \
+   		echo "Environment variable '$*' is mandatory"; \
+   		echo use "make ${MAKECMDGOALS} $*=you-args"; \
+   		exit 1; \
+	fi;
+
+import-dataset: guard-filepath
+	@echo "🥫 Importing data …"
+	${DOCKER_COMPOSE} run --rm api python3 -m app import /opt/search/data/${filepath} --num-processes=2
+
+
 #-------#
 # Tests #
 #-------#

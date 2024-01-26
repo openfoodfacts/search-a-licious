@@ -62,17 +62,9 @@ pre-commit run
 ```
 
 ### Running the import:
-To import data from the [JSONL export](https://world.openfoodfacts.org/data):
+To import data from the [JSONL export](https://world.openfoodfacts.org/data), download the dataset in the `data` folder, then run:
 
-1Run the following command:
-```console
-python3 -m app import /path/to/products.jsonl.gz --num_processes=2
-```
-
-Or using docker:
-```console
-docker-compose run --rm -v $(pwd)/path/to/products.jsonl.gz:/mnt/products.jsonl.gz:ro api python3 -m app import /mnt/products.jsonl.gz --num-processes=2
-```
+`make import-dataset filepath='products.jsonl.gz'`
 
 If you get errors, try adding more RAM (12GB works well if you have that spare), or slow down the indexing process by setting `num_processes` to 1 in the command above.
 
