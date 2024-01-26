@@ -454,6 +454,13 @@ def run_update_daemon(config: Config) -> None:
     logger.info("Starting update import daemon")
     es_client = connection.get_es_client()
     redis_client = connection.get_redis_client()
+
+    if redis_client.ping():
+        logger.info("Connected to Redis")
+    else:
+        logger.error("Could not connect to Redis")
+        return
+
     document_fetcher = load_document_fetcher(config)
     processor = DocumentProcessor(config)
 
