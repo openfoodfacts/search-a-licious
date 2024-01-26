@@ -116,7 +116,7 @@ fields:
   unknown_ingredients_n:
     type: integer
   popularity_key:
-    type: integer
+    type: long
   nutriscore_score:
     type: integer
   completeness:
