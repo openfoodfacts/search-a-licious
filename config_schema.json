@@ -2,6 +2,12 @@
     "$defs": {
         "FieldConfig": {
             "properties": {
+                "name": {
+                    "default": "",
+                    "description": "name of the field, must be unique",
+                    "title": "Name",
+                    "type": "string"
+                },
                 "type": {
                     "allOf": [
                         {
@@ -35,10 +41,16 @@
                     "title": "Split",
                     "type": "boolean"
                 },
-                "include_multi_match": {
+                "full_text_search": {
                     "default": false,
-                    "description": "do we include the field in the multi-match query used as baseline results",
-                    "title": "Include Multi Match",
+                    "description": "do we include perform full text search using this field. If false, the field is only used during search when filters involving this field are provided.",
+                    "title": "Full Text Search",
+                    "type": "boolean"
+                },
+                "bucket_agg": {
+                    "default": false,
+                    "description": "do we add an bucket aggregation to the elasticsearch query for this field. It is used to return a 'faceted-view' with the number of results for each facet value. Only valid for keyword or numeric field types.",
+                    "title": "Bucket Agg",
                     "type": "boolean"
                 },
                 "taxonomy_name": {
@@ -51,8 +63,14 @@
                         }
                     ],
                     "default": null,
-                    "description": "only for taxonomy field type",
+                    "description": "the name of the taxonomy associated with this field. It must only be provided for taxonomy field type.",
                     "title": "Taxonomy Name"
+                },
+                "add_taxonomy_synonyms": {
+                    "default": true,
+                    "description": "if True, add all synonyms of the taxonomy values to the index. The flag is ignored if the field type is not `taxonomy`.",
+                    "title": "Add Taxonomy Synonyms",
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -65,9 +83,14 @@
             "enum": [
                 "keyword",
                 "date",
-                "double",
+                "half_float",
+                "scaled_float",
                 "float",
+                "double",
                 "integer",
+                "short",
+                "long",
+                "unsigned_long",
                 "bool",
                 "text",
                 "text_lang",
@@ -133,13 +156,46 @@
                     },
                     "title": "Exported Langs",
                     "type": "array"
+                },
+                "index": {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/TaxonomyIndexConfig"
+                        }
+                    ],
+                    "description": "configuration of the taxonomy index. There is a single index for all taxonomies."
                 }
             },
             "required": [
                 "sources",
-                "exported_langs"
+                "exported_langs",
+                "index"
             ],
             "title": "TaxonomyConfig",
+            "type": "object"
+        },
+        "TaxonomyIndexConfig": {
+            "properties": {
+                "name": {
+                    "default": "taxonomy",
+                    "description": "name of the taxonomy index alias to use",
+                    "title": "Name",
+                    "type": "string"
+                },
+                "number_of_shards": {
+                    "default": 4,
+                    "description": "number of shards to use for the index",
+                    "title": "Number Of Shards",
+                    "type": "integer"
+                },
+                "number_of_replicas": {
+                    "default": 1,
+                    "description": "number of replicas to use for the index",
+                    "title": "Number Of Replicas",
+                    "type": "integer"
+                }
+            },
+            "title": "TaxonomyIndexConfig",
             "type": "object"
         },
         "TaxonomySourceConfig": {
@@ -203,10 +259,29 @@
             ],
             "description": "configuration of the taxonomies used"
         },
+        "supported_langs": {
+            "description": "A list of all supported languages, it is used to build index mapping",
+            "items": {
+                "type": "string"
+            },
+            "title": "Supported Langs",
+            "type": "array"
+        },
+        "document_fetcher": {
+            "description": "The full qualified reference to the document fetcher, i.e. the class responsible from fetching the document using the document ID present in the Redis Stream.",
+            "examples": [
+                "app.openfoodfacts.DocumentFetcher"
+            ],
+            "title": "Document Fetcher",
+            "type": "string"
+        },
         "preprocessor": {
             "anyOf": [
                 {
                     "description": "The full qualified reference to the preprocessor to use before data import. This is used to adapt the data schema or to add search-a-licious specific fields for example.",
+                    "examples": [
+                        "app.openfoodfacts.DocumentPreprocessor"
+                    ],
                     "type": "string"
                 },
                 {
@@ -220,6 +295,9 @@
             "anyOf": [
                 {
                     "description": "The full qualified reference to the elasticsearch result processor to use after search query to Elasticsearch. This is used to add custom fields for example.",
+                    "examples": [
+                        "app.openfoodfacts.ResultProcessor"
+                    ],
                     "type": "string"
                 },
                 {
@@ -228,22 +306,6 @@
             ],
             "default": null,
             "title": "Result Processor"
-        },
-        "supported_langs": {
-            "anyOf": [
-                {
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                {
-                    "type": "null"
-                }
-            ],
-            "default": null,
-            "description": "A list of all supported languages, it is used to build index mapping",
-            "title": "Supported Langs"
         },
         "match_phrase_boost": {
             "default": 2.0,
@@ -264,7 +326,9 @@
     "required": [
         "index",
         "fields",
-        "taxonomy"
+        "taxonomy",
+        "supported_langs",
+        "document_fetcher"
     ],
     "title": "JSON schema for search-a-licious configuration file",
     "type": "object",
