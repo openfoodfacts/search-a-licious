@@ -12,6 +12,7 @@ from app.config import (
     Config,
     FieldConfig,
     FieldType,
+    IndexConfig,
     TaxonomyConfig,
     TaxonomySourceConfig,
 )
@@ -263,7 +264,7 @@ class DocumentProcessor:
     into a dict that is ready to be indexed by Elasticsearch.
     """
 
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: IndexConfig) -> None:
         self.config = config
         self.supported_langs = config.get_supported_langs()
         self.taxonomy_langs = config.get_taxonomy_langs()
@@ -339,7 +340,7 @@ class DocumentProcessor:
         return inputs
 
 
-def generate_mapping_object(config: Config) -> Mapping:
+def generate_mapping_object(config: IndexConfig) -> Mapping:
     mapping = Mapping()
     supported_langs = config.supported_langs
     taxonomy_langs = config.taxonomy.exported_langs
@@ -356,7 +357,7 @@ def generate_mapping_object(config: Config) -> Mapping:
     return mapping
 
 
-def generate_index_object(index_name: str, config: Config) -> Index:
+def generate_index_object(index_name: str, config: IndexConfig) -> Index:
     index = Index(index_name)
     index.settings(
         number_of_shards=config.index.number_of_shards,
@@ -367,7 +368,7 @@ def generate_index_object(index_name: str, config: Config) -> Index:
     return index
 
 
-def generate_taxonomy_mapping_object(config: Config) -> Mapping:
+def generate_taxonomy_mapping_object(config: IndexConfig) -> Mapping:
     mapping = Mapping()
     supported_langs = config.supported_langs
     mapping.field("id", dsl_field.Keyword(required=True))
@@ -395,7 +396,7 @@ def generate_taxonomy_mapping_object(config: Config) -> Mapping:
     return mapping
 
 
-def generate_taxonomy_index_object(index_name: str, config: Config) -> Index:
+def generate_taxonomy_index_object(index_name: str, config: IndexConfig) -> Index:
     index = Index(index_name)
     taxonomy_index_config = config.taxonomy.index
     index.settings(

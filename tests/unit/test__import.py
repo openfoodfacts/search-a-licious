@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
+from redis import Redis
+
 from app._import import (
     BaseDocumentFetcher,
     gen_documents,
@@ -16,7 +18,7 @@ from app._import import (
     update_alias,
 )
 from app._types import JSONType
-from app.config import Config
+from app.config import Config, IndexConfig
 from app.indexing import DocumentProcessor
 
 
@@ -28,7 +30,7 @@ class TestRedisXrangeClient:
     def xrange(
         self, name: str, min: str = "-", max: str = "+", count: int | None = None
     ):
-        assert name == "product_update"
+        assert name == "product_updates_off"
         assert max == "+"
         assert count == 100
         if self.call_count >= len(self.xrange_return_values):
@@ -38,20 +40,19 @@ class TestRedisXrangeClient:
 
 
 class TestDocumentFetcher(BaseDocumentFetcher):
-    def __init__(self, config: Config, *args, **kwargs):
+    def __init__(self, config: IndexConfig, *args, **kwargs):
         self.missing_documents = kwargs.pop("missing_documents", set())
         super().__init__(config, *args, **kwargs)
 
     def fetch_document(self, stream_name: str, item: JSONType) -> JSONType | None:
-        assert stream_name == "product_update"
+        assert stream_name == "product_updates_off"
         id_ = item["code"]
         if id_ in self.missing_documents:
             return None
         return {"code": id_, "name": f"Document {id_}"}
 
 
-def test_get_processed_since(default_config):
-    default_config = cast(Config, default_config)
+def test_get_processed_since(default_config: IndexConfig):
     id_field_name = default_config.index.id_field_name
     return_values = [
         [
@@ -65,7 +66,7 @@ def test_get_processed_since(default_config):
             ("1629878400004-0", {"code": "4"}),
         ]
     ]
-    redis_client = TestRedisXrangeClient(return_values)
+    redis_client = cast(Redis, TestRedisXrangeClient(return_values))
     # Wed Aug 25 08:00:00 2021 UTC
     start_timestamp_ms = 1629878400000  # Example start timestamp
     document_fetcher = TestDocumentFetcher(default_config, missing_documents={"4"})
@@ -74,6 +75,7 @@ def test_get_processed_since(default_config):
     results = list(
         get_processed_since(
             redis_client,
+            cast(str, default_config.redis_stream_name),
             start_timestamp_ms,
             id_field_name,
             document_fetcher,
@@ -88,7 +90,11 @@ def test_get_processed_since(default_config):
 
     results = list(
         get_processed_since(
-            redis_client, start_timestamp_ms, id_field_name, document_fetcher
+            redis_client,
+            cast(str, default_config.redis_stream_name),
+            start_timestamp_ms,
+            id_field_name,
+            document_fetcher,
         )
     )
     # Check that results are empty
@@ -101,7 +107,7 @@ class TestRedisXreadClient:
         self.call_count = 0
 
     def xread(self, streams: dict, block: int, count: int | None = None):
-        assert set(streams.keys()) == {"product_update"}
+        assert set(streams.keys()) == {"product_updates_off"}
         assert block == 0
         assert count == 100
         if self.call_count >= len(self.xread_return_values):
@@ -110,44 +116,51 @@ class TestRedisXreadClient:
         return self.xread_return_values[self.call_count - 1]
 
 
-def test_get_new_updates(default_config):
+def test_get_new_updates(default_config: IndexConfig):
+    redis_stream_name = cast(str, default_config.redis_stream_name)
     return_values = [
         [
             (
-                "product_update",
+                redis_stream_name,
                 [("1629878400002-0", {"code": "4"})],
             )
         ],
         [
             (
-                "product_update",
+                redis_stream_name,
                 [("1629878400000-0", {"code": "1"})],
             )
         ],
         [
             (
-                "product_update",
+                redis_stream_name,
                 [("1629878400001-0", {"code": "2"})],
             )
         ],
         [
             (
-                "product_update",
+                redis_stream_name,
                 [("1629878400003-0", {"code": "3"})],
             )
         ],
     ]
-    default_config = cast(Config, default_config)
-    redis_client = TestRedisXreadClient(return_values)
+    redis_client = cast(Redis, TestRedisXreadClient(return_values))
     document_fetcher = TestDocumentFetcher(default_config, missing_documents={"4"})
 
     # Call the function and iterate over the results
     updates_iter = get_new_updates(
-        redis_client, default_config.index.id_field_name, document_fetcher
+        redis_client,
+        [redis_stream_name],
+        {redis_stream_name: default_config.index.id_field_name},
+        {redis_stream_name: document_fetcher},
     )
 
     results = next(updates_iter)
-    assert results == (1629878400000, {"code": "1", "name": "Document 1"})
+    assert results == (
+        redis_stream_name,
+        1629878400000,
+        {"code": "1", "name": "Document 1"},
+    )
 
 
 def test_load_document_fetcher(default_config):
@@ -262,16 +275,17 @@ def test_update_alias(default_config):
     )
 
 
-def test_run_update_daemon(default_config):
+def test_run_update_daemon(default_global_config: Config):
+    off_config: IndexConfig = default_global_config.indices["off"]
     es_client_mock = MagicMock()
     redis_client_mock = MagicMock()
-    document_fetcher_mock = TestDocumentFetcher(default_config)
+    document_fetcher_mock = TestDocumentFetcher(off_config)
 
     # Replace with your desired test data
     updates = [
-        (1629878400000, {"code": "1", "name": "Document 1"}),
-        (1629878400001, {"code": "2", "name": "Document 2"}),
-        (1629878400002, {"code": "3", "name": "Document 3"}),
+        ("product_updates_off", 1629878400000, {"code": "1", "name": "Document 1"}),
+        ("product_updates_off", 1629878400001, {"code": "2", "name": "Document 2"}),
+        ("product_updates_off", 1629878400002, {"code": "3", "name": "Document 3"}),
     ]
 
     # Mock the necessary dependencies
@@ -285,12 +299,12 @@ def test_run_update_daemon(default_config):
         "app._import.load_document_fetcher", load_document_fetcher_mock
     ), patch("app._import.get_new_updates", MagicMock(return_value=updates)):
         # Call the function
-        run_update_daemon(default_config)
+        run_update_daemon(default_global_config)
 
     # Assertions
     connection_mock.get_es_client.assert_called_once()
     connection_mock.get_redis_client.assert_called_once()
-    load_document_fetcher_mock.assert_called_once_with(default_config)
+    load_document_fetcher_mock.assert_called_once_with(off_config)
 
     for i, mock_call in enumerate(es_client_mock.index.mock_calls):
         assert mock_call.args == ()

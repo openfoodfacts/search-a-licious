@@ -17,7 +17,7 @@ from app._types import (
     SearchResponseError,
     SuccessSearchResponse,
 )
-from app.config import Config, FieldType
+from app.config import FieldType, IndexConfig
 from app.indexing import generate_index_object
 from app.postprocessing import BaseResultProcessor
 from app.utils import get_logger
@@ -25,7 +25,7 @@ from app.utils import get_logger
 logger = get_logger(__name__)
 
 
-def build_elasticsearch_query_builder(config: Config) -> ElasticsearchQueryBuilder:
+def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQueryBuilder:
     index = generate_index_object(config.index.name, config)
     options = SchemaAnalyzer(index.to_dict()).query_builder_options()
     options["default_operator"] = ElasticsearchQueryBuilder.MUST
@@ -50,7 +50,7 @@ class UnknownOperationRemover(visitor.TreeTransformer):
         return self.visit(tree)
 
 
-def build_query_clause(query: str, langs: set[str], config: Config) -> Query:
+def build_query_clause(query: str, langs: set[str], config: IndexConfig) -> Query:
     fields = []
     supported_langs = config.get_supported_langs()
     taxonomy_langs = config.get_taxonomy_langs()
@@ -166,12 +166,12 @@ def parse_lucene_dsl_query(
     return filter_query, remaining_terms
 
 
-def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
+def parse_sort_by_parameter(sort_by: str | None, config: IndexConfig) -> str | None:
     """Parse `sort_by` parameter, special handling is performed for `text_lang`
     subfield.
 
     :param sort_by: the raw `sort_by` value
-    :param config: the Config to use
+    :param config: the index configuration to use
     :return: None if `sort_by` is not provided or the final value otherwise
     """
     if sort_by is None:
@@ -193,7 +193,7 @@ def parse_sort_by_parameter(sort_by: str | None, config: Config) -> str | None:
     return sort_by
 
 
-def create_aggregation_clauses(config: Config) -> dict[str, Agg]:
+def create_aggregation_clauses(config: IndexConfig) -> dict[str, Agg]:
     """Create term bucket aggregation clauses for all relevant fields as
     defined in the config.
     """
@@ -209,7 +209,7 @@ def build_search_query(
     langs: set[str],
     size: int,
     page: int,
-    config: Config,
+    config: IndexConfig,
     filter_query_builder: ElasticsearchQueryBuilder,
     sort_by: str | None = None,
 ) -> Query:
@@ -220,7 +220,7 @@ def build_search_query(
       select language subfields for some field types
     :param size: number of results to return
     :param page: requested page (starts at 1).
-    :param config: configuration to use
+    :param config: the index configuration to use
     :param filter_query_builder: luqum elasticsearch query builder
     :param sort_by: sorting key, defaults to None (=relevance-based sorting)
     :return: the built Query
@@ -263,7 +263,7 @@ def build_completion_query(
     taxonomy_names: list[str],
     lang: str,
     size: int,
-    config: Config,
+    config: IndexConfig,
     fuzziness: int | None = 2,
 ):
     """Build an elasticsearch_dsl completion Query.
@@ -272,7 +272,7 @@ def build_completion_query(
     :param taxonomy_names: a list of taxonomies we want to search in
     :param lang: the language we want search in
     :param size: number of results to return
-    :param config: configuration to use
+    :param config: the index configuration to use
     :param fuzziness: fuzziness parameter for completion query
     :return: the built Query
     """

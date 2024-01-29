@@ -1,12 +1,12 @@
 from elasticsearch_dsl.response import Response
 
 from app._types import JSONType
-from app.config import Config, FieldType
+from app.config import FieldType, IndexConfig
 from app.utils import load_class_object_from_string
 
 
 class BaseResultProcessor:
-    def __init__(self, config: Config) -> None:
+    def __init__(self, config: IndexConfig) -> None:
         self.config = config
 
     def process(self, response: Response, projection: set[str] | None) -> JSONType:
@@ -46,10 +46,10 @@ class BaseResultProcessor:
         return result
 
 
-def load_result_processor(config: Config) -> BaseResultProcessor | None:
+def load_result_processor(config: IndexConfig) -> BaseResultProcessor | None:
     """Load the result processor class from the config.
 
-    :param config: the config object
+    :param config: the index configuration to use
     :return: the initialized result processor
     """
     result_processor_cls = (

@@ -70,7 +70,7 @@ taxonomy_config = TaxonomyConfig(
         )
     ],
     exported_langs=["en"],
-    index=TaxonomyIndexConfig(),
+    index=TaxonomyIndexConfig(name="off_taxonomy"),
 )
 
 

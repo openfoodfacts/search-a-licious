@@ -39,11 +39,6 @@ class Settings(BaseSettings):
     elasticsearch_url: str = "http://localhost:9200"
     redis_host: str = "localhost"
     redis_port: int = 6379
-    # the name of the Redis stream to read from when listening to product
-    # updates
-    redis_import_stream_name: str = "product_update"
-    # TODO: this should be in the config below
-    openfoodfacts_base_url: str = "https://world.openfoodfacts.org"
     sentry_dns: str | None = None
     log_level: LoggingLevel = LoggingLevel.INFO
     taxonomy_cache_dir: Path = Path("data/taxonomies")
@@ -215,7 +210,7 @@ class FieldConfig(BaseModel):
         return self.type in (FieldType.taxonomy, FieldType.text_lang)
 
 
-class IndexConfig(BaseModel):
+class ESIndexConfig(BaseModel):
     name: Annotated[str, Field(description="name of the index alias to use")]
     id_field_name: Annotated[
         str, Field(description="name of the field to use for `_id`")
@@ -240,7 +235,7 @@ class TaxonomyIndexConfig(BaseModel):
     name: Annotated[
         str,
         Field(description="name of the taxonomy index alias to use"),
-    ] = "taxonomy"
+    ]
     number_of_shards: Annotated[
         int, Field(description="number of shards to use for the index")
     ] = 4
@@ -272,8 +267,10 @@ class TaxonomyConfig(BaseModel):
     ]
 
 
-class Config(BaseModel):
-    index: Annotated[IndexConfig, Field(description="configuration of the index")]
+class IndexConfig(BaseModel):
+    index: Annotated[
+        ESIndexConfig, Field(description="configuration of the Elasticsearch index")
+    ]
     fields: Annotated[
         dict[str, FieldConfig],
         Field(
@@ -337,6 +334,14 @@ class Config(BaseModel):
         set[str], Field(description="list of documents IDs to ignore")
     ] = Field(default_factory=set)
 
+    redis_stream_name: Annotated[
+        str | None,
+        Field(
+            description="name of the Redis stream to read from when listening to document updates. "
+            "If not provided, document updates won't be listened to for this index."
+        ),
+    ] = None
+
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):
         """Validator that checks that for if `taxonomy_type` is defined for a
@@ -354,7 +359,7 @@ class Config(BaseModel):
 
     @model_validator(mode="after")
     def field_references_must_exist_and_be_valid(self):
-        """Validator that checks that every field reference in IndexConfig
+        """Validator that checks that every field reference in ESIndexConfig
         refers to an existing field and is valid."""
         if self.index.id_field_name not in self.fields:
             raise ValueError(
@@ -401,6 +406,51 @@ class Config(BaseModel):
         # only keep langs for which a built-in analyzer built-in, other
         # langs will be stored in a unique `other` subfield
         return (set(self.taxonomy.exported_langs)) & set(ANALYZER_LANG_MAPPING)
+
+
+class Config(BaseModel):
+    indices: dict[str, IndexConfig] = Field(
+        description="configuration of indices. "
+        "The key is the ID of the index that can be referenced at query time. "
+        "One index corresponds to a specific set of documents and can be queried independently."
+    )
+    default_index: Annotated[
+        str,
+        Field(
+            description="the default index to use when no index is specified in the query",
+        ),
+    ]
+
+    @model_validator(mode="after")
+    def defaut_index_must_exist(self):
+        """Validator that checks that default_index exists."""
+        if self.default_index not in self.indices:
+            raise ValueError(
+                f"default_index={self.default_index} but index was not declared (available indices: {list(self.indices.keys())})"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def redis_stream_name_should_be_unique(self):
+        """Validator that checks that every redis_stream_name is unique."""
+        redis_stream_names = [
+            index.redis_stream_name
+            for index in self.indices.values()
+            if index.redis_stream_name is not None
+        ]
+        if len(redis_stream_names) != len(set(redis_stream_names)):
+            raise ValueError("redis_stream_name should be unique")
+        return self
+
+    def get_index_config(self, index_id: str | None) -> tuple[str, IndexConfig]:
+        """Return a (index_id, IndexConfig) for the given index_id.
+
+        If no index_id is provided, the default index is used.
+        If the index_id is not found, (index_id, None) is returned.
+        """
+        if index_id is None:
+            index_id = self.default_index
+        return index_id, self.indices[index_id]
 
     @classmethod
     def from_yaml(cls, path: Path) -> "Config":
