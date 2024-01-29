@@ -32,12 +32,18 @@ if config.CONFIG is None:
     # failure, but we add a warning message as it's not expected in a
     # production settings
     logger.warning("Main configuration is not set, use CONFIG_PATH envvar")
-    FILTER_QUERY_BUILDER = None
-    RESULT_PROCESSOR = None
+    FILTER_QUERY_BUILDERS = {}
+    RESULT_PROCESSORS = {}
 else:
     # we cache query builder and result processor here for faster processing
-    FILTER_QUERY_BUILDER = build_elasticsearch_query_builder(config.CONFIG)
-    RESULT_PROCESSOR = load_result_processor(config.CONFIG)
+    FILTER_QUERY_BUILDERS = {
+        index_id: build_elasticsearch_query_builder(index_config)
+        for index_id, index_config in config.CONFIG.indices.items()
+    }
+    RESULT_PROCESSORS = {
+        index_id: load_result_processor(index_config)
+        for index_id, index_config in config.CONFIG.indices.items()
+    }
 
 
 app = FastAPI(
@@ -57,14 +63,46 @@ init_sentry(settings.sentry_dns)
 connection.get_es_client()
 
 
+INDEX_ID_QUERY_PARAM = Query(
+    description="""Index ID to use for the search, if not provided, the default index is used.
+    If there is only one index, this parameter is not needed."""
+)
+
+
+def check_index_id_is_defined(index_id: str | None, config: config.Config) -> None:
+    """Check that the index ID is defined in the configuration.
+
+    Raise an HTTPException if it's not the case.
+
+    :param index_id: index ID to check
+    :param config: configuration to check against
+    """
+    if index_id is None:
+        if len(config.indices) > 1:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Index ID must be provided when there is more than one index, available indices: {list(config.indices.keys())}",
+            )
+    elif index_id not in config.indices:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Index ID '{index_id}' not found, available indices: {list(config.indices.keys())}",
+        )
+
+
 @app.get("/document/{identifier}")
-def get_document(identifier: str):
+def get_document(
+    identifier: str, index_id: Annotated[str | None, INDEX_ID_QUERY_PARAM] = None
+):
     """Fetch a document from Elasticsearch with specific ID."""
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
-    id_field_name = global_config.index.id_field_name
+    check_index_id_is_defined(index_id, global_config)
+    index_id, index_config = global_config.get_index_config(index_id)
+
+    id_field_name = index_config.index.id_field_name
     results = (
-        Search(index=global_config.index.name)
+        Search(index=index_config.index.name)
         .query("term", **{id_field_name: identifier})
         .extra(size=1)
         .execute()
@@ -125,10 +163,16 @@ If not provided, `['en']` is used."""
             and be sortable. If it is not provided, results are sorted by descending relevance score."""
         ),
     ] = None,
+    index_id: Annotated[
+        str | None,
+        INDEX_ID_QUERY_PARAM,
+    ] = None,
 ) -> SearchResponse:
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
-    result_processor = cast(BaseResultProcessor, RESULT_PROCESSOR)
+    check_index_id_is_defined(index_id, global_config)
+    index_id, index_config = global_config.get_index_config(index_id)
+    result_processor = cast(BaseResultProcessor, RESULT_PROCESSORS[index_id])
     if q is None and sort_by is None:
         raise HTTPException(
             status_code=400, detail="`sort_by` must be provided when `q` is missing"
@@ -157,12 +201,11 @@ If not provided, `['en']` is used."""
         langs=langs_set,
         size=page_size,
         page=page,
-        config=global_config,
+        config=index_config,
         sort_by=sort_by,
         # filter query builder is generated from elasticsearch mapping and
-        # takes ~40ms to generate, build-it before hand as we're using global
-        # Config
-        filter_query_builder=FILTER_QUERY_BUILDER,
+        # takes ~40ms to generate, build-it before hand to avoid this delay
+        filter_query_builder=FILTER_QUERY_BUILDERS[index_id],
     )
     logger.debug("Elasticsearch query: %s", query.to_dict())
 
@@ -196,16 +239,19 @@ def taxonomy_autocomplete(
         int | None,
         Query(description="Fuzziness level to use, default to no fuzziness."),
     ] = None,
+    index_id: Annotated[str | None, INDEX_ID_QUERY_PARAM] = None,
 ):
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
+    check_index_id_is_defined(index_id, global_config)
+    index_id, index_config = global_config.get_index_config(index_id)
     taxonomy_names_list = taxonomy_names.split(",")
     query = build_completion_query(
         q=q,
         taxonomy_names=taxonomy_names_list,
         lang=lang,
         size=size,
-        config=global_config,
+        config=index_config,
         fuzziness=fuzziness,
     )
     try:
@@ -234,11 +280,19 @@ def html_search(
     page_size: int = 24,
     langs: str = "fr,en",
     sort_by: str | None = None,
+    index_id: Annotated[str | None, INDEX_ID_QUERY_PARAM] = None,
 ):
     if not q:
         return templates.TemplateResponse("search.html", {"request": request})
 
-    results = search(q=q, langs=langs, page_size=page_size, page=page, sort_by=sort_by)
+    results = search(
+        q=q,
+        langs=langs,
+        page_size=page_size,
+        page=page,
+        sort_by=sort_by,
+        index_id=index_id,
+    )
     template_data: dict[str, Any] = {
         "q": q or "",
         "request": request,

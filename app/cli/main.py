@@ -28,6 +28,12 @@ def import_data(
         file_okay=True,
         exists=True,
     ),
+    index_id: Optional[str] = typer.Option(
+        default=None,
+        help="Each index has its own configuration in the configuration file, "
+        "and the ID is used to know which index to use. "
+        "If there is only one index, this option is not needed.",
+    ),
 ):
     """Import data into Elasticsearch."""
     import time
@@ -46,10 +52,16 @@ def import_data(
     start_time = time.perf_counter()
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
+    index_id, index_config = global_config.get_index_config(index_id)
+    if index_config is None:
+        raise typer.BadParameter(
+            "You must specify an index ID when there are multiple indices"
+        )
+
     run_full_import(
         input_path,
         num_processes,
-        global_config,
+        index_config,
         num_items=num_items,
     )
     end_time = time.perf_counter()
@@ -64,6 +76,12 @@ def import_taxonomies(
         dir_okay=False,
         file_okay=True,
         exists=True,
+    ),
+    index_id: Optional[str] = typer.Option(
+        default=None,
+        help="Each index has its own configuration in the configuration file, "
+        "and the ID is used to know which index to use. "
+        "If there is only one index, this option is not needed.",
     ),
 ):
     """Import taxonomies into Elasticsearch."""
@@ -82,9 +100,14 @@ def import_taxonomies(
 
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
+    index_id, index_config = global_config.get_index_config(index_id)
+    if index_config is None:
+        raise typer.BadParameter(
+            "You must specify an index ID when there are multiple indices"
+        )
 
     start_time = time.perf_counter()
-    perform_taxonomy_import(global_config)
+    perform_taxonomy_import(index_config)
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
 

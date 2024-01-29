@@ -6,7 +6,7 @@ from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.parser import parser
 
 from app._types import JSONType
-from app.config import Config
+from app.config import IndexConfig
 from app.query import (
     UnknownOperationRemover,
     build_search_query,
@@ -158,7 +158,7 @@ def test_build_search_query(
     page: int,
     sort_by: str | None,
     update_results: bool,
-    default_config: Config,
+    default_config: IndexConfig,
     default_filter_query_builder: ElasticsearchQueryBuilder,
 ):
     query = build_search_query(

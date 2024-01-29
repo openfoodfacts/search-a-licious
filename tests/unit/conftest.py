@@ -11,7 +11,14 @@ DEFAULT_CONFIG_PATH = DATA_DIR / "openfoodfacts_config.yml"
 
 @pytest.fixture
 def default_config():
-    """Fixture that returns default Open Food Facts configuration for tests."""
+    """Fixture that returns default Open Food Facts index configuration for
+    tests."""
+    yield Config.from_yaml(DEFAULT_CONFIG_PATH).indices["off"]
+
+
+@pytest.fixture
+def default_global_config():
+    """Fixture that returns default global configuration for tests."""
     yield Config.from_yaml(DEFAULT_CONFIG_PATH)
 
 
