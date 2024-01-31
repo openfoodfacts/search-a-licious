@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.1.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.0.0...v1.1.0) (2024-01-31)
+
+
+### Features
+
+* add support for multiple indices ([4edabfe](https://github.com/openfoodfacts/search-a-licious/commit/4edabfe6af697eb7427a1d23be4c81124095981f))
+* use Redis Stream support ([fcf0f21](https://github.com/openfoodfacts/search-a-licious/commit/fcf0f211ad7de2f9edfd3c3b14558f54f8436b73))
+
+
+### Bug Fixes
+
+* add debug logs ([05bc61d](https://github.com/openfoodfacts/search-a-licious/commit/05bc61d1189d57e46d52bbeff2a5b781c5b6b9b3))
+* catch NotFound index error from Elasticsearch ([a8eecb7](https://github.com/openfoodfacts/search-a-licious/commit/a8eecb7014cf2d00143e304eab6b78fcbb79cf83))
+* fix a few mypy errors ([96445e5](https://github.com/openfoodfacts/search-a-licious/commit/96445e5b5c665929d9e2268afefbcbd575039e48))
+* fix all mypy issues and enable mypy in pre-commit hooks ([052d670](https://github.com/openfoodfacts/search-a-licious/commit/052d6705a1c4f76591fee7f214456cd292a1a825))
+* fix icon URLs ([654ef91](https://github.com/openfoodfacts/search-a-licious/commit/654ef91d8dd289eb9dca2966dd018f80af758ae4))
+* fix production redis host ([14d4fce](https://github.com/openfoodfacts/search-a-licious/commit/14d4fced815490789bd1ac522ee812645bb4fc3b))
+* ping redis in run_update_daemon at startup ([b379021](https://github.com/openfoodfacts/search-a-licious/commit/b379021092f14a0064b839522f2ec88e8f913869))
+* popularity_key must be a long fieldtype ([f35a902](https://github.com/openfoodfacts/search-a-licious/commit/f35a90291409ff8021c70682261c61c3539259f6))
+* set python version in pre-commit github action config ([59376b1](https://github.com/openfoodfacts/search-a-licious/commit/59376b1226df2fc739a011a6a73d4d5be210a576))
+* support more fields and add a more flexible way to handle fields ([79fbb0a](https://github.com/openfoodfacts/search-a-licious/commit/79fbb0a8ead3ba85b46942a5b9b27baad4c21ed3))
+* support null `q` in build_search_query ([5ee0fdd](https://github.com/openfoodfacts/search-a-licious/commit/5ee0fdd47959cd254176205b3865197724743f95))
+
 ## 1.0.0 (2023-11-29)
 
 
