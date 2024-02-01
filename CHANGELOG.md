@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/openfoodfacts/search-a-licious/compare/v1.1.0...v1.1.1) (2024-02-01)
+
+
+### Technical
+
+* fix release-please configuration for prod env ([65018f3](https://github.com/openfoodfacts/search-a-licious/commit/65018f3bb3b7efb19526ea14899f3e7774be626a))
+
 ## [1.1.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.0.0...v1.1.0) (2024-01-31)
 
 
