@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.2](https://github.com/openfoodfacts/search-a-licious/compare/v1.1.1...v1.1.2) (2024-02-23)
+
+
+### Technical
+
+* add redis host for production ([705f5c2](https://github.com/openfoodfacts/search-a-licious/commit/705f5c2fdb94e6aefc6449815c2fd4da018b2e36))
+* remove rediscache volume ([5e4b152](https://github.com/openfoodfacts/search-a-licious/commit/5e4b1525a7fd0fc6ec2c898d16d94a881922eaa8))
+* set OFF_API_URL envvar in deployment config ([1ba1729](https://github.com/openfoodfacts/search-a-licious/commit/1ba1729a8b6287c2edb95770dcacd9f8a8bf4693))
+
 ## [1.1.1](https://github.com/openfoodfacts/search-a-licious/compare/v1.1.0...v1.1.1) (2024-02-01)
 
 
