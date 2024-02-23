@@ -37,6 +37,7 @@ jobs:
         # this is the network shared with Product Opener,
         # in staging Product Opener is deployed on the same VM
         echo "COMMON_NET_NAME=po_webnet" >> $GITHUB_ENV
+        echo "OFF_API_URL=https://world.openfoodfacts.net" >> $GITHUB_ENV
     - name: Set various variable for production deployment
       if: matrix.env == 'off-search-org'
       run: |
@@ -45,6 +46,7 @@ jobs:
         # in production Product Opener is deployed on a
         # separate server and is not dockerized
         echo "COMMON_NET_NAME=" >> $GITHUB_ENV
+        echo "OFF_API_URL=https://world.openfoodfacts.org" >> $GITHUB_ENV
     - name: Wait for search image container build workflow
       uses: tomchv/wait-my-workflow@v1.1.0
       id: wait-build
@@ -132,6 +134,7 @@ jobs:
           echo 'NGINX_BASIC_AUTH_USER_PASSWD=${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}' >> .env
           echo "SENTRY_DNS=${{ secrets.SENTRY_DSN }}" >> .env
           echo "CONFIG_PATH=data/config/openfoodfacts.yml" >> .env
+          echo "OFF_API_URL=${{ env.OFF_API_URL }}" >> .env
 
     - name: Create Docker volumes
       uses: appleboy/ssh-action@master
