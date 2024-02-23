@@ -38,6 +38,7 @@ jobs:
         # in staging Product Opener is deployed on the same VM
         echo "COMMON_NET_NAME=po_webnet" >> $GITHUB_ENV
         echo "OFF_API_URL=https://world.openfoodfacts.net" >> $GITHUB_ENV
+        echo "REDIS_HOST=redis" >> $GITHUB_ENV
     - name: Set various variable for production deployment
       if: matrix.env == 'off-search-org'
       run: |
@@ -47,6 +48,8 @@ jobs:
         # separate server and is not dockerized
         echo "COMMON_NET_NAME=" >> $GITHUB_ENV
         echo "OFF_API_URL=https://world.openfoodfacts.org" >> $GITHUB_ENV
+        # REDIS_HOST: this is the IP address of the stunnel VM
+        echo "REDIS_HOST=10.1.0.113" >> $GITHUB_ENV
     - name: Wait for search image container build workflow
       uses: tomchv/wait-my-workflow@v1.1.0
       id: wait-build
@@ -124,7 +127,7 @@ jobs:
           echo "CLUSTER_NAME=${{ matrix.env }}-es-cluster" >> .env
           echo "SEARCH_EXPOSE=8180" >> .env
           echo "ES_VUE_EXPOSE=8181" >> .env
-          echo "REDIS_HOST=redis" >> .env
+          echo "REDIS_HOST=${{ env.REDIS_HOST }}" >> .env
           echo "REDIS_PORT=6379" >> .env
           echo "MEM_LIMIT=4294967296" >> .env
           # this is the network shared with productopener
