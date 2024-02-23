@@ -105,7 +105,6 @@ services:
 volumes:
   esdata01:
   esdata02:
-  rediscache:
 
 networks:
   # this is the network shared with product opener

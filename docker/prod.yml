@@ -11,9 +11,6 @@ volumes:
   esdata02:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_esdata02
-  rediscache:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_rediscache
 
 networks:
   common_net:

@@ -23,7 +23,7 @@ test:
 
 create_external_volumes:
 	@echo "🥫 Creating external volumes (production only) …"
-	@for vol_name in esdata01 esdata02 rediscache; \
+	@for vol_name in esdata01 esdata02; \
 	do \
 		vol_name=${COMPOSE_PROJECT_NAME}_$$vol_name; \
 		vol_path=${DOCKER_LOCAL_DATA}/$$vol_name; \
