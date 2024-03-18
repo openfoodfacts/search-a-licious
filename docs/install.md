@@ -1,6 +1,6 @@
 # Install search-a-licious
 
-search-a-licious uses docker and docker-compose to manage the services it needs to run. You will need to install both of these before you can use search-a-licious.
+search-a-licious uses docker and docker compose to manage the services it needs to run. You will need to install both of these before you can use search-a-licious.
 
 Once docker is installed, clone the git repository locally.
 
