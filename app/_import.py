@@ -76,6 +76,12 @@ def get_processed_since(
     min_id = f"{start_timestamp_ms}-0"
 
     while True:
+        logger.debug(
+            "Fetching batch from Redis, stream %s, min_id %s, count %d",
+            redis_stream_name,
+            min_id,
+            batch_size,
+        )
         batch = redis_client.xrange(redis_stream_name, min=min_id, count=batch_size)
         if not batch:
             # We reached the end of the stream
@@ -513,6 +519,7 @@ def run_update_daemon(config: Config) -> None:
             continue
         _id = processed_document.pop("_id")
         index_id = stream_name_to_index_id[stream_name]
+        logger.debug("Document:\n%s", processed_document)
         es_client.index(
             index=config.indices[index_id].index.name,
             body=processed_document,
