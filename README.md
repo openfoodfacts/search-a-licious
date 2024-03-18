@@ -41,7 +41,7 @@ For development, you have two options for running the service:
 
 To develop on docker, make the changes you need, then build the image and compose by running:
 ```console
-docker-compose up -d
+make up
 ```
 
 However, this tends to be slower than developing locally.
