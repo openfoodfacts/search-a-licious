@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.3](https://github.com/openfoodfacts/search-a-licious/compare/v1.1.2...v1.1.3) (2024-03-26)
+
+
+### Technical
+
+* add debug logs ([2edee1f](https://github.com/openfoodfacts/search-a-licious/commit/2edee1f8b18e214a82d1f9b503cd673294ef0375))
+* switch officially to docker compose v2 ([003739c](https://github.com/openfoodfacts/search-a-licious/commit/003739c5b8ec7b93006555feff4375a43677f1dd))
+
 ## [1.1.2](https://github.com/openfoodfacts/search-a-licious/compare/v1.1.1...v1.1.2) (2024-02-23)
 
 
