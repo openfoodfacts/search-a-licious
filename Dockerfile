@@ -1,4 +1,7 @@
 ARG PYTHON_VERSION=3.11
+# create off user
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
 
 # base python setup
 # -----------------
@@ -38,10 +41,10 @@ RUN poetry config virtualenvs.create false
 ENV POETRY_VIRTUALENVS_IN_PROJECT=false
 
 # create off user
-ARG OFF_UID=1000
-ARG OFF_GID=$OFF_UID
-RUN groupadd -g $OFF_GID off && \
-    useradd -u $OFF_UID -g off -m off && \
+ARG USER_UID
+ARG USER_GID
+RUN groupadd -g $USER_GID off && \
+    useradd -u $USER_UID -g off -m off && \
     mkdir -p /home/off && \
     mkdir -p /opt/search && \
     chown off:off -R /opt/search /home/off

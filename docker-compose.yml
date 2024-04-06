@@ -94,13 +94,31 @@ services:
 
   api:
     <<: *api-common
-    ports:
-      - "${SEARCH_EXPOSE}:8000"
 
   # service listening to redis for updates
   updater:
     <<: *api-common
     command: ["python3", "-m", "app", "run-update-daemon"]
+
+  # frontend is nginx serving static files and proxying to API
+  search_frontend:
+    # this is the nginx frontend serving react static version or redirecting queries
+    image: ghcr.io/openfoodfacts/search-a-licious/search_frontend:${DOCKER_TAG}
+    depends_on:
+      - api
+    environment:
+      # enabling prod config and disabling dev one
+      PROD_UI_SUFFIX: ""
+      DEV_UI_SUFFIX: "-dev"
+      TAXONOMY_EDITOR_DOMAIN:
+      PUBLIC_TAXONOMY_EDITOR_PORT:
+      API_SCHEME:
+    volumes:
+      # Nginx, we use templates dir to be able to use environment vars
+      - ./confs/nginx.conf:/etc/nginx/templates/default.conf.template
+    ports:
+      - ${SEARCH_EXPOSE:-127.0.0.1:8000}:80
+
 
 volumes:
   esdata01:
