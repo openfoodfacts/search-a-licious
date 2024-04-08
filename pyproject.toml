@@ -51,7 +51,7 @@ exclude = '''
 [tool.mypy]
 ignore_missing_imports = true
 exclude = '''(?x)(
-    \.cache/pre-commit/  # avoid pre-commit cache
+    .*\.cache/pre-commit/.*  # avoid pre-commit cache
 )'''
 
 [tool.isort]
