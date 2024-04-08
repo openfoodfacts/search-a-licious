@@ -85,6 +85,9 @@ check:
 	@echo "🔎 Running all pre-commit hooks"
 	pre-commit run --all-files
 
+# note: this is called by pre-commit
+check_front:
+	${DOCKER_COMPOSE} run --rm -T search_nodejs npm run check
 lint:
 	@echo "🔎 Running linters..."
 	pre-commit run black --all-files
