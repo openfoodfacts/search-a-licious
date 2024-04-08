@@ -77,6 +77,9 @@ down:
 	@echo "🔎 Bringing down containers …"
 	${DOCKER_COMPOSE} down
 
+_ensure_network:
+	docker network inspect ${COMMON_NET_NAME} >/dev/null || docker network create -d bridge ${COMMON_NET_NAME}
+
 #--------#
 # Checks #
 #--------#
@@ -86,7 +89,7 @@ check:
 	pre-commit run --all-files
 
 # note: this is called by pre-commit
-check_front:
+check_front:  _ensure_network
 	${DOCKER_COMPOSE} run --rm -T search_nodejs npm run check
 lint:
 	@echo "🔎 Running linters..."
