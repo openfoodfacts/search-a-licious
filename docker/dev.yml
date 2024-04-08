@@ -57,7 +57,6 @@ services:
       NODE_ENV: development
     volumes:
       # dynamic mount
-      - ./frontend/dev:/opt/search-a-licious/dev
       - ./frontend/public:/opt/search-a-licious/public
       - ./frontend/src:/opt/search-a-licious/src
       # configs

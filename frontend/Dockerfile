@@ -39,8 +39,7 @@ ENV PATH /opt/search-a-licious/node_modules/.bin:$PATH
 
 # copy files
 COPY --chown=node:node src /opt/search-a-licious/src
-COPY --chown=node:node dev /opt/search-a-licious/dev
-COPY --chown=node:node dev /opt/search-a-licious/public
+COPY --chown=node:node public /opt/search-a-licious/public
 COPY --chown=node:node .eslintrc.json /opt/search-a-licious/.eslintrc.json
 COPY --chown=node:node .prettierrc.json /opt/search-a-licious/.prettierrc.json
 COPY --chown=node:node tsconfig.json /opt/search-a-licious/tsconfig.json
