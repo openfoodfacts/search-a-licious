@@ -28,7 +28,9 @@ suite('search-a-licious', () => {
   });
 
   test('renders with a set name', async () => {
-    const el = await fixture(html`<search-a-licious name="Test"></search-a-licious>`);
+    const el = await fixture(
+      html`<search-a-licious name="Test"></search-a-licious>`
+    );
     assert.shadowDom.equal(
       el,
       `
@@ -40,7 +42,9 @@ suite('search-a-licious', () => {
   });
 
   test('handles a click', async () => {
-    const el = (await fixture(html`<search-a-licious></search-a-licious>`)) as SearchALicious;
+    const el = (await fixture(
+      html`<search-a-licious></search-a-licious>`
+    )) as SearchALicious;
     const button = el.shadowRoot!.querySelector('button')!;
     button.click();
     await el.updateComplete;
@@ -55,7 +59,9 @@ suite('search-a-licious', () => {
   });
 
   test('styling applied', async () => {
-    const el = (await fixture(html`<search-a-licious></search-a-licious>`)) as SearchALicious;
+    const el = (await fixture(
+      html`<search-a-licious></search-a-licious>`
+    )) as SearchALicious;
     await el.updateComplete;
     assert.equal(getComputedStyle(el).paddingTop, '16px');
   });

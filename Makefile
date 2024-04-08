@@ -18,11 +18,8 @@ DOCKER_COMPOSE_TEST=COMPOSE_PROJECT_NAME=search_test docker compose --env-file=$
 # Production #
 #------------#
 
-test:
-	echo ${ENV_FILE} ${COMPOSE_PROJECT_NAME}
-
 create_external_volumes:
-	@echo "🥫 Creating external volumes (production only) …"
+	@echo "🔎 Creating external volumes (production only) …"
 	@for vol_name in esdata01 esdata02; \
 	do \
 		vol_name=${COMPOSE_PROJECT_NAME}_$$vol_name; \
@@ -36,7 +33,7 @@ create_external_volumes:
 	done;
 
 livecheck:
-	@echo "🥫 livecheck services…" ; \
+	@echo "🔎 livecheck services…" ; \
 	exit_code=0; \
 	services=`${DOCKER_COMPOSE} config  --service | tr '\n' ' '`; \
 	for service in $$services; do \
@@ -50,10 +47,13 @@ livecheck:
 	[ $$exit_code -eq 0 ] && echo "Success !"; \
 	exit $$exit_code;
 
+#-------------------#
+# Compose shortcuts #
+#-------------------#
 
 build:
-	@echo "🥫 building docker (for dev)"
-	${DOCKER_COMPOSE} build --progress=plain api
+	@echo "🔎 building docker (for dev)"
+	${DOCKER_COMPOSE} build --progress=plain
 
 
 up:
@@ -65,8 +65,36 @@ endif
 
 
 down:
-	@echo "🥫 Bringing down containers …"
+	@echo "🔎 Bringing down containers …"
 	${DOCKER_COMPOSE} down
+
+#--------#
+# Checks #
+#--------#
+
+check:
+	@echo "🔎 Running all pre-commit hooks"
+	pre-commit run --all-files
+
+lint:
+	@echo "🔎 Running linters..."
+	pre-commit run black --all-files
+	${DOCKER_COMPOSE} run --rm search_nodejs npm run format
+
+#-------#
+# Tests #
+#-------#
+
+test: test_api test_front
+
+test_api:
+	@echo "🔎 Running API tests..."
+	${DOCKER_COMPOSE_TEST} run --rm api pytest tests/
+
+test_front:
+	@echo "🔎 Running front-end tests..."
+	${DOCKER_COMPOSE_TEST} run --rm search_nodejs npm run test
+
 
 
 #-----------#
@@ -81,7 +109,7 @@ guard-%: # guard clause for targets that require an environment variable (usuall
 	fi;
 
 import-dataset: guard-filepath
-	@echo "🥫 Importing data …"
+	@echo "🔎 Importing data …"
 	${DOCKER_COMPOSE} run --rm api python3 -m app import /opt/search/data/${filepath} --num-processes=2
 
 
@@ -90,6 +118,6 @@ import-dataset: guard-filepath
 #-------#
 
 unit-tests:
-	@echo "🥫 Running unit tests …"
+	@echo "🔎 Running unit tests …"
 	# change project name to run in isolation
 	${DOCKER_COMPOSE_TEST} run --rm api poetry run pytest --cov-report xml --cov=app tests/unit

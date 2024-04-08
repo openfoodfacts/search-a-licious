@@ -13,18 +13,27 @@ RUN usermod --uid $USER_UID node && \
   mkdir -p /opt/search-a-licious/src && \
   mkdir -p /opt/search-a-licious/dev && \
   mkdir -p /home/node/.npm && \
+  mkdir /playwright && \
   chown node:node -R /opt/search-a-licious/ && \
-  chown node:node -R /home/node/.npm
+  chown node:node -R /home/node/.npm && \
+  chown node:node -R /playwright
 # tricky but we can't set uid and gid from variables with RUN --mount
 # so we ensure permissions while we are root
 RUN --mount=type=cache,id=search-a-licious-npm-cache,target=/home/node/.npm,mode=0777 \
   chown -R node:node /home/node/.npm
 COPY --chown=node:node package*.json /opt/search-a-licious
 WORKDIR /opt/search-a-licious
+# we build playwright inside the image as it is only for dev
+ENV PLAYWRIGHT_BROWSERS_PATH=/playwright
 USER node
 # install dependencies
 RUN --mount=type=cache,id=search-a-licious-npm-cache,target=/home/node/.npm,mode=0777 \
-  npm install
+  npm install && \
+  npx playwright install
+USER root
+RUN  --mount=type=cache,id=search-a-licious-apt-cache,target=/var/cache/apt \
+  npx playwright install-deps chromium
+USER node
 # add local binaries to path
 ENV PATH /opt/search-a-licious/node_modules/.bin:$PATH
 

@@ -25,9 +25,9 @@ repos:
       - id: node-checks
         name: node-checks
         # we use docker compose
-        entry: docker compose run --rm search_nodejs
-        args: [npm, run, lint]
+        entry: docker compose run --rm -T search_nodejs
+        args: [npm, run, check]
         language: system
         types: [ts]
-        require_serial: true
+        require_serial: false
         pass_filenames: false

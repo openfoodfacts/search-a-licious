@@ -10,7 +10,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 
 export default {
-  input: 'search-a-licious.js',
+  input: 'public/search-a-licious.js',
   output: {
     file: 'search-a-licious.bundled.js',
     format: 'esm',
