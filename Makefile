@@ -100,7 +100,7 @@ lint:
 # Tests #
 #-------#
 
-test: test_api test_front
+test: _ensure_network test_api test_front
 
 test_api:
 	@echo "🔎 Running API tests..."
