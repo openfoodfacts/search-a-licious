@@ -55,8 +55,6 @@ services:
         USER_GID: ${USER_GID:-1000}
     environment:
       NODE_ENV: development
-    # this is the command to run dev server
-    command: ["npm", "run", "serve"]
     volumes:
       # dynamic mount
       - ./frontend/dev:/opt/search-a-licious/dev

@@ -20,7 +20,7 @@
     "analyze:watch": "cem analyze --litelement --globs \"src/**/*.ts\" --watch",
     "bundle": "npm run bundle:js && npm run bundle:assets",
     "bundle:js": "rollup -c --file public/search-a-licious.bundled.js",
-    "bundle:assets":  "cp node_modules/prismjs/themes/prism-okaidia.css public/",
+    "bundle:assets":  "echo 'No assets yet'",
     "serve": "wds --watch",
     "serve:prod": "MODE=prod npm run serve",
     "test": "npm run test:dev && npm run test:prod",

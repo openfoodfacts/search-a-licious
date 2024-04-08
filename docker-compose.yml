@@ -110,9 +110,6 @@ services:
       # enabling prod config and disabling dev one
       PROD_UI_SUFFIX: ""
       DEV_UI_SUFFIX: "-dev"
-      TAXONOMY_EDITOR_DOMAIN:
-      PUBLIC_TAXONOMY_EDITOR_PORT:
-      API_SCHEME:
     volumes:
       # Nginx, we use templates dir to be able to use environment vars
       - ./confs/nginx.conf:/etc/nginx/templates/default.conf.template
