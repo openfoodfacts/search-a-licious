@@ -11,6 +11,15 @@ export COMPOSE_DOCKER_CLI_BUILD=1
 # we need COMPOSE_PROJECT_NAME for some commands
 # take it form env, or from env file
 COMPOSE_PROJECT_NAME ?= $(shell grep COMPOSE_PROJECT_NAME ${ENV_FILE} | cut -d '=' -f 2)
+
+# load env variables
+# also takes into account envrc (direnv file)
+ifneq (,$(wildcard ./${ENV_FILE}))
+    -include ${ENV_FILE}
+    -include .envrc
+    export
+endif
+
 DOCKER_COMPOSE=docker compose --env-file=${ENV_FILE}
 DOCKER_COMPOSE_TEST=COMPOSE_PROJECT_NAME=search_test docker compose --env-file=${ENV_FILE}
 

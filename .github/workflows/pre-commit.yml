@@ -14,7 +14,12 @@ jobs:
       with:
         python-version: 3.11
     - name: build docker containers
-      run: make build
+      run: |
+        echo CONFIG_PATH=data/config/openfoodfacts.yml >> .env
+        echo OFF_API_URL=https://world.openfoodfacts.org >> .env
+        echo USER_IID=$(id -u) >>.env
+        echo USER_GID=$(id -g) >>.env
+        make build
     - name: Enforce pre-commit hook server side
       uses: pre-commit/action@v3.0.1
     - name: run tests
