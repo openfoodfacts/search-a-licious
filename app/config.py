@@ -309,24 +309,30 @@ class IndexConfig(BaseModel):
             examples=["app.openfoodfacts.DocumentFetcher"],
         ),
     ]
-    preprocessor: Annotated[
-        str,
-        Field(
-            description="The full qualified reference to the preprocessor to use before "
-            "data import. This is used to adapt the data schema or to add search-a-licious "
-            "specific fields for example.",
-            examples=["app.openfoodfacts.DocumentPreprocessor"],
-        ),
-    ] | None = None
-    result_processor: Annotated[
-        str,
-        Field(
-            description="The full qualified reference to the elasticsearch result processor "
-            "to use after search query to Elasticsearch. This is used to add custom fields "
-            "for example.",
-            examples=["app.openfoodfacts.ResultProcessor"],
-        ),
-    ] | None = None
+    preprocessor: (
+        Annotated[
+            str,
+            Field(
+                description="The full qualified reference to the preprocessor to use before "
+                "data import. This is used to adapt the data schema or to add search-a-licious "
+                "specific fields for example.",
+                examples=["app.openfoodfacts.DocumentPreprocessor"],
+            ),
+        ]
+        | None
+    ) = None
+    result_processor: (
+        Annotated[
+            str,
+            Field(
+                description="The full qualified reference to the elasticsearch result processor "
+                "to use after search query to Elasticsearch. This is used to add custom fields "
+                "for example.",
+                examples=["app.openfoodfacts.ResultProcessor"],
+            ),
+        ]
+        | None
+    ) = None
     match_phrase_boost: Annotated[
         float, Field(description="How much we boost exact matches on individual fields")
     ] = 2.0
