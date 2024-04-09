@@ -12,10 +12,7 @@ jobs:
     - name: install python
       uses: actions/setup-python@v5
       with:
-        # FIXME: currently a bug prevent from using 3.11
-        # /home/runner/.cache/pre-commit/repokffp0m9p/py_env-python3.11/lib/python3.11/site-packages/redis-stubs/cluster.pyi:253: error: Positional-only parameters are only supported in Python 3.8 and greater
-        # see https://github.com/python/mypy/issues/13635#issuecomment-1241328210
-        python-version: 3.10.6
+        python-version: 3.11
     - name: build docker containers
       run: |
         echo "" > .envrc
