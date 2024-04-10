@@ -405,6 +405,7 @@ def run_full_import(
     num_processes: int,
     config: IndexConfig,
     num_items: int | None = None,
+    skip_updates: bool = False,
 ):
     """Run a full data import from a JSONL.
 
@@ -447,7 +448,8 @@ def run_full_import(
     with Pool(num_processes) as pool:
         pool.starmap(import_parallel, args)
     # update with last index updates (hopefully since the jsonl)
-    get_redis_updates(es_client, next_index, config)
+    if not skip_updates:
+        get_redis_updates(es_client, next_index, config)
     # make alias point to new index
     update_alias(es_client, next_index, config.index.name)
 

@@ -15,6 +15,10 @@ def import_data(
         dir_okay=False,
         help="Path of the JSONL data file",
     ),
+    skip_updates: bool = typer.Option(
+        default=False,
+        help="Skip fetching fresh records from redis",
+    ),
     num_processes: int = typer.Option(
         default=2, help="How many import processes to run in parallel"
     ),
@@ -63,6 +67,7 @@ def import_data(
         num_processes,
         index_config,
         num_items=num_items,
+        skip_updates=skip_updates,
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)

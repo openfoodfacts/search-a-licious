@@ -131,7 +131,7 @@ guard-%: # guard clause for targets that require an environment variable (usuall
 
 import-dataset: guard-filepath
 	@echo "🔎 Importing data …"
-	${DOCKER_COMPOSE} run --rm api python3 -m app import /opt/search/data/${filepath} --num-processes=2
+	${DOCKER_COMPOSE} run --rm api python3 -m app import /opt/search/data/${filepath} ${args} --num-processes=2
 
 
 #-------#
