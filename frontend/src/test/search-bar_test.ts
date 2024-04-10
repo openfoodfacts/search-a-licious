@@ -17,11 +17,16 @@ suite('searchalicious-bar', () => {
 
   test('renders with default values', async () => {
     const el = await fixture(html`<searchalicious-bar></searchalicious-bar>`);
+    //const input = (el.getElementsByTagName('input')[0] as HTMLInputElement);
+    //assert.equal(input.value, 'fixme');
     assert.shadowDom.equal(
       el,
       `
-      <input type="text"/>
-      <button part="button"></button>
+      <input
+        name="q"
+        placeholder="Search..."
+        type="text"
+        >
     `
     );
   });
