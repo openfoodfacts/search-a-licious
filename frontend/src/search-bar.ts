@@ -27,10 +27,11 @@ export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
       <input
         type="text"
         name="q"
-        value=${this.query}
+        @input=${this._onQueryChange}
+        .value=${this.query}
         placeholder=${this.placeholder}
       />
-      <button @click=${this._onClick} part="button">
+      <button @click=${this._onSearchClick} part="button">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -47,7 +48,11 @@ export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
     `;
   }
 
-  private _onClick() {
+  private _onQueryChange(event: Event) {
+    this.query = (event.target as HTMLInputElement).value;
+  }
+
+  private _onSearchClick() {
     // launch search
     this.search();
   }

@@ -24,7 +24,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * Query that will be sent to searchalicious
      */
-    @state()
+    @property({attribute: false})
     query = '';
 
     /**
@@ -36,7 +36,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * The base api url
      */
-    @property()
+    @property({attribute: 'batse-url'})
     baseUrl = '/';
 
     /**
@@ -46,7 +46,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     langs = 'en';
 
     // TODO: should be on results element instead
-    @property({type: Number})
+    @property({type: Number, attribute: 'page-size'})
     pageSize: Number = 10;
 
     @state()
