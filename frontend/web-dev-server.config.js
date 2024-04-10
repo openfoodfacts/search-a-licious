@@ -8,8 +8,13 @@ if (!['dev', 'prod'].includes(mode)) {
 
 export default {
   nodeResolve: {exportConditions: mode === 'dev' ? ['development'] : []},
+  //webSocketServer: {options: { path: sockPath }},
+  open: false,
   preserveSymlinks: true,
+  watch: true,
   output: {dir: 'public'},
+  rootDir: 'public/',
+  basePath: '/static',
   plugins: [
     legacyPlugin({
       polyfills: {

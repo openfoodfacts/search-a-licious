@@ -118,4 +118,4 @@ dmypy.json
 /frontend/node_modules/
 /frontend/lib/
 /frontend/test/
-/frontend/public/
+/frontend/public/dist/
