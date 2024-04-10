@@ -1,10 +1,5 @@
-/**
- * @license
- * Copyright 2021 Google LLC
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
 import {legacyPlugin} from '@web/dev-server-legacy';
+import { rollupPluginHTML as html } from '@web/rollup-plugin-html';
 
 const mode = process.env.MODE || 'dev';
 if (!['dev', 'prod'].includes(mode)) {
@@ -14,6 +9,7 @@ if (!['dev', 'prod'].includes(mode)) {
 export default {
   nodeResolve: {exportConditions: mode === 'dev' ? ['development'] : []},
   preserveSymlinks: true,
+  output: {dir: 'public'},
   plugins: [
     legacyPlugin({
       polyfills: {

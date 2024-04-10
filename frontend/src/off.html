@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-lt-installed="true">
+  <head>
+    <meta charset="utf-8" />
+    <title>Search-a-licious - Open Food Facts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://static.openfoodfacts.org/css/dist/app-ltr.css?v=1695281325"
+      data-base-layout="true"
+    />
+    <script src="./search-a-licious.js"></script>
+  </head>
+  <body class="products_page">
+    <div id="page">
+      <div id="main_container" style="position: relative" class="block_latte">
+        <div
+          class="topbarsticky"
+          style="position: static; left: auto; width: 1496px"
+        >
+          <div class="contain-to-grid" id="offNav">
+            <nav class="top-bar" data-topbar="" role="navigation">
+              <ul class="title-area">
+                <li class="name">
+                  <div style="position: relative; max-width: 292px">
+                    <a href="/">
+                      <img
+                        id="logo"
+                        src="https://static.openfoodfacts.org/images/logos/off-logo-horizontal-light.svg"
+                        alt="Open Food Facts logo"
+                        style="margin: 8px; height: 48px; width: auto"
+                      />
+                    </a>
+                  </div>
+                </li>
+              </ul>
+              <section class="top-bar-section">
+                <ul class="left small-4" style="margin-right: 2rem">
+                  <li class="search-li">
+                    <searchalicious-bar name="off"></searchalicious-bar>
+                  </li>
+                </ul>
+              </section>
+            </nav>
+          </div>
+        </div>
+
+        <nav class="tab-bar hide">
+          <div class="middle tab-bar-section">
+            <form action="/cgi/search.pl">
+              <div class="row collapse">
+                <div class="small-8 columns">
+                  <input
+                    type="text"
+                    placeholder="Search for a product"
+                    name="search_terms"
+                  />
+                </div>
+                <div class="small-2 columns">
+                  <button type="submit" class="button postfix">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      class="icon"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                      ></path>
+                      <path d="M0 0h24v24H0z" fill="none"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="small-2 columns">
+                  <a href="/cgi/search.pl" title="Advanced search"
+                    ><svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      class="icon"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                      ></path>
+                      <path d="M0 0h24v24H0z" fill="none"></path>
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      class="icon"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"></path>
+                      <path d="M0 0h24v24H0z" fill="none"></path></svg
+                  ></a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </nav>
+
+        <div id="content" class="off-canvas-wrap block_latte" data-offcanvas="">
+          <div class="inner-wrap">
+            <a class="exit-off-canvas"></a>
+            <div class="main block_light">
+              <div id="main_column">
+                <div class="block short block_ristreto">
+                  <div class="row">
+                    <div class="small-12 columns filterProducts">
+                      <div>
+                        <span class="filterProducts__results">
+                          <span class="material-icons">search</span>
+                          565 products, found in 1804 ms
+                        </span>
+                      </div>
+                      <div class="filterProducts__buttons">
+                        <div>
+                          <button
+                            href="#"
+                            data-dropdown="drop_sort"
+                            aria-controls="drop_sort"
+                            aria-expanded="false"
+                            class="button round dropdown small secondary unmarged"
+                          >
+                            <span class="material-icons">swap_vert</span>
+                            Relevance
+                          </button>
+                          <ul
+                            id="drop_sort"
+                            data-dropdown-content=""
+                            class="f-dropdown"
+                            aria-hidden="true"
+                            style="
+                              position: absolute;
+                              left: -99999px;
+                              top: 38px;
+                            "
+                          >
+                            <li>
+                              <a href="/?q=test&amp;page_size=24">Relevance</a>
+                            </li>
+                            <li>
+                              <a
+                                href="/?q=test&amp;sort_by=-unique_scans_n&amp;page_size=24"
+                                >Most scanned products</a
+                              >
+                            </li>
+
+                            <li>
+                              <a
+                                href="/?q=test&amp;sort_by=nutriscore_score&amp;page_size=24"
+                                >Products with the best Nutri-Score</a
+                              >
+                            </li>
+
+                            <li>
+                              <a
+                                href="/?q=test&amp;sort_by=-ecoscore_score&amp;page_size=24"
+                                >Products with the best Eco-Score</a
+                              >
+                            </li>
+
+                            <li>
+                              <a
+                                href="/?q=test&amp;sort_by=created_t&amp;page_size=24"
+                                >Recently added products</a
+                              >
+                            </li>
+
+                            <li>
+                              <a
+                                href="/?q=test&amp;sort_by=last_modified_t&amp;page_size=24"
+                                >Recently modified products</a
+                              >
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row" style="padding-top: 1rem">
+                  <div class="large-2 columns">
+                    <strong>nova_groups</strong>
+                    <ul>
+                      <li>4 (56)</li>
+
+                      <li>1 (33)</li>
+
+                      <li>3 (18)</li>
+
+                      <li>2 (12)</li>
+                    </ul>
+
+                    <strong>owner</strong>
+                    <ul>
+                      <li>org-carrefour (73)</li>
+
+                      <li>org-alnatura (1)</li>
+
+                      <li>org-carrefour-espana (1)</li>
+                    </ul>
+
+                    <strong>categories_tags</strong>
+                    <ul>
+                      <li>en:tests (109)</li>
+
+                      <li>en:non-food-products (108)</li>
+
+                      <li>en:plant-based-foods-and-beverages (74)</li>
+
+                      <li>en:plant-based-foods (64)</li>
+
+                      <li>en:cereals-and-potatoes (32)</li>
+
+                      <li>en:cereals-and-their-products (29)</li>
+
+                      <li>en:dairies (29)</li>
+
+                      <li>en:desserts (18)</li>
+
+                      <li>en:fresh-foods (17)</li>
+
+                      <li>en:canned-foods (16)</li>
+                    </ul>
+
+                    <strong>brands_tags</strong>
+                    <ul>
+                      <li>carrefour (77)</li>
+
+                      <li>groupe-carrefour (24)</li>
+
+                      <li>cmi-carrefour-marchandises-internationales (17)</li>
+
+                      <li>test (14)</li>
+
+                      <li>la-laitiere (9)</li>
+
+                      <li>null (4)</li>
+
+                      <li>adelie (3)</li>
+
+                      <li>auchan (3)</li>
+
+                      <li>dm-bio (3)</li>
+
+                      <li>funky-veggie (3)</li>
+                    </ul>
+
+                    <strong>ecoscore_grade</strong>
+                    <ul>
+                      <li>unknown (437)</li>
+
+                      <li>b (46)</li>
+
+                      <li>a (25)</li>
+
+                      <li>c (24)</li>
+
+                      <li>d (19)</li>
+
+                      <li>e (10)</li>
+
+                      <li>not-applicable (4)</li>
+                    </ul>
+
+                    <strong>states_tags</strong>
+                    <ul>
+                      <li>en:product-name-completed (562)</li>
+
+                      <li>en:to-be-completed (545)</li>
+
+                      <li>en:characteristics-to-be-completed (520)</li>
+
+                      <li>en:origins-to-be-completed (514)</li>
+
+                      <li>en:photos-uploaded (505)</li>
+
+                      <li>en:packaging-code-to-be-completed (482)</li>
+
+                      <li>en:front-photo-selected (479)</li>
+
+                      <li>en:photos-to-be-validated (466)</li>
+
+                      <li>en:expiration-date-to-be-completed (464)</li>
+
+                      <li>en:packaging-photo-to-be-selected (464)</li>
+                    </ul>
+
+                    <strong>nutrition_grades</strong>
+                    <ul>
+                      <li>unknown (310)</li>
+
+                      <li>not-applicable (113)</li>
+
+                      <li>a (37)</li>
+
+                      <li>b (32)</li>
+
+                      <li>c (28)</li>
+
+                      <li>d (26)</li>
+
+                      <li>e (19)</li>
+                    </ul>
+
+                    <strong>lang</strong>
+                    <ul>
+                      <li>fr (416)</li>
+
+                      <li>en (101)</li>
+
+                      <li>de (37)</li>
+
+                      <li>es (4)</li>
+
+                      <li>nl (2)</li>
+
+                      <li>af (1)</li>
+
+                      <li>ar (1)</li>
+
+                      <li>it (1)</li>
+
+                      <li>ja (1)</li>
+
+                      <li>zh (1)</li>
+                    </ul>
+
+                    <strong>countries_tags</strong>
+                    <ul>
+                      <li>en:france (415)</li>
+
+                      <li>en:germany (47)</li>
+
+                      <li>en:spain (31)</li>
+
+                      <li>en:italy (27)</li>
+
+                      <li>en:united-states (27)</li>
+
+                      <li>en:belgium (21)</li>
+
+                      <li>en:poland (14)</li>
+
+                      <li>en:switzerland (14)</li>
+
+                      <li>en:united-kingdom (12)</li>
+
+                      <li>en:romania (11)</li>
+                    </ul>
+
+                    <strong>labels_tags</strong>
+                    <ul>
+                      <li>en:distributor-labels (79)</li>
+
+                      <li>fr:teste-par-le-panel-test-carrefour (79)</li>
+
+                      <li>en:green-dot (58)</li>
+
+                      <li>en:nutriscore (52)</li>
+
+                      <li>en:made-in-france (50)</li>
+
+                      <li>de:öko-test (37)</li>
+
+                      <li>en:organic (31)</li>
+
+                      <li>de:öko-test-sehr-gut (26)</li>
+
+                      <li>en:carrefour-quality (26)</li>
+
+                      <li>en:vegetarian (23)</li>
+                    </ul>
+                  </div>
+                  <div class="large-10 columns">
+                    <div id="search_results" style="clear: left">
+                      <div id="products_tabs_content" class="tabs-content">
+                        <div class="tabs content active" id="products_all">
+                          <ul
+                            class="search_results small-block-grid-1 medium-block-grid-4 large-block-grid-6 xlarge-block-grid-8 xxlarge-block-grid-10"
+                            id="products_match_all"
+                            style="list-style: none"
+                          >
+                            <li data-code="4002239602501">
+                              <a
+                                href="https://world.openfoodfacts.org/product/4002239602501"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  88.953094
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/400/223/960/2501/front_de.6.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Weinblätter
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-c.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="4337185151514">
+                              <a
+                                href="https://world.openfoodfacts.org/product/4337185151514"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  87.36565
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/433/718/515/1514/front_fr.10.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    K Classic Natürliches Mineral Wasser Mit
+                                    Kohlensäure Versetzt
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-not-applicable.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-a.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="20044268">
+                              <a
+                                href="https://world.openfoodfacts.org/product/20044268"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  86.95961
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/20044268/front.10.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Jodsalz fein
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-a.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-not-applicable.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="2108271149102">
+                              <a
+                                href="https://world.openfoodfacts.org/product/2108271149102"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  85.05352
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg"
+                                      style="filter: invert(0.9)"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    test name
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-d.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-unknown.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="22130105">
+                              <a
+                                href="https://world.openfoodfacts.org/product/22130105"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  83.37076
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/22130105/front.12.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Frische Vollmilch 3,5% Fett
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-c.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-b.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="0666493942700">
+                              <a
+                                href="https://world.openfoodfacts.org/product/0666493942700"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  82.793945
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg"
+                                      style="filter: invert(0.9)"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Prodotto Test
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-unknown.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="41047231">
+                              <a
+                                href="https://world.openfoodfacts.org/product/41047231"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  81.839905
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/41047231/front_de.97.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Süßer Senf
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-b.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-c.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="11111111111">
+                              <a
+                                href="https://world.openfoodfacts.org/product/11111111111"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  81.502335
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/111/111/111/11/front_fr.66.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    test nutriscan
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-c.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-not-applicable.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="29019007">
+                              <a
+                                href="https://world.openfoodfacts.org/product/29019007"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  79.52833
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/29019007/front.6.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Köstlich-zarte Vollkorn-Haferflocken
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-b.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-a.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="4018087001755">
+                              <a
+                                href="https://world.openfoodfacts.org/product/4018087001755"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  78.35809
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/401/808/700/1755/front.9.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Nudossi
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-e.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="4056489027256">
+                              <a
+                                href="https://world.openfoodfacts.org/product/4056489027256"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  75.35135
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/405/648/902/7256/front_de.39.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Apfelmus gezuckert
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-a.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-a.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="4000339054824">
+                              <a
+                                href="https://world.openfoodfacts.org/product/4000339054824"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  74.52963
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/400/033/905/4824/front.4.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Tomaten Ketchup
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-a.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-d.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="0030000000052">
+                              <a
+                                href="https://world.openfoodfacts.org/product/0030000000052"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  71.92533
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg"
+                                      style="filter: invert(0.9)"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    GATORADE ENERGY BAR PEANUT BUTTER 2.1 oz
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-d.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-d.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="4101530001782">
+                              <a
+                                href="https://world.openfoodfacts.org/product/4101530001782"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  69.50315
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/410/153/000/1782/front.11.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Butter
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-d.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-e.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="4008722001257">
+                              <a
+                                href="https://world.openfoodfacts.org/product/4008722001257"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  68.59644
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/400/872/200/1257/front_de.19.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Rapskernöl
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-b.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-c.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="40193083">
+                              <a
+                                href="https://world.openfoodfacts.org/product/40193083"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  68.029236
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/40193083/front.18.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Frischkäse Französische Kräuter angebrochen
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-c.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-d.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="7623900407606">
+                              <a
+                                href="https://world.openfoodfacts.org/product/7623900407606"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  66.95959
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg"
+                                      style="filter: invert(0.9)"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Test
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-unknown.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="9782070302581">
+                              <a
+                                href="https://world.openfoodfacts.org/product/9782070302581"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  66.95959
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg"
+                                      style="filter: invert(0.9)"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Test
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-not-applicable.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="8718452732296">
+                              <a
+                                href="https://world.openfoodfacts.org/product/8718452732296"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  66.95959
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/871/845/273/2296/front_en.4.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    test
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-unknown.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="5000208091140">
+                              <a
+                                href="https://world.openfoodfacts.org/product/5000208091140"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  65.93114
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg"
+                                      style="filter: invert(0.9)"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Test
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-unknown.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="3520710009720">
+                              <a
+                                href="https://world.openfoodfacts.org/product/3520710009720"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  65.93114
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg"
+                                      style="filter: invert(0.9)"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Test
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-unknown.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="29052325">
+                              <a
+                                href="https://world.openfoodfacts.org/product/29052325"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  64.64478
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/29052325/front_de.10.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Dino&#39;s Confetti
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-b.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-c.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="37237035">
+                              <a
+                                href="https://world.openfoodfacts.org/product/37237035"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  63.3039
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/37237035/front_fr.4.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    test
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-not-applicable.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+
+                            <li data-code="4337256162463">
+                              <a
+                                href="https://world.openfoodfacts.org/product/4337256162463"
+                                class="list_product_a"
+                              >
+                                <div
+                                  class="list_product_banner list_product_banner_very_good_match"
+                                >
+                                  62.183506
+                                </div>
+                                <div class="list_product_content">
+                                  <div class="list_product_img_div">
+                                    <img
+                                      src="https://images.openfoodfacts.org/images/products/433/725/616/2463/front_de.41.200.jpg"
+                                      class="list_product_img"
+                                    />
+                                  </div>
+                                  <div class="list_product_name v-space-tiny">
+                                    Zarte Haferflocken
+                                  </div>
+                                  <div class="list_product_sc">
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-b.svg"
+                                    />
+                                    <img
+                                      class="list_product_icons"
+                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-b.svg"
+                                    />
+                                  </div>
+                                </div>
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <ul id="pages" class="pagination">
+                      <li class="unavailable" style="margin-right: 1rem">
+                        Pages:
+                      </li>
+
+                      <li class="current">
+                        <a href="/?q=test&amp;page_size=24&amp;page=1">1</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=2">2</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=3">3</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=4">4</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=5">5</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=6">6</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=7">7</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=8">8</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=9">9</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=10">10</a>
+                      </li>
+
+                      <li>
+                        <a href="/?q=test&amp;page_size=24&amp;page=2">Next</a>
+                      </li>
+
+                      <li class="unavailable">(24 products per page)</li>
+                    </ul>
+
+                    <h3>Elasticsearch query</h3>
+                    <pre><code>{
+    &#34;query&#34;: {
+        &#34;bool&#34;: {
+            &#34;should&#34;: [
+                {
+                    &#34;bool&#34;: {
+                        &#34;should&#34;: [
+                            {
+                                &#34;match_phrase&#34;: {
+                                    &#34;product_name.en&#34;: {
+                                        &#34;query&#34;: &#34;test&#34;,
+                                        &#34;boost&#34;: 2.0
+                                    }
+                                }
+                            },
+                            {
+                                &#34;match_phrase&#34;: {
+                                    &#34;product_name.fr&#34;: {
+                                        &#34;query&#34;: &#34;test&#34;,
+                                        &#34;boost&#34;: 2.0
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    &#34;bool&#34;: {
+                        &#34;should&#34;: [
+                            {
+                                &#34;match_phrase&#34;: {
+                                    &#34;generic_name.en&#34;: {
+                                        &#34;query&#34;: &#34;test&#34;,
+                                        &#34;boost&#34;: 2.0
+                                    }
+                                }
+                            },
+                            {
+                                &#34;match_phrase&#34;: {
+                                    &#34;generic_name.fr&#34;: {
+                                        &#34;query&#34;: &#34;test&#34;,
+                                        &#34;boost&#34;: 2.0
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    &#34;bool&#34;: {
+                        &#34;should&#34;: [
+                            {
+                                &#34;match_phrase&#34;: {
+                                    &#34;categories.en&#34;: {
+                                        &#34;query&#34;: &#34;test&#34;,
+                                        &#34;boost&#34;: 2.0
+                                    }
+                                }
+                            },
+                            {
+                                &#34;match_phrase&#34;: {
+                                    &#34;categories.fr&#34;: {
+                                        &#34;query&#34;: &#34;test&#34;,
+                                        &#34;boost&#34;: 2.0
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    &#34;bool&#34;: {
+                        &#34;should&#34;: [
+                            {
+                                &#34;match_phrase&#34;: {
+                                    &#34;labels.en&#34;: {
+                                        &#34;query&#34;: &#34;test&#34;,
+                                        &#34;boost&#34;: 2.0
+                                    }
+                                }
+                            },
+                            {
+                                &#34;match_phrase&#34;: {
+                                    &#34;labels.fr&#34;: {
+                                        &#34;query&#34;: &#34;test&#34;,
+                                        &#34;boost&#34;: 2.0
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    &#34;match_phrase&#34;: {
+                        &#34;brands&#34;: {
+                            &#34;query&#34;: &#34;test&#34;,
+                            &#34;boost&#34;: 2.0
+                        }
+                    }
+                },
+                {
+                    &#34;multi_match&#34;: {
+                        &#34;query&#34;: &#34;test&#34;,
+                        &#34;fields&#34;: [
+                            &#34;product_name.en&#34;,
+                            &#34;product_name.fr&#34;,
+                            &#34;generic_name.en&#34;,
+                            &#34;generic_name.fr&#34;,
+                            &#34;categories.en&#34;,
+                            &#34;categories.fr&#34;,
+                            &#34;labels.en&#34;,
+                            &#34;labels.fr&#34;,
+                            &#34;brands&#34;
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+    &#34;aggs&#34;: {
+        &#34;brands_tags&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;brands_tags&#34;
+            }
+        },
+        &#34;lang&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;lang&#34;
+            }
+        },
+        &#34;owner&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;owner&#34;
+            }
+        },
+        &#34;categories_tags&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;categories_tags&#34;
+            }
+        },
+        &#34;labels_tags&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;labels_tags&#34;
+            }
+        },
+        &#34;countries_tags&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;countries_tags&#34;
+            }
+        },
+        &#34;states_tags&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;states_tags&#34;
+            }
+        },
+        &#34;nutrition_grades&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;nutrition_grades&#34;
+            }
+        },
+        &#34;ecoscore_grade&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;ecoscore_grade&#34;
+            }
+        },
+        &#34;nova_groups&#34;: {
+            &#34;terms&#34;: {
+                &#34;field&#34;: &#34;nova_groups&#34;
+            }
+        }
+    },
+    &#34;size&#34;: 24,
+    &#34;from&#34;: 0
+}</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://static.openfoodfacts.org/js/dist/modernizr.js"></script>
+    <script src="https://static.openfoodfacts.org/js/dist/jquery.js"></script>
+    <script src="https://static.openfoodfacts.org/js/dist/jquery-ui.js"></script>
+    <script src="https://static.openfoodfacts.org/js/dist/hc-sticky.js"></script>
+    <script src="https://static.openfoodfacts.org/js/dist/display.js"></script>
+    <script src="https://static.openfoodfacts.org/js/dist/stikelem.js"></script>
+    <script src="https://static.openfoodfacts.org/js/dist/scrollNav.js"></script>
+
+    <script
+      src="https://static.openfoodfacts.org/js/dist/foundation.js"
+      data-base-layout="true"
+    ></script>
+    <script src="https://static.openfoodfacts.org/js/dist/jquery.cookie.js"></script>
+    <script src="https://static.openfoodfacts.org/js/dist/select2.min.js"></script>
+    <script>
+      $(document).foundation({
+        equalizer: {
+          equalize_on_stack: true,
+        },
+        accordion: {
+          callback: function (accordion) {
+            $(document).foundation('equalizer', 'reflow');
+          },
+        },
+      });
+    </script>
+  </body>
+  <style type="text/css">
+    /*
+ * OFF web app already load jquery-ui.css but it doesn't work properly with "dialog" function.
+ * We add the CSS this way so that the embedded, relatively linked images load correctly.
+ * (Use //ajax... so that https or http is selected as appropriate to avoid "mixed content".)
+ */
+
+    .ui-dialog {
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 0.2em;
+      outline: 0;
+    }
+    .ui-dialog .ui-dialog-titlebar {
+      padding: 0.4em 1em;
+      position: relative;
+    }
+    .ui-dialog .ui-dialog-title {
+      float: left;
+      margin: 0.1em 0;
+      white-space: nowrap;
+      width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ui-dialog .ui-dialog-titlebar-close {
+      position: absolute;
+      right: 0.3em;
+      top: 50%;
+      width: 20px;
+      margin: -10px 0 0 0;
+      padding: 1px;
+      height: 20px;
+    }
+    .ui-dialog .ui-dialog-content {
+      position: relative;
+      border: 0;
+      padding: 0.5em 1em;
+      background: none;
+      overflow: auto;
+    }
+    .ui-dialog .ui-dialog-buttonpane {
+      text-align: left;
+      border-width: 1px 0 0 0;
+      background-image: none;
+      margin-top: 0.5em;
+      padding: 0.3em 1em 0.5em 0.4em;
+    }
+    .ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset {
+      float: right;
+    }
+    .ui-dialog .ui-dialog-buttonpane button {
+      margin: 0.5em 0.4em 0.5em 0;
+      cursor: pointer;
+    }
+
+    .ui-dialog .ui-resizable-n {
+      height: 2px;
+      top: 0;
+    }
+    .ui-dialog .ui-resizable-e {
+      width: 2px;
+      right: 0;
+    }
+    .ui-dialog .ui-resizable-s {
+      height: 2px;
+      bottom: 0;
+    }
+    .ui-dialog .ui-resizable-w {
+      width: 2px;
+      left: 0;
+    }
+    .ui-dialog .ui-resizable-se,
+    .ui-dialog .ui-resizable-sw,
+    .ui-dialog .ui-resizable-ne,
+    .ui-dialog .ui-resizable-nw {
+      width: 7px;
+      height: 7px;
+    }
+    .ui-dialog .ui-resizable-se {
+      right: 0;
+      bottom: 0;
+    }
+    .ui-dialog .ui-resizable-sw {
+      left: 0;
+      bottom: 0;
+    }
+    .ui-dialog .ui-resizable-ne {
+      right: 0;
+      top: 0;
+    }
+    .ui-dialog .ui-resizable-nw {
+      left: 0;
+      top: 0;
+    }
+    .ui-draggable .ui-dialog-titlebar {
+      cursor: move;
+    }
+    /** End of jquery-ui requirements **/
+
+    /* .row { width: 80% !important; margin: 0 0 !important; } */
+
+    /* Special color for barcode */
+    span[property='food:code'] {
+      color: Olive;
+    }
+
+    /* Enhancements to better distinguish sections: Product information, Ingredients and Nutriments facts */
+    #main_column > div > h2 {
+      margin-top: 1.6rem !important;
+      margin-bottom: 0.2rem !important;
+      border-bottom: 1px solid lightgrey;
+    }
+
+    /* Special background color for all input fieds */
+    textarea,
+    .tagify,
+    input[type='text'] {
+      background-color: LightYellow !important;
+    }
+    input.nutriment_value {
+      background-color: LightYellow;
+    }
+    textarea:focus,
+    .tagify__input:focus,
+    .tagify:focus,
+    input[type='text']:focus,
+    input.nutriment_value:focus {
+      background-color: lightblue !important;
+    }
+
+    /* Small enhancements */
+    p {
+      margin-bottom: 0.6rem;
+    }
+    input[type='text'] {
+      margin: 1px 0;
+    } /* reduce vertical space between fields and notes */
+    .note,
+    .example {
+      margin: 1px 0;
+    }
+    label {
+      margin-top: 10px;
+    }
+    .data_table {
+      margin-top: 7px;
+    }
+    td {
+      line-height: 1rem;
+    }
+    input[type='checkbox'],
+    input[type='radio'] {
+      margin: 0;
+    }
+
+    /* ---------------- Nutrition facts ------------------------- */
+
+    .hidden {
+      display: none;
+    }
+
+    /* ingredients box alternative font */
+    textarea.monospace {
+      font-family: Consolas, Lucida Console, monospace;
+    }
+
+    .ul[id^='products_'].search_results a.with_barcode {
+      margin-top: 0;
+      padding-top: 0;
+    }
+  </style>
+</html>

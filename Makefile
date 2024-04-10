@@ -91,9 +91,15 @@ check:
 # note: this is called by pre-commit
 check_front:  _ensure_network
 	${DOCKER_COMPOSE} run --rm -T search_nodejs npm run check
-lint:
-	@echo "🔎 Running linters..."
+
+lint: lint_back lint_front
+
+lint_back:
+	@echo "🔎 Running linters for backend code..."
 	pre-commit run black --all-files
+
+lint_front:
+	@echo "🔎 Running linters for frontend code..."
 	${DOCKER_COMPOSE} run --rm search_nodejs npm run format
 
 #-------#
