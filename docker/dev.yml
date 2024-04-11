@@ -29,3 +29,48 @@ services:
     command: ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000", "--reload"]
   updater:
     <<: *api-base
+  search_frontend:
+    image: search-a-licious/searchalicious_frontend:dev
+    build:
+      context: frontend
+      args:
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    environment:
+      # by default, disabling prod ui config and enabling node one
+      # you can change this settings to try the prod configuration,
+      # by setting PROD_UI_SUFFIX to "" and DEV_UI_SUFFIX to "-dev"
+      PROD_UI_SUFFIX: "${PROD_UI_SUFFIX--static}"
+      DEV_UI_SUFFIX: "${DEV_UI_SUFFIX-}"
+
+
+  # Node that create the webcomponents
+  search_nodejs:
+    image: search-a-licious/search_nodejs:dev
+    build:
+      context: frontend
+      target: builder
+      args:
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    environment:
+      NODE_ENV: development
+    volumes:
+      # dynamic mount
+      - ./frontend/public:/opt/search-a-licious/public
+      - ./frontend/src:/opt/search-a-licious/src
+      # configs
+      - ./frontend/package.json:/opt/search-a-licious/package.json
+      - ./frontend/package-lock.json:/opt/search-a-licious/package-lock.json
+      - ./frontend/tsconfig.json:/opt/search-a-licious/tsconfig.json
+      - ./frontend/.eslintignore:/opt/search-a-licious/.eslintignore
+      - ./frontend/.eslintrc.json:/opt/search-a-licious/.eslintrc.json
+      - ./frontend/.prettierrc.json:/opt/search-a-licious/.prettierrc.json
+      - ./frontend/web-test-runner.config.js:/opt/search-a-licious/web-test-runner.config.js
+      - ./frontend/web-dev-server.config.js:/opt/search-a-licious/web-dev-server.config.js
+      - ./frontend/rollup.config.js:/opt/search-a-licious/rollup.config.js
+
+networks:
+  common_net:
+    name: ${COMMON_NET_NAME}
+    external: true

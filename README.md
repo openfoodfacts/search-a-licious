@@ -6,6 +6,7 @@
 This API is currently in development. Read [Search-a-licious roadmap architecture notes](https://docs.google.com/document/d/1mibE8nACcmen6paSrqT9JQk5VbuvlFUXI1S93yHCK2I/edit) to understand where we are headed.
 
 ### Organization
+
 The main file is `api.py`, and the schema is in `models/product.py`.
 
 A CLI is available to perform common tasks.
@@ -35,6 +36,7 @@ Docker spins up:
 You will then need to import from a JSONL dump (see instructions below).
 
 ### Development
+
 For development, you have two options for running the service:
 1. Docker
 2. Locally
@@ -56,7 +58,14 @@ uvicorn app.api:app --reload --port=8001 --workers=4
 Note that it's important to use port 8001, as port 8000 will be used by the docker version of the search service.
 
 ### Pre-Commit
+
 This repo uses [pre-commit](https://pre-commit.com/) to enforce code styling, etc. To use it:
+```console
+pre-commit install
+```
+
+To run tests without committing:
+
 ```console
 pre-commit run
 ```

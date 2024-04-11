@@ -261,17 +261,15 @@ def test_update_alias(default_config):
     update_alias(es_mock, next_index, index_alias)
 
     es_mock.indices.update_aliases.assert_called_once_with(
-        body={
-            "actions": [
-                {
-                    "remove": {
-                        "alias": index_alias,
-                        "index": f"{index_alias}-*",
-                    },
+        actions=[
+            {
+                "remove": {
+                    "alias": index_alias,
+                    "index": f"{index_alias}-*",
                 },
-                {"add": {"alias": index_alias, "index": next_index}},
-            ],
-        },
+            },
+            {"add": {"alias": index_alias, "index": next_index}},
+        ]
     )
 
 

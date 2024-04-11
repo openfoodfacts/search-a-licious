@@ -1,16 +1,27 @@
-# Enforce pre-commit hook server side
-name: Run pre-commit hooks
+name: Run checks
 
 on:
   pull_request:
     branches: [ main ]
 
 jobs:
-  pre-commit:
+  checks:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - name: install python
+      uses: actions/setup-python@v5
       with:
         python-version: 3.11
-    - uses: pre-commit/action@v3.0.1
+    - name: build docker containers
+      run: |
+        echo "" > .envrc
+        echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
+        echo OFF_API_URL=https://world.openfoodfacts.org >> .envrc
+        echo USER_IID=$(id -u) >>.envrc
+        echo USER_GID=$(id -g) >>.envrc
+        make build
+    - name: Enforce pre-commit hook server side
+      uses: pre-commit/action@v3.0.1
+    - name: run tests
+      run: make test
