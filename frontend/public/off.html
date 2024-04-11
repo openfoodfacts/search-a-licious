@@ -9,7 +9,7 @@
       href="https://static.openfoodfacts.org/css/dist/app-ltr.css?v=1695281325"
       data-base-layout="true"
     />
-    <script type="module" src="./dist/search-bar.js"></script>
+    <script type="module" src="./dist/search-a-licious.js"></script>
   </head>
   <body class="products_page">
     <div id="page">
@@ -38,6 +38,9 @@
                 <ul class="left small-4" style="margin-right: 2rem">
                   <li class="search-li">
                     <searchalicious-bar name="off"></searchalicious-bar>
+                    <searchalicious-button search_name="off">
+                      <slot>Search !</slot>
+                    </searchalicious-button>
                   </li>
                 </ul>
               </section>
