@@ -3,7 +3,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousEvents} from './enums';
 
 /**
- * An optional search button element.
+ * An optional search button element that launch the search.
  *
  * @slot - goes in button contents, default to "Search" string
  */
@@ -18,7 +18,7 @@ export class SearchaliciousButton extends LitElement {
 
   override render() {
     return html`
-      <button @click=${this._onClick}>
+      <button @click=${this._onClick} part="button" role="button">
         <slot> Search </slot>
       </button>
     `;
