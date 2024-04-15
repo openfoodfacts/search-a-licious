@@ -7,10 +7,20 @@
 type Constructor<T = {}> = new (...args: any[]) => T;
 
 export declare class EventRegistrationInterface {
+  /**
+   * Calls window.addEventListener if not remove before next AnimationFrame
+   * @param event - event name
+   * @param handler - function handling event. Beware of using () => this.method to have method bind to this.
+   */
   addEventHandler(
     event: string,
     handler: EventListenerOrEventListenerObject
   ): void;
+  /**
+   * Removes window.removeEventListener but only if really needed
+   * @param event - event name
+   * @param handler - function handling event.
+   */
   removeEventHandler(
     event: string,
     handler: EventListenerOrEventListenerObject
@@ -31,6 +41,7 @@ export const EventRegistrationMixin = <T extends Constructor<Object>>(
       event: string,
       handler: EventListenerOrEventListenerObject
     ) {
+      this._event_setups[event] ||= [];
       this._event_setups[event].push(
         window.requestAnimationFrame(() =>
           this._registrationEventHandlersOnAnimationFrame(event, handler)
@@ -42,7 +53,7 @@ export const EventRegistrationMixin = <T extends Constructor<Object>>(
       event: string,
       handler: EventListenerOrEventListenerObject
     ) {
-      if (this._event_setups) {
+      if (this._event_setups[event]) {
         window.cancelAnimationFrame(this._event_setups[event].pop()!); // cancel one registration
       } else {
         // really remove event
@@ -50,6 +61,8 @@ export const EventRegistrationMixin = <T extends Constructor<Object>>(
       }
     }
 
+    // method called on next animation frame to actually add the event listener,
+    // if not eventually canceled by a removeEventHandler call
     _registrationEventHandlersOnAnimationFrame(
       event: string,
       handler: EventListenerOrEventListenerObject,
