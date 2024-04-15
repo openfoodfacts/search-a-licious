@@ -2,6 +2,7 @@ import {LitElement} from 'lit';
 import {property, state} from 'lit/decorators.js';
 import {EventRegistrationMixin} from './event-listener-setup';
 import {SearchaliciousEvents} from './enums';
+import {SearchResultEvent, SearchResultDetail} from './events';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -12,7 +13,7 @@ export declare class SearchaliciousSearchInterface {
   baseUrl: string;
   langs: string;
   index: string;
-  pageSize: Number;
+  pageSize: number;
 
   search(): Promise<void>;
 }
@@ -41,7 +42,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * The base api url
      */
-    @property({attribute: 'batse-url'})
+    @property({attribute: 'base-url'})
     baseUrl = '/';
 
     /**
@@ -58,16 +59,16 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
 
     // TODO: should be on results element instead
     @property({type: Number, attribute: 'page-size'})
-    pageSize: Number = 10;
+    pageSize = 10;
 
     @state()
-    _pageCount?: Number;
+    _pageCount?: number;
 
     @state()
     _results?: {}[];
 
     @state()
-    _count?: Number;
+    _count?: number;
 
     // TODO: this should be on results element instead
     _searchUrl() {
@@ -97,15 +98,16 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     // connect to our specific events
     override connectedCallback() {
       super.connectedCallback();
-      this.addEventHandler(SearchaliciousEvents.LAUNCH_SEARCH, (event) =>
+      this.addEventHandler(SearchaliciousEvents.LAUNCH_SEARCH, (event: Event) =>
         this._handleSearch(event)
       );
     }
     // connect to our specific events
     override disconnectedCallback() {
       super.disconnectedCallback();
-      this.removeEventHandler(SearchaliciousEvents.LAUNCH_SEARCH, (event) =>
-        this._handleSearch(event)
+      this.removeEventHandler(
+        SearchaliciousEvents.LAUNCH_SEARCH,
+        (event: Event) => this._handleSearch(event)
       );
     }
 
@@ -131,10 +133,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this._results = data.hits;
       this._count = data.count;
       this._pageCount = data.page_count;
-      const detail = {
-        results: this._results,
-        count: this._count,
-        pageCount: this._pageCount,
+      const detail: SearchResultDetail = {
+        searchName: this.name,
+        results: this._results!,
+        count: this._count!,
+        pageCount: this._pageCount!,
       };
       // dispatch an event with the results
       this.dispatchEvent(
@@ -153,6 +156,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
 
 declare global {
   interface GlobalEventHandlersEventMap {
-    'searchalicious-result': CustomEvent<{}>;
+    'searchalicious-result': SearchResultEvent;
   }
 }
