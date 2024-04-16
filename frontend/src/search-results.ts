@@ -5,12 +5,21 @@ import {repeat} from 'lit/directives/repeat.js';
 import {EventRegistrationMixin} from './event-listener-setup';
 import {SearchResultEvent} from './events';
 import {SearchaliciousEvents} from './enums';
+import {
+  MissingResultTemplateError,
+  MultipleResultTemplateError,
+} from './errors';
+
+// we need it to declare functions
+type htmlType = typeof html;
+
 /**
  * The search results element
  *
- * It will display results based upon the InnerHTML considered as a template.
+ * It will display results based upon the slot with name `result`,
+ * considered as a template, with variable interpolation (using tag-params library).
  *
- * It reacts to the `searchalicious-result` event fired by the search controller
+ * It reacts to the `searchalicious-result` event fired by the search controller.
  */
 @customElement('searchalicious-results')
 export class SearchaliciousResults extends EventRegistrationMixin(LitElement) {
@@ -31,24 +40,77 @@ export class SearchaliciousResults extends EventRegistrationMixin(LitElement) {
   resultId = 'id';
 
   /**
-   * Get the slot contents and interpret it as a JS template.
+   * A function rendering a single result. We define this just to get it's prototype right.
+   *
+   * It will be replaced by a dynamic function created
+   * from the content of the slot named result.
+   *
+   * Note that we need to pass along html, because at rendering time, it will not be available as a global
    */
-  getResultTemplate() {
-    return (
-      this.renderRoot.querySelector('slot')?.toString() ||
-      'Please provide a template'
-    );
+  resultRenderer = function (html: htmlType, result: Object, index: number) {
+    const data = html`Please provide a template`;
+    if (!result && !index) {
+      // just to make TS happy that we use the variables
+      // eslint-disable-next-line no-empty
+    }
+    return data;
+  };
+
+  // override constructor to generate the result renderer function
+  constructor() {
+    super();
+    this.resultRenderer = this._buildResultRenderer();
+  }
+
+  /**
+   * Build a result renderer from the template provided by user.
+   * It creates dynamically a function that renders the template with the given result and index.
+   * This is the best way I could find !
+   * It is faster as using eval as the function is built only once at component creation time.
+   * @returns Function (htmlType, Object, string) => TemplateResult<ResultType>
+   */
+  _buildResultRenderer() {
+    const resultTemplate = this._getTemplate();
+    return Function(
+      'html',
+      'result',
+      'index',
+      'return html`' + resultTemplate + '`;'
+    ) as typeof this.resultRenderer;
+  }
+
+  /**
+   * Get the template for one result, using `<slot name="result">`
+   * This must be run in constructor ! (to be able to grab this.innerHTML)
+   */
+  _getTemplate() {
+    // const fragment = new DocumentFragment();
+    // fragment.replaceChildren(document.createElement("template"));
+    // (fragment.firstChild! as HTMLElement).append(this.innerHTML);
+    const fragment = document.createElement('div');
+    fragment.innerHTML = this.innerHTML;
+
+    //const element = new DOMParser().parseFromString(`<template>${this.innerHTML}</template>`, "text/html");
+    const slots = fragment.querySelectorAll('slot[name="result"]');
+    // we only need one !
+    if (!slots || slots.length === 0) {
+      throw new MissingResultTemplateError('No slot found with name="result"');
+    } else if (slots.length > 1) {
+      throw new MultipleResultTemplateError(
+        'Multiple slots found with name="result"'
+      );
+    }
+    return slots[0].innerHTML;
   }
 
   override render() {
-    const resultTemplate = this.getResultTemplate();
-    console.log('Result template');
-    console.dir(resultTemplate);
+    const renderResult = this.resultRenderer;
+    console.dir(this.results[0]);
     return html` <ul part="results">
       ${repeat(
         this.results,
-        (item) => item[this.resultId] as string,
-        (item, index) => html` <li part="result">Result ${index} ${item}</li>`
+        (result) => result[this.resultId] as string,
+        (result, index) => renderResult(html, result, index)
       )}
     </ul>`;
   }

@@ -327,278 +327,47 @@
                     <div id="search_results" style="clear: left">
                       <div id="products_tabs_content" class="tabs-content">
                         <div class="tabs content active" id="products_all">
-                          <searchalicious-results search-name="off"></searchalicious-results>
-                          <!-- <ul
-                            class="search_results small-block-grid-1 medium-block-grid-4 large-block-grid-6 xlarge-block-grid-8 xxlarge-block-grid-10"
-                            id="products_match_all"
-                            style="list-style: none"
-                          >
-                            <li data-code="4002239602501">
-                              <a
-                                href="https://world.openfoodfacts.org/product/4002239602501"
-                                class="list_product_a"
-                              >
-                                <div
-                                  class="list_product_banner list_product_banner_very_good_match"
+                          <searchalicious-results search-name="off" search-id="code">
+                            <slot name="result">
+                              <li data-code="${result.code}">
+                                <a
+                                  href="https://world.openfoodfacts.org/product/${result.code}"
+                                  part="outer_anchor"
                                 >
-                                  88.953094
-                                </div>
-                                <div class="list_product_content">
-                                  <div class="list_product_img_div">
-                                    <img
-                                      src="https://images.openfoodfacts.org/images/products/400/223/960/2501/front_de.6.200.jpg"
-                                      class="list_product_img"
-                                    />
+                                  <div
+                                    class="list_product_banner list_product_banner_very_good_match"
+                                  >
+                                    ${result.score}
                                   </div>
-                                  <div class="list_product_name v-space-tiny">
-                                    Weinblätter
+                                  <div class="list_product_content">
+                                    <div class="list_product_img_div">
+                                      <img
+                                        src="${result.image_small_url}"
+                                        class="list_product_img"
+                                      />
+                                    </div>
+                                    <div class="list_product_name v-space-tiny">
+                                      ${result.product_name}
+                                    </div>
+                                    <div class="list_product_sc">
+                                      <img
+                                        class="list_product_icons"
+                                        src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-${result.ecoscore_grade}.svg"
+                                      />
+                                      <img
+                                        class="list_product_icons"
+                                        src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-${result.nutriscore_grade ? result.nutriscore_grade : 'unknown'}.svg"
+                                      />
+                                    </div>
                                   </div>
-                                  <div class="list_product_sc">
-                                    <img
-                                      class="list_product_icons"
-                                      src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-unknown.svg"
-                                    />
-                                    <img
-                                      class="list_product_icons"
-                                      src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-c.svg"
-                                    />
-                                  </div>
-                                </div>
-                              </a>
-                            </li>
-                          </ul>
-                        -->
+                                </a>
+                              </li>
+                            </slot>
+                          </searchalicious-results>
                         </div>
                       </div>
                     </div>
-
-                    <ul id="pages" class="pagination">
-                      <li class="unavailable" style="margin-right: 1rem">
-                        Pages:
-                      </li>
-
-                      <li class="current">
-                        <a href="/?q=test&amp;page_size=24&amp;page=1">1</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=2">2</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=3">3</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=4">4</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=5">5</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=6">6</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=7">7</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=8">8</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=9">9</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=10">10</a>
-                      </li>
-
-                      <li>
-                        <a href="/?q=test&amp;page_size=24&amp;page=2">Next</a>
-                      </li>
-
-                      <li class="unavailable">(24 products per page)</li>
-                    </ul>
-
-                    <h3>Elasticsearch query</h3>
-                    <pre><code>{
-    &#34;query&#34;: {
-        &#34;bool&#34;: {
-            &#34;should&#34;: [
-                {
-                    &#34;bool&#34;: {
-                        &#34;should&#34;: [
-                            {
-                                &#34;match_phrase&#34;: {
-                                    &#34;product_name.en&#34;: {
-                                        &#34;query&#34;: &#34;test&#34;,
-                                        &#34;boost&#34;: 2.0
-                                    }
-                                }
-                            },
-                            {
-                                &#34;match_phrase&#34;: {
-                                    &#34;product_name.fr&#34;: {
-                                        &#34;query&#34;: &#34;test&#34;,
-                                        &#34;boost&#34;: 2.0
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    &#34;bool&#34;: {
-                        &#34;should&#34;: [
-                            {
-                                &#34;match_phrase&#34;: {
-                                    &#34;generic_name.en&#34;: {
-                                        &#34;query&#34;: &#34;test&#34;,
-                                        &#34;boost&#34;: 2.0
-                                    }
-                                }
-                            },
-                            {
-                                &#34;match_phrase&#34;: {
-                                    &#34;generic_name.fr&#34;: {
-                                        &#34;query&#34;: &#34;test&#34;,
-                                        &#34;boost&#34;: 2.0
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    &#34;bool&#34;: {
-                        &#34;should&#34;: [
-                            {
-                                &#34;match_phrase&#34;: {
-                                    &#34;categories.en&#34;: {
-                                        &#34;query&#34;: &#34;test&#34;,
-                                        &#34;boost&#34;: 2.0
-                                    }
-                                }
-                            },
-                            {
-                                &#34;match_phrase&#34;: {
-                                    &#34;categories.fr&#34;: {
-                                        &#34;query&#34;: &#34;test&#34;,
-                                        &#34;boost&#34;: 2.0
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    &#34;bool&#34;: {
-                        &#34;should&#34;: [
-                            {
-                                &#34;match_phrase&#34;: {
-                                    &#34;labels.en&#34;: {
-                                        &#34;query&#34;: &#34;test&#34;,
-                                        &#34;boost&#34;: 2.0
-                                    }
-                                }
-                            },
-                            {
-                                &#34;match_phrase&#34;: {
-                                    &#34;labels.fr&#34;: {
-                                        &#34;query&#34;: &#34;test&#34;,
-                                        &#34;boost&#34;: 2.0
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    &#34;match_phrase&#34;: {
-                        &#34;brands&#34;: {
-                            &#34;query&#34;: &#34;test&#34;,
-                            &#34;boost&#34;: 2.0
-                        }
-                    }
-                },
-                {
-                    &#34;multi_match&#34;: {
-                        &#34;query&#34;: &#34;test&#34;,
-                        &#34;fields&#34;: [
-                            &#34;product_name.en&#34;,
-                            &#34;product_name.fr&#34;,
-                            &#34;generic_name.en&#34;,
-                            &#34;generic_name.fr&#34;,
-                            &#34;categories.en&#34;,
-                            &#34;categories.fr&#34;,
-                            &#34;labels.en&#34;,
-                            &#34;labels.fr&#34;,
-                            &#34;brands&#34;
-                        ]
-                    }
-                }
-            ]
-        }
-    },
-    &#34;aggs&#34;: {
-        &#34;brands_tags&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;brands_tags&#34;
-            }
-        },
-        &#34;lang&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;lang&#34;
-            }
-        },
-        &#34;owner&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;owner&#34;
-            }
-        },
-        &#34;categories_tags&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;categories_tags&#34;
-            }
-        },
-        &#34;labels_tags&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;labels_tags&#34;
-            }
-        },
-        &#34;countries_tags&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;countries_tags&#34;
-            }
-        },
-        &#34;states_tags&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;states_tags&#34;
-            }
-        },
-        &#34;nutrition_grades&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;nutrition_grades&#34;
-            }
-        },
-        &#34;ecoscore_grade&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;ecoscore_grade&#34;
-            }
-        },
-        &#34;nova_groups&#34;: {
-            &#34;terms&#34;: {
-                &#34;field&#34;: &#34;nova_groups&#34;
-            }
-        }
-    },
-    &#34;size&#34;: 24,
-    &#34;from&#34;: 0
-}</code></pre>
+                    <div><p>FIXME: pagination</p></div>
                   </div>
                 </div>
               </div>

@@ -57,16 +57,27 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @property()
     index?: string;
 
-    // TODO: should be on results element instead
+    /**
+     * Number of result per page
+     */
     @property({type: Number, attribute: 'page-size'})
     pageSize = 10;
 
+    /**
+     * Last search page count
+     */
     @state()
     _pageCount?: number;
 
+    /**
+     * Last search results for current page
+     */
     @state()
     _results?: {}[];
 
+    /**
+     * Last search total number of results
+     */
     @state()
     _count?: number;
 
