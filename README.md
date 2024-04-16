@@ -79,6 +79,10 @@ If you get errors, try adding more RAM (12GB works well if you have that spare),
 
 Typical import time is 45-60 minutes.
 
+If you want to skip updates (eg. because you don't have a Redis installed), 
+use `make import-dataset filepath='products.jsonl.gz' args="--skip-updates"`
+
+
 ## Fundings
 
 This project has received financial support from the NGI Search (New Generation Internet) program, funded by the European Commission.

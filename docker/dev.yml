@@ -42,6 +42,9 @@ services:
       # by setting PROD_UI_SUFFIX to "" and DEV_UI_SUFFIX to "-dev"
       PROD_UI_SUFFIX: "${PROD_UI_SUFFIX--static}"
       DEV_UI_SUFFIX: "${DEV_UI_SUFFIX-}"
+    volumes:
+      # dynamic mount
+      - ./frontend/public:/opt/search-a-licious/public
 
 
   # Node that create the webcomponents
