@@ -14,6 +14,6 @@ export class MissingResultTemplateError extends Error {
 export class MultipleResultTemplateError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'MissingResultTemplateError';
+    this.name = 'MultipleResultTemplateError';
   }
 }
