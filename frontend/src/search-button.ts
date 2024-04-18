@@ -18,13 +18,21 @@ export class SearchaliciousButton extends LitElement {
 
   override render() {
     return html`
-      <button @click=${this._onClick} part="button" role="button">
+      <button
+        @click=${this._onClick}
+        @keyup=${this._onKeyUp}
+        part="button"
+        role="button"
+      >
         <slot> Search </slot>
       </button>
     `;
   }
 
-  private _onClick() {
+  /**
+   * Launch search by emitting the LAUNCH_SEARCH signal
+   */
+  _launchSearch() {
     const detail = {search_name: this.search_name};
     // fire the search event
     const event = new CustomEvent(SearchaliciousEvents.LAUNCH_SEARCH, {
@@ -32,8 +40,18 @@ export class SearchaliciousButton extends LitElement {
       composed: true,
       detail: detail,
     });
-    const success = this.dispatchEvent(event);
-    console.log(success);
+    this.dispatchEvent(event);
+  }
+
+  private _onClick() {
+    this._launchSearch();
+  }
+
+  private _onKeyUp(event: Event) {
+    const kbd_event = event as KeyboardEvent;
+    if (kbd_event.key === 'Enter') {
+      this._launchSearch();
+    }
   }
 }
 
