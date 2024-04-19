@@ -118,7 +118,9 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
     if (!currentPage || !pageCount) {
       return [undefined, undefined];
     }
-    let start = Math.max(currentPage - 1, 1);
+    // we try to display one page before
+    let start =
+      this.displayedPages > 2 ? Math.max(currentPage - 1, 1) : currentPage;
     const end = Math.min(start + this.displayedPages - 1, pageCount);
     if (end - start < this.displayedPages) {
       // near end of the list, show more pages before the end
