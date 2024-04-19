@@ -1,7 +1,7 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
-import {range} from 'lodash-es';
+import range from 'lodash-es/range';
 
 import {EventRegistrationMixin} from './event-listener-setup';
 import {SearchaliciousEvents} from './enums';
@@ -69,6 +69,18 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
   _currentPage?: number;
 
   /**
+   * the first page to be displayed as a number
+   */
+  @state()
+  _startRange?: number;
+
+  /**
+   * the last page to be displayed as a number
+   */
+  @state()
+  _endRange?: number;
+
+  /**
    * HTML to display when there are no results
    *
    * Can be overridden by a "no-results" slot
@@ -82,14 +94,37 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
    */
   beforeSearch = html``;
 
+  /**
+   * Update state on search received
+   */
   _updatePages(event: Event) {
     const detail = (event as SearchResultEvent).detail;
     if (detail.searchName === this.searchName) {
       this.searchLaunched = true;
       this._pageCount = detail.pageCount;
       this._currentPage = detail.currentPage;
+      [this._startRange, this._endRange] = this._computeRange(
+        this._currentPage,
+        this._pageCount
+      );
       this.requestUpdate();
     }
+  }
+
+  /**
+   * compute startRange and endRange
+   */
+  _computeRange(currentPage?: number, pageCount?: number) {
+    if (!currentPage || !pageCount) {
+      return [undefined, undefined];
+    }
+    let start = Math.max(currentPage - 1, 1);
+    const end = Math.min(start + this.displayedPages - 1, pageCount);
+    if (end - start < this.displayedPages) {
+      // near end of the list, show more pages before the end
+      start = Math.max(1, end - this.displayedPages + 1);
+    }
+    return [start, end];
   }
 
   _isFirstPage() {
@@ -103,22 +138,20 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
     );
   }
   _hasStartEllipsis() {
-    return !!(this._currentPage && this._currentPage > this.displayedPages);
+    return !!(this._startRange && this._startRange > 1);
   }
   _hasEndEllipsis() {
     return !!(
-      this._currentPage &&
+      this._endRange &&
       this._pageCount &&
-      this._currentPage < this._pageCount - this.displayedPages
+      this._endRange < this._pageCount
     );
   }
   _displayPages() {
-    if (!this._currentPage || !this._pageCount) {
+    if (!this._startRange || !this._endRange) {
       return [];
     }
-    const start = Math.max(this._currentPage - 1, 1);
-    const end = Math.min(start + this.displayedPages - 1, this._pageCount);
-    return range(start, end);
+    return range(this._startRange, this._endRange + 1);
   }
 
   override render() {
@@ -161,7 +194,7 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
               class="${page === this._currentPage! ? 'current' : ''}"
               part="${page === this._currentPage! ? 'current-' : ''}page"
             >
-              <button>${page}</button>
+              <button @click=${() => this._askPageChange(page)}>${page}</button>
             </li>`
           )}
           ${this._hasEndEllipsis()
@@ -187,19 +220,36 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
   }
 
   _firstPage() {
-    // FIXME
+    this._askPageChange(1);
   }
 
   _lastPage() {
-    // FIXME
+    this._askPageChange(this._pageCount!);
   }
 
   _prevPage() {
-    // FIXME
+    this._askPageChange(Math.max(1, this._currentPage! - 1));
   }
 
   _nextPage() {
-    // FIXME
+    this._askPageChange(Math.min(this._currentPage! + 1, this._pageCount!));
+  }
+
+  /**
+   * Request a page change
+   */
+  _askPageChange(page: number) {
+    if (page !== this._currentPage) {
+      this.dispatchEvent(
+        new CustomEvent(SearchaliciousEvents.CHANGE_PAGE, {
+          detail: {
+            searchName: this.searchName,
+            page: page,
+          },
+          bubbles: true,
+        })
+      );
+    }
   }
 
   /**
