@@ -20,6 +20,8 @@ suite('searchalicious-results', () => {
       results: results,
       count: 3,
       pageCount: 1,
+      currentPage: 1,
+      pageSize: 10,
     };
     el._displayResults(
       new CustomEvent(SearchaliciousEvents.NEW_RESULT, {

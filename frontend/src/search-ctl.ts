@@ -64,6 +64,12 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     pageSize = 10;
 
     /**
+     * Number of result per page
+     */
+    @state()
+    _currentPage?: number;
+
+    /**
      * Last search page count
      */
     @state()
@@ -143,12 +149,16 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       const data = await response.json();
       this._results = data.hits;
       this._count = data.count;
+      this.pageSize = data.page_size;
+      this._currentPage = data.page;
       this._pageCount = data.page_count;
       const detail: SearchResultDetail = {
         searchName: this.name,
         results: this._results!,
         count: this._count!,
         pageCount: this._pageCount!,
+        currentPage: this._currentPage!,
+        pageSize: this.pageSize,
       };
       // dispatch an event with the results
       this.dispatchEvent(
