@@ -8,6 +8,18 @@ from . import config
 from ._types import SearchResponse
 
 
+def safe_get_index_config(
+    index: str | None = None, configuration: config.Config | None = None
+) -> config.IndexConfig | None:
+    """Safely get config"""
+    if configuration is None:
+        configuration = config.CONFIG
+    if configuration is None:
+        return None
+    _, index_config = configuration.get_index_config(index)
+    return index_config
+
+
 def build_facets(
     search_result: SearchResponse,
     index: str | None = None,
@@ -16,11 +28,11 @@ def build_facets(
     """Given a search result with aggregations,
     build a list of facets for API response"""
     facets: list[dict[str, Any]] = []
-    if config.CONFIG is None:
-        return facets
-    _, index_config = config.CONFIG.get_index_config(index)
     aggregations = search_result.aggregations
-    facet_fields = index_config.get_facets_order()
+    index_config = safe_get_index_config(index=index)
+    if index_config is None:
+        return facets
+    facet_fields = index_config.get_facets_order(facet_name)
     for field_name in facet_fields:
         if field_name not in aggregations:
             pass
