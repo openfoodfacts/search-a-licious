@@ -3,15 +3,17 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 import range from 'lodash-es/range';
 
-import {EventRegistrationMixin} from './event-listener-setup';
 import {SearchaliciousEvents} from './enums';
 import {SearchResultEvent} from './events';
+import {SearchaliciousResultCtlMixin} from './search-results-ctl';
 
 /**
  * A component to display pagination for search results.
  */
 @customElement('searchalicious-pages')
-export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
+export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
+  LitElement
+) {
   static override styles = css`
     ul {
       list-style-type: none;
@@ -24,13 +26,6 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
       font-weight: bold;
     }
   `;
-
-  /**
-   * the search we display result for,
-   * this corresponds to `name` attribute of corresponding search-bar
-   */
-  @property({attribute: 'search-name'})
-  searchName = 'searchalicious';
 
   /**
    * Wether or not we should add the jump to first shortcuts
@@ -49,12 +44,6 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
    */
   @property({attribute: 'displayed-pages', type: Number})
   displayedPages = 5;
-
-  /**
-   * Do we have an already launched search
-   */
-  @state()
-  searchLaunched = false;
 
   /**
    * Number of pages in current search
@@ -97,18 +86,16 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
   /**
    * Update state on search received
    */
-  _updatePages(event: Event) {
-    const detail = (event as SearchResultEvent).detail;
-    if (detail.searchName === this.searchName) {
-      this.searchLaunched = true;
-      this._pageCount = detail.pageCount;
-      this._currentPage = detail.currentPage;
-      [this._startRange, this._endRange] = this._computeRange(
-        this._currentPage,
-        this._pageCount
-      );
-      this.requestUpdate();
-    }
+  override handleResults(event: SearchResultEvent) {
+    const detail = event.detail;
+    this.searchLaunched = true;
+    this._pageCount = detail.pageCount;
+    this._currentPage = detail.currentPage;
+    [this._startRange, this._endRange] = this._computeRange(
+      this._currentPage,
+      this._pageCount
+    );
+    this.requestUpdate();
   }
 
   /**
@@ -252,23 +239,6 @@ export class SearchaliciousPages extends EventRegistrationMixin(LitElement) {
         })
       );
     }
-  }
-
-  /**
-   * Connect search event handlers.
-   */
-  override connectedCallback() {
-    super.connectedCallback();
-    this.addEventHandler(SearchaliciousEvents.NEW_RESULT, (event) =>
-      this._updatePages(event)
-    );
-  }
-  // connect to our specific events
-  override disconnectedCallback() {
-    super.disconnectedCallback();
-    this.removeEventHandler(SearchaliciousEvents.NEW_RESULT, (event) =>
-      this._updatePages(event)
-    );
   }
 }
 

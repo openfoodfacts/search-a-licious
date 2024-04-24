@@ -14,6 +14,7 @@ export interface SearchResultDetail extends BaseSearchDetail {
   pageCount: number;
   pageSize: number;
   currentPage: number;
+  aggregations: Object; // FIXME: we could be more precise
 }
 
 /**

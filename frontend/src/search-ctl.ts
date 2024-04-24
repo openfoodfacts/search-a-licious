@@ -1,6 +1,9 @@
 import {LitElement} from 'lit';
 import {property, state} from 'lit/decorators.js';
-import {EventRegistrationMixin} from './event-listener-setup';
+import {
+  EventRegistrationInterface,
+  EventRegistrationMixin,
+} from './event-listener-setup';
 import {SearchaliciousEvents} from './enums';
 import {
   ChangePageEvent,
@@ -12,7 +15,8 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = {}> = new (...args: any[]) => T;
 
-export declare class SearchaliciousSearchInterface {
+export interface SearchaliciousSearchInterface
+  extends EventRegistrationInterface {
   query: string;
   name: string;
   baseUrl: string;
@@ -177,6 +181,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     async search(page?: number) {
       const response = await fetch(this._searchUrl(page));
+      // FIXME data should be typed…
       const data = await response.json();
       this._results = data.hits;
       this._count = data.count;
@@ -191,6 +196,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         pageCount: this._pageCount!,
         currentPage: this._currentPage!,
         pageSize: this.pageSize,
+        aggregations: data.aggregations,
       };
       this.dispatchEvent(
         new CustomEvent(SearchaliciousEvents.NEW_RESULT, {

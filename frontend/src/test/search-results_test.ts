@@ -22,8 +22,9 @@ suite('searchalicious-results', () => {
       pageCount: 1,
       currentPage: 1,
       pageSize: 10,
+      aggregations: {},
     };
-    el._displayResults(
+    el._handleResults(
       new CustomEvent(SearchaliciousEvents.NEW_RESULT, {
         bubbles: true,
         composed: true,
