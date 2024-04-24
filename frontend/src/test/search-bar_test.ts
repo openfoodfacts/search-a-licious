@@ -16,6 +16,7 @@ suite('searchalicious-bar', () => {
       `
       <input
         name="q"
+        part="input"
         placeholder="Search..."
         type="text"
         >
@@ -42,6 +43,7 @@ suite('searchalicious-bar', () => {
       `
       <input
         name="q"
+        part="input"
         placeholder="Try it !"
         type="text"
         >

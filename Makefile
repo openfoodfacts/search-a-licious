@@ -102,6 +102,10 @@ lint_front:
 	@echo "🔎 Running linters for frontend code..."
 	${DOCKER_COMPOSE} run --rm search_nodejs npm run format
 
+tsc_watch:
+	@echo "🔎 Running front-end tsc in watch mode..."
+	${DOCKER_COMPOSE} run --rm search_nodejs npm run build:watch
+
 #-------#
 # Tests #
 #-------#

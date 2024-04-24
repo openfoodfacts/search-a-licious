@@ -16,7 +16,10 @@ suite('searchalicious-button', () => {
     assert.shadowDom.equal(
       el,
       `
-      <button>
+      <button
+        part="button"
+        role="button"
+      >
         <slot>
         Search
         </slot>

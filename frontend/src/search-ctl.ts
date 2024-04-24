@@ -1,6 +1,8 @@
 import {LitElement} from 'lit';
 import {property, state} from 'lit/decorators.js';
+import {EventRegistrationMixin} from './event-listener-setup';
 import {SearchaliciousEvents} from './enums';
+import {SearchResultEvent, SearchResultDetail} from './events';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -11,7 +13,7 @@ export declare class SearchaliciousSearchInterface {
   baseUrl: string;
   langs: string;
   index: string;
-  pageSize: Number;
+  pageSize: number;
 
   search(): Promise<void>;
 }
@@ -22,7 +24,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   /**
    * The search mixin, encapsulate the logic of dialog with server
    */
-  class SearchaliciousSearchMixinClass extends superClass {
+  class SearchaliciousSearchMixinClass extends EventRegistrationMixin(
+    superClass
+  ) {
     /**
      * Query that will be sent to searchalicious
      */
@@ -38,7 +42,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * The base api url
      */
-    @property({attribute: 'batse-url'})
+    @property({attribute: 'base-url'})
     baseUrl = '/';
 
     /**
@@ -53,20 +57,29 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @property()
     index?: string;
 
-    // TODO: should be on results element instead
+    /**
+     * Number of result per page
+     */
     @property({type: Number, attribute: 'page-size'})
-    pageSize: Number = 10;
+    pageSize = 10;
 
+    /**
+     * Last search page count
+     */
     @state()
-    _pageCount?: Number;
+    _pageCount?: number;
 
+    /**
+     * Last search results for current page
+     */
     @state()
     _results?: {}[];
 
+    /**
+     * Last search total number of results
+     */
     @state()
-    _count?: Number;
-
-    _event_setups: number[] = [];
+    _count?: number;
 
     // TODO: this should be on results element instead
     _searchUrl() {
@@ -93,31 +106,20 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       return `${baseUrl}/search?${queryStr}`;
     }
 
-    _registerEventHandlers() {
-      window.addEventListener(SearchaliciousEvents.LAUNCH_SEARCH, (event) =>
-        this._handleSearch(event)
-      );
-      this._event_setups.pop();
-    }
-
     // connect to our specific events
     override connectedCallback() {
       super.connectedCallback();
-      this._event_setups.push(
-        window.requestAnimationFrame(() => this._registerEventHandlers())
+      this.addEventHandler(SearchaliciousEvents.LAUNCH_SEARCH, (event: Event) =>
+        this._handleSearch(event)
       );
     }
     // connect to our specific events
     override disconnectedCallback() {
       super.disconnectedCallback();
-      if (this._event_setups) {
-        window.cancelAnimationFrame(this._event_setups.pop()!); // cancel one registration
-      } else {
-        window.removeEventListener(
-          SearchaliciousEvents.LAUNCH_SEARCH,
-          (event) => this._handleSearch(event)
-        );
-      }
+      this.removeEventHandler(
+        SearchaliciousEvents.LAUNCH_SEARCH,
+        (event: Event) => this._handleSearch(event)
+      );
     }
 
     /**
@@ -142,10 +144,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this._results = data.hits;
       this._count = data.count;
       this._pageCount = data.page_count;
-      const detail = {
-        results: this._results,
-        count: this._count,
-        pageCount: this._pageCount,
+      const detail: SearchResultDetail = {
+        searchName: this.name,
+        results: this._results!,
+        count: this._count!,
+        pageCount: this._pageCount!,
       };
       // dispatch an event with the results
       this.dispatchEvent(
@@ -164,6 +167,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
 
 declare global {
   interface GlobalEventHandlersEventMap {
-    'searchalicious-result': CustomEvent<{}>;
+    'searchalicious-result': SearchResultEvent;
   }
 }

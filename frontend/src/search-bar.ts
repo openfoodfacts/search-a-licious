@@ -3,16 +3,17 @@ import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './search-ctl';
 
 /**
- * The search bar element.
+ * The search bar element
  *
+ * This is the main component, it will enable the input of the search query
+ * and it also manage all the search thanks to SearchaliciousSearchMixin inheritance.
  */
 @customElement('searchalicious-bar')
 export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
   static override styles = css`
     :host {
       display: block;
-      border: solid 1px gray;
-      padding: 16px;
+      padding: 5px;
     }
   `;
 
@@ -31,6 +32,7 @@ export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
         @keyup=${this._onKeyUp}
         .value=${this.query}
         placeholder=${this.placeholder}
+        part="input"
       />
     `;
   }

@@ -11,6 +11,7 @@
     "outDir": "./public/dist",
     "rootDir": "./src",
     "strict": true,
+    "strictNullChecks": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
