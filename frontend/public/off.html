@@ -13,6 +13,18 @@
     <style>
       /* temporary inline styles to test CSS customization */
       /* search bar styling */
+      
+      /* columns of search-bar must use flex so that we can center things vertically */
+      .search-bar .columns {
+        display: flex;
+      }
+      searchalicious-button, searchalicious-bar{
+        position:relative;
+        align-self: center;
+      }
+      searchalicious-bar {
+        padding-right: 0;
+      }
       searchalicious-bar::part(input)::placeholder {
         color: #666;
       }
@@ -28,9 +40,6 @@
         border-width: 1px;
         border-color: #ccc;
         color: rgba(0,0,0,.75);
-      }
-      searchalicious-button, searchalicious-bar{
-        position:relative;
       }
       searchalicious-button::part(button), searchalicious-bar::part(input) {
         line-height: normal;
@@ -142,7 +151,7 @@
               <section class="top-bar-section">
                 <ul class="left small-4" style="margin-right: 2rem">
                   <li class="search-li">
-                    <div class="row collapse postfix-round">
+                    <div class="row collapse postfix-round search-bar">
                       <div class="columns">
                         <searchalicious-bar name="off" page-size="24" ></searchalicious-bar>
                       </div>
@@ -250,7 +259,7 @@
                         <div class="tabs content active" id="products_all">
                           <searchalicious-results class="off-search-results" search-name="off" search-id="code">
                             <!-- template for each result -->
-                            <div slot="result">
+                            <template slot="result" style="display: none">
                               <li data-code="${result.code}" part="li">
                                 <a
                                   href="https://world.openfoodfacts.org/product/${result.code}"
@@ -284,7 +293,7 @@
                                   </div>
                                 </a>
                               </li>
-                            </div>
+                            </template>
                           </searchalicious-results>
                         </div>
                       </div>
