@@ -9,7 +9,9 @@ The project is currently composed of several widgets
 * searchalicious-bar is at the core, it represent the search bar, but also handle the search logic (see searchalicious-ctl.ts)
 * searchalicious-button is a simple button to launch the search
 * searchalicious-results is the component that displays the search results
-  * you must provide an element with attribute `slot="result"` that contains a template to display a single search result
+  * you must provide an element with attribute `slot="result"` that contains a template to display a single search result.
+    It's a good idea to use a `template` as enclosing element with `style="display: none"`
+    so that it does not try to fetch images with non resolved expressions in them and do not display weird content
   * a `before-search` slot is also available to display something before first search launch
   * as well as a `no-results` slot to display something when no results are found
 * searchalicious-pages is the component that displays the pagination

@@ -10,6 +10,120 @@
       data-base-layout="true"
     />
     <script type="module" src="./dist/search-a-licious.js"></script>
+    <style>
+      /* temporary inline styles to test CSS customization */
+      /* search bar styling */
+      
+      /* columns of search-bar must use flex so that we can center things vertically */
+      .search-bar .columns {
+        display: flex;
+      }
+      searchalicious-button, searchalicious-bar{
+        position:relative;
+        align-self: center;
+      }
+      searchalicious-bar {
+        padding-right: 0;
+      }
+      searchalicious-bar::part(input)::placeholder {
+        color: #666;
+      }
+      searchalicious-bar::part(input) {
+        width: 360px;
+        padding-bottom: .35rem;
+        padding-top: .35rem;
+        margin: 1px 0;
+        background-color: LightYellow !important;
+        box-shadow: none;
+        border-radius: 1000px 0px 0px 1000px;
+        border-style: solid;
+        border-width: 1px;
+        border-color: #ccc;
+        color: rgba(0,0,0,.75);
+      }
+      searchalicious-button::part(button), searchalicious-bar::part(input) {
+        line-height: normal;
+        height: 2.35rem;
+        top: 0;
+        box-sizing: border-box;
+        position: relative;
+      }
+      /* search button styling */
+      searchalicious-button::part(button) {
+        border-radius: 0px 1000px 1000px 0px;
+        background-color: #341100;
+        padding: .4rem .5rem;
+        margin: 0;
+        border: 0;
+        z-index: 2;
+      }
+      searchalicious-button .icon {
+        fill: #fff;
+      }
+      /* search results styling */
+      searchalicious-results::part(results) {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin: 0;
+        padding: 0;
+      }
+      searchalicious-results::part(li) {
+        width: calc((100% - 60px)/6);
+        margin-bottom: 12px;
+        height: auto;
+      }
+      searchalicious-results::part(outer_anchor) {
+        border-radius: 8px;
+        padding: 0;
+        background-color: #fff;
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        box-shadow: 0 4px 4px rgba(0,0,0,.25);
+        text-decoration: none !important;
+        color: black;
+      }
+      searchalicious-results::part(score) {
+        display: block;
+        color: #fff;
+        font-size: 1rem;
+        text-align: center;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        padding: 2px;
+        font-size: .8rem;
+      }
+      searchalicious-results::part(score good) {
+        background-color: #219653;
+      }
+      searchalicious-results::part(infos) {
+        border-radius: 8px;
+        padding: 10px;
+        display: block;
+      }
+      searchalicious-results::part(image-div) {
+        height: 144px;
+        margin: 12px;
+      }
+      searchalicious-results::part(image) {
+        object-fit: contain;
+        width: 100%;
+        height: 100%;
+      }
+      searchalicious-results::part(product-name) {
+        overflow: hidden;
+        padding-top: .75rem;
+        padding-bottom: .75rem;
+        height: 82px;
+      }
+      searchalicious-results::part(scores logo) {
+        height: 32px;
+        margin-right: .2rem;
+        margin-top: .2rem;
+      }
+    </style>
   </head>
   <body class="products_page">
     <div id="page">
@@ -37,10 +151,16 @@
               <section class="top-bar-section">
                 <ul class="left small-4" style="margin-right: 2rem">
                   <li class="search-li">
-                    <searchalicious-bar name="off"></searchalicious-bar>
-                    <searchalicious-button search-name="off">
-                      <slot>Search !</slot>
-                    </searchalicious-button>
+                    <div class="row collapse postfix-round search-bar">
+                      <div class="columns">
+                        <searchalicious-bar name="off" page-size="24" ></searchalicious-bar>
+                      </div>
+                      <div class="columns">
+                        <searchalicious-button search-name="off">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg>
+                        </searchalicious-button>
+                      </div>
+                    </div>
                   </li>
                 </ul>
               </section>
@@ -131,238 +251,49 @@
                 </div>
                 <div class="row" style="padding-top: 1rem">
                   <div class="large-2 columns">
-                    <strong>nova_groups</strong>
-                    <ul>
-                      <li>4 (56)</li>
-
-                      <li>1 (33)</li>
-
-                      <li>3 (18)</li>
-
-                      <li>2 (12)</li>
-                    </ul>
-
-                    <strong>owner</strong>
-                    <ul>
-                      <li>org-carrefour (73)</li>
-
-                      <li>org-alnatura (1)</li>
-
-                      <li>org-carrefour-espana (1)</li>
-                    </ul>
-
-                    <strong>categories_tags</strong>
-                    <ul>
-                      <li>en:tests (109)</li>
-
-                      <li>en:non-food-products (108)</li>
-
-                      <li>en:plant-based-foods-and-beverages (74)</li>
-
-                      <li>en:plant-based-foods (64)</li>
-
-                      <li>en:cereals-and-potatoes (32)</li>
-
-                      <li>en:cereals-and-their-products (29)</li>
-
-                      <li>en:dairies (29)</li>
-
-                      <li>en:desserts (18)</li>
-
-                      <li>en:fresh-foods (17)</li>
-
-                      <li>en:canned-foods (16)</li>
-                    </ul>
-
-                    <strong>brands_tags</strong>
-                    <ul>
-                      <li>carrefour (77)</li>
-
-                      <li>groupe-carrefour (24)</li>
-
-                      <li>cmi-carrefour-marchandises-internationales (17)</li>
-
-                      <li>test (14)</li>
-
-                      <li>la-laitiere (9)</li>
-
-                      <li>null (4)</li>
-
-                      <li>adelie (3)</li>
-
-                      <li>auchan (3)</li>
-
-                      <li>dm-bio (3)</li>
-
-                      <li>funky-veggie (3)</li>
-                    </ul>
-
-                    <strong>ecoscore_grade</strong>
-                    <ul>
-                      <li>unknown (437)</li>
-
-                      <li>b (46)</li>
-
-                      <li>a (25)</li>
-
-                      <li>c (24)</li>
-
-                      <li>d (19)</li>
-
-                      <li>e (10)</li>
-
-                      <li>not-applicable (4)</li>
-                    </ul>
-
-                    <strong>states_tags</strong>
-                    <ul>
-                      <li>en:product-name-completed (562)</li>
-
-                      <li>en:to-be-completed (545)</li>
-
-                      <li>en:characteristics-to-be-completed (520)</li>
-
-                      <li>en:origins-to-be-completed (514)</li>
-
-                      <li>en:photos-uploaded (505)</li>
-
-                      <li>en:packaging-code-to-be-completed (482)</li>
-
-                      <li>en:front-photo-selected (479)</li>
-
-                      <li>en:photos-to-be-validated (466)</li>
-
-                      <li>en:expiration-date-to-be-completed (464)</li>
-
-                      <li>en:packaging-photo-to-be-selected (464)</li>
-                    </ul>
-
-                    <strong>nutrition_grades</strong>
-                    <ul>
-                      <li>unknown (310)</li>
-
-                      <li>not-applicable (113)</li>
-
-                      <li>a (37)</li>
-
-                      <li>b (32)</li>
-
-                      <li>c (28)</li>
-
-                      <li>d (26)</li>
-
-                      <li>e (19)</li>
-                    </ul>
-
-                    <strong>lang</strong>
-                    <ul>
-                      <li>fr (416)</li>
-
-                      <li>en (101)</li>
-
-                      <li>de (37)</li>
-
-                      <li>es (4)</li>
-
-                      <li>nl (2)</li>
-
-                      <li>af (1)</li>
-
-                      <li>ar (1)</li>
-
-                      <li>it (1)</li>
-
-                      <li>ja (1)</li>
-
-                      <li>zh (1)</li>
-                    </ul>
-
-                    <strong>countries_tags</strong>
-                    <ul>
-                      <li>en:france (415)</li>
-
-                      <li>en:germany (47)</li>
-
-                      <li>en:spain (31)</li>
-
-                      <li>en:italy (27)</li>
-
-                      <li>en:united-states (27)</li>
-
-                      <li>en:belgium (21)</li>
-
-                      <li>en:poland (14)</li>
-
-                      <li>en:switzerland (14)</li>
-
-                      <li>en:united-kingdom (12)</li>
-
-                      <li>en:romania (11)</li>
-                    </ul>
-
-                    <strong>labels_tags</strong>
-                    <ul>
-                      <li>en:distributor-labels (79)</li>
-
-                      <li>fr:teste-par-le-panel-test-carrefour (79)</li>
-
-                      <li>en:green-dot (58)</li>
-
-                      <li>en:nutriscore (52)</li>
-
-                      <li>en:made-in-france (50)</li>
-
-                      <li>de:öko-test (37)</li>
-
-                      <li>en:organic (31)</li>
-
-                      <li>de:öko-test-sehr-gut (26)</li>
-
-                      <li>en:carrefour-quality (26)</li>
-
-                      <li>en:vegetarian (23)</li>
-                    </ul>
+                    <strong>**TODO** Facets</strong>
                   </div>
                   <div class="large-10 columns">
                     <div id="search_results" style="clear: left">
                       <div id="products_tabs_content" class="tabs-content">
                         <div class="tabs content active" id="products_all">
-                          <searchalicious-results search-name="off" search-id="code">
-                            <div slot="result">
-                              <li data-code="${result.code}">
+                          <searchalicious-results class="off-search-results" search-name="off" search-id="code">
+                            <!-- template for each result -->
+                            <template slot="result" style="display: none">
+                              <li data-code="${result.code}" part="li">
                                 <a
                                   href="https://world.openfoodfacts.org/product/${result.code}"
                                   part="outer_anchor"
                                 >
                                   <div
-                                    class="list_product_banner list_product_banner_very_good_match"
+                                    part="score good"
                                   >
-                                    ${result.score}
+                                    ${result.score || "unknown"}
                                   </div>
-                                  <div class="list_product_content">
-                                    <div class="list_product_img_div">
+                                  <div part="infos">
+                                    <div part="image-div">
                                       <img
                                         src="${result.image_small_url}"
-                                        class="list_product_img"
+                                        part="image"
                                       />
                                     </div>
-                                    <div class="list_product_name v-space-tiny">
+                                    <div part="product-name">
                                       ${result.product_name}
                                     </div>
-                                    <div class="list_product_sc">
+                                    <div part="scores">
                                       <img
-                                        class="list_product_icons"
                                         src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-${result.ecoscore_grade}.svg"
+                                        part="scores logo ecoscore"
                                       />
                                       <img
-                                        class="list_product_icons"
                                         src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-${result.nutriscore_grade ? result.nutriscore_grade : 'unknown'}.svg"
+                                        part="scores logo nutriscore"
                                       />
                                     </div>
                                   </div>
                                 </a>
                               </li>
-                            </div>
+                            </template>
                           </searchalicious-results>
                         </div>
                       </div>
