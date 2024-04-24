@@ -114,7 +114,7 @@ test: _ensure_network test_api test_front
 
 test_api:
 	@echo "🔎 Running API tests..."
-	${DOCKER_COMPOSE_TEST} run --rm api pytest tests/
+	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/
 
 test_front:
 	@echo "🔎 Running front-end tests..."
