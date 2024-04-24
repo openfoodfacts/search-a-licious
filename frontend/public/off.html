@@ -38,7 +38,7 @@
                 <ul class="left small-4" style="margin-right: 2rem">
                   <li class="search-li">
                     <searchalicious-bar name="off"></searchalicious-bar>
-                    <searchalicious-button search_name="off">
+                    <searchalicious-button search-name="off">
                       <slot>Search !</slot>
                     </searchalicious-button>
                   </li>
@@ -367,7 +367,10 @@
                         </div>
                       </div>
                     </div>
-                    <div><p>FIXME: pagination</p></div>
+                    <div>
+                      <searchalicious-pages search-name="off">
+                      </searchalicious-pages>
+                    </div>
                   </div>
                 </div>
               </div>

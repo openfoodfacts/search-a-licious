@@ -4,4 +4,5 @@
 export enum SearchaliciousEvents {
   LAUNCH_SEARCH = 'searchalicious-search',
   NEW_RESULT = 'searchalicious-result',
+  CHANGE_PAGE = 'searchalicious-change-page',
 }

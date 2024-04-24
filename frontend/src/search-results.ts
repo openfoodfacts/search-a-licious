@@ -140,6 +140,9 @@ export class SearchaliciousResults extends EventRegistrationMixin(LitElement) {
     </ul>`;
   }
 
+  /**
+   * event handler for NEW_RESULT events
+   */
   _displayResults(event: Event) {
     // check if event is for our search
     const detail = (event as SearchResultEvent).detail;

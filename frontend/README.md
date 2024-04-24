@@ -12,7 +12,12 @@ The project is currently composed of several widgets
   * you must provide an element with attribute `slot="result"` that contains a template to display a single search result
   * a `before-search` slot is also available to display something before first search launch
   * as well as a `no-results` slot to display something when no results are found
+* searchalicious-pages is the component that displays the pagination
+  * you can specify the number of displayed pages with `displayed-pages` attribute
+  * there are `before-search` and `no-results` slots
 
+You can give a specific `name` attribute to your search bar.
+Then all other component that needs to connect with this search must use the same value in `search-name` attribute
 
 ## Tools
 
