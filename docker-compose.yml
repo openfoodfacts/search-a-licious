@@ -1,6 +1,3 @@
-version: "3.7"
-
-
 # base ES service definition
 x-base-es-service: &base-es-service
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
