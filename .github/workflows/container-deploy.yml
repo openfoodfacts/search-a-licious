@@ -117,7 +117,7 @@ jobs:
           echo "COMPOSE_HTTP_TIMEOUT=180" >> .env
           echo "COMPOSE_PROJECT_NAME=po_search" >> .env
           echo "COMPOSE_PATH_SEPARATOR=;" >> .env
-          echo "COMPOSE_FILE=docker-compose.yml;docker/prod.yml" >> .env
+          echo "COMPOSE_FILE=docker-compose.yml;docker/prod.yml;docker/monitor.yml" >> .env
           # Copy variables that are same as dev
           grep '\(STACK_VERSION\|ES_EXPOSE\)' .env-dev >> .env
           # Set docker variables
