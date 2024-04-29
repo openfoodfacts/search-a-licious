@@ -136,7 +136,7 @@
 													{% for product in results.hits %}
 													<li data-code="{{ product.code }}">
 														<a href="https://world.openfoodfacts.org/product/{{ product.code }}" class="list_product_a">
-															<div class="list_product_banner list_product_banner_very_good_match">{{ product._score }}</div>
+															<div class="list_product_banner list_product_banner_very_good_match">{% if product._score %}{{ product._score }}{% else %}-{% endif %}</div>
 															<div class="list_product_content">
 																<div class="list_product_img_div">
 																	<img {% if product.image_small_url %}src="{{ product.image_small_url }}"{% else %}src="https://world.openfoodfacts.org/images/icons/dist/packaging.svg" style="filter:invert(.9)"{% endif %} class="list_product_img">
