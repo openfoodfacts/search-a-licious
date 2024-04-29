@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.1.2...v1.2.0) (2024-04-29)
+
+
+### Features
+
+* pagination component ([#101](https://github.com/openfoodfacts/search-a-licious/issues/101)) ([3b254eb](https://github.com/openfoodfacts/search-a-licious/commit/3b254eb4a5e08608bc2dd700304d8cd136e59727))
+* search bar component ([#95](https://github.com/openfoodfacts/search-a-licious/issues/95)) ([6eaa132](https://github.com/openfoodfacts/search-a-licious/commit/6eaa1328dc7b9e51d6908b096a33a4f6777110d4))
+* Search results component ([#98](https://github.com/openfoodfacts/search-a-licious/issues/98)) ([ae949ea](https://github.com/openfoodfacts/search-a-licious/commit/ae949ea79441188febf9ef800941e89e7a7f6ea9))
+* some CSS ([#102](https://github.com/openfoodfacts/search-a-licious/issues/102)) ([2b3ae2d](https://github.com/openfoodfacts/search-a-licious/commit/2b3ae2d3d5c30198ca467923880dfb4fc46b017b))
+
+
+### Bug Fixes
+
+* don't display debug information by default ([56ee123](https://github.com/openfoodfacts/search-a-licious/commit/56ee123ac51ad2742a6644236ccf4ef6129702c0))
+* fix front-end docker configuration ([6d8e8fc](https://github.com/openfoodfacts/search-a-licious/commit/6d8e8fc7aaf5e8c8b4586ac5f6d08382e7b5ff9c))
+* improve display of score when score is missing ([04ceff4](https://github.com/openfoodfacts/search-a-licious/commit/04ceff4f0e9fd2736fc689b310b34cb2a36350d7))
+
 ## [1.1.2](https://github.com/openfoodfacts/search-a-licious/compare/v1.1.1...v1.1.2) (2024-02-23)
 
 
