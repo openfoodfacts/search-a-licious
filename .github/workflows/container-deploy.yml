@@ -46,7 +46,7 @@ jobs:
         # this is the network shared with Product Opener,
         # in production Product Opener is deployed on a
         # separate server and is not dockerized
-        echo "COMMON_NET_NAME=" >> $GITHUB_ENV
+        echo "COMMON_NET_NAME=po_webnet" >> $GITHUB_ENV
         echo "OFF_API_URL=https://world.openfoodfacts.org" >> $GITHUB_ENV
         # REDIS_HOST: this is the IP address of the stunnel VM
         echo "REDIS_HOST=10.1.0.113" >> $GITHUB_ENV
