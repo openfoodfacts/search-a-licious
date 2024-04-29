@@ -103,18 +103,26 @@ services:
   # frontend is nginx serving static files and proxying to API
   search_frontend:
     # this is the nginx frontend serving react static version or redirecting queries
-    image: ghcr.io/openfoodfacts/search-a-licious/search_frontend:${DOCKER_TAG:-dev}
+    image: search-a-licious/searchalicious_frontend:dev
     depends_on:
       - api
     environment:
       # enabling prod config and disabling dev one
-      PROD_UI_SUFFIX: ""
-      DEV_UI_SUFFIX: "-dev"
+      PROD_UI_SUFFIX: "${PROD_UI_SUFFIX--static}"
+      DEV_UI_SUFFIX: "${DEV_UI_SUFFIX-}"
     volumes:
       # Nginx, we use templates dir to be able to use environment vars
       - ./confs/nginx.conf:/etc/nginx/templates/default.conf.template
+      # dynamic mount
+      - ./frontend/public:/opt/search-a-licious/public
     ports:
       - ${SEARCH_EXPOSE:-127.0.0.1:8000}:80
+    build:
+      context: frontend
+      args:
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+
 
 
 volumes:
