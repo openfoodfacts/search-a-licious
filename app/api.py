@@ -281,6 +281,8 @@ def html_search(
     langs: str = "fr,en",
     sort_by: str | None = None,
     index_id: Annotated[str | None, INDEX_ID_QUERY_PARAM] = None,
+    # Display debug information in the HTML response
+    display_debug: bool = False,
 ):
     if not q:
         return templates.TemplateResponse("search.html", {"request": request})
@@ -299,6 +301,7 @@ def html_search(
         "sort_by": sort_by,
         "results": results,
         "es_query": json.dumps(results.debug.query, indent=4),
+        "display_debug": display_debug,
     }
     if results.is_success():
         results = cast(SuccessSearchResponse, results)

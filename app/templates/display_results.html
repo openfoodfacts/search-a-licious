@@ -164,7 +164,7 @@
 									<li class="unavailable">({{ results.page_size }} products per page)</li>
 								</ul>
 								{% endif %}
-								{% if es_query %}
+								{% if es_query and display_debug %}
 									<h3>Elasticsearch query</h3>
 									<pre><code>{{ es_query }}</code></pre>
 								{% endif %}
