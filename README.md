@@ -87,5 +87,5 @@ use `make import-dataset filepath='products.jsonl.gz' args="--skip-updates"`
 
 This project has received financial support from the NGI Search (New Generation Internet) program, funded by the European Commission.
 
-![NGI-search logo](./assets/NGISearch_logo_tag_icon.svg "NGI-search logo"){height=100px}
-![European flag](./assets/europa-flag.jpg "European flag"){height=100px}
+<img src="./assets/NGISearch_logo_tag_icon.svg" alt="NGI-search logo" title="NGI-search logo" height="100" />
+<img src="./assets/europa-flag.jpg" alt="European flag" title="European flag" height="100" />
