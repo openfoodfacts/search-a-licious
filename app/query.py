@@ -1,11 +1,11 @@
 import elastic_transport
+import luqum.exceptions
 from elasticsearch_dsl import A, Q, Search
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Query
 from luqum import visitor
 from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.elasticsearch.schema import SchemaAnalyzer
-from luqum.exceptions import ParseSyntaxError
 from luqum.parser import parser
 from luqum.tree import UnknownOperation, Word
 
@@ -135,7 +135,10 @@ def parse_lucene_dsl_query(
     remaining_terms = ""
     try:
         luqum_tree = parser.parse(q)
-    except ParseSyntaxError as e:
+    except (
+        luqum.exceptions.ParseError,
+        luqum.exceptions.InconsistentQueryException,
+    ) as e:
         # if the lucene syntax is invalid, consider the query as plain text
         logger.warning("parsing error for query: '%s':\n%s", q, e)
         remaining_terms = q
