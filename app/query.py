@@ -215,7 +215,7 @@ def build_search_query(
     config: IndexConfig,
     filter_query_builder: ElasticsearchQueryBuilder,
     sort_by: str | None = None,
-) -> Query:
+) -> Search:
     """Build an elasticsearch_dsl Query.
 
     :param q: the user raw query
@@ -226,7 +226,7 @@ def build_search_query(
     :param config: the index configuration to use
     :param filter_query_builder: luqum elasticsearch query builder
     :param sort_by: sorting key, defaults to None (=relevance-based sorting)
-    :return: the built Query
+    :return: the built Search query
     """
     filter_query: list[JSONType]
     if q is None:
@@ -299,7 +299,7 @@ def build_completion_query(
 
 
 def execute_query(
-    query: Query,
+    query: Search,
     result_processor: BaseResultProcessor,
     page: int,
     page_size: int,
