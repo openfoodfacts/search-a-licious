@@ -15,7 +15,13 @@ A CLI is available to perform common tasks.
 
 Note: the Makefile will align the user id with your own uid for a smooth editing experience.
 
-Build with:
+Before running the services, you need to make sure that your [system mmap count is high enough for Elasticsearch to run](https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html). You can do this by running:
+
+```console
+sudo sysctl -w vm.max_map_count=262144
+```
+
+Then build the services with:
 
 ```
 make build
@@ -24,8 +30,11 @@ make build
 Start docker:
 
 ```console
-docker-compose up -d
+docker compose up -d
 ```
+
+> [!NOTE]
+> You may encounter a permission error if your user is not part of the `docker` group, in which case you should either [add it](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) or modify the Makefile to prefix `sudo` to all docker and docker compose commands.
 
 Docker spins up:
 - Two elasticsearch nodes
