@@ -100,24 +100,56 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _count?: number;
 
     /**
-     * Get the list of facets we want to request
+     * @returns all searchalicious-facets elements linked to this search ctl
      */
-    _facets(): string[] {
+    _facetsNodes(): SearchaliciousFacets[] {
+      const allNodes: SearchaliciousFacets[] = [];
       // search facets elements, we can't filter on search-name because of default value…
       const facetsElements = document.querySelectorAll('searchalicious-facets');
-      const allFacets: string[] = [];
       facetsElements.forEach((item) => {
         const facetElement = item as SearchaliciousFacets;
         if (facetElement.searchName == this.name) {
-          allFacets.push(...facetElement.getFacetsNames());
+          allNodes.push(facetElement);
         }
       });
-      return uniq(allFacets) as string[];
+      return allNodes;
+    }
+
+    /**
+     * Get the list of facets we want to request
+     */
+    _facets(): string[] {
+      return (
+        uniq(
+          this._facetsNodes()
+            .map((facets) => facets.getFacetsNames())
+            .flat()
+        ) || undefined
+      );
+    }
+
+    /**
+     * Get the filter linked to facets
+     * @returns an expression to be added to query
+     */
+    _facetsFilters(): string {
+      const allFilters: string[] = this._facetsNodes()
+        .map((facets) => facets.getSearchFilters())
+        .flat();
+      return allFilters.join(' AND ');
     }
 
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
+      const queryParts = [];
+      if (this.query) {
+        queryParts.push(this.query);
+      }
+      const facetsFilters = this._facetsFilters();
+      if (facetsFilters) {
+        queryParts.push(facetsFilters);
+      }
       // build parameters
       const params: {
         q: string;
@@ -127,7 +159,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         index?: string;
         facets?: string;
       } = {
-        q: this.query,
+        q: queryParts.join(' '),
         langs: this.langs,
         page_size: this.pageSize.toString(),
         index: this.index,
@@ -135,8 +167,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (page) {
         params.page = page.toString();
       }
-      if (this._facets()) {
-        params.facets = this._facets().join(',');
+      const facets = this._facets();
+      if (facets) {
+        params.facets = facets.join(',');
       }
       const queryStr = Object.entries(params)
         .filter(
