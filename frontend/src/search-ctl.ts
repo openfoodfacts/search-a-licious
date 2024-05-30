@@ -13,8 +13,6 @@ import {
 } from './events';
 import {SearchaliciousFacets} from './search-facets';
 
-import uniq from 'lodash-es/uniq';
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -119,13 +117,10 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Get the list of facets we want to request
      */
     _facets(): string[] {
-      return (
-        uniq(
-          this._facetsNodes()
-            .map((facets) => facets.getFacetsNames())
-            .flat()
-        ) || undefined
-      );
+      const names = this._facetsNodes()
+        .map((facets) => facets.getFacetsNames())
+        .flat();
+      return [...new Set(names)];
     }
 
     /**

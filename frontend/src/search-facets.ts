@@ -4,7 +4,6 @@ import {repeat} from 'lit/directives/repeat.js';
 
 import {SearchaliciousResultCtlMixin} from './search-results-ctl';
 import {SearchResultEvent} from './events';
-import keys from 'lodash-es/keys';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -159,7 +158,7 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
    * Create the search term based upon the selected terms
    */
   override searchFilter(): string | undefined {
-    const values = keys(this.selectedTerms) as String[];
+    const values = Object.keys(this.selectedTerms);
     if (values.length === 0) {
       return undefined;
     }

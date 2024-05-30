@@ -1,11 +1,18 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
-import range from 'lodash-es/range';
 
 import {SearchaliciousEvents} from './enums';
 import {SearchResultEvent} from './events';
 import {SearchaliciousResultCtlMixin} from './search-results-ctl';
+
+// small utility to have a range
+// inspired from https://stackoverflow.com/a/44957114/2886726
+function _range(start: number, end: number): number[] {
+  return Array(end - start)
+    .fill(1)
+    .map((_, idx) => start + idx);
+}
 
 /**
  * A component to display pagination for search results.
@@ -140,7 +147,7 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
     if (!this._startRange || !this._endRange) {
       return [];
     }
-    return range(this._startRange, this._endRange + 1);
+    return _range(this._startRange, this._endRange + 1);
   }
 
   override render() {
