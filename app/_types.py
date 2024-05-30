@@ -7,6 +7,29 @@ from pydantic import BaseModel
 JSONType = dict[str, Any]
 
 
+class FacetItem(BaseModel):
+    """Describe an entry of a facet"""
+
+    key: str
+    name: str
+    count: int
+    """The number of elements for this value"""
+
+
+class FacetInfo(BaseModel):
+    """Search result for facet"""
+
+    name: str
+    """The display name of the facet"""
+    items: list[FacetItem]
+    """Items in the facets"""
+    count_error_margin: int | None = None
+
+
+FacetsInfos = dict[str, FacetInfo]
+"""Information about facets for a search result"""
+
+
 class SearchResponseDebug(BaseModel):
     query: JSONType
 
@@ -26,7 +49,8 @@ class ErrorSearchResponse(BaseModel):
 
 class SuccessSearchResponse(BaseModel):
     hits: list[JSONType]
-    aggregations: JSONType
+    aggregations: JSONType | None = None
+    facets: FacetsInfos | None = None
     page: int
     page_size: int
     page_count: int

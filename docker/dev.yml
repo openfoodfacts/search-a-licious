@@ -26,7 +26,7 @@ services:
   api:
     <<: *api-base
     # uvicorn in reload mode
-    command: ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000", "--reload", "--debug"]
   updater:
     <<: *api-base
   search_frontend:

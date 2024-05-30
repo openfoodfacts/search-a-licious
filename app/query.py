@@ -193,14 +193,20 @@ def parse_sort_by_parameter(sort_by: str | None, config: IndexConfig) -> str | N
     return sort_by
 
 
-def create_aggregation_clauses(config: IndexConfig) -> dict[str, Agg]:
-    """Create term bucket aggregation clauses for all relevant fields as
-    defined in the config.
+def create_aggregation_clauses(
+    config: IndexConfig, facets: list[str] | None
+) -> dict[str, Agg]:
+    """Create term bucket aggregation clauses
+    for all fields corresponding to facets,
+    as defined in the config
     """
     clauses = {}
-    for field in config.fields.values():
-        if field.bucket_agg:
-            clauses[field.name] = A("terms", field=field.name)
+    if facets is not None:
+        for field_name in facets:
+            field = config.fields[field_name]
+            if field.bucket_agg:
+                # TODO - aggregation might depend on agg type or field type
+                clauses[field.name] = A("terms", field=field.name)
     return clauses
 
 
@@ -211,6 +217,7 @@ def build_search_query(
     page: int,
     config: IndexConfig,
     filter_query_builder: ElasticsearchQueryBuilder,
+    facets: list[str] | None = None,
     sort_by: str | None = None,
 ) -> Query:
     """Build an elasticsearch_dsl Query.
@@ -244,7 +251,7 @@ def build_search_query(
     if filter_query:
         query = query.query("bool", filter=filter_query)
 
-    for agg_name, agg in create_aggregation_clauses(config).items():
+    for agg_name, agg in create_aggregation_clauses(config, facets).items():
         query.aggs.bucket(agg_name, agg)
 
     sort_by = parse_sort_by_parameter(sort_by, config)

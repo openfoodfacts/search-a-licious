@@ -27,7 +27,6 @@ indices:
                 type: keyword
                 bucket_agg: true
             # more fields
-        # facets
         supported_langs: ["en", "fr"]
         taxonomy:
             sources: []
@@ -60,105 +59,8 @@ def _config_with_aggs(tmpdir, facets=""):
     return my_config
 
 
-def test_facets_default_created(tmpdir):
+def test_loading_config(tmpdir):
     conf_file = _config_with_aggs(tmpdir)
-    conf = app.config.Config.from_yaml(conf_file)
-    assert conf.indices["test"].facets == {
-        "default": app.config.FacetsConfig(
-            name="default", include=None, exclude=None, order=None
-        )
-    }
-
-
-def test_facets_with_include(tmpdir):
-    facets = """
-        facets:
-            default:
-                include: ["somuch_agg", "myagg", "more_agg"]
-    """
-    conf_file = _config_with_aggs(tmpdir, facets)
-    conf = app.config.Config.from_yaml(conf_file)
-    # only included, alpha sort
-    assert conf.indices["test"].get_facets_order() == [
-        "more_agg",
-        "myagg",
-        "somuch_agg",
-    ]
-
-
-def test_facets_with_exclude(tmpdir):
-    facets = """
-        facets:
-            default:
-                exclude: ["myagg", "more_agg"]
-    """
-    conf_file = _config_with_aggs(tmpdir, facets)
-    conf = app.config.Config.from_yaml(conf_file)
-    # without excluded, alpha sort
-    assert conf.indices["test"].get_facets_order() == ["other_agg", "somuch_agg"]
-
-
-def test_facets_order_no_ellipsis(tmpdir):
-    facets = """
-        facets:
-            default:
-                order: ["myagg", "somuch_agg"]
-    """
-    conf_file = _config_with_aggs(tmpdir, facets)
-    conf = app.config.Config.from_yaml(conf_file)
-    # at end
-    assert conf.indices["test"].get_facets_order() == [
-        "myagg",
-        "somuch_agg",
-        "more_agg",
-        "other_agg",
-    ]
-
-
-def test_facets_order_with_end_ellipsis(tmpdir):
-    facets = """
-        facets:
-            default:
-                order: ["myagg", "somuch_agg", "..."]
-    """
-    conf_file = _config_with_aggs(tmpdir, facets)
-    conf = app.config.Config.from_yaml(conf_file)
-    # at end
-    assert conf.indices["test"].get_facets_order() == [
-        "myagg",
-        "somuch_agg",
-        "more_agg",
-        "other_agg",
-    ]
-
-
-def test_facets_order_with_ellipsis(tmpdir):
-    facets = """
-        facets:
-            default:
-                order: ["myagg", "...", "more_agg"]
-    """
-    conf_file = _config_with_aggs(tmpdir, facets)
-    conf = app.config.Config.from_yaml(conf_file)
-    assert conf.indices["test"].get_facets_order() == [
-        "myagg",
-        "other_agg",
-        "somuch_agg",
-        "more_agg",
-    ]
-
-
-def test_facets_order_with_start_ellipsis(tmpdir):
-    facets = """
-        facets:
-            default:
-                order: ["...", "myagg", "more_agg"]
-    """
-    conf_file = _config_with_aggs(tmpdir, facets)
-    conf = app.config.Config.from_yaml(conf_file)
-    assert conf.indices["test"].get_facets_order() == [
-        "other_agg",
-        "somuch_agg",
-        "myagg",
-        "more_agg",
-    ]
+    # just test it loads for now
+    app.config.Config.from_yaml(conf_file)
+    # TODO add asserts on config

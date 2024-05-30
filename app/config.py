@@ -2,7 +2,7 @@ import json
 import logging
 from enum import StrEnum, auto
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import yaml
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
@@ -282,65 +282,6 @@ class TaxonomyConfig(BaseModel):
     ]
 
 
-DEFAULT_FACET_NAME = "default"
-FACET_ORDER_ELLIPSIS = "..."
-
-
-class FacetsConfig(BaseModel):
-    """configure a set of facets to be displayed to users"""
-
-    name: Annotated[
-        str,
-        Field(
-            description="the name of the facet, used to identify it. You must have a facet named default"
-        ),
-    ] = ""
-    include: Annotated[
-        Optional[list[str]],
-        Field(
-            description="a list of facets to include in the response. "
-            "If not provided, all facets will be returned but excluded."
-            "It must be a field with `bucket_agg` true."
-        ),
-    ] = None
-    exclude: Annotated[
-        Optional[list[str]],
-        Field(
-            description="a list of facets to exclude. It is mutually exclusive with `include`"
-        ),
-    ] = None
-    order: Annotated[
-        Optional[list[str]],
-        Field(
-            description="the order in which facets should be displayed. "
-            "If you have one ... entry all non listed entries will be added here in alpha order "
-            "otherwise they will be appended."
-        ),
-    ] = None
-
-    def get_facets_order(self, index_config: "IndexConfig") -> list[str]:
-        """return a list to facets in right order.
-
-        You usually call the method with same name on IndexConfig
-
-        :param index_config: we need the index config facets belongs to,
-          to get the field configs
-        """
-        facets_order = list(self.order or [])
-        fields = set(self.include or []) or (
-            set(index_config.get_fields_with_bucket_agg()) - set(self.exclude or [])
-        )
-        non_listed_facets = sorted(fields - set(facets_order))
-        try:
-            position_for_non_listed = facets_order.index(FACET_ORDER_ELLIPSIS)
-            facets_order[position_for_non_listed : position_for_non_listed + 1] = (
-                non_listed_facets
-            )
-        except ValueError:
-            facets_order.extend(non_listed_facets)
-        return facets_order
-
-
 class IndexConfig(BaseModel):
     """Inside the config file we can have several indexes defined.
 
@@ -355,15 +296,6 @@ class IndexConfig(BaseModel):
         Field(
             description="configuration of all fields in the index, keys are field "
             "names and values contain the field configuration"
-        ),
-    ]
-    facets: Annotated[
-        dict[str, FacetsConfig],
-        Field(
-            description="configuration for facets to be displayed to users. "
-            "You should have a facet named 'default' that will be used as the default facet configuration."
-            "If don't define one, a default facet will be created with all fields included in alpha order.",
-            default_factory=dict,
         ),
     ]
     split_separator: Annotated[
@@ -474,68 +406,12 @@ class IndexConfig(BaseModel):
 
         return self
 
-    @model_validator(mode="after")
-    def add_default_facets_if_none_exists(self):
-        """Validator that adds a default facet configuration
-        if none is defined."""
-        if DEFAULT_FACET_NAME not in self.facets:
-            # create default config
-            default_config = FacetsConfig(
-                name=DEFAULT_FACET_NAME,
-            )
-            self.facets[DEFAULT_FACET_NAME] = default_config
-        return self
-
-    @model_validator(mode="after")
-    def ensure_all_facets_fields_are_agg(self):
-        errors, warnings = [], []
-        for facet_name, facet in self.facets.items():
-            for field_name in facet.include or []:
-                if field_name not in self.fields:
-                    errors.append(
-                        f"Unknown field name in facet include: {field_name} in _{facet_name}"
-                    )
-                elif not self.fields[field_name].bucket_agg:
-                    errors.append(
-                        f"Non aggregation field name in facet include: {field_name} in _{facet_name}"
-                    )
-            for field_name in facet.exclude or []:
-                if field_name not in self.fields:
-                    warnings.append(
-                        f"Unknown field name in facet exclude: {field_name} in _{facet_name}"
-                    )
-                elif not self.fields[field_name].bucket_agg:
-                    warnings.append(
-                        f"Non aggregation field name in facet exclude: {field_name} in _{facet_name}"
-                    )
-            field_for_order = set(facet.include or []) or (
-                set(self.fields) - set(facet.exclude or [])
-            )
-            for field_name in facet.order or []:
-                if field_name not in field_for_order:
-                    warnings.append(
-                        f"Field {field_name} is listed in `order` but not present in facet"
-                    )
-        if warnings:
-            log.warning("\n".join(warnings))
-        if errors:
-            raise ValueError("\n".join(errors))
-        return self
-
     @field_validator("fields")
     @classmethod
     def add_field_name_to_each_field(cls, fields: dict[str, FieldConfig]):
         for field_name, field_item in fields.items():
             field_item.name = field_name
         return fields
-
-    @field_validator("facets")
-    @classmethod
-    def add_facet_name_to_each_facet(cls, facets: Optional[dict[str, FacetsConfig]]):
-        if facets:
-            for facet_name, facet_item in facets.items():
-                facet_item.name = facet_name
-        return facets
 
     def get_supported_langs(self) -> set[str]:
         """Return the set of supported languages for `text_lang` fields.
@@ -561,9 +437,6 @@ class IndexConfig(BaseModel):
         return [
             field_name for field_name, field in self.fields.items() if field.bucket_agg
         ]
-
-    def get_facets_order(self, facets_name=DEFAULT_FACET_NAME) -> list[str]:
-        return self.facets[facets_name].get_facets_order(self)
 
 
 class Config(BaseModel):

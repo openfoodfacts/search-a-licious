@@ -57,6 +57,16 @@ uvicorn app.api:app --reload --port=8001 --workers=4
 ```
 Note that it's important to use port 8001, as port 8000 will be used by the docker version of the search service.
 
+
+
+To debug the backend app:
+* stop api instance: `docker compose stop api`
+* add a pdb.set_trace() at the point you want,
+* then launch `docker compose run --rm  --use-aliases api uvicorn app.api:app --proxy-headers --host 0.0.0.0 --port 8000 --reload`[^use_aliases]
+
+[^use_aliases]: the `--use-aliases` make it so that this container is reachable as "api" for the other containers in the compose
+
+
 ### Pre-Commit
 
 This repo uses [pre-commit](https://pre-commit.com/) to enforce code styling, etc. To use it:

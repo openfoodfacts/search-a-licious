@@ -8,42 +8,16 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
+import app.search as app_search
 from app import config
 from app._types import SearchResponse, SuccessSearchResponse
 from app.config import check_config_is_defined, settings
-from app.postprocessing import (
-    BaseResultProcessor,
-    load_result_processor,
-    process_taxonomy_completion_response,
-)
-from app.query import (
-    build_completion_query,
-    build_elasticsearch_query_builder,
-    build_search_query,
-    execute_query,
-)
+from app.facets import check_all_facets_fields_are_agg
+from app.postprocessing import process_taxonomy_completion_response
+from app.query import build_completion_query
 from app.utils import connection, get_logger, init_sentry
 
 logger = get_logger()
-
-
-if config.CONFIG is None:
-    # We want to be able to import api.py (for tests for example) without
-    # failure, but we add a warning message as it's not expected in a
-    # production settings
-    logger.warning("Main configuration is not set, use CONFIG_PATH envvar")
-    FILTER_QUERY_BUILDERS = {}
-    RESULT_PROCESSORS = {}
-else:
-    # we cache query builder and result processor here for faster processing
-    FILTER_QUERY_BUILDERS = {
-        index_id: build_elasticsearch_query_builder(index_config)
-        for index_id, index_config in config.CONFIG.indices.items()
-    }
-    RESULT_PROCESSORS = {
-        index_id: load_result_processor(index_config)
-        for index_id, index_config in config.CONFIG.indices.items()
-    }
 
 
 app = FastAPI(
@@ -116,6 +90,13 @@ def get_document(
     return product
 
 
+def check_facets_are_valid(index_id: str | None, facets: list[str] | None) -> None:
+    """Check that the facets are valid."""
+    errors = check_all_facets_fields_are_agg(index_id, facets)
+    if errors:
+        raise HTTPException(status_code=400, detail=json.dumps(errors))
+
+
 @app.get("/search")
 def search(
     q: Annotated[
@@ -130,7 +111,7 @@ Example: `categories_tags:"en:beverages" strawberry brands:"casino"` query use a
 filter clause for categories and brands and look for "strawberry" in multiple
 fields.
 
- The query is optional, but `sort_by` value must then be provided."""
+The query is optional, but `sort_by` value must then be provided."""
         ),
     ] = None,
     langs: Annotated[
@@ -163,59 +144,44 @@ If not provided, `['en']` is used."""
             and be sortable. If it is not provided, results are sorted by descending relevance score."""
         ),
     ] = None,
+    facets: Annotated[
+        str | None,
+        Query(
+            description="""Name of facets to return in the response as a comma-separated value.
+            If None (default) no facets are returned."""
+        ),
+    ] = None,
     index_id: Annotated[
         str | None,
         INDEX_ID_QUERY_PARAM,
     ] = None,
 ) -> SearchResponse:
+    # check and preprocess parameters
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
     check_index_id_is_defined(index_id, global_config)
-    index_id, index_config = global_config.get_index_config(index_id)
-    result_processor = cast(BaseResultProcessor, RESULT_PROCESSORS[index_id])
+    facets_list = facets.split(",") if facets else None
+    check_facets_are_valid(index_id, facets_list)
     if q is None and sort_by is None:
         raise HTTPException(
             status_code=400, detail="`sort_by` must be provided when `q` is missing"
         )
-
-    langs_set = set(langs.split(",") if langs else ["en"])
-    logger.debug(
-        "Received search query: q='%s', langs='%s', page=%d, "
-        "page_size=%d, fields='%s', sort_by='%s'",
-        q,
-        langs_set,
-        page,
-        page_size,
-        fields,
-        sort_by,
-    )
-
     if page * page_size > 10_000:
         raise HTTPException(
             status_code=400,
             detail=f"Maximum number of returned results is 10 000 (here: page * page_size = {page * page_size})",
         )
-
-    query = build_search_query(
+    langs_list = langs.split(",") if langs else ["en"]
+    # search
+    return app_search.search(
         q=q,
-        langs=langs_set,
-        size=page_size,
-        page=page,
-        config=index_config,
-        sort_by=sort_by,
-        # filter query builder is generated from elasticsearch mapping and
-        # takes ~40ms to generate, build-it before hand to avoid this delay
-        filter_query_builder=FILTER_QUERY_BUILDERS[index_id],
-    )
-    logger.debug("Elasticsearch query: %s", query.to_dict())
-
-    projection = set(fields.split(",")) if fields else None
-    return execute_query(
-        query,
-        result_processor,
-        page=page,
+        langs=langs_list,
         page_size=page_size,
-        projection=projection,
+        page=page,
+        fields=fields.split(",") if fields else None,
+        sort_by=sort_by,
+        facets=facets_list,
+        index_id=index_id,
     )
 
 
