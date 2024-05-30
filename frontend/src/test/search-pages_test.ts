@@ -19,7 +19,7 @@ suite('searchalicious-pages', () => {
       pageCount: pageCount,
       currentPage: currentPage,
       pageSize: 10,
-      aggregations: {},
+      facets: {},
     };
     el._handleResults(
       new CustomEvent(SearchaliciousEvents.NEW_RESULT, {

@@ -1,27 +1,31 @@
-import {LitElement, html} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {LitElement, html, css} from 'lit';
+import {customElement, property, queryAssignedNodes} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
 import {SearchaliciousResultCtlMixin} from './search-results-ctl';
 import {SearchResultEvent} from './events';
-import keys from 'lodash-es/keys';
 
-type Aggregations = Record<string, FilterData>;
-
-interface FilterData {
-  buckets: Array<Bucket>;
+interface FacetsInfos {
+  [key: string]: FacetInfo;
 }
 
-interface Bucket {
+interface FacetInfo {
+  name: string;
+  // TODO: add other types if needed
+  items: FacetItem[];
+}
+
+interface FacetItem {
   key: string;
+  name: string;
 }
 
-interface DocCountBucket extends Bucket {
-  doc_count: number;
+interface FacetTerm extends FacetItem {
+  count: number;
 }
 
 /**
- * Component to display search filters (aka facets) on in a column
+ * Parent Component to display a side search filter (aka facets)
  */
 @customElement('searchalicious-facets')
 export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
@@ -30,54 +34,108 @@ export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
   // the last search facets
   @property({attribute: false})
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  aggregations?: Aggregations;
+  facets?: FacetsInfos;
+
+  @queryAssignedNodes({flatten: true})
+  facetNodes!: Array<Node>;
+
+  /**
+   * Names of facets we need to query,
+   * this is the names of contained facets
+   */
+  getFacetsNames(): string[] {
+    const _facets: string[] = [];
+    this.facetNodes.forEach((node) => {
+      if (node instanceof SearchaliciousFacet) {
+        _facets.push(node.name);
+      }
+    });
+    return _facets;
+  }
 
   override handleResults(event: SearchResultEvent) {
-    this.aggregations = event.detail.aggregations as Aggregations;
-  }
-
-  renderBucket(bucket: Bucket) {
-    const dcBucket = bucket as DocCountBucket;
-    return html`
-      <input type="checkbox" /><label for=""
-        >${dcBucket.key}
-        <span part="docCount">(${dcBucket.doc_count})</span></label
-      >
-    `;
-  }
-
-  renderFilter(filterName: string, filterData: FilterData) {
-    return html`
-      <fieldset name=${filterName}>
-        <!-- FIXME: translate -->
-        <legend>${filterName}</legend>
-        ${repeat(
-          filterData.buckets,
-          (item: Bucket) => item.key,
-          (item: Bucket) => this.renderBucket(item)
-        )}
-      </fieldset>
-    `;
+    this.facets = event.detail.facets as FacetsInfos;
+    if (this.facets) {
+      // dispatch to children
+      this.facetNodes.forEach((node) => {
+        if (node instanceof SearchaliciousFacet) {
+          node.infos = this.facets![node.name];
+        }
+      });
+    }
   }
 
   override render() {
-    if (this.aggregations) {
-      return html`<div>
-        ${repeat(
-          keys(this.aggregations),
-          (item: string) => item,
-          (item: string) => this.renderFilter(item, this.aggregations![item])
-        )}
-      </div>`;
+    // we always want to render slot, baceauso we use queryAssignedNodes
+    // but we may not want to display them
+    const display = this.facets ? '' : 'display: none';
+    return html`<div part="facets" style="${display}"><slot></slot></div> `;
+  }
+}
+
+/**
+ * Base Component to display a side search filter (aka facets)
+ *
+ * This is a base class, implementations are specific based on facet type
+ */
+export class SearchaliciousFacet extends LitElement {
+  @property()
+  name = '';
+
+  // the last search infor for my facet
+  @property({attribute: false})
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  infos?: FacetInfo;
+
+  renderFacet() {
+    throw new Error('renderFacet not implemented: implement in sub class');
+  }
+
+  override render() {
+    if (this.infos) {
+      return this.renderFacet();
     } else {
-      return html``; // FIXME
+      return html``; // FIXME: is this ok ?
     }
+  }
+}
+
+@customElement('searchalicious-facet-terms')
+export class SearchaliciousTermsFacet extends SearchaliciousFacet {
+  static override styles = css`
+    .term-wrapper {
+      display: block;
+    }
+  `;
+  renderTerm(term: FacetTerm) {
+    return html`
+      <div class="term-wrapper" part="term-wrapper">
+        <input type="checkbox" name="${term.key}" /><label for="${term.key}"
+          >${term.name} <span part="docCount">(${term.count})</span></label
+        >
+      </div>
+    `;
+  }
+
+  override renderFacet() {
+    return html`
+      <fieldset name=${this.name}>
+        <!-- FIXME: translate -->
+        <legend>${this.name}</legend>
+        ${repeat(
+          (this.infos!.items || []) as FacetTerm[],
+          (item: FacetTerm) => `${item.key}-${item.count}`,
+          (item: FacetTerm) => this.renderTerm(item)
+        )}
+      </fieldset>
+    `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
     'searchalicious-facets': SearchaliciousFacets;
+    'searchalicious-facet-terms': SearchaliciousTermsFacet;
   }
 }
 

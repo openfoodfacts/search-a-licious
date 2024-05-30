@@ -11,6 +11,9 @@ import {
   SearchResultEvent,
   SearchResultDetail,
 } from './events';
+import {SearchaliciousFacets} from './search-facets';
+
+import uniq from 'lodash-es/uniq';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -96,7 +99,22 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
-    // TODO: this should be on results element instead
+    /**
+     * Get the list of facets we want to request
+     */
+    _facets(): string[] {
+      // search facets elements, we can't filter on search-name because of default value…
+      const facetsElements = document.querySelectorAll('searchalicious-facets');
+      const allFacets: string[] = [];
+      facetsElements.forEach((item) => {
+        const facetElement = item as SearchaliciousFacets;
+        if (facetElement.searchName == this.name) {
+          allFacets.push(...facetElement.getFacetsNames());
+        }
+      });
+      return uniq(allFacets) as string[];
+    }
+
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
@@ -107,6 +125,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         page_size: string;
         page?: string;
         index?: string;
+        facets?: string;
       } = {
         q: this.query,
         langs: this.langs,
@@ -115,6 +134,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       };
       if (page) {
         params.page = page.toString();
+      }
+      if (this._facets()) {
+        params.facets = this._facets().join(',');
       }
       const queryStr = Object.entries(params)
         .filter(
@@ -176,6 +198,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         this.search(detail.page);
       }
     }
+
     /**
      * Launching search
      */
@@ -196,7 +219,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         pageCount: this._pageCount!,
         currentPage: this._currentPage!,
         pageSize: this.pageSize,
-        aggregations: data.aggregations,
+        facets: data.facets,
       };
       this.dispatchEvent(
         new CustomEvent(SearchaliciousEvents.NEW_RESULT, {
