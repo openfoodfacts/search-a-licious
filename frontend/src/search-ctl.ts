@@ -163,7 +163,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         params.page = page.toString();
       }
       const facets = this._facets();
-      if (facets) {
+      if (facets && facets.length > 0) {
         params.facets = facets.join(',');
       }
       const queryStr = Object.entries(params)
