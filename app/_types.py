@@ -8,7 +8,7 @@ JSONType = dict[str, Any]
 
 
 class FacetItem(BaseModel):
-    """Describe an entry of a facet"""
+    """Describes an entry of a facet"""
 
     key: str
     name: str
@@ -17,7 +17,7 @@ class FacetItem(BaseModel):
 
 
 class FacetInfo(BaseModel):
-    """Search result for facet"""
+    """Search result for a facet"""
 
     name: str
     """The display name of the facet"""

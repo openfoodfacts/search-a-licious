@@ -60,7 +60,7 @@ Note that it's important to use port 8001, as port 8000 will be used by the dock
 
 
 To debug the backend app:
-* stop api instance: `docker compose stop api`
+* stop API instance: `docker compose stop api`
 * add a pdb.set_trace() at the point you want,
 * then launch `docker compose run --rm  --use-aliases api uvicorn app.api:app --proxy-headers --host 0.0.0.0 --port 8000 --reload`[^use_aliases]
 
