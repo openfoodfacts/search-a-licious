@@ -122,7 +122,7 @@ export class SearchaliciousFacet extends LitElement {
     if (this.infos) {
       return this.renderFacet();
     } else {
-      return html``; // FIXME: is this ok ?
+      return html``;
     }
   }
 }
