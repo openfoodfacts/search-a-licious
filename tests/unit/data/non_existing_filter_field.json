@@ -6,11 +6,17 @@
       "bool": {
         "filter": [
           {
-            "match": {
-              "non_existing_field": {
-                "query": "value",
-                "zero_terms_query": "none"
-              }
+            "bool": {
+              "must": [
+                {
+                  "match": {
+                    "non_existing_field": {
+                      "query": "value",
+                      "zero_terms_query": "all"
+                    }
+                  }
+                }
+              ]
             }
           }
         ]
@@ -21,12 +27,22 @@
   },
   "fulltext": "",
   "filter_query": {
-    "match": {
-      "non_existing_field": {
-        "query": "value",
-        "zero_terms_query": "none"
-      }
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "non_existing_field": {
+              "query": "value",
+              "zero_terms_query": "all"
+            }
+          }
+        }
+      ]
     }
   },
-  "facets_filters": null
+  "facets_filters": {
+    "non_existing_field": [
+      "value"
+    ]
+  }
 }

@@ -70,7 +70,10 @@ def search(
         filter_query_builder=FILTER_QUERY_BUILDERS[index_id],
         facets=facets,
     )
-    logger.debug("Elasticsearch query: %s", query.to_dict())
+    logger.debug(
+        "Elasticsearch query: %s",
+        query.es_query.to_dict() if query.es_query else query.es_query,
+    )
 
     projection = set(fields) if fields else None
     search_result = execute_query(

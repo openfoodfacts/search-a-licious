@@ -17,14 +17,19 @@ class FacetItem(BaseModel):
     count: int
     """The number of elements for this value"""
 
+    selected: bool
+    """Whether this value is selected"""
+
 
 class FacetInfo(BaseModel):
     """Search result for a facet"""
 
     name: str
     """The display name of the facet"""
+
     items: list[FacetItem]
     """Items in the facets"""
+
     count_error_margin: int | None = None
 
 

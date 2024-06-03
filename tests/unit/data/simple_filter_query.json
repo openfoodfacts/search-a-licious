@@ -6,10 +6,16 @@
       "bool": {
         "filter": [
           {
-            "term": {
-              "countries_tags": {
-                "value": "en:italy"
-              }
+            "bool": {
+              "must": [
+                {
+                  "term": {
+                    "countries_tags": {
+                      "value": "en:italy"
+                    }
+                  }
+                }
+              ]
             }
           }
         ]
@@ -20,11 +26,21 @@
   },
   "fulltext": "",
   "filter_query": {
-    "term": {
-      "countries_tags": {
-        "value": "en:italy"
-      }
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "countries_tags": {
+              "value": "en:italy"
+            }
+          }
+        }
+      ]
     }
   },
-  "facets_filters": null
+  "facets_filters": {
+    "countries_tags": [
+      "\"en:italy\""
+    ]
+  }
 }

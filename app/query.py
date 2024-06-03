@@ -3,7 +3,7 @@ import luqum.exceptions
 from elasticsearch_dsl import A, Q, Search
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Query
-from luqum import tree, visitor
+from luqum import tree
 from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.parser import parser
@@ -32,29 +32,6 @@ def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQuery
     # we default to a AND between terms that are just space separated
     options["default_operator"] = ElasticsearchQueryBuilder.MUST
     return ElasticsearchQueryBuilder(**options)
-
-
-class SimpleWordsRemover(visitor.TreeTransformer):
-    """A transformer that removes words from unknown operation expressions
-    It's a way to remove full text search from within the query expression
-    """
-
-    def __init__(self):
-        super().__init__(track_parents=True)
-
-    # FIXME why only on unknown operation?
-    def visit_unknown_operation(self, node, context):
-        new_node = node.clone_item()
-        children = [
-            child
-            for child in self.clone_children(node, new_node, context)
-            if not isinstance(child, tree.Word)
-        ]
-        new_node.children = children
-        yield new_node
-
-    def __call__(self, tree):
-        return self.visit(tree)
 
 
 def build_query_clause(query: str, langs: set[str], config: IndexConfig) -> Query:
@@ -156,28 +133,34 @@ def decompose_query(
     if q.text_query is None:
         return q
     remaining_terms = ""
-
     if q.luqum_tree is not None:
         # Successful parsing
         logger.debug("parsed luqum tree: %s", repr(q.luqum_tree))
-        if isinstance(q.luqum_tree, tree.UnknownOperation):
-            # We join with space every non word not recognized by the parser
-            # FIXME: why does it work if I have expressions in parenthesis ?
-            # FIXME: should be done in SimpleWordsRemover
-            remaining_terms = " ".join(
-                item.value
-                for item in q.luqum_tree.children
-                if isinstance(item, tree.Word)
-            )
+        word_children = []
+        filter_children = []
+        if isinstance(q.luqum_tree, (tree.UnknownOperation, tree.AndOperation)):
+            for child in q.luqum_tree.children:
+                if isinstance(child, tree.Word):
+                    word_children.append(child)
+                else:
+                    filter_children.append(child)
         elif isinstance(q.luqum_tree, tree.Word):
             # the query single term
-            remaining_terms = q.luqum_tree.value
+            word_children.append(q.luqum_tree)
+        else:
+            filter_children.append(q.luqum_tree)
+        # We join with space every non word not recognized by the parser
+        remaining_terms = " ".join(item.value for item in word_children)
+        filter_tree = None
+        if filter_children:
+            # Note: we always wrap in AndOperation,
+            # even if only one, to be consistent
+            filter_tree = tree.AndOperation(*filter_children)
 
         # remove harvested words
-        processed_tree = SimpleWordsRemover().visit(q.luqum_tree)
-        logger.debug("processed luqum tree: %s", repr(processed_tree))
-        if processed_tree.children:
-            filter_query = filter_query_builder(processed_tree)
+        logger.debug("filter luqum tree: %s", repr(filter_tree))
+        if filter_tree:
+            filter_query = filter_query_builder(filter_tree)
         else:
             filter_query = None
         logger.debug("filter query from luqum: '%s'", filter_query)
@@ -202,28 +185,37 @@ def compute_facets_filters(q: QueryAnalysis) -> QueryAnalysis:
     """
     if q.luqum_tree is None:
         return q
-    if not isinstance(q.luqum_tree, (tree.AndOperation, tree.UnknownOperation)):
-        return q
+
     filters = {}
-    for child in q.luqum_tree.children:
-        if isinstance(child, tree.SearchField):
-            field_name = child.field
-            expr = child.expr
-            facet_filter = None
-            if isinstance(expr, tree.Term):
-                # simple term
-                facet_filter = [str(expr)]
-            elif isinstance(expr, tree.OrOperation) and all(
-                isinstance(item, tree.Term) for item in expr.children
-            ):
-                # OR operation of simple terms
-                facet_filter = [str(item) for item in expr.children]
-            if facet_filter:
-                if field_name not in filters:
-                    filters[field_name] = facet_filter
-                else:
-                    # avoid the case of double expression, we don't handle it
-                    filters.pop(field_name)
+
+    def _process_search_field(expr, field_name):
+        facet_filter = None
+        if isinstance(expr, tree.Term):
+            # simple term
+            facet_filter = [str(expr)]
+        elif isinstance(expr, tree.FieldGroup):
+            # use recursion
+            _process_search_field(expr.expr, field_name)
+        elif isinstance(expr, tree.OrOperation) and all(
+            isinstance(item, tree.Term) for item in expr.children
+        ):
+            # OR operation of simple terms
+            facet_filter = [str(item) for item in expr.children]
+        if facet_filter:
+            if field_name not in filters:
+                filters[field_name] = facet_filter
+            else:
+                # avoid the case of double expression, we don't handle it
+                filters.pop(field_name)
+
+    if isinstance(q.luqum_tree, (tree.AndOperation, tree.UnknownOperation)):
+        for child in q.luqum_tree.children:
+            if isinstance(child, tree.SearchField):
+                _process_search_field(child.expr, child.name)
+    # case of a single search field
+    elif isinstance(q.luqum_tree, tree.SearchField):
+        _process_search_field(q.luqum_tree.expr, q.luqum_tree.name)
+
     return q.clone(facets_filters=filters)
 
 

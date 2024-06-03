@@ -3,16 +3,10 @@ from pathlib import Path
 import orjson
 import pytest
 from luqum.elasticsearch import ElasticsearchQueryBuilder
-from luqum.parser import parser
 
 from app._types import JSONType
 from app.config import IndexConfig
-from app.query import (
-    SimpleWordsRemover,
-    build_search_query,
-    decompose_query,
-    parse_query,
-)
+from app.query import build_search_query, decompose_query, parse_query
 from app.utils.io import dump_json, load_json
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -20,32 +14,6 @@ DATA_DIR = Path(__file__).parent / "data"
 
 def load_elasticsearch_query_result(id_: str):
     return load_json(DATA_DIR / f"{id_}.json")
-
-
-class TestSimpleWordsRemover:
-    @pytest.mark.parametrize(
-        "query,expected",
-        [
-            ('word1 states_tags:"en:france" word2', 'states_tags:"en:france"'),
-            (
-                '(states_tags:"en:france" OR states_tags:"en:germany") word2 word3',
-                '(states_tags:"en:france" OR states_tags:"en:germany")',
-            ),
-            (
-                'word1 (states_tags:"en:france" word2) word3 labels_tags:"en:organic"',
-                '(states_tags:"en:france" ) labels_tags:"en:organic"',
-            ),
-            # We shouldn't change the tree if there is a single filter
-            (
-                'categories_tags:"en:textured-soy-protein"',
-                'categories_tags:"en:textured-soy-protein"',
-            ),
-        ],
-    )
-    def test_transform(self, query: str, expected: str):
-        luqum_tree = parser.parse(query)
-        new_tree = SimpleWordsRemover().visit(luqum_tree)
-        assert str(new_tree).strip(" ") == expected
 
 
 @pytest.mark.parametrize(
@@ -84,19 +52,28 @@ class TestSimpleWordsRemover:
         ),
         (
             'states_tags:"en:spain"',
-            {"term": {"states_tags": {"value": "en:spain"}}},
+            {"bool": {"must": [{"term": {"states_tags": {"value": "en:spain"}}}]}},
             "",
         ),
         (
             "nutriments.salt_100g:[2 TO *]",
-            {"range": {"nutriments.salt_100g": {"gte": "2"}}},
+            {"bool": {"must": [{"range": {"nutriments.salt_100g": {"gte": "2"}}}]}},
             "",
         ),
         (
             "non_existing_field:value",
             {
-                "match": {
-                    "non_existing_field": {"query": "value", "zero_terms_query": "none"}
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "non_existing_field": {
+                                    "query": "value",
+                                    "zero_terms_query": "all",
+                                }
+                            }
+                        }
+                    ]
                 }
             },
             "",
