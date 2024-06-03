@@ -1,4 +1,5 @@
 import json
+import logging
 from enum import StrEnum, auto
 from pathlib import Path
 from typing import Annotated
@@ -7,6 +8,8 @@ import yaml
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 from pydantic.json_schema import GenerateJsonSchema
 from pydantic_settings import BaseSettings
+
+log = logging.getLogger(__name__)
 
 
 class LoggingLevel(StrEnum):
@@ -232,6 +235,12 @@ class ESIndexConfig(BaseModel):
 
 
 class TaxonomyIndexConfig(BaseModel):
+    """We have an index storing multiple taxonomies
+
+    It enables functions like auto-completion, or field suggestions
+    as well as enrichment of requests with synonyms
+    """
+
     name: Annotated[
         str,
         Field(description="name of the taxonomy index alias to use"),
@@ -245,6 +254,12 @@ class TaxonomyIndexConfig(BaseModel):
 
 
 class TaxonomyConfig(BaseModel):
+    """Configuration of taxonomies,
+    that is collections of entries with synonyms in multiple languages
+
+    Field may be linked to taxonomies.
+    """
+
     sources: Annotated[
         list[TaxonomySourceConfig],
         Field(description="configurations of used taxonomies"),
@@ -256,7 +271,7 @@ class TaxonomyConfig(BaseModel):
             "to be always exported during indexing. During indexing, we use the taxonomy "
             "to translate every taxonomized field in a language-specific subfield. The list "
             "of language depends on the value defined here and on the optional "
-            "`taxonomy_langs` field that can be defined in each document."
+            "`taxonomy_langs` field that can be defined in each document.",
         ),
     ]
     index: Annotated[
@@ -268,6 +283,11 @@ class TaxonomyConfig(BaseModel):
 
 
 class IndexConfig(BaseModel):
+    """Inside the config file we can have several indexes defined.
+
+    This object gives configuration for one index.
+    """
+
     index: Annotated[
         ESIndexConfig, Field(description="configuration of the Elasticsearch index")
     ]
@@ -413,8 +433,19 @@ class IndexConfig(BaseModel):
         # langs will be stored in a unique `other` subfield
         return (set(self.taxonomy.exported_langs)) & set(ANALYZER_LANG_MAPPING)
 
+    def get_fields_with_bucket_agg(self):
+        return [
+            field_name for field_name, field in self.fields.items() if field.bucket_agg
+        ]
+
 
 class Config(BaseModel):
+    """This is the global config object that reflects
+    the yaml configuration file.
+
+    Validations will be performed while we load it.
+    """
+
     indices: dict[str, IndexConfig] = Field(
         description="configuration of indices. "
         "The key is the ID of the index that can be referenced at query time. "

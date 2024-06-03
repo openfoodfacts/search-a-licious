@@ -1,6 +1,9 @@
 import {LitElement} from 'lit';
 import {property, state} from 'lit/decorators.js';
-import {EventRegistrationMixin} from './event-listener-setup';
+import {
+  EventRegistrationInterface,
+  EventRegistrationMixin,
+} from './event-listener-setup';
 import {SearchaliciousEvents} from './enums';
 import {
   ChangePageEvent,
@@ -8,11 +11,13 @@ import {
   SearchResultEvent,
   SearchResultDetail,
 } from './events';
+import {SearchaliciousFacets} from './search-facets';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor<T = {}> = new (...args: any[]) => T;
 
-export declare class SearchaliciousSearchInterface {
+export interface SearchaliciousSearchInterface
+  extends EventRegistrationInterface {
   query: string;
   name: string;
   baseUrl: string;
@@ -92,10 +97,54 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
-    // TODO: this should be on results element instead
+    /**
+     * @returns all searchalicious-facets elements linked to this search ctl
+     */
+    _facetsNodes(): SearchaliciousFacets[] {
+      const allNodes: SearchaliciousFacets[] = [];
+      // search facets elements, we can't filter on search-name because of default value…
+      const facetsElements = document.querySelectorAll('searchalicious-facets');
+      facetsElements.forEach((item) => {
+        const facetElement = item as SearchaliciousFacets;
+        if (facetElement.searchName == this.name) {
+          allNodes.push(facetElement);
+        }
+      });
+      return allNodes;
+    }
+
+    /**
+     * Get the list of facets we want to request
+     */
+    _facets(): string[] {
+      const names = this._facetsNodes()
+        .map((facets) => facets.getFacetsNames())
+        .flat();
+      return [...new Set(names)];
+    }
+
+    /**
+     * Get the filter linked to facets
+     * @returns an expression to be added to query
+     */
+    _facetsFilters(): string {
+      const allFilters: string[] = this._facetsNodes()
+        .map((facets) => facets.getSearchFilters())
+        .flat();
+      return allFilters.join(' AND ');
+    }
+
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
+      const queryParts = [];
+      if (this.query) {
+        queryParts.push(this.query);
+      }
+      const facetsFilters = this._facetsFilters();
+      if (facetsFilters) {
+        queryParts.push(facetsFilters);
+      }
       // build parameters
       const params: {
         q: string;
@@ -103,14 +152,19 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         page_size: string;
         page?: string;
         index?: string;
+        facets?: string;
       } = {
-        q: this.query,
+        q: queryParts.join(' '),
         langs: this.langs,
         page_size: this.pageSize.toString(),
         index: this.index,
       };
       if (page) {
         params.page = page.toString();
+      }
+      const facets = this._facets();
+      if (facets && facets.length > 0) {
+        params.facets = facets.join(',');
       }
       const queryStr = Object.entries(params)
         .filter(
@@ -172,11 +226,13 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         this.search(detail.page);
       }
     }
+
     /**
      * Launching search
      */
     async search(page?: number) {
       const response = await fetch(this._searchUrl(page));
+      // FIXME data should be typed…
       const data = await response.json();
       this._results = data.hits;
       this._count = data.count;
@@ -191,6 +247,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         pageCount: this._pageCount!,
         currentPage: this._currentPage!,
         pageSize: this.pageSize,
+        facets: data.facets,
       };
       this.dispatchEvent(
         new CustomEvent(SearchaliciousEvents.NEW_RESULT, {

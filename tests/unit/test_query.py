@@ -116,13 +116,22 @@ def test_parse_lucene_dsl_query(
 
 
 @pytest.mark.parametrize(
-    "id_,q,langs,size,page,sort_by",
+    "id_,q,langs,size,page,sort_by,facets",
     [
-        ("simple_full_text_query", "flocons d'avoine", {"fr"}, 10, 1, None),
+        ("simple_full_text_query", "flocons d'avoine", {"fr"}, 10, 1, None, None),
+        (
+            "simple_full_text_query_facets",
+            "flocons d'avoine",
+            {"fr"},
+            10,
+            1,
+            None,
+            ["brands_tags", "labels_tags", "nutrition_grades", "owner"],
+        ),
         # sort by descending number of scan count
-        ("sort_by_query", "flocons d'avoine", {"fr"}, 10, 1, "-unique_scans_n"),
+        ("sort_by_query", "flocons d'avoine", {"fr"}, 10, 1, "-unique_scans_n", None),
         # we change number of results (25 instead of 10) and request page 2
-        ("simple_filter_query", 'countries_tags:"en:italy"', {"en"}, 25, 2, None),
+        ("simple_filter_query", 'countries_tags:"en:italy"', {"en"}, 25, 2, None, None),
         (
             "complex_query",
             'bacon de boeuf (countries_tags:"en:italy" AND (categories_tags:"en:beef" AND '
@@ -130,6 +139,7 @@ def test_parse_lucene_dsl_query(
             {"en"},
             25,
             2,
+            None,
             None,
         ),
         (
@@ -139,6 +149,7 @@ def test_parse_lucene_dsl_query(
             25,
             2,
             None,
+            None,
         ),
         (
             "empty_query_with_sort_by",
@@ -147,6 +158,16 @@ def test_parse_lucene_dsl_query(
             25,
             2,
             "unique_scans_n",
+            None,
+        ),
+        (
+            "empty_query_with_sort_by_and_facets",
+            None,
+            {"en"},
+            25,
+            2,
+            "unique_scans_n",
+            ["brands_tags", "categories_tags", "nutrition_grades", "lang"],
         ),
     ],
 )
@@ -157,6 +178,7 @@ def test_build_search_query(
     size: int,
     page: int,
     sort_by: str | None,
+    facets: list[str] | None,
     update_results: bool,
     default_config: IndexConfig,
     default_filter_query_builder: ElasticsearchQueryBuilder,
@@ -169,6 +191,7 @@ def test_build_search_query(
         config=default_config,
         filter_query_builder=default_filter_query_builder,
         sort_by=sort_by,
+        facets=facets,
     )
 
     if update_results:

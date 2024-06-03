@@ -251,7 +251,12 @@
                 </div>
                 <div class="row" style="padding-top: 1rem">
                   <div class="large-2 columns">
-                    <strong>**TODO** Facets</strong>
+                    <searchalicious-facets search-name="off">
+                      <searchalicious-facet-terms name="brands_tags"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms  name="categories_tags"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms  name="nutrition_grades"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms  name="ecoscore_grade"></searchalicious-facet-terms>
+                    </searchalicious-facets>
                   </div>
                   <div class="large-10 columns">
                     <div id="search_results" style="clear: left">
@@ -274,6 +279,7 @@
                                     <div part="image-div">
                                       <img
                                         src="${result.image_small_url}"
+                                        loading="lazy"
                                         part="image"
                                       />
                                     </div>
@@ -283,10 +289,12 @@
                                     <div part="scores">
                                       <img
                                         src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-${result.ecoscore_grade}.svg"
+                                        loading="lazy"
                                         part="scores logo ecoscore"
                                       />
                                       <img
                                         src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-${result.nutriscore_grade ? result.nutriscore_grade : 'unknown'}.svg"
+                                        loading="lazy"
                                         part="scores logo nutriscore"
                                       />
                                     </div>

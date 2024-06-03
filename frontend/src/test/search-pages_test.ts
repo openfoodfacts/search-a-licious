@@ -19,8 +19,9 @@ suite('searchalicious-pages', () => {
       pageCount: pageCount,
       currentPage: currentPage,
       pageSize: 10,
+      facets: {},
     };
-    el._updatePages(
+    el._handleResults(
       new CustomEvent(SearchaliciousEvents.NEW_RESULT, {
         bubbles: true,
         composed: true,

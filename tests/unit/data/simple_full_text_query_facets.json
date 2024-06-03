@@ -57,13 +57,28 @@
       ]
     }
   },
-  "sort": [
-    {
-      "unique_scans_n": {
-        "order": "desc"
+  "aggs": {
+    "brands_tags": {
+      "terms": {
+        "field": "brands_tags"
+      }
+    },
+    "labels_tags": {
+      "terms": {
+        "field": "labels_tags"
+      }
+    },
+    "nutrition_grades": {
+      "terms": {
+        "field": "nutrition_grades"
+      }
+    },
+    "owner": {
+      "terms": {
+        "field": "owner"
       }
     }
-  ],
+  },
   "size": 10,
   "from": 0
 }

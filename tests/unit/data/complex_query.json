@@ -113,58 +113,6 @@
       "minimum_should_match": 1
     }
   },
-  "aggs": {
-    "brands_tags": {
-      "terms": {
-        "field": "brands_tags"
-      }
-    },
-    "lang": {
-      "terms": {
-        "field": "lang"
-      }
-    },
-    "owner": {
-      "terms": {
-        "field": "owner"
-      }
-    },
-    "categories_tags": {
-      "terms": {
-        "field": "categories_tags"
-      }
-    },
-    "labels_tags": {
-      "terms": {
-        "field": "labels_tags"
-      }
-    },
-    "countries_tags": {
-      "terms": {
-        "field": "countries_tags"
-      }
-    },
-    "states_tags": {
-      "terms": {
-        "field": "states_tags"
-      }
-    },
-    "nutrition_grades": {
-      "terms": {
-        "field": "nutrition_grades"
-      }
-    },
-    "ecoscore_grade": {
-      "terms": {
-        "field": "ecoscore_grade"
-      }
-    },
-    "nova_groups": {
-      "terms": {
-        "field": "nova_groups"
-      }
-    }
-  },
   "size": 25,
   "from": 25
 }

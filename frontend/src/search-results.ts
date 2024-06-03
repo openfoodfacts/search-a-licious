@@ -2,9 +2,8 @@ import {LitElement, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
-import {EventRegistrationMixin} from './event-listener-setup';
+import {SearchaliciousResultCtlMixin} from './search-results-ctl';
 import {SearchResultEvent} from './events';
-import {SearchaliciousEvents} from './enums';
 import {
   MissingResultTemplateError,
   MultipleResultTemplateError,
@@ -22,18 +21,9 @@ type htmlType = typeof html;
  * It reacts to the `searchalicious-result` event fired by the search controller.
  */
 @customElement('searchalicious-results')
-export class SearchaliciousResults extends EventRegistrationMixin(LitElement) {
-  /**
-   * the search we display result for,
-   * this corresponds to `name` attribute of corresponding search-bar
-   */
-  @property({attribute: 'search-name'})
-  searchName = 'searchalicious';
-
-  // did we already launched a search
-  @state()
-  searchLaunched = false;
-
+export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
+  LitElement
+) {
   // the last search results
   @state()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -143,18 +133,12 @@ export class SearchaliciousResults extends EventRegistrationMixin(LitElement) {
   /**
    * event handler for NEW_RESULT events
    */
-  _displayResults(event: Event) {
-    // check if event is for our search
-    const detail = (event as SearchResultEvent).detail;
-    if (detail.searchName === this.searchName) {
-      this.searchLaunched = true;
-      this.results = detail.results; // it's reactive, should trigger rendering
-    }
+  override handleResults(event: SearchResultEvent) {
+    this.results = event.detail.results; // it's reactive, should trigger rendering
   }
 
   /**
    * Create our resultRenderer, using last opportunity to read innerHTML before shadowRoot creation.
-   * Also connect search event handlers.
    */
   override connectedCallback() {
     // we do this before calling super, to be sure we still have our innerHTML intact
@@ -162,16 +146,6 @@ export class SearchaliciousResults extends EventRegistrationMixin(LitElement) {
     // as _buildResultRenderer needs the slot named result to already exists
     this.resultRenderer = this._buildResultRenderer();
     super.connectedCallback();
-    this.addEventHandler(SearchaliciousEvents.NEW_RESULT, (event) =>
-      this._displayResults(event)
-    );
-  }
-  // connect to our specific events
-  override disconnectedCallback() {
-    super.disconnectedCallback();
-    this.removeEventHandler(SearchaliciousEvents.NEW_RESULT, (event) =>
-      this._displayResults(event)
-    );
   }
 }
 

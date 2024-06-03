@@ -123,6 +123,16 @@ indices:
         type: integer
       completeness:
         type: float
+    facets:
+      # include all fields
+      default:
+        order:
+        - categories_tags
+        - brands_tags
+        - labels_tags
+        - ecoscore_grade
+        - nova_groups
+        - ecoscore_grade
     document_denylist:
     - '8901552007122'
     lang_separator: _
