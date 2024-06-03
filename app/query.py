@@ -215,7 +215,11 @@ def compute_facets_filters(q: QueryAnalysis) -> QueryAnalysis:
     # case of a single search field
     elif isinstance(q.luqum_tree, tree.SearchField):
         _process_search_field(q.luqum_tree.expr, q.luqum_tree.name)
-
+    # remove quotes around values
+    filters = {
+        field_name: [value.strip('"') for value in values]
+        for field_name, values in filters.items()
+    }
     return q.clone(facets_filters=filters)
 
 
