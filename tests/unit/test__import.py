@@ -22,7 +22,7 @@ from app.config import Config, IndexConfig
 from app.indexing import DocumentProcessor
 
 
-class TestRedisXrangeClient:
+class RedisXrangeClient:
     def __init__(self, xrange_return_values: list):
         self.xrange_return_values = xrange_return_values
         self.call_count = 0
@@ -39,7 +39,7 @@ class TestRedisXrangeClient:
         return self.xrange_return_values[self.call_count - 1]
 
 
-class TestDocumentFetcher(BaseDocumentFetcher):
+class DocumentFetcher(BaseDocumentFetcher):
     def __init__(self, config: IndexConfig, *args, **kwargs):
         self.missing_documents = kwargs.pop("missing_documents", set())
         super().__init__(config, *args, **kwargs)
@@ -66,10 +66,10 @@ def test_get_processed_since(default_config: IndexConfig):
             ("1629878400004-0", {"code": "4"}),
         ]
     ]
-    redis_client = cast(Redis, TestRedisXrangeClient(return_values))
+    redis_client = cast(Redis, RedisXrangeClient(return_values))
     # Wed Aug 25 08:00:00 2021 UTC
     start_timestamp_ms = 1629878400000  # Example start timestamp
-    document_fetcher = TestDocumentFetcher(default_config, missing_documents={"4"})
+    document_fetcher = DocumentFetcher(default_config, missing_documents={"4"})
 
     # Call the function and iterate over the results
     results = list(
@@ -101,7 +101,7 @@ def test_get_processed_since(default_config: IndexConfig):
     assert not results
 
 
-class TestRedisXreadClient:
+class RedisXreadClient:
     def __init__(self, xread_return_values: list):
         self.xread_return_values = xread_return_values
         self.call_count = 0
@@ -144,8 +144,8 @@ def test_get_new_updates(default_config: IndexConfig):
             )
         ],
     ]
-    redis_client = cast(Redis, TestRedisXreadClient(return_values))
-    document_fetcher = TestDocumentFetcher(default_config, missing_documents={"4"})
+    redis_client = cast(Redis, RedisXreadClient(return_values))
+    document_fetcher = DocumentFetcher(default_config, missing_documents={"4"})
 
     # Call the function and iterate over the results
     updates_iter = get_new_updates(
@@ -277,7 +277,7 @@ def test_run_update_daemon(default_global_config: Config):
     off_config: IndexConfig = default_global_config.indices["off"]
     es_client_mock = MagicMock()
     redis_client_mock = MagicMock()
-    document_fetcher_mock = TestDocumentFetcher(off_config)
+    document_fetcher_mock = DocumentFetcher(off_config)
 
     # Replace with your desired test data
     updates = [

@@ -8,9 +8,10 @@ from luqum.parser import parser
 from app._types import JSONType
 from app.config import IndexConfig
 from app.query import (
-    UnknownOperationRemover,
+    SimpleWordsRemover,
     build_search_query,
-    parse_lucene_dsl_query,
+    decompose_query,
+    parse_query,
 )
 from app.utils.io import dump_json, load_json
 
@@ -21,7 +22,7 @@ def load_elasticsearch_query_result(id_: str):
     return load_json(DATA_DIR / f"{id_}.json")
 
 
-class TestUnknownOperationRemover:
+class TestSimpleWordsRemover:
     @pytest.mark.parametrize(
         "query,expected",
         [
@@ -43,12 +44,12 @@ class TestUnknownOperationRemover:
     )
     def test_transform(self, query: str, expected: str):
         luqum_tree = parser.parse(query)
-        new_tree = UnknownOperationRemover().visit(luqum_tree)
+        new_tree = SimpleWordsRemover().visit(luqum_tree)
         assert str(new_tree).strip(" ") == expected
 
 
 @pytest.mark.parametrize(
-    "q,expected_filter_clauses,expected_remaining_terms",
+    "q,expected_filter_query,expected_fulltext",
     [
         # single term
         (
@@ -102,17 +103,18 @@ class TestUnknownOperationRemover:
         ),
     ],
 )
-def test_parse_lucene_dsl_query(
-    q: str, expected_filter_clauses: list[JSONType], expected_remaining_terms: str
+def test_decompose_query(
+    q: str, expected_filter_query: list[JSONType], expected_fulltext: str
 ):
     query_builder = ElasticsearchQueryBuilder(
         default_operator=ElasticsearchQueryBuilder.MUST,
         not_analyzed_fields=["states_tags", "labels_tags", "countries_tags"],
         object_fields=["nutriments", "nutriments.salt_100g"],
     )
-    filter_clauses, remaining_terms = parse_lucene_dsl_query(q, query_builder)
-    assert filter_clauses == expected_filter_clauses
-    assert remaining_terms == expected_remaining_terms
+    analysis = parse_query(q)
+    analysis = decompose_query(analysis, filter_query_builder=query_builder)
+    assert analysis.filter_query == expected_filter_query
+    assert analysis.fulltext == expected_fulltext
 
 
 @pytest.mark.parametrize(
@@ -195,7 +197,9 @@ def test_build_search_query(
     )
 
     if update_results:
-        dump_json(DATA_DIR / f"{id_}.json", query.to_dict(), option=orjson.OPT_INDENT_2)
+        dump_json(
+            DATA_DIR / f"{id_}.json", query._dict_dump(), option=orjson.OPT_INDENT_2
+        )
 
     expected_result = load_elasticsearch_query_result(id_)
-    assert query.to_dict() == expected_result
+    assert query._dict_dump() == expected_result

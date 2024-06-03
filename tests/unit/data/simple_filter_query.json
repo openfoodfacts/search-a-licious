@@ -1,17 +1,30 @@
 {
-  "query": {
-    "bool": {
-      "filter": [
-        {
-          "term": {
-            "countries_tags": {
-              "value": "en:italy"
+  "text_query": "countries_tags:\"en:italy\"",
+  "luqum_tree": "countries_tags:\"en:italy\"",
+  "es_query": {
+    "query": {
+      "bool": {
+        "filter": [
+          {
+            "term": {
+              "countries_tags": {
+                "value": "en:italy"
+              }
             }
           }
-        }
-      ]
+        ]
+      }
+    },
+    "size": 25,
+    "from": 25
+  },
+  "fulltext": "",
+  "filter_query": {
+    "term": {
+      "countries_tags": {
+        "value": "en:italy"
+      }
     }
   },
-  "size": 25,
-  "from": 25
+  "facets_filters": null
 }
