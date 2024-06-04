@@ -98,23 +98,37 @@ def build_facets(
                     # TODO: translate in target language ?
                     name="Other",
                     count=agg_data["sum_other_doc_count"],
+                    selected=False,
                 )
             )
-        items_count = sum(item.count or 0 for item in facet_items)
+        # 2024-06-04: Alex: removed as we don't support it yet
+        # at request construction time
+        #
+        # items_count = sum(item.count or 0 for item in facet_items)
         # and empty values if there are some (taking into account error margin)
-        if (not search_result.is_count_exact) and search_result.count > (
-            items_count + count_error_margin
-        ):
-            facet_items.append(
-                FacetItem(
-                    key="--none--",
-                    # TODO: translate in target language ?
-                    name="None",
-                    # Note: this depends on search_result.is_count_exact,
-                    # but we leave it to user to verify
-                    count=search_result.count - items_count,
-                )
+        # if (not search_result.is_count_exact) and search_result.count > (
+        #     items_count + count_error_margin
+        # ):
+        #     facet_items.append(
+        #         FacetItem(
+        #             key="--none--",
+        #             # TODO: translate in target language ?
+        #             name="None",
+        #             # Note: this depends on search_result.is_count_exact,
+        #             # but we leave it to user to verify
+        #             count=search_result.count - items_count,
+        #             # FIXME: compute selected !
+        #             selected=False,
+        #         )
+        #     )
+        # re-order to have selected first
+        facet_items = [
+            item
+            for i, item in sorted(
+                enumerate(facet_items),
+                key=lambda i_item: (not i_item[1].selected, i_item[0]),
             )
+        ]
         # append our facet information
         facets[field_name] = FacetInfo(
             # FIXME translate field name in target language

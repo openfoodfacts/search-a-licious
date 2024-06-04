@@ -1,4 +1,4 @@
-import {LitElement, html, css} from 'lit';
+import {LitElement, html, nothing, css} from 'lit';
 import {customElement, property, queryAssignedNodes} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
@@ -158,7 +158,11 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
    * Create the search term based upon the selected terms
    */
   override searchFilter(): string | undefined {
-    const values = Object.keys(this.selectedTerms);
+    let values = Object.keys(this.selectedTerms);
+    // add quotes if we have ":" in values
+    values = values.map((value) =>
+      value.includes(':') ? `"${value}"` : value
+    );
     if (values.length === 0) {
       return undefined;
     }
@@ -181,7 +185,10 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
           ?checked=${this.selectedTerms[term.key]}
           @change=${this.setTermSelected}
         /><label for="${term.key}"
-          >${term.name} <span part="docCount">(${term.count})</span></label
+          >${term.name}
+          ${term.count
+            ? html`<span part="docCount">(${term.count})</span>`
+            : nothing}</label
         >
       </div>
     `;

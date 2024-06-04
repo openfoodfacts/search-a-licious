@@ -14,7 +14,7 @@ class FacetItem(BaseModel):
 
     key: str
     name: str
-    count: int
+    count: Optional[int]
     """The number of elements for this value"""
 
     selected: bool
