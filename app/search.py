@@ -47,6 +47,7 @@ def search(
     index_id, index_config = global_config.get_index_config(index_id)
     result_processor = cast(BaseResultProcessor, RESULT_PROCESSORS[index_id])
     langs_set = set(langs)
+    main_lang = langs[0] if langs else "en"
     logger.debug(
         "Received search query: q='%s', langs='%s', page=%d, "
         "page_size=%d, fields='%s', sort_by='%s'",
@@ -83,7 +84,9 @@ def search(
         page_size=page_size,
         projection=projection,
     )
-    search_result.facets = build_facets(search_result, query, index_config, facets)
+    search_result.facets = build_facets(
+        search_result, query, main_lang, index_config, facets
+    )
     # remove aggregations to avoid sending too much information
     search_result.aggregations = None
     return search_result
