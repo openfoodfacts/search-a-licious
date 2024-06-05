@@ -50,7 +50,7 @@ RUN rm -rf public/dist/* && npm run build && npm run bundle
 CMD ["npm", "run", "serve"]
 
 # nginx
-FROM nginx:stable
+FROM nginx:stable as frontend
 WORKDIR /opt/search-a-licious
 ARG USER_UID
 ARG USER_GID

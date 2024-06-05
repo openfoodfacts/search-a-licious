@@ -21,12 +21,17 @@ jobs:
     - name: variables for service
       if: matrix.env == 'search_service_image'
       run: |
-        echo "DOCKER_CONTEXT=." >> $GITHUB_ENV
+        echo "BUILD_CONTEXT=." >> $GITHUB_ENV
+        # Use runtime target, so that dev dependencies are not included
+        echo "BUILD_TARGET=runtime" >> $GITHUB_ENV
+        echo "BUILD_FILE=Dockerfile" >> $GITHUB_ENV
 
     - name: variables for front
       if: matrix.env == 'search_front_image'
       run: |
-        echo "DOCKER_CONTEXT=frontend" >> $GITHUB_ENV
+        echo "BUILD_CONTEXT=frontend" >> $GITHUB_ENV
+        echo "BUILD_TARGET=frontend" >> $GITHUB_ENV
+        echo "BUILD_FILE=frontend/Dockerfile" >> $GITHUB_ENV
 
     - uses: actions/checkout@v4
       with:
@@ -60,11 +65,10 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v5
       with:
-        context: ${{ env.DOCKER_CONTEXT }}
-        # Use runtime target, so that dev dependencies are not included
-        target: runtime
+        context: ${{ env.BUILD_CONTEXT }}
+        target: ${{ env.BUILD_TARGET }}
+        file: ${{ env.BUILD_FILE }}
         push: true
-        file: Dockerfile
         cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.image_name }}:buildcache
         cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.image_name }}:buildcache,mode=max
         tags: ${{ steps.meta.outputs.tags }}
