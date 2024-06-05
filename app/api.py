@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from typing import Annotated, Any, cast
 
@@ -33,17 +34,12 @@ app = FastAPI(
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
 )
-
-origins = [
-    "http://localhost",
-    "http://127.0.0.1",
-    "https://*.openfoodfacts.org",
-    "https://*.openfoodfacts.net",
-]
-
+ALLOWED_ORIGINS = os.environ.get(
+    "ALLOWED_ORIGINS", "http://localhost,http://127.0.0.1"
+).split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

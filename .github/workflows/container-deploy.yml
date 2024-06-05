@@ -138,6 +138,7 @@ jobs:
           echo "SENTRY_DNS=${{ secrets.SENTRY_DSN }}" >> .env
           echo "CONFIG_PATH=data/config/openfoodfacts.yml" >> .env
           echo "OFF_API_URL=${{ env.OFF_API_URL }}" >> .env
+          echo "ALLOWED_ORIGINS=${{ env.ALLOWED_ORIGINS }}" >> .env
 
     - name: Create Docker volumes
       uses: appleboy/ssh-action@master
