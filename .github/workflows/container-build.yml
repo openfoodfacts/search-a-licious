@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: variables for service
-      if: matrix.env == 'search_service_image'
+      if: matrix.image_name == 'search_service_image'
       run: |
         echo "BUILD_CONTEXT=." >> $GITHUB_ENV
         # Use runtime target, so that dev dependencies are not included
@@ -27,7 +27,7 @@ jobs:
         echo "BUILD_FILE=Dockerfile" >> $GITHUB_ENV
 
     - name: variables for front
-      if: matrix.env == 'search_front_image'
+      if: matrix.image_name == 'search_front_image'
       run: |
         echo "BUILD_CONTEXT=frontend" >> $GITHUB_ENV
         echo "BUILD_TARGET=frontend" >> $GITHUB_ENV
