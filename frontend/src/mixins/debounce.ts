@@ -6,7 +6,9 @@ export interface DebounceMixinInterface {
   debounce<F extends () => void>(func: F, wait: number): () => void;
 }
 
-export const DebounceMixin = <T extends Constructor<Object>>(superClass: T) =>
+export const DebounceMixin = <T extends Constructor<LitElement>>(
+  superClass: T
+) =>
   class extends superClass {
     timeout?: number = undefined;
 
