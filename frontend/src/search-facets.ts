@@ -1,9 +1,9 @@
 import {LitElement, html, nothing, css} from 'lit';
 import {customElement, property, queryAssignedNodes} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
-
 import {SearchaliciousResultCtlMixin} from './search-results-ctl';
 import {SearchResultEvent} from './events';
+import {DebounceMixin} from './mixins/debounce';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -131,7 +131,9 @@ export class SearchaliciousFacet extends LitElement {
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
 @customElement('searchalicious-facet-terms')
-export class SearchaliciousTermsFacet extends SearchaliciousFacet {
+export class SearchaliciousTermsFacet extends DebounceMixin(
+  SearchaliciousFacet
+) {
   static override styles = css`
     .term-wrapper {
       display: block;
@@ -140,6 +142,9 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
 
   @property({attribute: false})
   selectedTerms: PresenceInfo = {};
+
+  @property({attribute: false, type: Array})
+  customTerms: string[] = [];
 
   /**
    * Set wether a term is selected or not
@@ -152,6 +157,13 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
     } else {
       delete this.selectedTerms[name];
     }
+  }
+
+  addTerm(event: CustomEvent) {
+    const value = event.detail.value;
+    if (this.customTerms.includes(value)) return;
+    this.customTerms = [...this.customTerms, value];
+    this.selectedTerms[value] = true;
   }
 
   /**
@@ -171,6 +183,39 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
       orValues = `(${orValues})`;
     }
     return `${this.name}:${orValues}`;
+  }
+
+  searchTerm(value: string) {
+    // TODO search terms
+    debugger;
+    console.log(`${value} with facet ${this.name}`);
+  }
+
+  onInputAddTerm(event: CustomEvent) {
+    const value = event.detail.value;
+    const self = this;
+    this.debounce(() => {
+      self.searchTerm(value);
+    });
+  }
+
+  /**
+   * Render a field to add a term
+   */
+  renderAddTerm() {
+    const inputName = `add-term-for-${this.name}`;
+    const options = ['test', 'lol'];
+    return html`
+      <div class="add-term" part="add-term">
+        <label for="${inputName}">Other</label>
+        <searchalicious-autocomplete
+          .input-name=${inputName}
+          .options=${options}
+          @autocomplete-submit=${this.addTerm}
+          @autocomplete-input=${this.onInputAddTerm}
+        ></searchalicious-autocomplete>
+      </div>
+    `;
   }
 
   /**
@@ -198,15 +243,18 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
    * Renders the facet content
    */
   override renderFacet() {
+    const items = (this.infos!.items || []) as FacetTerm[];
     return html`
       <fieldset name=${this.name}>
         <!-- FIXME: translate -->
         <legend>${this.name}</legend>
         ${repeat(
-          (this.infos!.items || []) as FacetTerm[],
+          items,
           (item: FacetTerm) => `${item.key}-${item.count}`,
           (item: FacetTerm) => this.renderTerm(item)
         )}
+        --- ${this.customTerms.join(', ')} ---
+        ${items.length ? this.renderAddTerm() : ''}
       </fieldset>
     `;
   }
