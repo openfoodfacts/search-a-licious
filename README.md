@@ -64,6 +64,8 @@ export CONFIG_PATH=data/config/openfoodfacts.yml
 export OFF_API_URL=https://world.openfoodfacts.org
 ```
 
+[^winEnvrc]: For Windows users, the .envrc is only taken into account by the `make` commands.
+
 ##### Pre-commit
 You can follow the following [tutorial](https://pre-commit.com/#install) to install pre-commit on your machine.
 
