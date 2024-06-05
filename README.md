@@ -79,7 +79,8 @@ Now you can run the project with Docker ```docker compose up ```.
 After that run the following command on another shell to compile the project: ```make tsc_watch```.
 Do this for next installation steps and to run the project.
 
-#### Elasticsearch configuration
+#### How to explore Elasticsearch data
+
 - Go to http://127.0.0.1:8080/welcome
 - Click on "Add Elasticsearch cluster"
 - change the cluster name to "docker-cluster"
@@ -87,14 +88,14 @@ Do this for next installation steps and to run the project.
 
 
 #### Importing data
-- Import Taxonomies: `docker compose run --rm api python3 -m app import-taxonomies`  
+- Import Taxonomies: `make import-taxonomies` 
 - Import products :
 ```shell
-    cd data
-    curl https://world.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz --output products.random-modulo-10000.jsonl.gz
-    gzip -d products.random-modulo-10000.jsonl.gz
+    # get some sample data
+    curl https://world.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz --output data/products.random-modulo-10000.jsonl.gz
+    gzip -d data/products.random-modulo-10000.jsonl.gz
+    # we skip updates because we are not connected to any redis
     make import-dataset filepath='products.random-modulo-10000.jsonl' args='--skip-updates'
-```
 
 #### Pages
 Now you can go to :
