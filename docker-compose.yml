@@ -100,7 +100,7 @@ services:
   # frontend is nginx serving static files and proxying to API
   search_frontend:
     # this is the nginx frontend serving react static version or redirecting queries
-    image: search-a-licious/searchalicious_frontend:dev
+    image: ghcr.io/openfoodfacts/search-a-licious/search_front_image:${TAG:-dev}
     depends_on:
       - api
     environment:

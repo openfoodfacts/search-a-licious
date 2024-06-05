@@ -29,7 +29,6 @@ services:
   updater:
     <<: *api-base
   search_frontend:
-    image: search-a-licious/searchalicious_frontend:dev
     build:
       context: frontend
       args:
@@ -44,7 +43,6 @@ services:
     volumes:
       # dynamic mount
       - ./frontend/public:/opt/search-a-licious/public
-
 
   # Node that create the webcomponents
   search_nodejs:
