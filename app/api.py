@@ -5,6 +5,7 @@ from typing import Annotated, Any, cast
 import elasticsearch
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
@@ -31,6 +32,21 @@ app = FastAPI(
         "name": " AGPL-3.0",
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
+)
+
+origins = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "https://*.openfoodfacts.org",
+    "https://*.openfoodfacts.net",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 init_sentry(settings.sentry_dns)
