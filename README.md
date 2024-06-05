@@ -52,7 +52,7 @@ You will then need to import from a JSONL dump (see instructions below).
 - Be sure you can [run docker without sudo](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
 
 ##### Direnv
-For Linux and macOS users, You can follow our tutorial to install [direnv](https://openfoodfacts.github.io/openfoodfacts-server/dev/how-to-use-direnv/)
+For Linux and macOS users, You can follow our tutorial to install [direnv](https://openfoodfacts.github.io/openfoodfacts-server/dev/how-to-use-direnv/).[^winEnvrc]
 
 Get your user id and group id by running `id -u` and `id -g` in your terminal.
 Add a `.envrc` file at the root of the project with the following content:
