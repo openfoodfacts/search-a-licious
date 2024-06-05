@@ -46,48 +46,85 @@ You will then need to import from a JSONL dump (see instructions below).
 
 ### Development
 
-For development, you have two options for running the service:
-1. Docker
-2. Locally
+#### Pre-requisites
+##### Docker
+- First of all, you need to have Docker installed on your machine. You can download it [here](https://www.docker.com/products/docker-desktop).
+- Be sure you can [run docker without sudo](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
 
-To develop on docker, make the changes you need, then build the image and compose by running:
-```console
-make up
+##### Direnv
+For Linux and macOS users, You can follow our tutorial to install [direnv](https://openfoodfacts.github.io/openfoodfacts-server/dev/how-to-use-direnv/).[^winEnvrc]
+
+Get your user id and group id by running `id -u` and `id -g` in your terminal.
+Add a `.envrc` file at the root of the project with the following content:
+```shell
+export USER_GID=<your_user_gid>
+export USER_UID=<your_user_uid>
+
+export CONFIG_PATH=data/config/openfoodfacts.yml
+export OFF_API_URL=https://world.openfoodfacts.org
 ```
 
-However, this tends to be slower than developing locally.
+##### Pre-commit
+You can follow the following [tutorial](https://pre-commit.com/#install) to install pre-commit on your machine.
 
-To develop locally, create a venv, install dependencies, then run the service:
-```console
-virtualenv .
-source venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.api:app --reload --port=8001 --workers=4
+#### Install
+Be sure that your [system mmap count is high enough for Elasticsearch to run](https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html). You can do this by running:
+```shell
+sudo sysctl -w vm.max_map_count=262144
 ```
-Note that it's important to use port 8001, as port 8000 will be used by the docker version of the search service.
+To make the change permanent, you need to add a line `vm.max_map_count=262144` to the `/etc/sysctl.conf` file and run the command `sudo sysctl -p` to apply the changes.
+This will ensure that the modified value of `vm.max_map_count` is retained even after a system reboot. Without this step, the value will be reset to its default value after a reboot.
+
+#### Run
+Now you can run the project with Docker ```docker compose up ```.
+After that run the following command on another shell to compile the project: ```make tsc_watch```.
+Do this for next installation steps and to run the project.
+
+#### How to explore Elasticsearch data
+
+- Go to http://127.0.0.1:8080/welcome
+- Click on "Add Elasticsearch cluster"
+- change the cluster name to "docker-cluster"
+- Click on "Connect"
 
 
+#### Importing data
+- Import Taxonomies: `make import-taxonomies` 
+- Import products :
+```shell
+    # get some sample data
+    curl https://world.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz --output data/products.random-modulo-10000.jsonl.gz
+    gzip -d data/products.random-modulo-10000.jsonl.gz
+    # we skip updates because we are not connected to any redis
+    make import-dataset filepath='products.random-modulo-10000.jsonl' args='--skip-updates'
 
-To debug the backend app:
-* stop API instance: `docker compose stop api`
-* add a pdb.set_trace() at the point you want,
-* then launch `docker compose run --rm  --use-aliases api uvicorn app.api:app --proxy-headers --host 0.0.0.0 --port 8000 --reload`[^use_aliases]
+#### Pages
+Now you can go to :
+- http://localhost:8000 to have a simple search page without use lit components
+or 
+- http://localhost:8000/static/off.html to access to lit components search page
 
-[^use_aliases]: the `--use-aliases` make it so that this container is reachable as "api" for the other containers in the compose
 
-
-### Pre-Commit
+#### Pre-Commit
 
 This repo uses [pre-commit](https://pre-commit.com/) to enforce code styling, etc. To use it:
 ```console
 pre-commit install
 ```
-
 To run tests without committing:
 
 ```console
 pre-commit run
 ```
+
+
+#### Debug Backend App 
+To debug the backend app:
+* stop API instance: `docker compose stop api`
+* add a pdb.set_trace() at the point you want,
+* then launch `docker compose run --rm  --use-aliases api uvicorn app.api:app --proxy-headers --host 0.0.0.0 --port 8000 --reload`[^use_aliases]
+
+
 
 ### Running the import:
 To import data from the [JSONL export](https://world.openfoodfacts.org/data), download the dataset in the `data` folder, then run:
