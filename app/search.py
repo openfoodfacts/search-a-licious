@@ -40,6 +40,7 @@ def search(
     page_size: int,
     fields: list[str] | None,
     langs: list[str],
+    main_lang: str,
     facets: list[str] | None,
 ) -> SearchResponse:
     """Run a search"""
@@ -47,7 +48,6 @@ def search(
     index_id, index_config = global_config.get_index_config(index_id)
     result_processor = cast(BaseResultProcessor, RESULT_PROCESSORS[index_id])
     langs_set = set(langs)
-    main_lang = langs[0] if langs else "en"
     logger.debug(
         "Received search query: q='%s', langs='%s', page=%d, "
         "page_size=%d, fields='%s', sort_by='%s'",
