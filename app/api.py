@@ -309,3 +309,17 @@ def html_search(
 @app.get("/robots.txt", response_class=PlainTextResponse)
 def robots_txt():
     return """User-agent: *\nDisallow: /"""
+
+
+@app.get("/health")
+def healthcheck():
+    import orjson
+
+    from app.health import health
+
+    message, status, headers = health.run()
+    return {
+        "message": orjson.loads(message),
+        "status": status,
+        "headers": headers,
+    }
