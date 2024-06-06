@@ -16,7 +16,7 @@ export interface SearchaliciousResultsCtlInterface
   searchName: string;
   searchLaunched: Boolean;
 
-  // sub class must override this one to dislpay results
+  // sub class must override this one to display results
   handleResults(event: SearchResultEvent): void;
   // this is the registered handler
   _handleResults(event: Event): void;
