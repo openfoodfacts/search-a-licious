@@ -18,7 +18,7 @@ export default {
   basePath: '/static',
   plugins: [
     hmrPlugin({
-      include: ['src/**/*'],
+      include: ['src/**/*', 'public/*.html'],
     }),
     legacyPlugin({
       polyfills: {
