@@ -18,6 +18,7 @@ jobs:
         echo "" > .envrc
         echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
         echo OFF_API_URL=https://world.openfoodfacts.org >> .envrc
+        echo ALLOWED_ORIGINS='http://localhost,http://127.0.0.1,https://*.openfoodfacts.org,https://*.openfoodfacts.net' >> .envrc
         echo USER_IID=$(id -u) >>.envrc
         echo USER_GID=$(id -g) >>.envrc
         make build

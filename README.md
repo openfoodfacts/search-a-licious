@@ -62,6 +62,7 @@ export USER_UID=<your_user_uid>
 
 export CONFIG_PATH=data/config/openfoodfacts.yml
 export OFF_API_URL=https://world.openfoodfacts.org
+export ALLOWED_ORIGINS='http://localhost,http://127.0.0.1,https://*.openfoodfacts.org,https://*.openfoodfacts.net' 
 ```
 
 ##### Pre-commit
