@@ -40,6 +40,7 @@ def search(
     page_size: int,
     fields: list[str] | None,
     langs: list[str],
+    main_lang: str,
     facets: list[str] | None,
 ) -> SearchResponse:
     """Run a search"""
@@ -83,7 +84,9 @@ def search(
         page_size=page_size,
         projection=projection,
     )
-    search_result.facets = build_facets(search_result, query, index_config, facets)
+    search_result.facets = build_facets(
+        search_result, query, main_lang, index_config, facets
+    )
     # remove aggregations to avoid sending too much information
     search_result.aggregations = None
     return search_result

@@ -56,9 +56,11 @@ indices:
         type: text
       categories_tags:
         type: keyword
+        taxonomy_name: category
         bucket_agg: true
       labels_tags:
         type: keyword
+        taxonomy_name: label
         bucket_agg: true
       countries_tags:
         type: keyword
