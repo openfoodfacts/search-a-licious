@@ -13,10 +13,12 @@ export const DebounceMixin = <T extends Constructor<LitElement>>(
     timeout?: number = undefined;
 
     debounce<F extends () => void>(func: F, wait = 300): void {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
+      const self = this;
       clearTimeout(this.timeout);
       this.timeout = setTimeout(() => {
         this.timeout = undefined;
-        func();
+        func.bind(self)();
       }, wait);
     }
   } as Constructor<DebounceMixinInterface> & T;

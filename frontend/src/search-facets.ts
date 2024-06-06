@@ -193,9 +193,8 @@ export class SearchaliciousTermsFacet extends DebounceMixin(
   onInputAddTerm(event: CustomEvent) {
     const value = event.detail.value;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this;
     this.debounce(() => {
-      self.searchTerm(value);
+      this.searchTerm(value);
     });
   }
 
