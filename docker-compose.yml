@@ -106,13 +106,11 @@ services:
       - api
     environment:
       # enabling prod config and disabling dev one
-      PROD_UI_SUFFIX: "${PROD_UI_SUFFIX--static}"
-      DEV_UI_SUFFIX: "${DEV_UI_SUFFIX-}"
+      PROD_UI_SUFFIX: "${PROD_UI_SUFFIX-}"
+      DEV_UI_SUFFIX: "${DEV_UI_SUFFIX--static}"
     volumes:
       # Nginx, we use templates dir to be able to use environment vars
       - ./confs/nginx.conf:/etc/nginx/templates/default.conf.template
-      # dynamic mount
-      - ./frontend/public:/opt/search-a-licious/public
     ports:
       - ${SEARCH_EXPOSE:-127.0.0.1:8000}:80
     build:

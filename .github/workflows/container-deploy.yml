@@ -53,12 +53,22 @@ jobs:
         echo "ALLOWED_ORIGINS='http://localhost,http://127.0.0.1,https://*.openfoodfacts.org,https://*.openfoodfacts.net'" >> $GITHUB_ENV
         # REDIS_HOST: this is the IP address of the stunnel VM
         echo "REDIS_HOST=10.1.0.113" >> $GITHUB_ENV
-    - name: Wait for search image container build workflow
+    - name: Wait for search service image container build workflow
       uses: tomchv/wait-my-workflow@v1.1.0
-      id: wait-build
+      id: wait-build-service-image
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         checkName: build (search_service_image)
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        intervalSeconds: 10
+        timeoutSeconds: 600 # 10m
+
+    - name: Wait for search front image container build workflow
+      uses: tomchv/wait-my-workflow@v1.1.0
+      id: wait-build-front-image
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        checkName: build (search_front_image)
         ref: ${{ github.event.pull_request.head.sha || github.sha }}
         intervalSeconds: 10
         timeoutSeconds: 600 # 10m
