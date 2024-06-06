@@ -1,7 +1,14 @@
 {
-  "sort": [
-    "unique_scans_n"
-  ],
-  "size": 25,
-  "from": 25
+  "text_query": null,
+  "luqum_tree": "None",
+  "es_query": {
+    "sort": [
+      "unique_scans_n"
+    ],
+    "size": 25,
+    "from": 25
+  },
+  "fulltext": null,
+  "filter_query": null,
+  "facets_filters": null
 }

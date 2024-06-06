@@ -70,17 +70,20 @@ def search(
         filter_query_builder=FILTER_QUERY_BUILDERS[index_id],
         facets=facets,
     )
-    logger.debug("Elasticsearch query: %s", query.to_dict())
+    logger.debug(
+        "Elasticsearch query: %s",
+        query.es_query.to_dict() if query.es_query else query.es_query,
+    )
 
     projection = set(fields) if fields else None
     search_result = execute_query(
-        query,
+        query.es_query,
         result_processor,
         page=page,
         page_size=page_size,
         projection=projection,
     )
-    search_result.facets = build_facets(search_result, index_config, facets)
+    search_result.facets = build_facets(search_result, query, index_config, facets)
     # remove aggregations to avoid sending too much information
     search_result.aggregations = None
     return search_result
