@@ -62,7 +62,10 @@ export USER_UID=<your_user_uid>
 
 export CONFIG_PATH=data/config/openfoodfacts.yml
 export OFF_API_URL=https://world.openfoodfacts.org
+export ALLOWED_ORIGINS='http://localhost,http://127.0.0.1,https://*.openfoodfacts.org,https://*.openfoodfacts.net' 
 ```
+
+[^winEnvrc]: For Windows users, the .envrc is only taken into account by the `make` commands.
 
 ##### Pre-commit
 You can follow the following [tutorial](https://pre-commit.com/#install) to install pre-commit on your machine.
