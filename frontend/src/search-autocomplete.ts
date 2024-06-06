@@ -18,11 +18,19 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
       display: none;
       position: absolute;
       width: 100%;
+      max-width: 100%;
       background-color: white;
       border: 1px solid black;
       list-style-type: none;
       padding: 0;
       margin: 0;
+    }
+
+    ul li {
+      padding: 0.5em;
+      cursor: pointer;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     ul li:hover,
@@ -49,8 +57,12 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   @property({attribute: false})
   visible = false;
 
+  @property({attribute: false})
+  isLoading = false;
+
   handleInput(event: InputEvent) {
     const value = (event.target as HTMLInputElement).value;
+    this.value = value;
     const inputEvent = new CustomEvent('autocomplete-input', {
       detail: {value: value},
       bubbles: true,
@@ -113,6 +125,19 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
       this.visible = false;
     });
   }
+
+  _renderPossibleTerms() {
+    return this.options.length
+      ? this.options.map(
+          (option, index) => html` <li
+            class=${index + 1 === this.currentIndex && 'selected'}
+            @click=${this.onClick(index)}
+          >
+            ${option}
+          </li>`
+        )
+      : html`<li>No results found</li>`;
+  }
   override render() {
     return html`
       <span class="search-autocomplete" part="search-autocomplete">
@@ -127,15 +152,10 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
           @focus=${this.handleFocus}
           @blur=${this.handleBlur}
         />
-        <ul class=${classMap({visible: this.visible})}>
-          ${this.options.map(
-            (option, index) => html` <li
-              class=${index + 1 === this.currentIndex && 'selected'}
-              @click=${this.onClick(index)}
-            >
-              ${option} ${index}
-            </li>`
-          )}
+        <ul class=${classMap({visible: this.visible && this.value.length})}>
+          ${this.isLoading
+            ? html`<li>Loading...</li>`
+            : this._renderPossibleTerms()}
         </ul>
       </span>
     `;

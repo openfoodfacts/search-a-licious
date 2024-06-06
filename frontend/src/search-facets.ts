@@ -4,6 +4,8 @@ import {repeat} from 'lit/directives/repeat.js';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchResultEvent} from './events';
 import {DebounceMixin} from './mixins/debounce';
+import {SearchaliciousTermsMixin} from './mixins/taxonomies-ctl';
+import {getTaxonomyName} from './utils/taxonomies';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -131,8 +133,8 @@ export class SearchaliciousFacet extends LitElement {
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
 @customElement('searchalicious-facet-terms')
-export class SearchaliciousTermsFacet extends DebounceMixin(
-  SearchaliciousFacet
+export class SearchaliciousTermsFacet extends SearchaliciousTermsMixin(
+  DebounceMixin(SearchaliciousFacet)
 ) {
   static override styles = css`
     .term-wrapper {
@@ -185,16 +187,17 @@ export class SearchaliciousTermsFacet extends DebounceMixin(
     return `${this.name}:${orValues}`;
   }
 
-  searchTerm(value: string) {
-    // TODO search terms
-    console.log(`${value} with facet ${this.name}`);
+  searchTerm(value: string, taxonomy: string) {
+    this.getTaxonomiesTerms(value, [taxonomy]).then((result) => {
+      console.log(`${value} with facet ${this.name} res:`, result);
+    });
   }
 
-  onInputAddTerm(event: CustomEvent) {
+  onInputAddTerm(event: CustomEvent, taxonomy: string) {
     const value = event.detail.value;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     this.debounce(() => {
-      this.searchTerm(value);
+      this.searchTerm(value, taxonomy);
     });
   }
 
@@ -203,15 +206,25 @@ export class SearchaliciousTermsFacet extends DebounceMixin(
    */
   renderAddTerm() {
     const inputName = `add-term-for-${this.name}`;
-    const options = ['test', 'lol'];
+    const taxonomy = getTaxonomyName(this.name);
+    const onInput = (e: CustomEvent) => {
+      this.onInputAddTerm(e, taxonomy);
+    };
+
+    const options = (this.termsByTaxonomyId[taxonomy] || []).map((term) => {
+      return term.text;
+    });
+    console.log('options:', options);
+
     return html`
       <div class="add-term" part="add-term">
         <label for="${inputName}">Other</label>
         <searchalicious-autocomplete
           .inputName=${inputName}
           .options=${options}
+          .isLoading=${this.loadingByTaxonomyId[taxonomy]}
           @autocomplete-submit=${this.addTerm}
-          @autocomplete-input=${this.onInputAddTerm}
+          @autocomplete-input=${onInput}
         ></searchalicious-autocomplete>
       </div>
     `;
