@@ -1,7 +1,7 @@
 import {LitElement, html, nothing, css} from 'lit';
 import {customElement, property, queryAssignedNodes} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
-import {SearchaliciousResultCtlMixin} from './search-results-ctl';
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchResultEvent} from './events';
 import {DebounceMixin} from './mixins/debounce';
 
@@ -187,12 +187,12 @@ export class SearchaliciousTermsFacet extends DebounceMixin(
 
   searchTerm(value: string) {
     // TODO search terms
-    debugger;
     console.log(`${value} with facet ${this.name}`);
   }
 
   onInputAddTerm(event: CustomEvent) {
     const value = event.detail.value;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     this.debounce(() => {
       self.searchTerm(value);
@@ -209,7 +209,7 @@ export class SearchaliciousTermsFacet extends DebounceMixin(
       <div class="add-term" part="add-term">
         <label for="${inputName}">Other</label>
         <searchalicious-autocomplete
-          .input-name=${inputName}
+          .inputName=${inputName}
           .options=${options}
           @autocomplete-submit=${this.addTerm}
           @autocomplete-input=${this.onInputAddTerm}

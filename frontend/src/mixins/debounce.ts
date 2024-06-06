@@ -3,7 +3,7 @@ import {Constructor} from './utils';
 
 export interface DebounceMixinInterface {
   timeout?: number;
-  debounce<F extends () => void>(func: F, wait: number): () => void;
+  debounce<F extends () => void>(func: F, wait?: number): void;
 }
 
 export const DebounceMixin = <T extends Constructor<LitElement>>(
@@ -12,13 +12,11 @@ export const DebounceMixin = <T extends Constructor<LitElement>>(
   class extends superClass {
     timeout?: number = undefined;
 
-    debounce<F extends () => void>(func: F, wait: number = 300): () => void {
-      return () => {
-        clearTimeout(this.timeout);
-        this.timeout = setTimeout(() => {
-          this.timeout = undefined;
-          func();
-        }, wait);
-      };
+    debounce<F extends () => void>(func: F, wait = 300): void {
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
+        this.timeout = undefined;
+        func();
+      }, wait);
     }
-  } as Constructor<T & DebounceMixinInterface>;
+  } as Constructor<DebounceMixinInterface> & T;

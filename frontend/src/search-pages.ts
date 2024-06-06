@@ -4,7 +4,7 @@ import {repeat} from 'lit/directives/repeat.js';
 
 import {SearchaliciousEvents} from './enums';
 import {SearchResultEvent} from './events';
-import {SearchaliciousResultCtlMixin} from './search-results-ctl';
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 
 // small utility to have a range
 // inspired from https://stackoverflow.com/a/44957114/2886726

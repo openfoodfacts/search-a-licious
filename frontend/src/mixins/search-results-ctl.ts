@@ -4,12 +4,10 @@ import {property, state} from 'lit/decorators.js';
 import {
   EventRegistrationInterface,
   EventRegistrationMixin,
-} from './event-listener-setup';
-import {SearchaliciousEvents} from './enums';
-import {SearchResultEvent} from './events';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Constructor<T = {}> = new (...args: any[]) => T;
+} from '../event-listener-setup';
+import {SearchaliciousEvents} from '../enums';
+import {SearchResultEvent} from '../events';
+import {Constructor} from './utils';
 
 export interface SearchaliciousResultsCtlInterface
   extends EventRegistrationInterface {

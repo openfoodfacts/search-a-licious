@@ -1,7 +1,7 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {DebounceMixin} from './mixins/debounce';
-
+import {classMap} from 'lit/directives/class-map.js';
 /**
  * An optional search autocomplete element that launch the search.
  *
@@ -35,23 +35,24 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     }
   `;
 
-  @property({type: String, attribute: 'input-name'})
+  @property({attribute: 'input-name'})
   inputName = 'autocomplete';
 
   @property({attribute: false, type: Array})
-  options = [];
-  @property({type: String})
-  value: string = '';
+  options: string[] = [];
+  @property()
+  value = '';
 
   @property({attribute: false})
-  currentIndex: number = 0;
+  currentIndex = 0;
 
   @property({attribute: false})
-  visible: boolean = false;
+  visible = false;
 
   handleInput(event: InputEvent) {
+    const value = (event.target as HTMLInputElement).value;
     const inputEvent = new CustomEvent('autocomplete-input', {
-      detail: {value: event.target!.value},
+      detail: {value: value},
       bubbles: true,
       composed: true,
     });
@@ -90,7 +91,8 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
       if (this.currentIndex) {
         this.value = this.options[this.currentIndex];
       } else {
-        this.value = event.target!.value;
+        const value = (event.target as HTMLInputElement).value;
+        this.value = value;
       }
       this.submit();
     }
@@ -111,12 +113,13 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
       this.visible = false;
     });
   }
-  render() {
+  override render() {
     return html`
       <span class="search-autocomplete" part="search-autocomplete">
         <input
           type="text"
           name="${this.inputName}"
+          id="${this.inputName}"
           .value=${this.value}
           @input=${this.handleInput}
           @keydown=${this.handleKeyDown}
@@ -124,7 +127,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
           @focus=${this.handleFocus}
           @blur=${this.handleBlur}
         />
-        <ul class="${this.visible ? 'visible' : ''}">
+        <ul class=${classMap({visible: this.visible})}>
           ${this.options.map(
             (option, index) => html` <li
               class=${index + 1 === this.currentIndex && 'selected'}
