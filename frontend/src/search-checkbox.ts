@@ -9,16 +9,20 @@ export class SearchaliciousCheckbox extends LitElement {
   @property({type: String})
   name = '';
 
-  protected override updated(_changedProperties: PropertyValues) {
+  refreshCheckbox() {
     const inputElement = this.shadowRoot?.querySelector('input');
     if (inputElement) {
       inputElement.checked = this.checked;
     }
+  }
+  protected override updated(_changedProperties: PropertyValues) {
+    this.refreshCheckbox();
     super.updated(_changedProperties);
   }
 
   override render() {
     return html`
+      checked ${this.checked}${this.checked ? 'checked' : 'not checked'}
       <input
         .name=${this.name}
         .id="${this.name}"

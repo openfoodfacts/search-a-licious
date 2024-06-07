@@ -8,6 +8,7 @@ import {SearchaliciousTermsMixin} from './mixins/taxonomies-ctl';
 import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
+import {CheckboxMixin} from './mixins/checkbox';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -155,8 +156,10 @@ export class SearchaliciousFacet extends LitElement {
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
 @customElement('searchalicious-facet-terms')
-export class SearchaliciousTermsFacet extends SearchActionMixin(
-  SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
+export class SearchaliciousTermsFacet extends CheckboxMixin(
+  SearchActionMixin(
+    SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
+  )
 ) {
   static override styles = css`
     .term-wrapper {
@@ -194,7 +197,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     if (detail.checked) {
       this.selectedTerms[detail.name] = true;
     } else {
-      delete this.selectedTerms[detail.name];
+      this.selectedTerms[detail.name] = false;
     }
   }
 
@@ -294,6 +297,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       this.selectedTerms[key] = false;
     });
     this.customTerms = [];
+    this.refreshCheckboxes();
     search && this._launchSearchWithDebounce();
   };
   _renderResetButton() {
