@@ -7,6 +7,7 @@ import {DebounceMixin} from './mixins/debounce';
 import {SearchaliciousTermsMixin} from './mixins/taxonomies-ctl';
 import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
+import {FACET_TERM_OTHER} from './utils/constants';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -41,8 +42,8 @@ function stringGuard(s: string | undefined): s is string {
  * It must contains a SearchaliciousFacet component for each facet we want to display.
  */
 @customElement('searchalicious-facets')
-export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
-  LitElement
+export class SearchaliciousFacets extends SearchActionMixin(
+  SearchaliciousResultCtlMixin(LitElement)
 ) {
   // the last search facets
   @property({attribute: false})
@@ -88,11 +89,25 @@ export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
     }
   }
 
+  reset = () => {
+    this._facetNodes().forEach((node) => {
+      node.reset(false);
+    });
+    this._launchSearch();
+  };
+
   override render() {
     // we always want to render slot, baceauso we use queryAssignedNodes
     // but we may not want to display them
     const display = this.facets ? '' : 'display: none';
-    return html`<div part="facets" style="${display}"><slot></slot></div> `;
+    return html`<div part="facets" style="${display}">
+      <slot></slot>
+      <div>
+        <searchalicious-reset-button
+          @reset=${this.reset}
+        ></searchalicious-reset-button>
+      </div>
+    </div> `;
   }
 }
 
@@ -121,6 +136,12 @@ export class SearchaliciousFacet extends LitElement {
     throw new Error('renderFacet not implemented: implement in sub class');
   }
 
+  reset = (submit?: boolean): void => {
+    throw new Error(
+      `reset not implemented: implement in sub class with submit ${submit}`
+    );
+  };
+
   override render() {
     if (this.infos) {
       return this.renderFacet();
@@ -141,6 +162,10 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     .term-wrapper {
       display: block;
     }
+    .button {
+      margin-left: auto;
+      margin-right: auto;
+    }
   `;
 
   @property({
@@ -156,7 +181,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   override searchName = 'off';
 
   @property({attribute: 'show-other', type: Boolean})
-  showOther = false;
+  showOther = true;
 
   _launchSearchWithDebounce = () =>
     this.debounce(() => {
@@ -213,7 +238,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   /**
    * Render a field to add a term
    */
-  renderAddTerm() {
+  renderAddTerm(otherItem?: FacetTerm) {
     const inputName = `add-term-for-${this.name}`;
     const taxonomy = getTaxonomyName(this.name);
     const onInput = (e: CustomEvent) => {
@@ -222,14 +247,16 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
 
     const options = (this.termsByTaxonomyId[taxonomy] || []).map((term) => {
       return {
-        value: term.id,
+        value: term.id.replace(/^en:/, ''),
         label: term.text,
       };
     });
 
     return html`
       <div class="add-term" part="add-term">
-        <label for="${inputName}">Other</label>
+        <label for="${inputName}"
+          >Other ${otherItem?.count ? `(${otherItem.count})` : nothing}</label
+        >
         <searchalicious-autocomplete
           .inputName=${inputName}
           .options=${options}
@@ -262,23 +289,20 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     `;
   }
 
-  reset = () => {
+  override reset = (search = true) => {
     Object.keys(this.selectedTerms).forEach((key) => {
       this.selectedTerms[key] = false;
     });
     this.customTerms = [];
-    this._launchSearchWithDebounce();
+    search && this._launchSearchWithDebounce();
   };
   _renderResetButton() {
     return html`
-      <button
-        @click=${this.reset}
-        @keyup=${this.reset}
-        part="button"
-        role="button"
-      >
-        <slot> Reset </slot>
-      </button>
+      <div>
+        <searchalicious-reset-button
+          @reset=${this.reset}
+        ></searchalicious-reset-button>
+      </div>
     `;
   }
 
@@ -286,11 +310,16 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
    * Renders the facet content
    */
   override renderFacet() {
-    const items = (this.infos!.items || []) as FacetTerm[];
+    const items = (this.infos!.items || []).filter(
+      (item) => item.key !== FACET_TERM_OTHER
+    ) as FacetTerm[];
+    const otherItem = this.infos!.items?.find(
+      (item) => item.key === FACET_TERM_OTHER
+    ) as FacetTerm | undefined;
+
     return html`
       <fieldset name=${this.name}>
         <!-- FIXME: translate -->
-        <!-- TODO -->
         <legend>${this.name}</legend>
         ${repeat(
           items,
@@ -298,7 +327,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
           (item: FacetTerm) => this.renderTerm(item)
         )}
         ${this.customTerms.join(', ')}
-        ${this.showOther && items.length ? this.renderAddTerm() : nothing}
+        ${this.showOther && items.length
+          ? this.renderAddTerm(otherItem)
+          : nothing}
         ${this._renderResetButton()}
       </fieldset>
     `;
