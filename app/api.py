@@ -153,7 +153,15 @@ If not provided, `['en']` is used."""
         str | None,
         Query(
             description="""Field name to use to sort results, the field should exist
-            and be sortable. If it is not provided, results are sorted by descending relevance score."""
+            and be sortable. If it is not provided, results are sorted by descending relevance score.
+
+            If the field name match a known script (defined in your configuration),
+            it will be use for sorting.
+
+            In this case you also need to provide additional parameters corresponding to your script parameters.
+
+            Beware that this may have a big impact on performance.
+            """
         ),
     ] = None,
     facets: Annotated[
@@ -167,6 +175,7 @@ If not provided, `['en']` is used."""
         str | None,
         INDEX_ID_QUERY_PARAM,
     ] = None,
+    request: Request = None,
 ) -> SearchResponse:
     # check and preprocess parameters
     check_config_is_defined()
@@ -174,6 +183,20 @@ If not provided, `['en']` is used."""
     check_index_id_is_defined(index_id, global_config)
     facets_list = facets.split(",") if facets else None
     check_facets_are_valid(index_id, facets_list)
+    # other parameters
+    known_params = {
+        "q",
+        "lang",
+        "page_size",
+        "page",
+        "fields",
+        "sort_by",
+        "facets",
+        "index_id",
+    }
+    other_params = {
+        k: v for k, v in request.query_params.items() if k not in known_params
+    }
     if q is None and sort_by is None:
         raise HTTPException(
             status_code=400, detail="`sort_by` must be provided when `q` is missing"
@@ -194,6 +217,7 @@ If not provided, `['en']` is used."""
         sort_by=sort_by,
         facets=facets_list,
         index_id=index_id,
+        **other_params,
     )
 
 

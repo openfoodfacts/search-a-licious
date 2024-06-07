@@ -41,6 +41,7 @@ def search(
     fields: list[str] | None,
     langs: list[str],
     facets: list[str] | None,
+    **other_params
 ) -> SearchResponse:
     """Run a search"""
     global_config = cast(config.Config, config.CONFIG)
