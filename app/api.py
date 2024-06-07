@@ -316,4 +316,5 @@ def healthcheck():
     from app.health import health
 
     message, status, _ = health.run()
+    logger.warning("HEALTH:", message, status)
     return Response(content=message, status_code=status, media_type="application/json")
