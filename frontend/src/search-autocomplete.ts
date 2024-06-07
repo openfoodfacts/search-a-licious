@@ -2,6 +2,16 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {DebounceMixin} from './mixins/debounce';
 import {classMap} from 'lit/directives/class-map.js';
+
+export type AutocompleteOption = {
+  value: string;
+  label: string;
+};
+export type AutocompleteResult = {
+  value: string;
+  label?: string;
+};
+
 /**
  * An optional search autocomplete element that launch the search.
  *
@@ -47,7 +57,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   inputName = 'autocomplete';
 
   @property({attribute: false, type: Array})
-  options: string[] = [];
+  options: AutocompleteOption[] = [];
   @property()
   value = '';
 
@@ -77,11 +87,14 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
       input.blur();
     }
   }
-  submit() {
+  submit(isSuggestion = false) {
     if (!this.value) return;
 
     const inputEvent = new CustomEvent('autocomplete-submit', {
-      detail: {value: this.value},
+      detail: {
+        value: this.value,
+        label: isSuggestion ? this.options[this.currentIndex].label : undefined,
+      } as AutocompleteResult,
       bubbles: true,
       composed: true,
     });
@@ -91,29 +104,33 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     this.blurInput();
   }
 
+  getAutocompleteValueByIndex(index: number) {
+    return this.options[index].value;
+  }
   handleKeyDown(event: KeyboardEvent) {
     const maxIndex = this.options.length + 1;
-
     if (event.key === 'ArrowDown') {
       this.currentIndex = (this.currentIndex + 1) % maxIndex;
     } else if (event.key === 'ArrowUp') {
       this.currentIndex = (this.currentIndex - 1 + maxIndex) % maxIndex;
     }
     if (event.key === 'Enter') {
+      let isAutoComplete = false;
       if (this.currentIndex) {
-        this.value = this.options[this.currentIndex];
+        isAutoComplete = true;
+        this.value = this.getAutocompleteValueByIndex(this.currentIndex);
       } else {
         const value = (event.target as HTMLInputElement).value;
         this.value = value;
       }
-      this.submit();
+      this.submit(isAutoComplete);
     }
   }
 
   onClick(index: number) {
     return () => {
-      this.value = this.options[index];
-      this.submit();
+      this.value = this.getAutocompleteValueByIndex(index);
+      this.submit(true);
     };
   }
 
@@ -133,7 +150,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
             class=${index + 1 === this.currentIndex && 'selected'}
             @click=${this.onClick(index)}
           >
-            ${option}
+            ${option.label}
           </li>`
         )
       : html`<li>No results found</li>`;

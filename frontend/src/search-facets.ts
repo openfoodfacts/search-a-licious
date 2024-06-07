@@ -6,6 +6,7 @@ import {SearchResultEvent} from './events';
 import {DebounceMixin} from './mixins/debounce';
 import {SearchaliciousTermsMixin} from './mixins/taxonomies-ctl';
 import {getTaxonomyName} from './utils/taxonomies';
+import {SearchActionMixin} from './mixins/search-action';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -133,8 +134,8 @@ export class SearchaliciousFacet extends LitElement {
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
 @customElement('searchalicious-facet-terms')
-export class SearchaliciousTermsFacet extends SearchaliciousTermsMixin(
-  DebounceMixin(SearchaliciousFacet)
+export class SearchaliciousTermsFacet extends SearchActionMixin(
+  SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
 ) {
   static override styles = css`
     .term-wrapper {
@@ -142,22 +143,30 @@ export class SearchaliciousTermsFacet extends SearchaliciousTermsMixin(
     }
   `;
 
-  @property({attribute: false})
+  @property({
+    attribute: false,
+    type: Object,
+  })
   selectedTerms: PresenceInfo = {};
 
   @property({attribute: false, type: Array})
   customTerms: string[] = [];
 
+  @property({attribute: 'search-name'})
+  override searchName = 'off';
+
+  _launchSearchWithDebounce = () =>
+    this.debounce(() => {
+      this._launchSearch();
+    });
   /**
    * Set wether a term is selected or not
    */
-  setTermSelected(e: Event) {
-    const element = e.target as HTMLInputElement;
-    const name = element.name;
-    if (element.checked) {
-      this.selectedTerms[name] = true;
+  setTermSelected({detail}: {detail: {checked: boolean; name: string}}) {
+    if (detail.checked) {
+      this.selectedTerms[detail.name] = true;
     } else {
-      delete this.selectedTerms[name];
+      delete this.selectedTerms[detail.name];
     }
   }
 
@@ -166,13 +175,16 @@ export class SearchaliciousTermsFacet extends SearchaliciousTermsMixin(
     if (this.customTerms.includes(value)) return;
     this.customTerms = [...this.customTerms, value];
     this.selectedTerms[value] = true;
+    this._launchSearchWithDebounce();
   }
 
   /**
    * Create the search term based upon the selected terms
    */
   override searchFilter(): string | undefined {
-    let values = Object.keys(this.selectedTerms);
+    let values = Object.keys(this.selectedTerms).filter(
+      (key) => this.selectedTerms[key]
+    );
     // add quotes if we have ":" in values
     values = values.map((value) =>
       value.includes(':') ? `"${value}"` : value
@@ -187,17 +199,11 @@ export class SearchaliciousTermsFacet extends SearchaliciousTermsMixin(
     return `${this.name}:${orValues}`;
   }
 
-  searchTerm(value: string, taxonomy: string) {
-    this.getTaxonomiesTerms(value, [taxonomy]).then((result) => {
-      console.log(`${value} with facet ${this.name} res:`, result);
-    });
-  }
-
   onInputAddTerm(event: CustomEvent, taxonomy: string) {
     const value = event.detail.value;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     this.debounce(() => {
-      this.searchTerm(value, taxonomy);
+      this.getTaxonomiesTerms(value, [taxonomy]);
     });
   }
 
@@ -212,9 +218,11 @@ export class SearchaliciousTermsFacet extends SearchaliciousTermsMixin(
     };
 
     const options = (this.termsByTaxonomyId[taxonomy] || []).map((term) => {
-      return term.text;
+      return {
+        value: term.id,
+        label: term.text,
+      };
     });
-    console.log('options:', options);
 
     return html`
       <div class="add-term" part="add-term">
@@ -236,18 +244,38 @@ export class SearchaliciousTermsFacet extends SearchaliciousTermsMixin(
   renderTerm(term: FacetTerm) {
     return html`
       <div class="term-wrapper" part="term-wrapper">
-        <input
-          type="checkbox"
-          name="${term.key}"
-          ?checked=${this.selectedTerms[term.key]}
+        <searchalicious-checkbox
+          .name=${term.key}
+          .checked=${this.selectedTerms[term.key]}
           @change=${this.setTermSelected}
-        /><label for="${term.key}"
+        ></searchalicious-checkbox>
+        <label for="${term.key}"
           >${term.name}
           ${term.count
             ? html`<span part="docCount">(${term.count})</span>`
             : nothing}</label
         >
       </div>
+    `;
+  }
+
+  reset = () => {
+    Object.keys(this.selectedTerms).forEach((key) => {
+      this.selectedTerms[key] = false;
+    });
+    this.customTerms = [];
+    this._launchSearchWithDebounce();
+  };
+  _renderResetButton() {
+    return html`
+      <button
+        @click=${this.reset}
+        @keyup=${this.reset}
+        part="button"
+        role="button"
+      >
+        <slot> Reset </slot>
+      </button>
     `;
   }
 
@@ -265,8 +293,8 @@ export class SearchaliciousTermsFacet extends SearchaliciousTermsMixin(
           (item: FacetTerm) => `${item.key}-${item.count}`,
           (item: FacetTerm) => this.renderTerm(item)
         )}
-        --- ${this.customTerms.join(', ')} ---
-        ${items.length ? this.renderAddTerm() : ''}
+        ${this.customTerms.join(', ')}
+        ${items.length ? this.renderAddTerm() : ''} ${this._renderResetButton()}
       </fieldset>
     `;
   }

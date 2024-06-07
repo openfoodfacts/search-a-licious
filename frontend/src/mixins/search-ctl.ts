@@ -173,14 +173,18 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         )
         .sort() // for perdictability in tests !
         .join('&');
+
       return `${baseUrl}/search?${queryStr}`;
     }
 
     // connect to our specific events
     override connectedCallback() {
       super.connectedCallback();
-      this.addEventHandler(SearchaliciousEvents.LAUNCH_SEARCH, (event: Event) =>
-        this._handleSearch(event)
+      this.addEventHandler(
+        SearchaliciousEvents.LAUNCH_SEARCH,
+        (event: Event) => {
+          this._handleSearch(event);
+        }
       );
       this.addEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)

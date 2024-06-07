@@ -14,10 +14,8 @@ export type TaxomiesTermsResponse = {
 export interface SearchaliciousTaxonomiesInterface {
   termsByTaxonomyId: Record<string, TermOption[]>;
   loadingByTaxonomyId: Record<string, boolean>;
-  query: string;
-  baseUrl: string;
+  taxonomiesBaseUrl: string;
   langs: string;
-  index?: string;
 
   getTaxonomiesTerms(
     q: string,
@@ -34,20 +32,14 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
     @state()
     loadingByTaxonomyId = {} as Record<string, boolean>;
 
-    @property({attribute: false})
-    query = '';
-
-    @property()
-    name = 'searchalicious';
-
     @property({attribute: 'base-url'})
-    baseUrl = '/';
+    taxonomiesBaseUrl = '/';
 
     @property()
     langs = 'en';
 
     _termsUrl(q: string, taxonomyNames: string[]) {
-      const baseUrl = this.baseUrl.replace(/\/+$/, '');
+      const baseUrl = this.taxonomiesBaseUrl.replace(/\/+$/, '');
       // http://localhost:8000/autocomplete?taxonomy_names=brand&q=anti&lang=en&size=10
       return `${baseUrl}/autocomplete?q=${q}&lang=${this.langs}&taxonomy_names=${taxonomyNames}&size=5`;
     }

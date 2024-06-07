@@ -1,7 +1,6 @@
 import {LitElement, html} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
-import {BaseSearchDetail, LaunchSearchEvent} from './events';
-import {SearchaliciousEvents} from './enums';
+import {customElement} from 'lit/decorators.js';
+import {SearchActionMixin} from './mixins/search-action';
 
 /**
  * An optional search button element that launch the search.
@@ -9,13 +8,11 @@ import {SearchaliciousEvents} from './enums';
  * @slot - goes in button contents, default to "Search" string
  */
 @customElement('searchalicious-button')
-export class SearchaliciousButton extends LitElement {
+export class SearchaliciousButton extends SearchActionMixin(LitElement) {
   /**
    * the search we should trigger,
    * this corresponds to `name` attribute of corresponding search-bar
    */
-  @property({attribute: 'search-name'})
-  searchName = 'searchalicious';
 
   override render() {
     return html`
@@ -33,17 +30,6 @@ export class SearchaliciousButton extends LitElement {
   /**
    * Launch search by emitting the LAUNCH_SEARCH signal
    */
-  _launchSearch() {
-    const detail: BaseSearchDetail = {searchName: this.searchName};
-    // fire the search event
-    const event = new CustomEvent(SearchaliciousEvents.LAUNCH_SEARCH, {
-      bubbles: true,
-      composed: true,
-      detail: detail,
-    }) as LaunchSearchEvent;
-    this.dispatchEvent(event);
-  }
-
   private _onClick() {
     this._launchSearch();
   }
