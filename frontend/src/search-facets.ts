@@ -155,6 +155,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   @property({attribute: 'search-name'})
   override searchName = 'off';
 
+  @property({attribute: 'show-other', type: Boolean})
+  showOther = false;
+
   _launchSearchWithDebounce = () =>
     this.debounce(() => {
       this._launchSearch();
@@ -287,6 +290,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     return html`
       <fieldset name=${this.name}>
         <!-- FIXME: translate -->
+        <!-- TODO -->
         <legend>${this.name}</legend>
         ${repeat(
           items,
@@ -294,7 +298,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
           (item: FacetTerm) => this.renderTerm(item)
         )}
         ${this.customTerms.join(', ')}
-        ${items.length ? this.renderAddTerm() : ''} ${this._renderResetButton()}
+        ${this.showOther && items.length ? this.renderAddTerm() : nothing}
+        ${this._renderResetButton()}
       </fieldset>
     `;
   }
