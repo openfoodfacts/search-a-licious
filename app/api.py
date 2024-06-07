@@ -7,7 +7,7 @@ import elasticsearch
 from elasticsearch_dsl import Search
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, ORJSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
 import app.search as app_search
@@ -311,12 +311,8 @@ def robots_txt():
     return """User-agent: *\nDisallow: /"""
 
 
-@app.get("/health", response_class=ORJSONResponse)
-def healthcheck(response: Response):
-    import orjson
-
+@app.get("/health")
+def healthcheck():
     from app.health import health
-
     message, status, _ = health.run()
-    response.status_code = status
-    return orjson.loads(message)
+    return Response(content=message, status_code=status, media_type='application/json')
