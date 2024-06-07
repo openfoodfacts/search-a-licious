@@ -11,9 +11,10 @@ def get_es_client(**kwargs):
     )
 
 
-def get_redis_client() -> Redis:
+def get_redis_client(**kwargs) -> Redis:
     return Redis(
         host=settings.redis_host,
         port=settings.redis_port,
         decode_responses=True,
+        **kwargs,
     )
