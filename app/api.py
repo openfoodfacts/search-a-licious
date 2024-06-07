@@ -314,5 +314,6 @@ def robots_txt():
 @app.get("/health")
 def healthcheck():
     from app.health import health
+
     message, status, _ = health.run()
-    return Response(content=message, status_code=status, media_type='application/json')
+    return Response(content=message, status_code=status, media_type="application/json")
