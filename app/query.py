@@ -3,15 +3,14 @@ import luqum.exceptions
 from elasticsearch_dsl import A, Q, Search
 from elasticsearch_dsl.aggs import Agg
 from elasticsearch_dsl.query import Query
-from luqum import visitor
+from luqum import tree
 from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.parser import parser
-from luqum.tree import UnknownOperation, Word
 
 from app._types import (
     ErrorSearchResponse,
-    JSONType,
+    QueryAnalysis,
     SearchResponse,
     SearchResponseDebug,
     SearchResponseError,
@@ -26,28 +25,13 @@ logger = get_logger(__name__)
 
 
 def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQueryBuilder:
+    """Create the ElasticsearchQueryBuilder object
+    according to our configuration"""
     index = generate_index_object(config.index.name, config)
     options = SchemaAnalyzer(index.to_dict()).query_builder_options()
+    # we default to a AND between terms that are just space separated
     options["default_operator"] = ElasticsearchQueryBuilder.MUST
     return ElasticsearchQueryBuilder(**options)
-
-
-class UnknownOperationRemover(visitor.TreeTransformer):
-    def __init__(self):
-        super().__init__(track_parents=True)
-
-    def visit_unknown_operation(self, node, context):
-        new_node = node.clone_item()
-        children = [
-            child
-            for child in self.clone_children(node, new_node, context)
-            if not isinstance(child, Word)
-        ]
-        new_node.children = children
-        yield new_node
-
-    def __call__(self, tree):
-        return self.visit(tree)
 
 
 def build_query_clause(query: str, langs: set[str], config: IndexConfig) -> Query:
@@ -114,12 +98,27 @@ def build_query_clause(query: str, langs: set[str], config: IndexConfig) -> Quer
     return multi_match_query
 
 
-def parse_lucene_dsl_query(
-    q: str, filter_query_builder: ElasticsearchQueryBuilder
-) -> tuple[list[JSONType], str]:
-    """Parse query using Lucene DSL.
+def parse_query(q: str | None) -> QueryAnalysis:
+    """Begin query analysis by parsing the query."""
+    analysis = QueryAnalysis(text_query=q)
+    if q is None:
+        return analysis
+    try:
+        analysis.luqum_tree = parser.parse(q)
+    except (
+        luqum.exceptions.ParseError,
+        luqum.exceptions.InconsistentQueryException,
+    ) as e:
+        # if the lucene syntax is invalid, consider the query as plain text
+        logger.warning("parsing error for query: '%s':\n%s", q, e)
+        analysis.luqum_tree = None
+    return analysis
 
-    We decompose the query into two parts:
+
+def decompose_query(
+    q: QueryAnalysis, filter_query_builder: ElasticsearchQueryBuilder
+) -> QueryAnalysis:
+    """Decompose the query into two parts:
 
     - a Lucene DSL query, which is used as a filter clause in the
       Elasticsearch query. Luqum library is used to transform the
@@ -131,42 +130,97 @@ def parse_lucene_dsl_query(
     :return: a tuple containing the Elasticsearch filter clause and
       the remaining terms for full text search
     """
-    luqum_tree = None
+    if q.text_query is None:
+        return q
     remaining_terms = ""
-    try:
-        luqum_tree = parser.parse(q)
-    except (
-        luqum.exceptions.ParseError,
-        luqum.exceptions.InconsistentQueryException,
-    ) as e:
-        # if the lucene syntax is invalid, consider the query as plain text
-        logger.warning("parsing error for query: '%s':\n%s", q, e)
-        remaining_terms = q
-
-    if luqum_tree is not None:
+    if q.luqum_tree is not None:
         # Successful parsing
-        logger.debug("parsed luqum tree: %s", repr(luqum_tree))
-        if isinstance(luqum_tree, UnknownOperation):
-            # We join with space every non word not recognized by the parser
-            remaining_terms = " ".join(
-                item.value for item in luqum_tree.children if isinstance(item, Word)
-            )
-        elif isinstance(luqum_tree, Word):
-            # single term
-            remaining_terms = luqum_tree.value
+        logger.debug("parsed luqum tree: %s", repr(q.luqum_tree))
+        word_children = []
+        filter_children = []
+        if isinstance(q.luqum_tree, (tree.UnknownOperation, tree.AndOperation)):
+            for child in q.luqum_tree.children:
+                if isinstance(child, tree.Word):
+                    word_children.append(child)
+                else:
+                    filter_children.append(child)
+        elif isinstance(q.luqum_tree, tree.Word):
+            # the query single term
+            word_children.append(q.luqum_tree)
+        else:
+            filter_children.append(q.luqum_tree)
+        # We join with space every non word not recognized by the parser
+        remaining_terms = " ".join(item.value for item in word_children)
+        filter_tree = None
+        if filter_children:
+            # Note: we always wrap in AndOperation,
+            # even if only one, to be consistent
+            filter_tree = tree.AndOperation(*filter_children)
 
-        processed_tree = UnknownOperationRemover().visit(luqum_tree)
-        logger.debug("processed luqum tree: %s", repr(processed_tree))
-        if processed_tree.children:
-            filter_query = filter_query_builder(processed_tree)
+        # remove harvested words
+        logger.debug("filter luqum tree: %s", repr(filter_tree))
+        if filter_tree:
+            filter_query = filter_query_builder(filter_tree)
         else:
             filter_query = None
         logger.debug("filter query from luqum: '%s'", filter_query)
     else:
         filter_query = None
-        remaining_terms = q
+        remaining_terms = q.text_query
 
-    return filter_query, remaining_terms
+    return q.clone(fulltext=remaining_terms, filter_query=filter_query)
+
+
+def compute_facets_filters(q: QueryAnalysis) -> QueryAnalysis:
+    """Extract facets filters from the query
+
+    For now it only handles SearchField under a top AND operation,
+    which expression is a bare term or a OR operation of bare terms.
+
+    We do not verify if the field is an aggregation field or not,
+    that can be done at a later stage
+
+    :return: a new QueryAnalysis with facets_filters attribute
+    as a dictionary of field names and list of values to filter on
+    """
+    if q.luqum_tree is None:
+        return q
+
+    filters = {}
+
+    def _process_search_field(expr, field_name):
+        facet_filter = None
+        if isinstance(expr, tree.Term):
+            # simple term
+            facet_filter = [str(expr)]
+        elif isinstance(expr, tree.FieldGroup):
+            # use recursion
+            _process_search_field(expr.expr, field_name)
+        elif isinstance(expr, tree.OrOperation) and all(
+            isinstance(item, tree.Term) for item in expr.children
+        ):
+            # OR operation of simple terms
+            facet_filter = [str(item) for item in expr.children]
+        if facet_filter:
+            if field_name not in filters:
+                filters[field_name] = facet_filter
+            else:
+                # avoid the case of double expression, we don't handle it
+                filters.pop(field_name)
+
+    if isinstance(q.luqum_tree, (tree.AndOperation, tree.UnknownOperation)):
+        for child in q.luqum_tree.children:
+            if isinstance(child, tree.SearchField):
+                _process_search_field(child.expr, child.name)
+    # case of a single search field
+    elif isinstance(q.luqum_tree, tree.SearchField):
+        _process_search_field(q.luqum_tree.expr, q.luqum_tree.name)
+    # remove quotes around values
+    filters = {
+        field_name: [value.strip('"') for value in values]
+        for field_name, values in filters.items()
+    }
+    return q.clone(facets_filters=filters)
 
 
 def parse_sort_by_parameter(sort_by: str | None, config: IndexConfig) -> str | None:
@@ -222,7 +276,7 @@ def build_search_query(
     filter_query_builder: ElasticsearchQueryBuilder,
     facets: list[str] | None = None,
     sort_by: str | None = None,
-) -> Search:
+) -> QueryAnalysis:
     """Build an elasticsearch_dsl Query.
 
     :param q: the user raw query
@@ -235,37 +289,46 @@ def build_search_query(
     :param sort_by: sorting key, defaults to None (=relevance-based sorting)
     :return: the built Search query
     """
-    filter_query: list[JSONType]
-    if q is None:
-        filter_query = []
-        remaining_terms = ""
-    else:
-        filter_query, remaining_terms = parse_lucene_dsl_query(q, filter_query_builder)
+    analysis = parse_query(q)
+    analysis = decompose_query(analysis, filter_query_builder)
+    analysis = compute_facets_filters(analysis)
 
-    logger.debug("filter query: %s", filter_query)
-    logger.debug("remaining terms: '%s'", remaining_terms)
+    logger.debug("filter query: %s", analysis.filter_query)
+    logger.debug("remaining terms: '%s'", analysis.fulltext)
 
-    query = Search(index=config.index.name)
+    return build_es_query(analysis, langs, size, page, config, facets, sort_by)
 
-    if remaining_terms:
-        base_multi_match_q = build_query_clause(remaining_terms, langs, config)
-        query = query.query(base_multi_match_q)
 
-    if filter_query:
-        query = query.query("bool", filter=filter_query)
+def build_es_query(
+    q: QueryAnalysis,
+    langs: set[str],
+    size: int,
+    page: int,
+    config: IndexConfig,
+    facets: list[str] | None = None,
+    sort_by: str | None = None,
+) -> QueryAnalysis:
+    es_query = Search(index=config.index.name)
+
+    if q.fulltext:
+        base_multi_match_q = build_query_clause(q.fulltext, langs, config)
+        es_query = es_query.query(base_multi_match_q)
+
+    if q.filter_query:
+        es_query = es_query.query("bool", filter=q.filter_query)
 
     for agg_name, agg in create_aggregation_clauses(config, facets).items():
-        query.aggs.bucket(agg_name, agg)
+        es_query.aggs.bucket(agg_name, agg)
 
     sort_by = parse_sort_by_parameter(sort_by, config)
     if sort_by is not None:
-        query = query.sort(sort_by)
+        es_query = es_query.sort(sort_by)
 
-    query = query.extra(
+    es_query = es_query.extra(
         size=size,
         from_=size * (page - 1),
     )
-    return query
+    return q.clone(es_query=es_query)
 
 
 def build_completion_query(

@@ -109,6 +109,14 @@ def check_facets_are_valid(index_id: str | None, facets: list[str] | None) -> No
         raise HTTPException(status_code=400, detail=json.dumps(errors))
 
 
+def parse_langs(langs: str | None) -> list[str]:
+    return langs.split(",") if langs else ["en"]
+
+
+def get_main_lang(langs: list[str] | None) -> str:
+    return langs[0] if langs else "en"
+
+
 @app.get("/search")
 def search(
     q: Annotated[
@@ -183,11 +191,13 @@ If not provided, `['en']` is used."""
             status_code=400,
             detail=f"Maximum number of returned results is 10 000 (here: page * page_size = {page * page_size})",
         )
-    langs_list = langs.split(",") if langs else ["en"]
+    langs_list = parse_langs(langs)
+    main_lang = get_main_lang(langs_list)
     # search
     return app_search.search(
         q=q,
         langs=langs_list,
+        main_lang=main_lang,
         page_size=page_size,
         page=page,
         fields=fields.split(",") if fields else None,

@@ -1,18 +1,48 @@
 {
-  "query": {
+  "text_query": "non_existing_field:value",
+  "luqum_tree": "non_existing_field:value",
+  "es_query": {
+    "query": {
+      "bool": {
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                {
+                  "match": {
+                    "non_existing_field": {
+                      "query": "value",
+                      "zero_terms_query": "all"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "size": 25,
+    "from": 25
+  },
+  "fulltext": "",
+  "filter_query": {
     "bool": {
-      "filter": [
+      "must": [
         {
           "match": {
             "non_existing_field": {
               "query": "value",
-              "zero_terms_query": "none"
+              "zero_terms_query": "all"
             }
           }
         }
       ]
     }
   },
-  "size": 25,
-  "from": 25
+  "facets_filters": {
+    "non_existing_field": [
+      "value"
+    ]
+  }
 }

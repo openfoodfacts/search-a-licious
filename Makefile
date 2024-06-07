@@ -137,6 +137,11 @@ import-dataset: guard-filepath
 	@echo "🔎 Importing data …"
 	${DOCKER_COMPOSE} run --rm api python3 -m app import /opt/search/data/${filepath} ${args} --num-processes=2
 
+import-taxonomies:
+	@echo "🔎 Importing taxonomies …"
+	${DOCKER_COMPOSE} run --rm api python3 -m app import-taxonomies ${args}
+
+
 
 #-------#
 # Tests #

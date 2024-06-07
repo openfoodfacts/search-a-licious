@@ -1,103 +1,164 @@
 {
-  "query": {
+  "text_query": "bacon de boeuf (countries_tags:\"en:italy\" AND (categories_tags:\"en:beef\" AND (nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
+  "luqum_tree": "bacon de boeuf (countries_tags:\"en:italy\" AND (categories_tags:\"en:beef\" AND (nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
+  "es_query": {
+    "query": {
+      "bool": {
+        "should": [
+          {
+            "match_phrase": {
+              "product_name.en": {
+                "query": "bacon de boeuf",
+                "boost": 2.0
+              }
+            }
+          },
+          {
+            "match_phrase": {
+              "generic_name.en": {
+                "query": "bacon de boeuf",
+                "boost": 2.0
+              }
+            }
+          },
+          {
+            "match_phrase": {
+              "categories.en": {
+                "query": "bacon de boeuf",
+                "boost": 2.0
+              }
+            }
+          },
+          {
+            "match_phrase": {
+              "labels.en": {
+                "query": "bacon de boeuf",
+                "boost": 2.0
+              }
+            }
+          },
+          {
+            "match_phrase": {
+              "brands": {
+                "query": "bacon de boeuf",
+                "boost": 2.0
+              }
+            }
+          },
+          {
+            "multi_match": {
+              "query": "bacon de boeuf",
+              "fields": [
+                "product_name.en",
+                "generic_name.en",
+                "categories.en",
+                "labels.en",
+                "brands"
+              ]
+            }
+          }
+        ],
+        "filter": [
+          {
+            "bool": {
+              "must": [
+                {
+                  "bool": {
+                    "must": [
+                      {
+                        "term": {
+                          "countries_tags": {
+                            "value": "en:italy"
+                          }
+                        }
+                      },
+                      {
+                        "bool": {
+                          "must": [
+                            {
+                              "term": {
+                                "categories_tags": {
+                                  "value": "en:beef"
+                                }
+                              }
+                            },
+                            {
+                              "bool": {
+                                "should": [
+                                  {
+                                    "range": {
+                                      "nutriments.salt_100g": {
+                                        "gte": "2"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "range": {
+                                      "nutriments.salt_100g": {
+                                        "lte": "0.05",
+                                        "gte": "0"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "minimum_should_match": 1
+      }
+    },
+    "size": 25,
+    "from": 25
+  },
+  "fulltext": "bacon de boeuf",
+  "filter_query": {
     "bool": {
-      "should": [
-        {
-          "match_phrase": {
-            "product_name.en": {
-              "query": "bacon de boeuf",
-              "boost": 2.0
-            }
-          }
-        },
-        {
-          "match_phrase": {
-            "generic_name.en": {
-              "query": "bacon de boeuf",
-              "boost": 2.0
-            }
-          }
-        },
-        {
-          "match_phrase": {
-            "categories.en": {
-              "query": "bacon de boeuf",
-              "boost": 2.0
-            }
-          }
-        },
-        {
-          "match_phrase": {
-            "labels.en": {
-              "query": "bacon de boeuf",
-              "boost": 2.0
-            }
-          }
-        },
-        {
-          "match_phrase": {
-            "brands": {
-              "query": "bacon de boeuf",
-              "boost": 2.0
-            }
-          }
-        },
-        {
-          "multi_match": {
-            "query": "bacon de boeuf",
-            "fields": [
-              "product_name.en",
-              "generic_name.en",
-              "categories.en",
-              "labels.en",
-              "brands"
-            ]
-          }
-        }
-      ],
-      "filter": [
+      "must": [
         {
           "bool": {
             "must": [
+              {
+                "term": {
+                  "countries_tags": {
+                    "value": "en:italy"
+                  }
+                }
+              },
               {
                 "bool": {
                   "must": [
                     {
                       "term": {
-                        "countries_tags": {
-                          "value": "en:italy"
+                        "categories_tags": {
+                          "value": "en:beef"
                         }
                       }
                     },
                     {
                       "bool": {
-                        "must": [
+                        "should": [
                           {
-                            "term": {
-                              "categories_tags": {
-                                "value": "en:beef"
+                            "range": {
+                              "nutriments.salt_100g": {
+                                "gte": "2"
                               }
                             }
                           },
                           {
-                            "bool": {
-                              "should": [
-                                {
-                                  "range": {
-                                    "nutriments.salt_100g": {
-                                      "gte": "2"
-                                    }
-                                  }
-                                },
-                                {
-                                  "range": {
-                                    "nutriments.salt_100g": {
-                                      "lte": "0.05",
-                                      "gte": "0"
-                                    }
-                                  }
-                                }
-                              ]
+                            "range": {
+                              "nutriments.salt_100g": {
+                                "lte": "0.05",
+                                "gte": "0"
+                              }
                             }
                           }
                         ]
@@ -109,10 +170,8 @@
             ]
           }
         }
-      ],
-      "minimum_should_match": 1
+      ]
     }
   },
-  "size": 25,
-  "from": 25
+  "facets_filters": {}
 }

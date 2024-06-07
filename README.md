@@ -107,6 +107,7 @@ Now you can go to :
 or 
 - http://localhost:8000/static/off.html to access to lit components search page
 
+To look into the data, you may use elasticvue, going to http://127.0.0.1:8080/ and reaching  http://127.0.0.1:9200 cluster: `docker-cluster` (unless you changed env variables).
 
 #### Pre-Commit
 
@@ -140,6 +141,10 @@ Typical import time is 45-60 minutes.
 
 If you want to skip updates (eg. because you don't have a Redis installed), 
 use `make import-dataset filepath='products.jsonl.gz' args="--skip-updates"`
+
+You should also import taxonomies:
+
+`make import-taxonomies`
 
 
 ## Fundings
