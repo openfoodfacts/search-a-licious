@@ -2,7 +2,7 @@ import json
 import logging
 from enum import StrEnum, auto
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import yaml
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
@@ -33,6 +33,11 @@ class LoggingLevel(StrEnum):
             return 40
         elif self is LoggingLevel.CRITICAL:
             return 50
+
+
+class ScriptType(StrEnum):
+    expression = "expression"
+    painless = "painless"
 
 
 class Settings(BaseSettings):
@@ -282,6 +287,34 @@ class TaxonomyConfig(BaseModel):
     ]
 
 
+class ScriptConfig(BaseModel):
+    """Scripts can be used to sort results of a search.
+
+    This use Elastic search internal capabilities
+    """
+
+    lang: Annotated[
+        ScriptType,
+        Field(description="The script language, as supported by Elasticsearch"),
+    ] = ScriptType.expression
+    source: Annotated[
+        str,
+        Field(description="The source of the script"),
+    ]
+    params: (
+        Annotated[
+            # FIXME: not sure of the type here
+            dict[str, Any],
+            Field(
+                description="Params for the scripts. We need this to retrieve and validate parameters"
+            ),
+        ]
+        | None
+    )
+    # TODO: do we want to add a list of mandatory parameters ?
+    # Or some type checking/transformation ?
+
+
 class IndexConfig(BaseModel):
     """Inside the config file we can have several indexes defined.
 
@@ -349,6 +382,15 @@ class IndexConfig(BaseModel):
                 "to use after search query to Elasticsearch. This is used to add custom fields "
                 "for example.",
                 examples=["app.openfoodfacts.ResultProcessor"],
+            ),
+        ]
+        | None
+    ) = None
+    scripts: (
+        Annotated[
+            dict[str, ScriptConfig],
+            Field(
+                description="You can add scripts that can be used for sorting results",
             ),
         ]
         | None
