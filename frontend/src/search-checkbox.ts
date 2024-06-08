@@ -22,8 +22,8 @@ export class SearchaliciousCheckbox extends LitElement {
 
   override render() {
     return html`
-      checked ${this.checked}${this.checked ? 'checked' : 'not checked'}
       <input
+        part="checkbox"
         .name=${this.name}
         .id="${this.name}"
         type="checkbox"

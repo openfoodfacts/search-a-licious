@@ -8,7 +8,6 @@ import {SearchaliciousTermsMixin} from './mixins/taxonomies-ctl';
 import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
-import {CheckboxMixin} from './mixins/checkbox';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -156,10 +155,8 @@ export class SearchaliciousFacet extends LitElement {
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
 @customElement('searchalicious-facet-terms')
-export class SearchaliciousTermsFacet extends CheckboxMixin(
-  SearchActionMixin(
-    SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
-  )
+export class SearchaliciousTermsFacet extends SearchActionMixin(
+  SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
 ) {
   static override styles = css`
     .term-wrapper {
@@ -184,7 +181,7 @@ export class SearchaliciousTermsFacet extends CheckboxMixin(
   override searchName = 'off';
 
   @property({attribute: 'show-other', type: Boolean})
-  showOther = true;
+  showOther = false;
 
   _launchSearchWithDebounce = () =>
     this.debounce(() => {
@@ -194,11 +191,10 @@ export class SearchaliciousTermsFacet extends CheckboxMixin(
    * Set wether a term is selected or not
    */
   setTermSelected({detail}: {detail: {checked: boolean; name: string}}) {
-    if (detail.checked) {
-      this.selectedTerms[detail.name] = true;
-    } else {
-      this.selectedTerms[detail.name] = false;
-    }
+    this.selectedTerms = {
+      ...this.selectedTerms,
+      ...{[detail.name]: detail.checked},
+    };
   }
 
   addTerm(event: CustomEvent) {
@@ -241,9 +237,12 @@ export class SearchaliciousTermsFacet extends CheckboxMixin(
   /**
    * Render a field to add a term
    */
-  renderAddTerm(otherItem?: FacetTerm) {
+  renderAddTerm() {
     const inputName = `add-term-for-${this.name}`;
     const taxonomy = getTaxonomyName(this.name);
+    const otherItem = this.infos!.items?.find(
+      (item) => item.key === FACET_TERM_OTHER
+    ) as FacetTerm | undefined;
     const onInput = (e: CustomEvent) => {
       this.onInputAddTerm(e, taxonomy);
     };
@@ -297,7 +296,8 @@ export class SearchaliciousTermsFacet extends CheckboxMixin(
       this.selectedTerms[key] = false;
     });
     this.customTerms = [];
-    this.refreshCheckboxes();
+    this.requestUpdate('selectedTerms');
+    // this.refreshCheckboxes();
     search && this._launchSearchWithDebounce();
   };
   _renderResetButton() {
@@ -315,11 +315,8 @@ export class SearchaliciousTermsFacet extends CheckboxMixin(
    */
   override renderFacet() {
     const items = (this.infos!.items || []).filter(
-      (item) => item.key !== FACET_TERM_OTHER
+      (item) => !this.showOther || item.key !== FACET_TERM_OTHER
     ) as FacetTerm[];
-    const otherItem = this.infos!.items?.find(
-      (item) => item.key === FACET_TERM_OTHER
-    ) as FacetTerm | undefined;
 
     return html`
       <fieldset name=${this.name}>
@@ -331,9 +328,7 @@ export class SearchaliciousTermsFacet extends CheckboxMixin(
           (item: FacetTerm) => this.renderTerm(item)
         )}
         ${this.customTerms.join(', ')}
-        ${this.showOther && items.length
-          ? this.renderAddTerm(otherItem)
-          : nothing}
+        ${this.showOther && items.length ? this.renderAddTerm() : nothing}
         ${this._renderResetButton()}
       </fieldset>
     `;
