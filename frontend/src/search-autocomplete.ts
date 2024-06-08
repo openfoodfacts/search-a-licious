@@ -45,7 +45,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
 
     ul li:hover,
     ul li.selected {
-      background-color: #cfac9e;
+      background-color: var(--searchalicious-hover-color, #cfac9e);
     }
 
     ul.visible {
