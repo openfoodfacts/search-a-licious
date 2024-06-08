@@ -22,6 +22,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   static override styles = css`
     .search-autocomplete {
       position: relative;
+      display: inline-block;
     }
 
     ul {
