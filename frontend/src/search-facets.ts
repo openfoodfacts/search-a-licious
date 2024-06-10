@@ -240,7 +240,6 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     for (const term of terms) {
       this.selectedTerms[term] = true;
     }
-    //   updateInput
   }
 
   /**
