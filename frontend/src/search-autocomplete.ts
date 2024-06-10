@@ -78,7 +78,6 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     const value = (event.target as HTMLInputElement).value;
     this.value = value;
     const inputEvent = new CustomEvent('autocomplete-input', {
-      // we send both value and label
       detail: {value: value},
       bubbles: true,
       composed: true,
