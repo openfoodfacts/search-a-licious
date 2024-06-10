@@ -78,18 +78,30 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     const value = (event.target as HTMLInputElement).value;
     this.value = value;
     const inputEvent = new CustomEvent('autocomplete-input', {
+      // we send both value and label
       detail: {value: value},
       bubbles: true,
       composed: true,
     });
     this.dispatchEvent(inputEvent);
   }
-
+  /**
+   * This method is used to remove focus from the input element.
+   * It first selects the input element from the shadow DOM,
+   * then checks if the input element exists and if so, calls the blur method on it.
+   * The blur method removes focus from the input element.
+   */
   blurInput() {
     const input = this.shadowRoot!.querySelector('input');
     if (input) {
       input.blur();
     }
+  }
+
+  resetInput() {
+    this.value = '';
+    this.currentIndex = 0;
+    this.blurInput();
   }
   submit(isSuggestion = false) {
     if (!this.value) return;
@@ -103,9 +115,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
       composed: true,
     });
     this.dispatchEvent(inputEvent);
-    this.value = '';
-    this.currentIndex = 0;
-    this.blurInput();
+    this.resetInput();
   }
 
   getAutocompleteValueByIndex(index: number) {

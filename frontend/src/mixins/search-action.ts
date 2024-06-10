@@ -9,6 +9,12 @@ export interface SearchActionMixinInterface {
   _launchSearch(): Promise<void>;
 }
 
+/**
+ * A mixin class for search actions.
+ * It extends the LitElement class and adds search functionality.
+ * @param {Constructor<LitElement>} superClass - The superclass to extend from.
+ * @returns {Constructor<SearchActionMixinInterface>} - The extended class with search functionality.
+ */
 export const SearchActionMixin = <T extends Constructor<LitElement>>(
   superClass: T
 ) => {
@@ -16,6 +22,10 @@ export const SearchActionMixin = <T extends Constructor<LitElement>>(
     @property({attribute: 'search-name'})
     searchName = 'searchalicious';
 
+    /**
+     * Launches a search event.
+     * It creates a new event with the search name and dispatches it.
+     */
     _launchSearch() {
       const detail: BaseSearchDetail = {searchName: this.searchName};
       // fire the search event
