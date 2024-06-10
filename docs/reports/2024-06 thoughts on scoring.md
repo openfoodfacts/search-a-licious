@@ -5,7 +5,8 @@
 This is the easiest method, and more generic one, but not necessarily optimize for big databases.
 
 * scripts can be declared in the config
-* we run a command to store them i.n elastic search (removing the eventual non declared ones)
+* we run a command to store them in Elasticsearch (removing the eventual non declared ones)
+``
 * (maybe at startup we should verify that the scripts declared in config are in elastic search)
 * scripts accepts parameters
 * as you call search API, you specify a script name (as in config) and provide parameters
@@ -29,9 +30,9 @@ Is there a way we put a maximum number of matching item before using a filter ?
 
 Also the script filter may help, if it's faster than score to remove some values (but is it worth it ?)
 
-## Using Knn
+## Using KNN
 
-There is a good support for Knn in Elastic Search, with approximate matching.
+There is a good support for KNNs in Elastic Search, with approximate matching.
 
 If we can reduce scoring to a KNN search this might be worth exploring.
 
@@ -47,7 +48,7 @@ The score is a ponderated mean, so really it can be seen as a dotProduct
 We can put attributes match in a vector and put weighs of user attributes in another vector,
 then use dotProduct. ( a1 * b1 + a2 * b2 + a3 * b3)
 
-It is ok for ranking as maybe and unknown are not taken into account.
+It is ok for ranking as "maybe" and "unknown" are not taken into account.
 
 The only problem is with "non matching" we should be less than 0 and is hard to express in a dotProduct
 (non matching is as soon as a mandatory is < 10).
