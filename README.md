@@ -35,6 +35,7 @@ docker compose up -d
 
 > [!NOTE]
 > You may encounter a permission error if your user is not part of the `docker` group, in which case you should either [add it](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) or modify the Makefile to prefix `sudo` to all docker and docker compose commands.
+> Update container crash because we are not connected to any Redis
 
 Docker spins up:
 - Two elasticsearch nodes
