@@ -106,6 +106,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     if (!this.value) return;
 
     const inputEvent = new CustomEvent('autocomplete-submit', {
+      // we send both value and label
       detail: {
         value: this.value,
         label: isSuggestion ? this.options[this.currentIndex].label : undefined,
