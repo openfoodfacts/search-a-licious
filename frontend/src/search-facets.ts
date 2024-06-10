@@ -8,6 +8,7 @@ import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
+import {QueryOperator} from './utils/constants';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -148,6 +149,13 @@ export class SearchaliciousFacet extends LitElement {
       `reset not implemented: implement in sub class with submit ${submit}`
     );
   };
+  setSelectedTerms(terms: string[]) {
+    throw new Error(
+      `setSelectedTerms not implemented: implement in sub class ${terms.join(
+        ', '
+      )}`
+    );
+  }
 
   override render() {
     if (this.infos) {
@@ -227,6 +235,14 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     this._launchSearchWithDebounce();
   }
 
+  override setSelectedTerms(terms: string[]) {
+    this.selectedTerms = {};
+    for (const term of terms) {
+      this.selectedTerms[term] = true;
+    }
+    //   updateInput
+  }
+
   /**
    * Create the search term based upon the selected terms
    */
@@ -241,7 +257,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     if (values.length === 0) {
       return undefined;
     }
-    let orValues = values.join(' OR ');
+    let orValues = values.join(QueryOperator.OR);
     if (values.length > 1) {
       orValues = `(${orValues})`;
     }

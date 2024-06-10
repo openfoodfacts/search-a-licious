@@ -11,8 +11,24 @@ import {
   SearchResultEvent,
   SearchResultDetail,
 } from '../events';
-import {SearchaliciousFacets} from '../search-facets';
 import {Constructor} from './utils';
+import {SearchaliciousFacets} from './search-facets';
+import {
+  addParamPrefixes,
+  removeParamPrefixes,
+  removeParenthesis,
+  setCurrentURLHistory,
+} from './utils/url';
+import {FACETS_DIVIDER, OFF_PREFIX, QueryOperator} from './utils/constants';
+
+export type BuildParamsOutput = {
+  q: string;
+  langs: string;
+  page_size: string;
+  page?: string;
+  index?: string;
+  facets?: string;
+};
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface {
   query: string;
@@ -24,6 +40,70 @@ export interface SearchaliciousSearchInterface
 
   search(): Promise<void>;
 }
+export enum HistorySearchParams {
+  QUERY = 'q',
+  FACETS_FILTERS = 'facetsFilters',
+  PAGE = 'page',
+  FACETS = 'facets',
+}
+
+export type PartialSearchParams = Partial<Record<HistorySearchParams, string>>;
+
+export const SEARCH_PARAMS = Object.values(HistorySearchParams);
+
+export type HistoryParams = {
+  [key in HistorySearchParams]?: string;
+};
+export type HistoryOutput = {
+  query?: string;
+  page?: number;
+  selectedTermsByFacet?: Record<string, string[]>;
+};
+
+const VALUES_FROM_HISTORY: Record<
+  HistorySearchParams,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (history: Record<string, string>) => Record<string, any>
+> = {
+  [HistorySearchParams.PAGE]: (history) =>
+    history.page
+      ? {
+          page: parseInt(history.page),
+        }
+      : {},
+  [HistorySearchParams.QUERY]: (history) => {
+    if (!history.q) {
+      return {};
+    }
+    return {
+      query: history.q,
+    };
+  },
+  [HistorySearchParams.FACETS]: (history) => {
+    if (!history.facets) {
+      return {};
+    }
+    return {
+      facets: history.facets.split(FACETS_DIVIDER),
+    };
+  },
+  [HistorySearchParams.FACETS_FILTERS]: (history) => {
+    if (!history.facetsFilters) {
+      return {};
+    }
+    const selectedTermsByFacet = history.facetsFilters
+      .split(QueryOperator.AND)
+      .reduce((acc, filter) => {
+        const [key, value] = filter.split(':');
+        acc[key] = removeParenthesis(value).split(QueryOperator.OR);
+        return acc;
+      }, {} as Record<string, string[]>);
+
+    return {
+      selectedTermsByFacet,
+    };
+  },
+};
 
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
@@ -94,6 +174,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
+    constructor() {
+      super();
+      this.firstSearch();
+    }
+
     /**
      * @returns all searchalicious-facets elements linked to this search ctl
      */
@@ -128,41 +213,12 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       const allFilters: string[] = this._facetsNodes()
         .map((facets) => facets.getSearchFilters())
         .flat();
-      return allFilters.join(' AND ');
+      return allFilters.join(QueryOperator.AND);
     }
-
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
-      const queryParts = [];
-      if (this.query) {
-        queryParts.push(this.query);
-      }
-      const facetsFilters = this._facetsFilters();
-      if (facetsFilters) {
-        queryParts.push(facetsFilters);
-      }
-      // build parameters
-      const params: {
-        q: string;
-        langs: string;
-        page_size: string;
-        page?: string;
-        index?: string;
-        facets?: string;
-      } = {
-        q: queryParts.join(' '),
-        langs: this.langs,
-        page_size: this.pageSize.toString(),
-        index: this.index,
-      };
-      if (page) {
-        params.page = page.toString();
-      }
-      const facets = this._facets();
-      if (facets && facets.length > 0) {
-        params.facets = facets.join(',');
-      }
+      const params = this.buildParams(page);
       const queryStr = Object.entries(params)
         .filter(
           ([_, value]) => value != null // null or undefined
@@ -173,8 +229,12 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         )
         .sort() // for perdictability in tests !
         .join('&');
-
-      return `${baseUrl}/search?${queryStr}`;
+      return {
+        searchUrl: `${baseUrl}/search?${queryStr}`,
+        q: queryStr,
+        params,
+        history: this.buildHistoryParams(params),
+      };
     }
 
     // connect to our specific events
@@ -227,12 +287,93 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         this.search(detail.page);
       }
     }
+    buildParams = (page?: number): BuildParamsOutput => {
+      const queryParts = [];
+      if (this.query) {
+        queryParts.push(this.query);
+      }
+      const facetsFilters = this._facetsFilters();
+      if (facetsFilters) {
+        queryParts.push(facetsFilters);
+      }
+      const params: {
+        q: string;
+        langs: string;
+        page_size: string;
+        page?: string;
+        index?: string;
+        facets?: string;
+      } = {
+        q: queryParts.join(' '),
+        langs: this.langs,
+        page_size: this.pageSize.toString(),
+        index: this.index,
+      };
+      if (page) {
+        params.page = page.toString();
+      }
+      if (this._facets().length > 0) {
+        params.facets = this._facets().join(FACETS_DIVIDER);
+      }
+      return params;
+    };
+
+    buildHistoryParams = (params: BuildParamsOutput) => {
+      return addParamPrefixes(
+        {
+          [HistorySearchParams.QUERY]: this.query,
+          [HistorySearchParams.FACETS_FILTERS]: this._facetsFilters(),
+          [HistorySearchParams.PAGE]: params.page,
+          [HistorySearchParams.FACETS]: params.facets,
+        },
+        OFF_PREFIX
+      ) as HistoryParams;
+    };
+
+    paramsToOriginalValues = (params: URLSearchParams): HistoryOutput => {
+      const values: HistoryOutput = {};
+      const history = removeParamPrefixes(
+        Object.fromEntries(params),
+        OFF_PREFIX
+      );
+      for (const key of SEARCH_PARAMS) {
+        Object.assign(values, VALUES_FROM_HISTORY[key](history));
+      }
+      return values;
+    };
+
+    setValuesFromHistory = (values: HistoryOutput) => {
+      this.query = values.query ?? '';
+      this._currentPage = values.page;
+      this._facetsNodes().forEach((facets) => {
+        facets._facetNodes().forEach((facet) => {
+          if (values.selectedTermsByFacet?.[facet.name]?.length) {
+            facet.setSelectedTerms(values.selectedTermsByFacet[facet.name]);
+          }
+        });
+      });
+    };
+
+    firstSearch = () => {
+      const params = new URLSearchParams(window.location.search);
+      const values = this.paramsToOriginalValues(params);
+
+      // Timeout to wait for all facets to be ready
+      setTimeout(() => {
+        this.setValuesFromHistory(values);
+        if (Object.keys(values).length) {
+          this.search();
+        }
+      }, 100);
+    };
 
     /**
      * Launching search
      */
     async search(page?: number) {
-      const response = await fetch(this._searchUrl(page));
+      const {searchUrl, history} = this._searchUrl(page);
+      setCurrentURLHistory(history);
+      const response = await fetch(searchUrl);
       // FIXME data should be typed…
       const data = await response.json();
       this._results = data.hits;
