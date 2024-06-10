@@ -121,23 +121,35 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   getAutocompleteValueByIndex(index: number) {
     return this.options[index].value;
   }
-  handleKeyDown(event: KeyboardEvent) {
-    const maxIndex = this.options.length + 1;
-    if (event.key === 'ArrowDown') {
-      this.currentIndex = (this.currentIndex + 1) % maxIndex;
-    } else if (event.key === 'ArrowUp') {
-      this.currentIndex = (this.currentIndex - 1 + maxIndex) % maxIndex;
+
+  handleArrowDown() {
+    this.currentIndex = (this.currentIndex + 1) % this.options.length;
+  }
+  handleArrowUp() {
+    this.currentIndex =
+      (this.currentIndex - 1 + this.options.length) % this.options.length;
+  }
+  handleEnter(event: KeyboardEvent) {
+    let isAutoComplete = false;
+    if (this.currentIndex) {
+      isAutoComplete = true;
+      this.value = this.getAutocompleteValueByIndex(this.currentIndex);
+    } else {
+      const value = (event.target as HTMLInputElement).value;
+      this.value = value;
     }
-    if (event.key === 'Enter') {
-      let isAutoComplete = false;
-      if (this.currentIndex) {
-        isAutoComplete = true;
-        this.value = this.getAutocompleteValueByIndex(this.currentIndex);
-      } else {
-        const value = (event.target as HTMLInputElement).value;
-        this.value = value;
-      }
-      this.submit(isAutoComplete);
+    this.submit(isAutoComplete);
+  }
+  handleKeyDown(event: KeyboardEvent) {
+    switch (event.key) {
+      case 'ArrowDown':
+        this.handleArrowDown();
+        return;
+      case 'ArrowUp':
+        this.handleArrowUp();
+        return;
+      case 'Enter':
+        this.handleEnter(event);
     }
   }
 
