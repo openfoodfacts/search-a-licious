@@ -1,15 +1,11 @@
 import logging
 from typing import cast
 
-from app import config
-from app._types import SearchResponse
-from app.facets import build_facets
-from app.postprocessing import BaseResultProcessor, load_result_processor
-from app.query import (
-    build_elasticsearch_query_builder,
-    build_search_query,
-    execute_query,
-)
+from . import config
+from ._types import SearchParameters, SearchResponse
+from .facets import build_facets
+from .postprocessing import BaseResultProcessor, load_result_processor
+from .query import build_elasticsearch_query_builder, build_search_query, execute_query
 
 logger = logging.getLogger(__name__)
 
@@ -33,58 +29,49 @@ else:
 
 
 def search(
-    index_id: str | None,
-    q: str | None,
-    sort_by: str | None,
-    page: int,
-    page_size: int,
-    fields: list[str] | None,
-    langs: list[str],
-    facets: list[str] | None,
-    **other_params
+    params: SearchParameters,
 ) -> SearchResponse:
     """Run a search"""
-    global_config = cast(config.Config, config.CONFIG)
-    index_id, index_config = global_config.get_index_config(index_id)
-    result_processor = cast(BaseResultProcessor, RESULT_PROCESSORS[index_id])
-    langs_set = set(langs)
+    result_processor = cast(BaseResultProcessor, RESULT_PROCESSORS[params.index_id])
     logger.debug(
         "Received search query: q='%s', langs='%s', page=%d, "
         "page_size=%d, fields='%s', sort_by='%s'",
-        q,
-        langs_set,
-        page,
-        page_size,
-        fields,
-        sort_by,
+        params.q,
+        params.langs_set,
+        params.page,
+        params.page_size,
+        params.fields,
+        params.sort_by,
     )
-
+    index_config = params.get_index_config()
     query = build_search_query(
-        q=q,
-        langs=langs_set,
-        size=page_size,
-        page=page,
+        q=params.q,
+        langs=params.langs_set,
+        size=params.page_size,
+        page=params.page,
         config=index_config,
-        sort_by=sort_by,
+        sort_by=params.sort_by,
         # filter query builder is generated from elasticsearch mapping and
         # takes ~40ms to generate, build-it before hand to avoid this delay
-        filter_query_builder=FILTER_QUERY_BUILDERS[index_id],
-        facets=facets,
+        filter_query_builder=FILTER_QUERY_BUILDERS[params.index_id],
+        facets=params.facets,
     )
     logger.debug(
         "Elasticsearch query: %s",
         query.es_query.to_dict() if query.es_query else query.es_query,
     )
 
-    projection = set(fields) if fields else None
+    projection = set(params.fields) if params.fields else None
     search_result = execute_query(
         query.es_query,
         result_processor,
-        page=page,
-        page_size=page_size,
+        page=params.page,
+        page_size=params.page_size,
         projection=projection,
     )
-    search_result.facets = build_facets(search_result, query, index_config, facets)
+    search_result.facets = build_facets(
+        search_result, query, index_config, params.facets
+    )
     # remove aggregations to avoid sending too much information
     search_result.aggregations = None
     return search_result

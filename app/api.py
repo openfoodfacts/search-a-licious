@@ -5,19 +5,26 @@ from typing import Annotated, Any, cast
 
 import elasticsearch
 from elasticsearch_dsl import Search
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Body, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
 
 import app.search as app_search
 from app import config
-from app._types import SearchResponse, SuccessSearchResponse
+from app._types import (
+    INDEX_ID_QUERY_PARAM,
+    GetSearchParamsTypes,
+    SearchParameters,
+    SearchResponse,
+    SuccessSearchResponse,
+)
 from app.config import check_config_is_defined, settings
-from app.facets import check_all_facets_fields_are_agg
 from app.postprocessing import process_taxonomy_completion_response
 from app.query import build_completion_query
 from app.utils import connection, get_logger, init_sentry
+from app.validations import check_index_id_is_defined
 
 logger = get_logger()
 
@@ -49,31 +56,11 @@ init_sentry(settings.sentry_dns)
 connection.get_es_client()
 
 
-INDEX_ID_QUERY_PARAM = Query(
-    description="""Index ID to use for the search, if not provided, the default index is used.
-    If there is only one index, this parameter is not needed."""
-)
-
-
-def check_index_id_is_defined(index_id: str | None, config: config.Config) -> None:
-    """Check that the index ID is defined in the configuration.
-
-    Raise an HTTPException if it's not the case.
-
-    :param index_id: index ID to check
-    :param config: configuration to check against
-    """
-    if index_id is None:
-        if len(config.indices) > 1:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Index ID must be provided when there is more than one index, available indices: {list(config.indices.keys())}",
-            )
-    elif index_id not in config.indices:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Index ID '{index_id}' not found, available indices: {list(config.indices.keys())}",
-        )
+def check_index_id_is_defined_or_400(index_id: str | None, config: config.Config):
+    try:
+        check_index_id_is_defined(index_id, config)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/document/{identifier}")
@@ -83,7 +70,7 @@ def get_document(
     """Fetch a document from Elasticsearch with specific ID."""
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
-    check_index_id_is_defined(index_id, global_config)
+    check_index_id_is_defined_or_400(index_id, global_config)
     index_id, index_config = global_config.get_index_config(index_id)
 
     id_field_name = index_config.index.id_field_name
@@ -102,123 +89,41 @@ def get_document(
     return product
 
 
-def check_facets_are_valid(index_id: str | None, facets: list[str] | None) -> None:
-    """Check that the facets are valid."""
-    errors = check_all_facets_fields_are_agg(index_id, facets)
-    if errors:
-        raise HTTPException(status_code=400, detail=json.dumps(errors))
+@app.post("/search")
+def search(search_parameters: Annotated[SearchParameters, Body()]):
+    return app_search.search(search_parameters)
 
 
 @app.get("/search")
-def search(
-    q: Annotated[
-        str | None,
-        Query(
-            description="""The search query, it supports Lucene search query
-syntax (https://lucene.apache.org/core/3_6_0/queryparsersyntax.html). Words
-that are not recognized by the lucene query parser are searched as full text
-search.
-
-Example: `categories_tags:"en:beverages" strawberry brands:"casino"` query use a
-filter clause for categories and brands and look for "strawberry" in multiple
-fields.
-
-The query is optional, but `sort_by` value must then be provided."""
-        ),
-    ] = None,
-    langs: Annotated[
-        str | None,
-        Query(
-            description="""A comma-separated list of languages we want to support during search.
-This list should include the user expected language, and additional languages (such
-as english for example).
-
-This is currently used for language-specific subfields to choose in which
-subfields we're searching in.
-
-If not provided, `['en']` is used."""
-        ),
-    ] = None,
-    page_size: Annotated[
-        int, Query(description="Number of results to return per page.")
-    ] = 10,
-    page: Annotated[int, Query(ge=1, description="Page to request, starts at 1.")] = 1,
-    fields: Annotated[
-        str | None,
-        Query(
-            description="Fields to include in the response, as a comma-separated value. All other fields will be ignored."
-        ),
-    ] = None,
-    sort_by: Annotated[
-        str | None,
-        Query(
-            description="""Field name to use to sort results, the field should exist
-            and be sortable. If it is not provided, results are sorted by descending relevance score.
-
-            If the field name match a known script (defined in your configuration),
-            it will be use for sorting.
-
-            In this case you also need to provide additional parameters corresponding to your script parameters.
-
-            Beware that this may have a big impact on performance.
-            """
-        ),
-    ] = None,
-    facets: Annotated[
-        str | None,
-        Query(
-            description="""Name of facets to return in the response as a comma-separated value.
-            If None (default) no facets are returned."""
-        ),
-    ] = None,
-    index_id: Annotated[
-        str | None,
-        INDEX_ID_QUERY_PARAM,
-    ] = None,
-    request: Request = None,
+def search_get(
+    q: GetSearchParamsTypes.q = None,
+    langs: GetSearchParamsTypes.langs = None,
+    page_size: GetSearchParamsTypes.page_size = 10,
+    page: GetSearchParamsTypes.page = 1,
+    fields: GetSearchParamsTypes.fields = None,
+    sort_by: GetSearchParamsTypes.sort_by = None,
+    facets: GetSearchParamsTypes.facets = None,
+    index_id: GetSearchParamsTypes.index_id = None,
 ) -> SearchResponse:
-    # check and preprocess parameters
-    check_config_is_defined()
-    global_config = cast(config.Config, config.CONFIG)
-    check_index_id_is_defined(index_id, global_config)
-    facets_list = facets.split(",") if facets else None
-    check_facets_are_valid(index_id, facets_list)
-    # other parameters
-    known_params = {
-        "q",
-        "lang",
-        "page_size",
-        "page",
-        "fields",
-        "sort_by",
-        "facets",
-        "index_id",
-    }
-    other_params = {
-        k: v for k, v in request.query_params.items() if k not in known_params
-    }
-    if q is None and sort_by is None:
-        raise HTTPException(
-            status_code=400, detail="`sort_by` must be provided when `q` is missing"
-        )
-    if page * page_size > 10_000:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Maximum number of returned results is 10 000 (here: page * page_size = {page * page_size})",
-        )
+    # str to lists
     langs_list = langs.split(",") if langs else ["en"]
-    # search
-    return app_search.search(
-        q=q,
-        langs=langs_list,
-        page_size=page_size,
-        page=page,
-        fields=fields.split(",") if fields else None,
-        sort_by=sort_by,
-        facets=facets_list,
-        index_id=index_id,
-        **other_params,
-    )
+    fields_list = fields.split(",") if fields else None
+    facets_list = facets.split(",") if facets else None
+    # create SearchParameters object
+    try:
+        search_parameters = SearchParameters(
+            q=q,
+            langs=langs_list,
+            page_size=page_size,
+            page=page,
+            fields=fields_list,
+            sort_by=sort_by,
+            facets=facets_list,
+            index_id=index_id,
+        )
+        return search(search_parameters)
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/autocomplete")
@@ -245,7 +150,7 @@ def taxonomy_autocomplete(
 ):
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
-    check_index_id_is_defined(index_id, global_config)
+    check_index_id_is_defined_or_400(index_id, global_config)
     index_id, index_config = global_config.get_index_config(index_id)
     taxonomy_names_list = taxonomy_names.split(",")
     query = build_completion_query(
