@@ -8,6 +8,7 @@ import {
   MissingResultTemplateError,
   MultipleResultTemplateError,
 } from './errors';
+import { ResultCounter } from './result-counter';
 
 // we need it to declare functions
 type htmlType = typeof html;
@@ -105,6 +106,10 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
     return slots[0].innerHTML;
   }
 
+  _getResultCount() {
+    return this.results.length;
+  }
+
   override render() {
     if (this.results.length) {
       return this.renderResults();
@@ -118,6 +123,7 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
   renderResults() {
     // we have a keyFn only if this.resultId exists
     // compute params to repeat according to that
+    const result_count = this._getResultCount();
     const renderResult = (result: Object, index: number) =>
       this.resultRenderer(html, result, index);
     const keyFn = this.resultId
@@ -125,9 +131,14 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
       : undefined;
     const KeyFnOrTemplate = keyFn ? keyFn : renderResult;
     const templateOrUndef = keyFn ? renderResult : undefined;
-    return html` <ul part="results">
-      ${repeat(this.results, KeyFnOrTemplate, templateOrUndef)}
-    </ul>`;
+    return html`
+      <div>
+        <result-counter .count=${result_count}></result-counter>
+        <ul part="results">
+          ${repeat(this.results, KeyFnOrTemplate, templateOrUndef)}
+        </ul>
+      </div>
+    `;
   }
 
   /**
