@@ -150,6 +150,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
         return;
       case 'Enter':
         this.handleEnter(event);
+        return;
     }
   }
 
