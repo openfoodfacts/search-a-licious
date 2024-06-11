@@ -1,3 +1,8 @@
+/**
+ * Filter an object by keys
+ * @param obj
+ * @param keys
+ */
 export const filterObjectByKeys = <T>(obj: T, keys: string[]): Partial<T> => {
   const newObj: Partial<T> = {};
   for (const key of keys) {
@@ -7,4 +12,14 @@ export const filterObjectByKeys = <T>(obj: T, keys: string[]): Partial<T> => {
     }
   }
   return newObj;
+};
+
+/**
+ * Check if a value is null or undefined
+ * @param value
+ */
+export const isNullOrUndefined = (
+  value: unknown
+): value is null | undefined => {
+  return value === null || value === undefined;
 };

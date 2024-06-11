@@ -20,6 +20,7 @@ import {
   setCurrentURLHistory,
 } from './utils/url';
 import {FACETS_DIVIDER, OFF_PREFIX, QueryOperator} from './utils/constants';
+import {isNullOrUndefined} from './utils';
 
 export type BuildParamsOutput = {
   q: string;
@@ -44,7 +45,6 @@ export enum HistorySearchParams {
   QUERY = 'q',
   FACETS_FILTERS = 'facetsFilters',
   PAGE = 'page',
-  FACETS = 'facets',
 }
 
 export type PartialSearchParams = Partial<Record<HistorySearchParams, string>>;
@@ -72,19 +72,12 @@ const VALUES_FROM_HISTORY: Record<
         }
       : {},
   [HistorySearchParams.QUERY]: (history) => {
-    if (!history.q) {
+    // Avoid empty query but allow empty string
+    if (isNullOrUndefined(history.q)) {
       return {};
     }
     return {
       query: history.q,
-    };
-  },
-  [HistorySearchParams.FACETS]: (history) => {
-    if (!history.facets) {
-      return {};
-    }
-    return {
-      facets: history.facets.split(FACETS_DIVIDER),
     };
   },
   [HistorySearchParams.FACETS_FILTERS]: (history) => {
@@ -324,7 +317,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
           [HistorySearchParams.QUERY]: this.query,
           [HistorySearchParams.FACETS_FILTERS]: this._facetsFilters(),
           [HistorySearchParams.PAGE]: params.page,
-          [HistorySearchParams.FACETS]: params.facets,
         },
         OFF_PREFIX
       ) as HistoryParams;
