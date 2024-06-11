@@ -47,8 +47,6 @@ export enum HistorySearchParams {
   PAGE = 'page',
 }
 
-export type PartialSearchParams = Partial<Record<HistorySearchParams, string>>;
-
 export const SEARCH_PARAMS = Object.values(HistorySearchParams);
 
 export type HistoryParams = {
@@ -60,7 +58,10 @@ export type HistoryOutput = {
   selectedTermsByFacet?: Record<string, string[]>;
 };
 
-const VALUES_FROM_HISTORY: Record<
+/**
+ * Object to convert the URL params to the original values
+ */
+const HISTORY_VALUES: Record<
   HistorySearchParams,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (history: Record<string, string>) => Record<string, any>
@@ -280,6 +281,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         this.search(detail.page);
       }
     }
+
+    /**
+     * Build the params to send to the search API
+     * @param page
+     */
     buildParams = (page?: number): BuildParamsOutput => {
       const queryParts = [];
       if (this.query) {
@@ -311,6 +317,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       return params;
     };
 
+    /**
+     * Build the history params from the current state
+     * It will be used to update the URL when searching
+     * @param params
+     */
     buildHistoryParams = (params: BuildParamsOutput) => {
       return addParamPrefixes(
         {
@@ -322,6 +333,10 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       ) as HistoryParams;
     };
 
+    /**
+     * Convert the URL params to the original values
+     * @param params
+     */
     paramsToOriginalValues = (params: URLSearchParams): HistoryOutput => {
       const values: HistoryOutput = {};
       const history = removeParamPrefixes(
@@ -329,11 +344,16 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         OFF_PREFIX
       );
       for (const key of SEARCH_PARAMS) {
-        Object.assign(values, VALUES_FROM_HISTORY[key](history));
+        Object.assign(values, HISTORY_VALUES[key](history));
       }
       return values;
     };
 
+    /**
+     * Set the values from the history
+     * It will set the params from the URL params
+     * @param values
+     */
     setValuesFromHistory = (values: HistoryOutput) => {
       this.query = values.query ?? '';
       this._currentPage = values.page;

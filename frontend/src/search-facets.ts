@@ -235,6 +235,11 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     this._launchSearchWithDebounce();
   }
 
+  /**
+   * Set the selected terms from an array of terms
+   * This is used to restore the state of the facet
+   * @param terms
+   */
   override setSelectedTerms(terms: string[]) {
     this.selectedTerms = {};
     for (const term of terms) {
