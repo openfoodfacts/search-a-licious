@@ -112,6 +112,7 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
 
   /**
    * Launch the first search
+   * We choose to run it here because it only run once
    */
   _launchFirstSearch() {
     // we need to wait a bit to be sure that all components are ready

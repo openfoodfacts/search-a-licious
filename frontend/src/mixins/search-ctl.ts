@@ -41,6 +41,7 @@ export interface SearchaliciousSearchInterface
 
   search(): Promise<void>;
 }
+
 export enum HistorySearchParams {
   QUERY = 'q',
   FACETS_FILTERS = 'facetsFilters',
@@ -238,6 +239,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.addEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
       );
+      // launch first search from search-pages dispatch
       this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, () =>
         this.firstSearch()
       );
@@ -338,7 +340,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Convert the URL params to the original values
      * @param params
      */
-    paramsToOriginalValues = (params: URLSearchParams): HistoryOutput => {
+    convertHistoryParamsToValues = (params: URLSearchParams): HistoryOutput => {
       const values: HistoryOutput = {};
       const history = removeParamPrefixes(
         Object.fromEntries(params),
@@ -367,17 +369,15 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       });
     };
 
+    /**
+     * Launching first search if there is a query in the URL
+     */
     firstSearch = () => {
       const params = new URLSearchParams(window.location.search);
-      const values = this.paramsToOriginalValues(params);
+      const values = this.convertHistoryParamsToValues(params);
 
-      // Timeout to wait for all facets to be ready
-      setTimeout(() => {
-        this.setValuesFromHistory(values);
-        if (Object.keys(values).length) {
-          this.search();
-        }
-      }, 100);
+      this.setValuesFromHistory(values);
+      this.search();
     };
 
     /**
