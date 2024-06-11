@@ -29,9 +29,9 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   results: Record<string, any>[] = [];
 
-  // number of results
+  // the number of results
   @state()
-  nbResults: number = 0;
+  count: number = 0;
 
   // attribute giving id to seek in search results, might be undefined
   @property({attribute: 'result-id'})
@@ -129,11 +129,7 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
       : undefined;
     const KeyFnOrTemplate = keyFn ? keyFn : renderResult;
     const templateOrUndef = keyFn ? renderResult : undefined;
-    return html` 
-    <p>
-      ${this.nbResults} products
-    </p>
-    <ul part="results">
+    return html` <ul part="results">
       ${repeat(this.results, KeyFnOrTemplate, templateOrUndef)}
     </ul>`;
   }
@@ -143,7 +139,17 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
    */
   override handleResults(event: SearchResultEvent) {
     this.results = event.detail.results; // it's reactive, should trigger rendering
-    this.nbResults = event.detail.count;
+    this.count = event.detail.count; // it's reactive, should trigger rendering
+    // Dispatch an event to notify that the results have been updated
+    const customEvent = new CustomEvent('search-results-updated', {
+      detail: {
+        count: this.count,
+      },
+      bubbles: true,
+      composed: true
+    });
+    this.dispatchEvent(customEvent);
+    
   }
 
   /**
