@@ -2,12 +2,15 @@ import {LitElement, html, css} from 'lit';
 import {customElement} from 'lit/decorators.js';
 
 /**
- * An optional search reset button element that launch the search.
- *
- * @slot - goes in button contents, default to "Reset" string
+ * A custom element that represents a reset button for a search.
+ * @extends {LitElement}
+ * @slot - This slot is for the button contents, default to "Reset" string.
  */
 @customElement('searchalicious-reset-button')
 export class SearchaliciousResetButton extends LitElement {
+  /**
+   * Styles for the reset button.
+   */
   static override styles = css`
     .reset-button {
       background-color: black;
@@ -24,11 +27,11 @@ export class SearchaliciousResetButton extends LitElement {
       width: 100%;
     }
   `;
-  /**
-   * the search we should trigger,
-   * this corresponds to `name` attribute of corresponding search-bar
-   */
 
+  /**
+   * Render function for the reset button.
+   * @returns {import('lit').TemplateResult<1>} The HTML template for the reset button.
+   */
   override render() {
     return html`
       <button
@@ -43,18 +46,29 @@ export class SearchaliciousResetButton extends LitElement {
     `;
   }
 
+  /**
+   * Dispatches a reset event.
+   * @private
+   */
   private _dispatchResetEvent() {
     this.dispatchEvent(
       new CustomEvent('reset', {bubbles: true, composed: true})
     );
   }
+
   /**
-   * Launch search by emitting the LAUNCH_SEARCH signal
+   * Handles the click event on the reset button.
+   * @private
    */
   private _onClick() {
     this._dispatchResetEvent();
   }
 
+  /**
+   * Handles the keyup event on the reset button to dispatch reset event.
+   * @param {Event} event - The keyup event.
+   * @private
+   */
   private _onKeyUp(event: Event) {
     const kbd_event = event as KeyboardEvent;
     if (kbd_event.key === 'Enter') {
@@ -64,6 +78,10 @@ export class SearchaliciousResetButton extends LitElement {
 }
 
 declare global {
+  /**
+   * The HTMLElementTagNameMap interface represents a map of custom element tag names to custom element constructors.
+   * Here, it's extended to include 'searchalicious-reset-button' as a valid custom element tag name.
+   */
   interface HTMLElementTagNameMap {
     'searchalicious-reset-button': SearchaliciousResetButton;
   }

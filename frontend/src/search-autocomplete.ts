@@ -2,20 +2,25 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {DebounceMixin} from './mixins/debounce';
 import {classMap} from 'lit/directives/class-map.js';
-
+/**
+ * Type for autocomplete option.
+ */
 export type AutocompleteOption = {
   value: string;
   label: string;
 };
+/**
+ * Type for autocomplete result.
+ */
 export type AutocompleteResult = {
   value: string;
   label?: string;
 };
 
 /**
- * An optional search autocomplete element that launch the search.
- *
- * @slot - goes in button contents, default to "Search" string
+ * A custom element that represents a search autocomplete.
+ * @extends {LitElement}
+ * @slot - This slot is for the button contents, default to "Search" string.
  */
 @customElement('searchalicious-autocomplete')
 export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
@@ -74,6 +79,19 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   @property({attribute: false})
   isLoading = false;
 
+  /**
+   * This method is used to get the current index.
+   * It remove the offset of 1 because the currentIndex is 1-based.
+   * @returns {number} The current index.
+   */
+  getCurrentIndex() {
+    return this.currentIndex - 1;
+  }
+
+  /**
+   * Handles the input event on the autocomplete and dispatch custom event : "autocomplete-input".
+   * @param {InputEvent} event - The input event.
+   */
   handleInput(event: InputEvent) {
     const value = (event.target as HTMLInputElement).value;
     this.value = value;
@@ -88,9 +106,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   }
   /**
    * This method is used to remove focus from the input element.
-   * It first selects the input element from the shadow DOM,
-   * then checks if the input element exists and if so, calls the blur method on it.
-   * The blur method removes focus from the input element.
+   * It is used to quit after selecting an option.
    */
   blurInput() {
     const input = this.shadowRoot!.querySelector('input');
@@ -99,11 +115,21 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     }
   }
 
+  /**
+   * This method is used to reset the input value and blur it.
+   * It is used to reset the input after a search.
+   */
   resetInput() {
     this.value = '';
     this.currentIndex = 0;
     this.blurInput();
   }
+
+  /**
+   * This method is used to submit the input value.
+   * It is used to submit the input value after selecting an option.
+   * @param {boolean} isSuggestion - A boolean value to check if the value is a suggestion.
+   */
   submit(isSuggestion = false) {
     if (!this.value) return;
 
@@ -111,7 +137,9 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
       // we send both value and label
       detail: {
         value: this.value,
-        label: isSuggestion ? this.options[this.currentIndex].label : undefined,
+        label: isSuggestion
+          ? this.options[this.getCurrentIndex()].label
+          : undefined,
       } as AutocompleteResult,
       bubbles: true,
       composed: true,
@@ -120,22 +148,34 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     this.resetInput();
   }
 
+  /**
+   * This method is used to get the autocomplete value by index.
+   * @param {number} index - The index of the autocomplete value.
+   * @returns {string} The autocomplete value.
+   */
   getAutocompleteValueByIndex(index: number) {
     return this.options[index].value;
   }
 
-  handleArrowDown() {
-    this.currentIndex = (this.currentIndex + 1) % this.options.length;
+  /**
+   * This method is used to handle the arrow key events.
+   * @param {string} direction - The direction of the arrow key event.
+   */
+  handleArrowKey(direction: 'up' | 'down') {
+    const offset = direction === 'down' ? 1 : -1;
+    const maxIndex = this.options.length + 1;
+    this.currentIndex = (this.currentIndex + offset + maxIndex) % maxIndex;
   }
-  handleArrowUp() {
-    this.currentIndex =
-      (this.currentIndex - 1 + this.options.length) % this.options.length;
-  }
+
+  /**
+   * This method is used to handle the enter key event.
+   * @param event
+   */
   handleEnter(event: KeyboardEvent) {
     let isAutoComplete = false;
     if (this.currentIndex) {
       isAutoComplete = true;
-      this.value = this.getAutocompleteValueByIndex(this.currentIndex);
+      this.value = this.getAutocompleteValueByIndex(this.getCurrentIndex());
     } else {
       const value = (event.target as HTMLInputElement).value;
       this.value = value;
@@ -145,10 +185,10 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   handleKeyDown(event: KeyboardEvent) {
     switch (event.key) {
       case 'ArrowDown':
-        this.handleArrowDown();
+        this.handleArrowKey('down');
         return;
       case 'ArrowUp':
-        this.handleArrowUp();
+        this.handleArrowKey('up');
         return;
       case 'Enter':
         this.handleEnter(event);
@@ -156,22 +196,42 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     }
   }
 
+  /**
+   * This method is used to handle the click event on the autocomplete option.
+   * @param index
+   */
   onClick(index: number) {
     return () => {
       this.value = this.getAutocompleteValueByIndex(index);
+      // we need to increment the index because currentIndex is 1-based
+      this.currentIndex = index + 1;
       this.submit(true);
     };
   }
 
+  /**
+   * This method is used to handle the focus event on the input element.
+   * It is used to show the autocomplete options when the input is focused.
+   */
   handleFocus() {
     this.visible = true;
   }
+
+  /**
+   * This method is used to handle the blur event on the input element.
+   * It is used to hide the autocomplete options when the input is blurred.
+   * It is debounced to avoid to quit before select with click.
+   */
   handleBlur() {
     this.debounce(() => {
       this.visible = false;
     });
   }
 
+  /**
+   * This method is used to render the possible terms.
+   * @returns {import('lit').TemplateResult<1>} The HTML template for the possible terms.
+   */
   _renderPossibleTerms() {
     return this.options.length
       ? this.options.map(
@@ -184,6 +244,10 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
         )
       : html`<li>No results found</li>`;
   }
+
+  /**
+   * This method is used to render the search autocomplete.
+   */
   override render() {
     return html`
       <span class="search-autocomplete" part="search-autocomplete">

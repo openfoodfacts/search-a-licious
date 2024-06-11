@@ -226,6 +226,12 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     return `${this.name}:${orValues}`;
   }
 
+  /**
+   * Handle the autocomplete-input event on the add term input
+   * get the terms for the taxonomy
+   * @param event
+   * @param taxonomy
+   */
   onInputAddTerm(event: CustomEvent, taxonomy: string) {
     const value = event.detail.value;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -235,7 +241,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   }
 
   /**
-   * Render a field to add a term
+   * Renders the add term input when showOther is true
    */
   renderAddTerm() {
     const inputName = `add-term-for-${this.name}`;
@@ -291,13 +297,16 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     `;
   }
 
+  /**
+   * Reset the selected terms and launch a search
+   * @param search
+   */
   override reset = (search = true) => {
     Object.keys(this.selectedTerms).forEach((key) => {
       this.selectedTerms[key] = false;
     });
     this.customTerms = [];
     this.requestUpdate('selectedTerms');
-    // this.refreshCheckboxes();
     search && this._launchSearchWithDebounce();
   };
   _renderResetButton() {
