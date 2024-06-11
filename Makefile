@@ -65,7 +65,7 @@ build:
 	${DOCKER_COMPOSE} build --progress=plain
 
 
-up:
+up: _ensure_network
 ifdef service
 	${DOCKER_COMPOSE} up -d ${service} 2>&1
 else
