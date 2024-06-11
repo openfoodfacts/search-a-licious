@@ -168,11 +168,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
-    constructor() {
-      super();
-      this.firstSearch();
-    }
-
     /**
      * @returns all searchalicious-facets elements linked to this search ctl
      */
@@ -243,6 +238,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.addEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
       );
+      this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, () =>
+        this.firstSearch()
+      );
     }
     // connect to our specific events
     override disconnectedCallback() {
@@ -253,6 +251,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       );
       this.removeEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
+      );
+      this.removeEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, () =>
+        this.firstSearch()
       );
     }
 
