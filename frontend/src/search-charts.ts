@@ -1,5 +1,10 @@
 import {LitElement, html} from 'lit';
-import {customElement, state} from 'lit/decorators.js';
+import {
+  customElement,
+  state,
+  property,
+  queryAssignedNodes,
+} from 'lit/decorators.js';
 
 import {SearchaliciousResultCtlMixin} from './search-results-ctl';
 
@@ -7,50 +12,92 @@ import {SearchResultEvent} from './events';
 // @ts-ignore eslint-disable-next-line @typescript-eslint/ban-ts-comment  no-var
 declare var vega: any;
 
+interface ChartInfo {
+  id: string;
+  key: string;
+  values: HistogramValues;
+}
+
+interface HistogramValues {
+  [key: string]: number;
+}
+
 @customElement('searchalicious-charts')
 export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
   @state()
-  nbResults = 0;
+  @property()
+  charts?: Array<ChartInfo>;
+
+  @queryAssignedNodes({flatten: true})
+  slotNodes!: Array<Node>;
 
   override render() {
-    return html`<div id="pigeon"></div>`;
+    return html`<div><slot></slot></div>`;
+  }
+
+  _chartNodes(): SearchaliciousChart[] {
+    return this.slotNodes.filter(
+      (node) => node instanceof SearchaliciousChart
+    ) as SearchaliciousChart[];
   }
 
   override handleResults(event: SearchResultEvent) {
-    this.nbResults = event.detail.results.length;
-
-
-    const nutriScoreValues = {
-      'a': 0,
-      'b': 0,
-      'c': 0,
-      'd': 0,
-      'e': 0,
-      'unknown': 0
-    };
-
-    event.detail.results.map((result: any) => {
-      nutriScoreValues[result.nutriscore_grade] += 1;
+    this._chartNodes().forEach((node) => {
+      node.values = Object.fromEntries(
+        node.categories.map((category) => [category, 0])
+      );
     });
 
-    console.log(event.detail.results)
-    const container = this.renderRoot.querySelector('#pigeon');
+    for (const result of event.detail.results) {
+      this._chartNodes().forEach((node) => {
+        node.values[result[node.key]] += 1;
+      });
+    }
+  }
+}
 
+@customElement('searchalicious-chart')
+export class SearchaliciousChart extends LitElement {
+  @property()
+  key: string;
+
+  @property()
+  label: string;
+
+  @property({type: Array})
+  categories: Array<string>;
+
+  @property({attribute: false})
+  values?: any = [];
+
+  override render() {
+    const nbResults = Object.values(this.values).reduce(
+      (prev, c) => c + prev,
+      0
+    );
+    console.log(nbResults, this.values);
+    const display = nbResults > 0 ? '' : 'display: none';
+    return html`<div id="${this.key}" style="${display}"></div>`;
+  }
+
+  override updated() {
+    const container = this.renderRoot.querySelector(`#${this.key}`);
     const view = new vega.View(
       vega.parse({
         $schema: 'https://vega.github.io/schema/vega/v5.json',
-        description:
-          'Nutriscore distribution',
-        width: 400,
-        height: 200,
+        title: this.label,
+        width: container.offsetWidth,
+        height: 140,
         padding: 5,
-
         data: [
           {
             name: 'table',
-            values: Array.from(Object.entries(nutriScoreValues), ([key, value]) => ({ category: key, amount: value}));
+            values: Array.from(Object.entries(this.values), ([key, value]) => ({
+              category: key,
+              amount: value,
+            })),
           },
         ],
         signals: [
@@ -82,10 +129,8 @@ export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
         ],
 
         axes: [
-          {orient: 'bottom', scale: 'xscale'},
-          {orient: 'left', scale: 'yscale'},
+          {orient: 'bottom', scale: 'xscale', domain: false, ticks: false},
         ],
-
         marks: [
           {
             type: 'rect',
@@ -139,5 +184,6 @@ export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
 declare global {
   interface HTMLElementTagNameMap {
     'searchalicious-charts': SearchaliciousCharts;
+    'searchalicious-chart': SearchaliciousChart;
   }
 }
