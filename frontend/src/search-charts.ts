@@ -7,7 +7,7 @@ import {SearchResultEvent} from './events';
 // @ts-ignore eslint-disable-next-line @typescript-eslint/ban-ts-comment  no-var
 declare var vega: any;
 
-@customElement('searchalicious-@ts-ignorecharts')
+@customElement('searchalicious-charts')
 export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
@@ -15,19 +15,34 @@ export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
   nbResults = 0;
 
   override render() {
-    return html`<p>hello world</p>
-      <div id="pigeon"></div>`;
+    return html`<div id="pigeon"></div>`;
   }
 
   override handleResults(event: SearchResultEvent) {
     this.nbResults = event.detail.results.length;
+
+
+    const nutriScoreValues = {
+      'a': 0,
+      'b': 0,
+      'c': 0,
+      'd': 0,
+      'e': 0,
+      'unknown': 0
+    };
+
+    event.detail.results.map((result: any) => {
+      nutriScoreValues[result.nutriscore_grade] += 1;
+    });
+
+    console.log(event.detail.results)
     const container = this.renderRoot.querySelector('#pigeon');
 
     const view = new vega.View(
       vega.parse({
         $schema: 'https://vega.github.io/schema/vega/v5.json',
         description:
-          'A basic bar chart example, with value labels shown upon pointer hover.',
+          'Nutriscore distribution',
         width: 400,
         height: 200,
         padding: 5,
@@ -35,16 +50,7 @@ export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
         data: [
           {
             name: 'table',
-            values: [
-              {category: 'A', amount: 28},
-              {category: 'B', amount: 55},
-              {category: 'C', amount: 43},
-              {category: 'D', amount: 91},
-              {category: 'E', amount: 81},
-              {category: 'F', amount: 53},
-              {category: 'G', amount: 19},
-              {category: 'H', amount: 87},
-            ],
+            values: Array.from(Object.entries(nutriScoreValues), ([key, value]) => ({ category: key, amount: value}));
           },
         ],
         signals: [
