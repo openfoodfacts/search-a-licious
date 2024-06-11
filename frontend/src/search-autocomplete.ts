@@ -182,6 +182,12 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     }
     this.submit(isAutoComplete);
   }
+
+  /**
+   * This method is used to handle the key down event.
+   * It is used to handle the arrow key and enter key events.
+   * @param event
+   */
   handleKeyDown(event: KeyboardEvent) {
     switch (event.key) {
       case 'ArrowDown':
