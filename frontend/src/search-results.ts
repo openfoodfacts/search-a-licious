@@ -149,7 +149,6 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
       composed: true
     });
     this.dispatchEvent(customEvent);
-    
   }
 
   /**

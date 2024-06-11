@@ -15,28 +15,29 @@ export class ResultsCounterDisplay extends LitElement {
     `;
 
     @state()
-    count: number = 0;
+    // the number of results
+    resultCounter: number = 0;
 
     override connectedCallback() {
         super.connectedCallback();
-        console.log('ResultsCounterDisplay: connected');
-        this.addEventListener('search-results-updated', this.handleSearchResultsUpdated as EventListener);
+        // listen for the search-results-updated event
+        window.addEventListener('search-results-updated', this.handleSearchResultsUpdated as EventListener);
     }
 
     override disconnectedCallback() {
-        this.removeEventListener('search-results-updated', this.handleSearchResultsUpdated as EventListener);
-        console.log('ResultsCounterDisplay: disconnected');
+        // stop listening for the search-results-updated event
+        window.removeEventListener('search-results-updated', this.handleSearchResultsUpdated as EventListener);
         super.disconnectedCallback();
     }
 
     handleSearchResultsUpdated(event: CustomEvent) {
         console.log('ResultsCounterDisplay: search-results-updated event received');
-        const detail = event.detail.count
-        console.log('ResultsCounterDisplay: search-results-updated', detail);
-        this.count = detail;
+        // update the counter
+        this.resultCounter = event.detail.count;
+        console.log('ResultsCounterDisplay: count =', this.resultCounter);
     }
 
     override render() {
-        return html`<div>${this.count} results found</div>`;
+        return html`<div>${this.resultCounter} results found</div>`;
     }
 }
