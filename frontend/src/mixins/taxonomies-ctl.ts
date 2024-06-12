@@ -74,6 +74,8 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
 
     /**
      * Method to set loading state by taxonomy names.
+     * We support more than one taxonomy at once, 
+     * as suggest requests can target multiple taxonomies at once
      * @param {string[]} taxonomyNames - The taxonomy names.
      * @param {boolean} isLoading - The loading state.
      */
