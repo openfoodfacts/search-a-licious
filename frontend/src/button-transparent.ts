@@ -8,15 +8,15 @@ import {BasicEvents} from './utils/enums';
  * It sends a custom event "click" when clicked.
  * It exists to have already styled button for secondary actions.
  * You can modify this variable to customize the button style :
- * --button-without-background-background-padding
+ * --button-transparent-padding
  * --secondary-hover-color
  * @extends {LitElement}
  * @slot - This slot is for the button contents, default to "Search" string.
  */
-@customElement('searchalicious-button-without-background')
-export class SearchaliciousButtonWithoutBackground extends LitElement {
+@customElement('searchalicious-button-transparent')
+export class SearchaliciousButtonTransparent extends LitElement {
   static override styles = css`
-    .button-without-background {
+    .button-transparent {
       background-color: transparent;
       display: inline-flex;
       align-items: center;
@@ -24,12 +24,9 @@ export class SearchaliciousButtonWithoutBackground extends LitElement {
       border: none;
       border-radius: 3.5rem;
       cursor: pointer;
-      padding: var(
-        --button-without-background-background-padding,
-        0.25rem 0.5rem
-      );
+      padding: var(--button-transparent-padding, 0.25rem 0.5rem);
     }
-    .button-without-background:hover {
+    .button-transparent:hover {
       background-color: var(--secondary-hover-color, #cfac9e);
     }
   `;
@@ -56,9 +53,9 @@ export class SearchaliciousButtonWithoutBackground extends LitElement {
       <button
         @click=${this._onClick}
         @keyup=${this._onKeyUp}
-        part="button-without-background"
+        part="button-transparent"
         role="button"
-        class="button-without-background"
+        class="button-transparent"
         type="button"
       >
         <slot></slot>
@@ -69,6 +66,6 @@ export class SearchaliciousButtonWithoutBackground extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'searchalicious-button-without-background': SearchaliciousButtonWithoutBackground;
+    'searchalicious-button-transparent': SearchaliciousButtonTransparent;
   }
 }

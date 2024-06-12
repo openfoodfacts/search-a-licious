@@ -183,8 +183,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       flex-wrap: wrap;
       max-width: 100%;
     }
-    [part='button-without-background'] {
-      --button-without-background-background-padding: 0.5rem 1rem;
+    [part='button-transparent'] {
+      --button-transparent-padding: 0.5rem 1rem;
     }
   `;
 
@@ -348,12 +348,12 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
         <div class="legend-wrapper">
           <legend>${this.name}</legend>
           <span class="buttons">
-            <searchalicious-button-without-background
+            <searchalicious-button-transparent
                 title="Reset ${this.name}"
               @click=${this.reset}
               >
                 <searchalicious-icon-cross></searchalicious-icon-cross
-            </searchalicious-button-without-background
+            </searchalicious-button-transparent
             >
           </span>
         </div>
