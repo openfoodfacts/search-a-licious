@@ -44,7 +44,7 @@ export interface SearchaliciousSearchInterface
 
 /**
  * Parameters we need to put in URL to be able to deep link the search
- */ 
+ */
 export enum HistorySearchParams {
   QUERY = 'q',
   FACETS_FILTERS = 'facetsFilters',
@@ -67,7 +67,7 @@ export type HistoryOutput = {
 /**
  * Object to convert the URL params to the original values
  *
- * It maps parameter names to a function to transforms it to a JS value 
+ * It maps parameter names to a function to transforms it to a JS value
  */
 const HISTORY_VALUES: Record<
   HistorySearchParams,
@@ -94,7 +94,7 @@ const HISTORY_VALUES: Record<
       return {};
     }
     // we split back the facetsFilters expression to its sub components
-    // parameter value is facet1:(value1 OR value2) AND facet2:(value3 OR value4)
+    // parameter value is facet1:(value1 OR value2) AND facet2:(value3 OR value4)
     const selectedTermsByFacet = history.facetsFilters
       .split(QueryOperator.AND)
       .reduce((acc, filter) => {
@@ -217,7 +217,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /*
      * Compute search URL, associated parameters and history entry
      * based upon the requested page, and the state of other search components
-     * (search bar, facets, etc.) 
+     * (search bar, facets, etc.)
      */
     _searchUrl(page?: number) {
       // remove trailing slash
