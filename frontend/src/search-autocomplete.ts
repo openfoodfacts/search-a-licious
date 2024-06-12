@@ -97,7 +97,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     this.value = value;
     // we don't need a very specific event name
     // because it will be captured by the parent Facet element
-    // we don't need a very specific event name 
+    // we don't need a very specific event name
     // because it will be captured by the parent Facet element
     const inputEvent = new CustomEvent('autocomplete-input', {
       detail: {value: value},

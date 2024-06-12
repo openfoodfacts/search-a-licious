@@ -4,7 +4,7 @@ import {repeat} from 'lit/directives/repeat.js';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchResultEvent} from './events';
 import {DebounceMixin} from './mixins/debounce';
-import {SearchaliciousTermsMixin} from './mixins/taxonomies-ctl';
+import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
@@ -174,8 +174,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   })
   selectedTerms: PresenceInfo = {};
 
+  // Will be usefull if we want to display term without searching
   @property({attribute: false, type: Array})
-  customTerms: string[] = [];
+  autocompleteTerms: string[] = [];
 
   @property({attribute: 'search-name'})
   override searchName = 'off';
@@ -199,8 +200,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
 
   addTerm(event: CustomEvent) {
     const value = event.detail.value;
-    if (this.customTerms.includes(value)) return;
-    this.customTerms = [...this.customTerms, value];
+    if (this.autocompleteTerms.includes(value)) return;
+    this.autocompleteTerms = [...this.autocompleteTerms, value];
     this.selectedTerms[value] = true;
     this._launchSearchWithDebounce();
   }
@@ -307,7 +308,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     Object.keys(this.selectedTerms).forEach((key) => {
       this.selectedTerms[key] = false;
     });
-    this.customTerms = [];
+    this.autocompleteTerms = [];
     this.requestUpdate('selectedTerms');
     search && this._launchSearchWithDebounce();
   };
@@ -338,7 +339,6 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
           (item: FacetTerm) => `${item.key}-${item.count}`,
           (item: FacetTerm) => this.renderTerm(item)
         )}
-        ${this.customTerms.join(', ')}
         ${this.showOther && items.length ? this.renderAddTerm() : nothing}
         ${this._renderResetButton()}
       </fieldset>
