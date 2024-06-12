@@ -48,6 +48,7 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
   superClass: T
 ): Constructor<SearchaliciousTaxonomiesInterface> & T => {
   class SearchaliciousTermsMixinClass extends superClass {
+    // this olds terms corresponding to current input for each taxonomy
     @state()
     termsByTaxonomyId: Record<string, TermOption[]> = {};
 
