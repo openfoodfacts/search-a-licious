@@ -42,14 +42,19 @@ export interface SearchaliciousSearchInterface
   search(): Promise<void>;
 }
 
+/**
+ * Parameters we need to put in URL to be able to deep link the search
+ */ 
 export enum HistorySearchParams {
   QUERY = 'q',
   FACETS_FILTERS = 'facetsFilters',
   PAGE = 'page',
 }
 
+// name of search params as an array (to ease iteration)
 export const SEARCH_PARAMS = Object.values(HistorySearchParams);
 
+// type of object containing search parameters
 export type HistoryParams = {
   [key in HistorySearchParams]?: string;
 };
@@ -61,6 +66,8 @@ export type HistoryOutput = {
 
 /**
  * Object to convert the URL params to the original values
+ *
+ * It maps parameter names to a function to transforms it to a JS value 
  */
 const HISTORY_VALUES: Record<
   HistorySearchParams,
@@ -86,6 +93,8 @@ const HISTORY_VALUES: Record<
     if (!history.facetsFilters) {
       return {};
     }
+    // we split back the facetsFilters expression to its sub components
+    // parameter value is facet1:(value1 OR value2) AND facet2:(value3 OR value4)
     const selectedTermsByFacet = history.facetsFilters
       .split(QueryOperator.AND)
       .reduce((acc, filter) => {
@@ -205,6 +214,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         .flat();
       return allFilters.join(QueryOperator.AND);
     }
+    /*
+     * Compute search URL, associated parameters and history entry
+     * based upon the requested page, and the state of other search components
+     * (search bar, facets, etc.) 
+     */
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
@@ -223,6 +237,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         searchUrl: `${baseUrl}/search?${queryStr}`,
         q: queryStr,
         params,
+        // this will help update browser history
         history: this.buildHistoryParams(params),
       };
     }
@@ -338,6 +353,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
 
     /**
      * Convert the URL params to the original values
+     * so that we can use them to launch a search.
      * @param params
      */
     convertHistoryParamsToValues = (params: URLSearchParams): HistoryOutput => {

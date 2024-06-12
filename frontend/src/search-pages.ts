@@ -117,7 +117,7 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   _launchFirstSearch() {
     // we need to wait a bit to be sure that all components are ready
     setTimeout(() => {
-      // fire the fire search event
+      // fire the first search event
       const event = new CustomEvent(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, {
         bubbles: true,
         composed: true,
