@@ -9,6 +9,9 @@ export enum SearchaliciousEvents {
   AUTOCOMPLETE_INPUT = 'searchalicious-autocomplete-input',
 }
 
+/**
+ * This enum defines the basic events that can be used in components to dispatch events
+ */
 export enum BasicEvents {
   CLICK = 'click',
 }
