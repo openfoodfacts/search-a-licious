@@ -1,43 +1,32 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
+import { SearchResultEvent } from './events';
+import { SearchaliciousResultCtlMixin, SearchaliciousResultsCtlInterface } from './search-results-ctl';
 
-/**
- * The results counter display
- *
- * It will display the number of results found
- */
 @customElement('results-counter-display')
-export class ResultsCounterDisplay extends LitElement {
-    static override styles = css`
-        div {
-        color: white;
-        }
-    `;
-
+export class ResultsCounterDisplay extends SearchaliciousResultCtlMixin(LitElement) implements SearchaliciousResultsCtlInterface {
+    // the last number of results found
     @state()
-    // the number of results
-    resultCounter: number = 0;
-
-    override connectedCallback() {
-        super.connectedCallback();
-        // listen for the search-results-updated event
-        window.addEventListener('search-results-updated', this.handleSearchResultsUpdated as EventListener);
-    }
-
-    override disconnectedCallback() {
-        // stop listening for the search-results-updated event
-        window.removeEventListener('search-results-updated', this.handleSearchResultsUpdated as EventListener);
-        super.disconnectedCallback();
-    }
-
-    handleSearchResultsUpdated(event: CustomEvent) {
-        console.log('ResultsCounterDisplay: search-results-updated event received');
-        // update the counter
-        this.resultCounter = event.detail.count;
-        console.log('ResultsCounterDisplay: count =', this.resultCounter);
-    }
+    nbResults: number = 0;
 
     override render() {
-        return html`<div>${this.resultCounter} results found</div>`;
+        return html`<div>${this.nbResults} results found</div>`;
+    }
+
+    /**
+     * Handle the search result event
+     */
+    override handleResults(event: SearchResultEvent) {
+        console.log('ResultsCounterDisplay.handleResults', event.detail);
+        this.nbResults = event.detail.count; // it's reactive so it will trigger a render
+    }
+
+    override connectedCallback(): void {
+        console.log('ResultsCounterDisplay.connectedCallback');
+        super.connectedCallback();
+    }
+
+    override disconnectedCallback(): void {
+        super.disconnectedCallback();
     }
 }
