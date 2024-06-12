@@ -273,8 +273,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
           .inputName=${inputName}
           .options=${options}
           .isLoading=${this.loadingByTaxonomyId[taxonomy]}
-          @autocomplete-submit=${this.addTerm}
-          @autocomplete-input=${onInput}
+          @searchalicious-autocomplete-submit=${this.addTerm}
+          @searchalicious-autocomplete-input=${onInput}
         ></searchalicious-autocomplete>
       </div>
     `;

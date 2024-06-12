@@ -2,6 +2,7 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {DebounceMixin} from './mixins/debounce';
 import {classMap} from 'lit/directives/class-map.js';
+import {SearchaliciousEvents} from './enums';
 /**
  * Type for autocomplete option.
  */
@@ -106,11 +107,14 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     this.value = value;
     // we don't need a very specific event name
     // because it will be captured by the parent Facet element
-    const inputEvent = new CustomEvent('autocomplete-input', {
-      detail: {value: value},
-      bubbles: true,
-      composed: true,
-    });
+    const inputEvent = new CustomEvent(
+      SearchaliciousEvents.AUTOCOMPLETE_INPUT,
+      {
+        detail: {value: value},
+        bubbles: true,
+        composed: true,
+      }
+    );
     this.dispatchEvent(inputEvent);
   }
   /**
@@ -142,17 +146,20 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   submit(isSuggestion = false) {
     if (!this.value) return;
 
-    const inputEvent = new CustomEvent('autocomplete-submit', {
-      // we send both value and label
-      detail: {
-        value: this.value,
-        label: isSuggestion
-          ? this.options[this.getCurrentIndex()].label
-          : undefined,
-      } as AutocompleteResult,
-      bubbles: true,
-      composed: true,
-    });
+    const inputEvent = new CustomEvent(
+      SearchaliciousEvents.AUTOCOMPLETE_SUBMIT,
+      {
+        // we send both value and label
+        detail: {
+          value: this.value,
+          label: isSuggestion
+            ? this.options[this.getCurrentIndex()].label
+            : undefined,
+        } as AutocompleteResult,
+        bubbles: true,
+        composed: true,
+      }
+    );
     this.dispatchEvent(inputEvent);
     this.resetInput();
   }
