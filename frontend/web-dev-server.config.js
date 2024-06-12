@@ -1,5 +1,6 @@
 import {legacyPlugin} from '@web/dev-server-legacy';
 import { rollupPluginHTML as html } from '@web/rollup-plugin-html';
+import { hmrPlugin } from '@open-wc/dev-server-hmr';
 
 const mode = process.env.MODE || 'dev';
 if (!['dev', 'prod'].includes(mode)) {
@@ -16,6 +17,9 @@ export default {
   rootDir: 'public/',
   basePath: '/static',
   plugins: [
+    hmrPlugin({
+      include: ['src/**/*', 'public/*.html'],
+    }),
     legacyPlugin({
       polyfills: {
         // Manually imported in index.html file

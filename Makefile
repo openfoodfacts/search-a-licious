@@ -65,7 +65,7 @@ build:
 	${DOCKER_COMPOSE} build --progress=plain
 
 
-up:
+up: _ensure_network
 ifdef service
 	${DOCKER_COMPOSE} up -d ${service} 2>&1
 else
@@ -136,6 +136,11 @@ guard-%: # guard clause for targets that require an environment variable (usuall
 import-dataset: guard-filepath
 	@echo "🔎 Importing data …"
 	${DOCKER_COMPOSE} run --rm api python3 -m app import /opt/search/data/${filepath} ${args} --num-processes=2
+
+import-taxonomies:
+	@echo "🔎 Importing taxonomies …"
+	${DOCKER_COMPOSE} run --rm api python3 -m app import-taxonomies ${args}
+
 
 
 #-------#

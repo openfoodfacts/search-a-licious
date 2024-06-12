@@ -3,15 +3,10 @@ from pathlib import Path
 import orjson
 import pytest
 from luqum.elasticsearch import ElasticsearchQueryBuilder
-from luqum.parser import parser
 
 from app._types import JSONType
 from app.config import IndexConfig
-from app.query import (
-    UnknownOperationRemover,
-    build_search_query,
-    parse_lucene_dsl_query,
-)
+from app.query import build_search_query, decompose_query, parse_query
 from app.utils.io import dump_json, load_json
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -21,34 +16,8 @@ def load_elasticsearch_query_result(id_: str):
     return load_json(DATA_DIR / f"{id_}.json")
 
 
-class TestUnknownOperationRemover:
-    @pytest.mark.parametrize(
-        "query,expected",
-        [
-            ('word1 states_tags:"en:france" word2', 'states_tags:"en:france"'),
-            (
-                '(states_tags:"en:france" OR states_tags:"en:germany") word2 word3',
-                '(states_tags:"en:france" OR states_tags:"en:germany")',
-            ),
-            (
-                'word1 (states_tags:"en:france" word2) word3 labels_tags:"en:organic"',
-                '(states_tags:"en:france" ) labels_tags:"en:organic"',
-            ),
-            # We shouldn't change the tree if there is a single filter
-            (
-                'categories_tags:"en:textured-soy-protein"',
-                'categories_tags:"en:textured-soy-protein"',
-            ),
-        ],
-    )
-    def test_transform(self, query: str, expected: str):
-        luqum_tree = parser.parse(query)
-        new_tree = UnknownOperationRemover().visit(luqum_tree)
-        assert str(new_tree).strip(" ") == expected
-
-
 @pytest.mark.parametrize(
-    "q,expected_filter_clauses,expected_remaining_terms",
+    "q,expected_filter_query,expected_fulltext",
     [
         # single term
         (
@@ -83,36 +52,46 @@ class TestUnknownOperationRemover:
         ),
         (
             'states_tags:"en:spain"',
-            {"term": {"states_tags": {"value": "en:spain"}}},
+            {"bool": {"must": [{"term": {"states_tags": {"value": "en:spain"}}}]}},
             "",
         ),
         (
             "nutriments.salt_100g:[2 TO *]",
-            {"range": {"nutriments.salt_100g": {"gte": "2"}}},
+            {"bool": {"must": [{"range": {"nutriments.salt_100g": {"gte": "2"}}}]}},
             "",
         ),
         (
             "non_existing_field:value",
             {
-                "match": {
-                    "non_existing_field": {"query": "value", "zero_terms_query": "none"}
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "non_existing_field": {
+                                    "query": "value",
+                                    "zero_terms_query": "all",
+                                }
+                            }
+                        }
+                    ]
                 }
             },
             "",
         ),
     ],
 )
-def test_parse_lucene_dsl_query(
-    q: str, expected_filter_clauses: list[JSONType], expected_remaining_terms: str
+def test_decompose_query(
+    q: str, expected_filter_query: list[JSONType], expected_fulltext: str
 ):
     query_builder = ElasticsearchQueryBuilder(
         default_operator=ElasticsearchQueryBuilder.MUST,
         not_analyzed_fields=["states_tags", "labels_tags", "countries_tags"],
         object_fields=["nutriments", "nutriments.salt_100g"],
     )
-    filter_clauses, remaining_terms = parse_lucene_dsl_query(q, query_builder)
-    assert filter_clauses == expected_filter_clauses
-    assert remaining_terms == expected_remaining_terms
+    analysis = parse_query(q)
+    analysis = decompose_query(analysis, filter_query_builder=query_builder)
+    assert analysis.filter_query == expected_filter_query
+    assert analysis.fulltext == expected_fulltext
 
 
 @pytest.mark.parametrize(
@@ -195,7 +174,9 @@ def test_build_search_query(
     )
 
     if update_results:
-        dump_json(DATA_DIR / f"{id_}.json", query.to_dict(), option=orjson.OPT_INDENT_2)
+        dump_json(
+            DATA_DIR / f"{id_}.json", query._dict_dump(), option=orjson.OPT_INDENT_2
+        )
 
     expected_result = load_elasticsearch_query_result(id_)
-    assert query.to_dict() == expected_result
+    assert query._dict_dump() == expected_result
