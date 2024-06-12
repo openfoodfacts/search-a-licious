@@ -8,3 +8,7 @@ export enum SearchaliciousEvents {
   AUTOCOMPLETE_SUBMIT = 'searchalicious-autocomplete-submit',
   AUTOCOMPLETE_INPUT = 'searchalicious-autocomplete-input',
 }
+
+export enum BasicEvents {
+  CLICK = 'click',
+}

@@ -5,4 +5,6 @@ export {SearchaliciousPages} from './search-pages';
 export {SearchaliciousFacets} from './search-facets';
 export {SearchaliciousResults} from './search-results';
 export {SearchaliciousAutocomplete} from './search-autocomplete';
-export {SearchaliciousResetButton} from './reset-button';
+export {SearchaliciousSecondaryButton} from './secondary-button';
+export {SearchaliciousButtonWithoutBackground} from './button-without-background';
+export {SearchaliciousIconCross} from './icons/cross';

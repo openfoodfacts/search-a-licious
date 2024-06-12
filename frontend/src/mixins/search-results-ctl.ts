@@ -5,7 +5,7 @@ import {
   EventRegistrationInterface,
   EventRegistrationMixin,
 } from '../event-listener-setup';
-import {SearchaliciousEvents} from '../enums';
+import {SearchaliciousEvents} from '../utils/enums';
 import {SearchResultEvent} from '../events';
 import {Constructor} from './utils';
 

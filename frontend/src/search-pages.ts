@@ -2,7 +2,7 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
-import {SearchaliciousEvents} from './enums';
+import {SearchaliciousEvents} from './utils/enums';
 import {SearchResultEvent} from './events';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 

@@ -2,7 +2,7 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {DebounceMixin} from './mixins/debounce';
 import {classMap} from 'lit/directives/class-map.js';
-import {SearchaliciousEvents} from './enums';
+import {SearchaliciousEvents} from './utils/enums';
 /**
  * Type for autocomplete option.
  */
@@ -32,6 +32,10 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     .search-autocomplete {
       position: relative;
       display: inline-block;
+    }
+    .search-autocomplete input {
+      width: 100%;
+      box-sizing: border-box;
     }
 
     ul {

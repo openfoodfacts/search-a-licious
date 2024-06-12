@@ -4,7 +4,7 @@ import {
   EventRegistrationInterface,
   EventRegistrationMixin,
 } from '../event-listener-setup';
-import {SearchaliciousEvents} from '../enums';
+import {SearchaliciousEvents} from '../utils/enums';
 import {
   ChangePageEvent,
   LaunchSearchEvent,

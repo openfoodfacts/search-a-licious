@@ -45,6 +45,13 @@ function stringGuard(s: string | undefined): s is string {
 export class SearchaliciousFacets extends SearchActionMixin(
   SearchaliciousResultCtlMixin(LitElement)
 ) {
+  static override styles = css`
+    .reset-button-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  `;
   // the last search facets
   @property({attribute: false})
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,10 +109,10 @@ export class SearchaliciousFacets extends SearchActionMixin(
     const display = this.facets ? '' : 'display: none';
     return html`<div part="facets" style="${display}">
       <slot></slot>
-      <div>
-        <searchalicious-reset-button
-          @reset=${this.reset}
-        ></searchalicious-reset-button>
+      <div class="reset-button-wrapper">
+        <searchalicious-secondary-button @reset=${this.reset}
+          >Reset filters</searchalicious-secondary-button
+        >
       </div>
     </div> `;
   }
@@ -165,6 +172,16 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     .button {
       margin-left: auto;
       margin-right: auto;
+    }
+    .legend-wrapper {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+    [part='button-without-background'] {
+      --button-without-background-background-padding: 0.5rem 1rem;
     }
   `;
 
@@ -313,15 +330,6 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     this.requestUpdate('selectedTerms');
     search && this._launchSearchWithDebounce();
   };
-  _renderResetButton() {
-    return html`
-      <div>
-        <searchalicious-reset-button
-          @reset=${this.reset}
-        ></searchalicious-reset-button>
-      </div>
-    `;
-  }
 
   /**
    * Renders the facet content
@@ -334,14 +342,24 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     return html`
       <fieldset name=${this.name}>
         <!-- FIXME: translate -->
-        <legend>${this.name}</legend>
+        <div class="legend-wrapper">
+          <legend>${this.name}</legend>
+          <span class="buttons">
+            <searchalicious-button-without-background
+                title="Reset ${this.name}"
+              @click=${this.reset}
+              >
+                <searchalicious-icon-cross></searchalicious-icon-cross
+            </searchalicious-button-without-background
+            >
+          </span>
+        </div>
         ${repeat(
           items,
           (item: FacetTerm) => `${item.key}-${item.count}`,
           (item: FacetTerm) => this.renderTerm(item)
         )}
         ${this.showOther && items.length ? this.renderAddTerm() : nothing}
-        ${this._renderResetButton()}
       </fieldset>
     `;
   }

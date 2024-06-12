@@ -1,7 +1,7 @@
 import {LitElement} from 'lit';
 import {Constructor} from './utils';
 import {BaseSearchDetail, LaunchSearchEvent} from '../events';
-import {SearchaliciousEvents} from '../enums';
+import {SearchaliciousEvents} from '../utils/enums';
 import {property} from 'lit/decorators.js';
 
 export interface SearchActionMixinInterface {
