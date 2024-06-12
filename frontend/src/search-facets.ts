@@ -236,6 +236,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     const value = event.detail.value;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     this.debounce(() => {
+      // update options in  termsByTaxonomyId SearchaliciousTermsMixin
+      // which will update the property of the autocomplete component during render
       this.getTaxonomiesTerms(value, [taxonomy]);
     });
   }
