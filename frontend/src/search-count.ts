@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { SearchResultEvent } from './events';
-import { SearchaliciousResultCtlMixin, SearchaliciousResultsCtlInterface } from './search-results-ctl';
+import { SearchaliciousResultCtlMixin, SearchaliciousResultsCtlInterface } from './mixins/search-results-ctl';
 
 @customElement('searchalicious-count')
 export class ResultsCounterDisplay extends SearchaliciousResultCtlMixin(LitElement) implements SearchaliciousResultsCtlInterface {

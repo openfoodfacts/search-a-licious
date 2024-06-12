@@ -1,9 +1,13 @@
 import {LitElement, html, nothing, css} from 'lit';
 import {customElement, property, queryAssignedNodes} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
-
-import {SearchaliciousResultCtlMixin} from './search-results-ctl';
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchResultEvent} from './events';
+import {DebounceMixin} from './mixins/debounce';
+import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
+import {getTaxonomyName} from './utils/taxonomies';
+import {SearchActionMixin} from './mixins/search-action';
+import {FACET_TERM_OTHER} from './utils/constants';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -38,9 +42,16 @@ function stringGuard(s: string | undefined): s is string {
  * It must contains a SearchaliciousFacet component for each facet we want to display.
  */
 @customElement('searchalicious-facets')
-export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
-  LitElement
+export class SearchaliciousFacets extends SearchActionMixin(
+  SearchaliciousResultCtlMixin(LitElement)
 ) {
+  static override styles = css`
+    .reset-button-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  `;
   // the last search facets
   @property({attribute: false})
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,11 +96,25 @@ export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
     }
   }
 
+  reset = () => {
+    this._facetNodes().forEach((node) => {
+      node.reset(false);
+    });
+    this._launchSearch();
+  };
+
   override render() {
     // we always want to render slot, baceauso we use queryAssignedNodes
     // but we may not want to display them
     const display = this.facets ? '' : 'display: none';
-    return html`<div part="facets" style="${display}"><slot></slot></div> `;
+    return html`<div part="facets" style="${display}">
+      <slot></slot>
+      <div class="reset-button-wrapper">
+        <searchalicious-secondary-button @click=${this.reset}
+          >Reset filters</searchalicious-secondary-button
+        >
+      </div>
+    </div> `;
   }
 }
 
@@ -118,6 +143,12 @@ export class SearchaliciousFacet extends LitElement {
     throw new Error('renderFacet not implemented: implement in sub class');
   }
 
+  reset = (submit?: boolean): void => {
+    throw new Error(
+      `reset not implemented: implement in sub class with submit ${submit}`
+    );
+  };
+
   override render() {
     if (this.infos) {
       return this.renderFacet();
@@ -131,34 +162,78 @@ export class SearchaliciousFacet extends LitElement {
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
 @customElement('searchalicious-facet-terms')
-export class SearchaliciousTermsFacet extends SearchaliciousFacet {
+export class SearchaliciousTermsFacet extends SearchActionMixin(
+  SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
+) {
   static override styles = css`
+    fieldset {
+      margin-top: 1rem;
+    }
     .term-wrapper {
       display: block;
     }
+    .button {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .legend-wrapper {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+    [part='button-transparent'] {
+      --button-transparent-padding: 0.5rem 1rem;
+    }
   `;
 
-  @property({attribute: false})
+  @property({
+    attribute: false,
+    type: Object,
+  })
   selectedTerms: PresenceInfo = {};
 
+  // Will be usefull if we want to display term without searching
+  @property({attribute: false, type: Array})
+  autocompleteTerms: string[] = [];
+
+  @property({attribute: 'search-name'})
+  override searchName = 'off';
+
+  @property({attribute: 'show-other', type: Boolean})
+  showOther = false;
+
+  _launchSearchWithDebounce = () =>
+    this.debounce(() => {
+      this._launchSearch();
+    });
   /**
    * Set wether a term is selected or not
    */
-  setTermSelected(e: Event) {
-    const element = e.target as HTMLInputElement;
-    const name = element.name;
-    if (element.checked) {
-      this.selectedTerms[name] = true;
-    } else {
-      delete this.selectedTerms[name];
-    }
+  setTermSelected({detail}: {detail: {checked: boolean; name: string}}) {
+    this.selectedTerms = {
+      ...this.selectedTerms,
+      ...{[detail.name]: detail.checked},
+    };
+  }
+
+  addTerm(event: CustomEvent) {
+    const value = event.detail.value;
+    if (this.autocompleteTerms.includes(value)) return;
+    this.autocompleteTerms = [...this.autocompleteTerms, value];
+    this.selectedTerms[value] = true;
+    // Launch search so that filters will be automatically refreshed
+    this._launchSearchWithDebounce();
   }
 
   /**
    * Create the search term based upon the selected terms
    */
   override searchFilter(): string | undefined {
-    let values = Object.keys(this.selectedTerms);
+    let values = Object.keys(this.selectedTerms).filter(
+      (key) => this.selectedTerms[key]
+    );
     // add quotes if we have ":" in values
     values = values.map((value) =>
       value.includes(':') ? `"${value}"` : value
@@ -174,17 +249,69 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
   }
 
   /**
+   * Handle the autocomplete-input event on the add term input
+   * get the terms for the taxonomy
+   * @param event
+   * @param taxonomy
+   */
+  onInputAddTerm(event: CustomEvent, taxonomy: string) {
+    const value = event.detail.value;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    this.debounce(() => {
+      // update options in  termsByTaxonomyId SearchaliciousTermsMixin
+      // which will update the property of the autocomplete component during render
+      this.getTaxonomiesTerms(value, [taxonomy]);
+    });
+  }
+
+  /**
+   * Renders the add term input when showOther is true
+   */
+  renderAddTerm() {
+    const inputName = `add-term-for-${this.name}`;
+    const taxonomy = getTaxonomyName(this.name);
+    const otherItem = this.infos!.items?.find(
+      (item) => item.key === FACET_TERM_OTHER
+    ) as FacetTerm | undefined;
+    const onInput = (e: CustomEvent) => {
+      this.onInputAddTerm(e, taxonomy);
+    };
+
+    const options = (this.termsByTaxonomyId[taxonomy] || []).map((term) => {
+      return {
+        value: term.id.replace(/^en:/, ''),
+        label: term.text,
+      };
+    });
+
+    return html`
+      <div class="add-term" part="add-term">
+        <label for="${inputName}"
+          >Other ${otherItem?.count ? `(${otherItem.count})` : nothing}</label
+        >
+        <searchalicious-autocomplete
+          .inputName=${inputName}
+          .options=${options}
+          .isLoading=${this.loadingByTaxonomyId[taxonomy]}
+          @searchalicious-autocomplete-submit=${this.addTerm}
+          @searchalicious-autocomplete-input=${onInput}
+        ></searchalicious-autocomplete>
+      </div>
+    `;
+  }
+
+  /**
    * Renders a single term
    */
   renderTerm(term: FacetTerm) {
     return html`
       <div class="term-wrapper" part="term-wrapper">
-        <input
-          type="checkbox"
-          name="${term.key}"
-          ?checked=${this.selectedTerms[term.key]}
+        <searchalicious-checkbox
+          .name=${term.key}
+          .checked=${this.selectedTerms[term.key]}
           @change=${this.setTermSelected}
-        /><label for="${term.key}"
+        ></searchalicious-checkbox>
+        <label for="${term.key}"
           >${term.name}
           ${term.count
             ? html`<span part="docCount">(${term.count})</span>`
@@ -195,18 +322,47 @@ export class SearchaliciousTermsFacet extends SearchaliciousFacet {
   }
 
   /**
+   * Reset the selected terms and launch a search
+   * @param search
+   */
+  override reset = (search = true) => {
+    Object.keys(this.selectedTerms).forEach((key) => {
+      this.selectedTerms[key] = false;
+    });
+    this.autocompleteTerms = [];
+    this.requestUpdate('selectedTerms');
+    search && this._launchSearchWithDebounce();
+  };
+
+  /**
    * Renders the facet content
    */
   override renderFacet() {
+    const items = (this.infos!.items || []).filter(
+      (item) => !this.showOther || item.key !== FACET_TERM_OTHER
+    ) as FacetTerm[];
+
     return html`
       <fieldset name=${this.name}>
         <!-- FIXME: translate -->
-        <legend>${this.name}</legend>
+        <div class="legend-wrapper">
+          <legend>${this.name}</legend>
+          <span class="buttons">
+            <searchalicious-button-transparent
+                title="Reset ${this.name}"
+              @click=${this.reset}
+              >
+                <searchalicious-icon-cross></searchalicious-icon-cross
+            </searchalicious-button-transparent
+            >
+          </span>
+        </div>
         ${repeat(
-          (this.infos!.items || []) as FacetTerm[],
+          items,
           (item: FacetTerm) => `${item.key}-${item.count}`,
           (item: FacetTerm) => this.renderTerm(item)
         )}
+        ${this.showOther && items.length ? this.renderAddTerm() : nothing}
       </fieldset>
     `;
   }
