@@ -322,9 +322,11 @@ If not provided, `['en']` is used."""
         return set(self.langs)
 
     @property
-    def sign_sort_by(self) -> Tuple[str_utils.BoolOperator, str] | None:
+    def sign_sort_by(self) -> Tuple[str_utils.BoolOperator, str | None]:
         return (
-            None if self.sort_by is None else str_utils.split_sort_by_sign(self.sort_by)
+            ("+", None)
+            if self.sort_by is None
+            else str_utils.split_sort_by_sign(self.sort_by)
         )
 
     @property
