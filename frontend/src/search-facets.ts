@@ -166,6 +166,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
 ) {
   static override styles = css`
+    fieldset {
+      margin-top: 1rem;
+    }
     .term-wrapper {
       display: block;
     }
