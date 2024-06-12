@@ -41,6 +41,7 @@ export interface SearchaliciousTaxonomiesInterface {
 
 /**
  * A mixin class for Searchalicious terms.
+ * It allows to get taxonomies terms and store them in termsByTaxonomyId.
  * @param {Constructor<LitElement>} superClass - The superclass to extend from.
  * @returns {Constructor<SearchaliciousTaxonomiesInterface> & T} - The extended class with Searchalicious terms functionality.
  */
