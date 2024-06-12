@@ -68,8 +68,13 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   @property({attribute: 'input-name'})
   inputName = 'autocomplete';
 
+  /**
+   * The options for the autocomplete.
+   * It is provided by the parent component.
+   */
   @property({attribute: false, type: Array})
   options: AutocompleteOption[] = [];
+
   @property()
   value = '';
 
