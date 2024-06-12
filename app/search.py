@@ -32,7 +32,9 @@ def search(
     params: SearchParameters,
 ) -> SearchResponse:
     """Run a search"""
-    result_processor = cast(BaseResultProcessor, RESULT_PROCESSORS[params.index_id])
+    result_processor = cast(
+        BaseResultProcessor, RESULT_PROCESSORS[params.valid_index_id]
+    )
     logger.debug(
         "Received search query: q='%s', langs='%s', page=%d, "
         "page_size=%d, fields='%s', sort_by='%s'",
@@ -43,7 +45,7 @@ def search(
         params.fields,
         params.sort_by,
     )
-    index_config = params.get_index_config()
+    index_config = params.index_config
     query = build_search_query(
         q=params.q,
         langs=params.langs_set,
@@ -53,7 +55,7 @@ def search(
         sort_by=params.sort_by,
         # filter query builder is generated from elasticsearch mapping and
         # takes ~40ms to generate, build-it before hand to avoid this delay
-        filter_query_builder=FILTER_QUERY_BUILDERS[params.index_id],
+        filter_query_builder=FILTER_QUERY_BUILDERS[params.valid_index_id],
         facets=params.facets,
     )
     logger.debug(

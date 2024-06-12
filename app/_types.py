@@ -1,9 +1,10 @@
+from functools import cached_property
 from typing import Annotated, Any, Optional, cast, get_type_hints
 
 import elasticsearch_dsl.query
 import luqum.tree
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from . import config
 from .validations import check_all_facets_fields_are_agg, check_index_id_is_defined
@@ -202,30 +203,97 @@ If not provided, `['en']` is used."""
             If None (default) no facets are returned."""
         ),
     ] = None
-    index_id: Annotated[
-        str,
-        INDEX_ID_QUERY_PARAM,
+    sort_params: Annotated[
+        JSONType | None,
+        Query(
+            description="""Additional parameters when using  a sort script in sort_by.
+            If the sort script needs parameters, you can only be used the POST method.""",
+        ),
     ]
+    index_id: Annotated[
+        str | None,
+        INDEX_ID_QUERY_PARAM,
+    ] = None
 
-    @field_validator("index_id")
-    @classmethod
-    def validate_index_id(cls, index_id: str | None):
+    @model_validator(mode="after")
+    def validate_index_id(self):
+        """
+        Validate index_id is known, or use default index if not provided
+
+        We call this validator as a model validator,
+        because we want to be able to substitute the default None value,
+        by the default index
+        """
         config.check_config_is_defined()
         global_config = cast(config.Config, config.CONFIG)
-        check_index_id_is_defined(index_id, global_config)
-        index_id, index_config = global_config.get_index_config(index_id)
-        return index_id
+        check_index_id_is_defined(self.index_id, global_config)
+        self.index_id, _ = global_config.get_index_config(self.index_id)
+        return self
+
+    @property
+    def valid_index_id(self) -> str:
+        """Give a not None index_id
+
+        This is mainly to avoid typing errors
+        """
+        if self.index_id is None:
+            raise ValueError("`index_id` was not yet provided or computed")
+        return self.index_id
 
     @model_validator(mode="after")
     def validate_q_or_sort_by(self):
+        """We want at least one of q or sort_by before launching a request"""
         if self.q is None and self.sort_by is None:
             raise ValueError("`sort_by` must be provided when `q` is missing")
         return self
 
-    def get_index_config(self):
+    @cached_property
+    def index_config(self):
+        """Get the index config once and for all"""
         global_config = cast(config.Config, config.CONFIG)
         _, index_config = global_config.get_index_config(self.index_id)
         return index_config
+
+    @cached_property
+    def uses_sort_script(self):
+        """Does sort_by use a script?"""
+        index_config = self.index_config
+        return self.sort_by in index_config.scripts.keys()
+
+    @model_validator(mode="after")
+    def sort_by_is_field_or_script(self):
+        """Verify sort_by is a valid field or script name"""
+        index_config = self.index_config
+        is_field = self.sort_by in index_config.fields
+        # TODO: verify field type is compatible with sorting
+        if not (is_field or self.uses_sort_script):
+            raise ValueError("`sort_by` must be a valid field name or script name")
+        return self
+
+    @model_validator(mode="after")
+    def sort_by_scripts_needs_params(self):
+        """If sort_by is a script,
+        verify we got corresponding parameters in sort_params
+        """
+        if self.uses_sort_script:
+            if self.sort_params is None:
+                raise ValueError(
+                    "`sort_params` must be provided when using a sort script"
+                )
+            if not isinstance(self.sort_params, dict):
+                raise ValueError("`sort_params` must be a dict")
+            # verifies keys are those expected
+            request_keys = set(self.sort_params.keys())
+            expected_keys = set(self.index_config.scripts[self.sort_by].params.keys())
+            if request_keys != expected_keys:
+                missing = expected_keys - request_keys
+                missing_str = ("missing keys: " + ", ".join(missing)) if missing else ""
+                new = request_keys - expected_keys
+                new_str = ("unexpected keys: " + ", ".join(new)) if new else ""
+                raise ValueError(
+                    f"sort_params keys must match expected keys. {missing_str} {new_str}"
+                )
+        return self
 
     @model_validator(mode="after")
     def check_facets_are_valid(self):
@@ -237,6 +305,7 @@ If not provided, `['en']` is used."""
 
     @model_validator(mode="after")
     def check_max_results(self):
+        """Check we don't ask too many results at once"""
         if self.page * self.page_size > 10_000:
             raise ValueError(
                 f"Maximum number of returned results is 10 000 (here: page * page_size = {self.page * self.page_size})",
