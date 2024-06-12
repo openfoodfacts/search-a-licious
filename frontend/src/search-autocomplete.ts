@@ -263,7 +263,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   }
 
   /**
-   * Renders the search autocomplete: input box and eventual list of possible choices. 
+   * Renders the search autocomplete: input box and eventual list of possible choices.
    */
   override render() {
     return html`
