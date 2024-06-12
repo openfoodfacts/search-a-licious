@@ -3,6 +3,7 @@ import {customElement} from 'lit/decorators.js';
 
 /**
  * A custom element that represents a reset button for a search.
+ * It sends a custom event "reset" when clicked.
  * @extends {LitElement}
  * @slot - This slot is for the button contents, default to "Reset" string.
  */

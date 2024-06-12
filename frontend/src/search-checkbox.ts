@@ -4,7 +4,7 @@ import {customElement, property} from 'lit/decorators.js';
 /**
  * A custom element that represents a checkbox.
  *
- * It is useful to have state of variable reflected back in the checkbox,
+ * This component is useful to have state of variable reflected back in the checkbox,
  * overriding updated method.
  * @extends {LitElement}
  */

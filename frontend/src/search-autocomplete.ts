@@ -19,6 +19,10 @@ export type AutocompleteResult = {
 
 /**
  * A custom element that represents a search autocomplete.
+ * This component is designed to be reused in other components.
+ * Options it is used to provide a list of possible terms to autocomplete.
+ * Every time you type in the input, it will dispatch a custom event "autocomplete-input".
+ * Every time you select an option: by enter or click, it will dispatch a custom event "autocomplete-submit".
  * @extends {LitElement}
  * @slot - This slot is for the button contents, default to "Search" string.
  */
