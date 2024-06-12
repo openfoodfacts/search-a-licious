@@ -260,6 +260,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
     return html`
       <span class="search-autocomplete" part="search-autocomplete">
         <input
+          part="search-autocomplete-input"
           type="text"
           name="${this.inputName}"
           id="${this.inputName}"
