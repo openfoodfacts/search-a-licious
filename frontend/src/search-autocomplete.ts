@@ -75,6 +75,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   @property({attribute: false, type: Array})
   options: AutocompleteOption[] = [];
 
+  // selected values
   @property()
   value = '';
 
@@ -166,7 +167,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   }
 
   /**
-   * This method is used to handle the arrow key events.
+   * Handles keyboard event to navigate the suggestion list
    * @param {string} direction - The direction of the arrow key event.
    */
   handleArrowKey(direction: 'up' | 'down') {
@@ -176,7 +177,10 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   }
 
   /**
-   * This method is used to handle the enter key event.
+   * When Enter is pressed:
+   *   * if an option was selected (using keyboard arrows) it becomes the value
+   *   * otherwise the input string is the value
+   * We then submit the value.
    * @param event
    */
   handleEnter(event: KeyboardEvent) {
@@ -192,8 +196,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   }
 
   /**
-   * This method is used to handle the key down event.
-   * It is used to handle the arrow key and enter key events.
+   * dispatch key events according to the key pressed (arrows or enter)
    * @param event
    */
   handleKeyDown(event: KeyboardEvent) {
@@ -211,7 +214,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   }
 
   /**
-   * This method is used to handle the click event on the autocomplete option.
+   * On a click on the autocomplete option, we select it as value and submit it.
    * @param index
    */
   onClick(index: number) {
@@ -243,7 +246,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   }
 
   /**
-   * This method is used to render the possible terms.
+   * Renders the possible terms as list for user to select from
    * @returns {import('lit').TemplateResult<1>} The HTML template for the possible terms.
    */
   _renderPossibleTerms() {
@@ -260,7 +263,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   }
 
   /**
-   * This method is used to render the search autocomplete.
+   * Renders the search autocomplete: input box and eventual list of possible choices. 
    */
   override render() {
     return html`

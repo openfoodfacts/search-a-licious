@@ -203,6 +203,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     if (this.autocompleteTerms.includes(value)) return;
     this.autocompleteTerms = [...this.autocompleteTerms, value];
     this.selectedTerms[value] = true;
+    // Launch search so that filters will be automatically refreshed
     this._launchSearchWithDebounce();
   }
 
