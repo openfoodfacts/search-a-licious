@@ -18,11 +18,10 @@ export type AutocompleteResult = {
 };
 
 /**
- * A custom element that represents a search autocomplete.
- * This component is designed to be reused in other components.
- * Options it is used to provide a list of possible terms to autocomplete.
- * Every time you type in the input, it will dispatch a custom event "autocomplete-input".
- * Every time you select an option: by enter or click, it will dispatch a custom event "autocomplete-submit".
+ * Search autocomplete that can be used in facets to add terms that are not yet displayed (because they haven't enough elements).
+ * It supports adding terms from suggested options but also terms that are not suggested.
+ * Options are provided by the parent facet component that listen to `autocomplete-input` events to get input and fetch options accordingly
+ * As a value is selected, an `autocomplete-submit` event is emitted so that parent facet can add the new value.
  * @extends {LitElement}
  * @slot - This slot is for the button contents, default to "Search" string.
  */
