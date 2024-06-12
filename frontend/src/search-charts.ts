@@ -52,6 +52,7 @@ export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
 
     for (const result of event.detail.results) {
       this._chartNodes().forEach((node) => {
+        // @ts-ignore
         node.values[result[node.key]] += 1;
       });
     }
@@ -61,12 +62,15 @@ export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
 @customElement('searchalicious-chart')
 export class SearchaliciousChart extends LitElement {
   @property()
+  // @ts-ignore
   key: string;
 
   @property()
+  // @ts-ignore
   label: string;
 
   @property({type: Array})
+  // @ts-ignore
   categories: Array<string>;
 
   @property({attribute: false})
@@ -74,21 +78,43 @@ export class SearchaliciousChart extends LitElement {
 
   override render() {
     const nbResults = Object.values(this.values).reduce(
+      // @ts-ignore
       (prev, c) => c + prev,
       0
     );
     console.log(nbResults, this.values);
+    // @ts-ignore
     const display = nbResults > 0 ? '' : 'display: none';
     return html`<div id="${this.key}" style="${display}"></div>`;
   }
 
   override updated() {
     const container = this.renderRoot.querySelector(`#${this.key}`);
+    // Make vega responsive
+    // https://gist.github.com/donghaoren/023b2246569e8f0615017507b473e55e
+
     const view = new vega.View(
       vega.parse({
         $schema: 'https://vega.github.io/schema/vega/v5.json',
         title: this.label,
-        width: container.offsetWidth,
+        // @ts-ignore
+        // width: container.offsetWidth,
+        autosize: {type: 'fit', contains: 'padding'},
+        signals: [
+          {
+            name: 'width',
+            init: 'containerSize()[0]',
+            on: [{events: 'window:resize', update: 'containerSize()[0]'}],
+          },
+          {
+            name: 'tooltip',
+            value: {},
+            on: [
+              {events: 'rect:pointerover', update: 'datum'},
+              {events: 'rect:pointerout', update: '{}'},
+            ],
+          },
+        ],
         height: 140,
         padding: 5,
         data: [
@@ -98,16 +124,6 @@ export class SearchaliciousChart extends LitElement {
               category: key,
               amount: value,
             })),
-          },
-        ],
-        signals: [
-          {
-            name: 'tooltip',
-            value: {},
-            on: [
-              {events: 'rect:pointerover', update: 'datum'},
-              {events: 'rect:pointerout', update: '{}'},
-            ],
           },
         ],
 
