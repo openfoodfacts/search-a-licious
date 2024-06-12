@@ -63,20 +63,25 @@ indices:
         type: text
       categories_tags:
         type: keyword
+        taxonomy_name: category
         bucket_agg: true
       labels_tags:
         type: keyword
+        taxonomy_name: label
         bucket_agg: true
       countries_tags:
         type: keyword
         bucket_agg: true
+        taxonomy_name: country
       states_tags:
         type: keyword
         bucket_agg: true
+        taxonomy_name: state
       origins_tags:
         type: keyword
       ingredients_tags:
         type: keyword
+        taxonomy_name: ingredient
       unique_scans_n:
         type: integer
       scans_n:
@@ -100,6 +105,7 @@ indices:
         type: integer
       allergens_tags:
         type: keyword
+        taxonomy_name: allergen
       ecoscore_data:
         type: disabled
       ecoscore_score:
@@ -130,16 +136,6 @@ indices:
         type: integer
       completeness:
         type: float
-    facets:
-      # include all fields
-      default:
-        order:
-        - categories_tags
-        - brands_tags
-        - labels_tags
-        - ecoscore_grade
-        - nova_groups
-        - ecoscore_grade
     document_denylist:
     - '8901552007122'
     lang_separator: _

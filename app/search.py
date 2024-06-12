@@ -66,7 +66,7 @@ def search(
         projection=projection,
     )
     search_result.facets = build_facets(
-        search_result, query, index_config, params.facets
+        search_result, query, params.main_lang, index_config, params.facets
     )
     # remove aggregations to avoid sending too much information
     search_result.aggregations = None

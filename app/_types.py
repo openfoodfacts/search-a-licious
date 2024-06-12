@@ -327,6 +327,11 @@ If not provided, `['en']` is used."""
             None if self.sort_by is None else str_utils.split_sort_by_sign(self.sort_by)
         )
 
+    @property
+    def main_lang(self):
+        """Get the main lang of the query"""
+        return self.langs[0] if self.langs else "en"
+
 
 def _annotation_new_type(type_, annotation):
     """Use a new type for a given annotation"""

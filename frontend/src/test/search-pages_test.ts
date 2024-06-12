@@ -1,5 +1,5 @@
 import {SearchaliciousPages} from '../search-pages';
-import {SearchaliciousEvents} from '../enums';
+import {SearchaliciousEvents} from '../utils/enums';
 import {SearchResultDetail, SearchResultEvent} from '../events';
 
 import {fixture, assert} from '@open-wc/testing';

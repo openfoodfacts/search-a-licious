@@ -3,19 +3,16 @@ import {property, state} from 'lit/decorators.js';
 import {
   EventRegistrationInterface,
   EventRegistrationMixin,
-} from './event-listener-setup';
-import {SearchaliciousEvents} from './enums';
+} from '../event-listener-setup';
+import {SearchaliciousEvents} from '../utils/enums';
 import {
   ChangePageEvent,
   LaunchSearchEvent,
   SearchResultEvent,
   SearchResultDetail,
-} from './events';
-import {SearchaliciousFacets} from './search-facets';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Constructor<T = {}> = new (...args: any[]) => T;
-
+} from '../events';
+import {SearchaliciousFacets} from '../search-facets';
+import {Constructor} from './utils';
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface {
   query: string;
@@ -176,14 +173,18 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         )
         .sort() // for perdictability in tests !
         .join('&');
+
       return `${baseUrl}/search?${queryStr}`;
     }
 
     // connect to our specific events
     override connectedCallback() {
       super.connectedCallback();
-      this.addEventHandler(SearchaliciousEvents.LAUNCH_SEARCH, (event: Event) =>
-        this._handleSearch(event)
+      this.addEventHandler(
+        SearchaliciousEvents.LAUNCH_SEARCH,
+        (event: Event) => {
+          this._handleSearch(event);
+        }
       );
       this.addEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)

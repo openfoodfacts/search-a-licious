@@ -5,7 +5,7 @@ from typing import Annotated, Any, cast
 
 import elasticsearch
 from elasticsearch_dsl import Search
-from fastapi import Body, FastAPI, HTTPException, Query, Request
+from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
@@ -92,6 +92,10 @@ def get_document(
 @app.post("/search")
 def search(search_parameters: Annotated[SearchParameters, Body()]):
     return app_search.search(search_parameters)
+
+
+def parse_langs(langs: str | None) -> list[str]:
+    return langs.split(",") if langs else ["en"]
 
 
 @app.get("/search")
@@ -238,3 +242,12 @@ def html_search(
 @app.get("/robots.txt", response_class=PlainTextResponse)
 def robots_txt():
     return """User-agent: *\nDisallow: /"""
+
+
+@app.get("/health")
+def healthcheck():
+    from app.health import health
+
+    message, status, _ = health.run()
+    logger.warning("HEALTH:", message, status)
+    return Response(content=message, status_code=status, media_type="application/json")

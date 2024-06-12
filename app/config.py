@@ -191,14 +191,6 @@ class FieldConfig(BaseModel):
     ] = True
 
     @model_validator(mode="after")
-    def taxonomy_name_should_be_used_for_taxonomy_type_only(self):
-        """Validator that checks that `taxonomy_name` is only provided for
-        fields with type `taxonomy`."""
-        if self.type is not FieldType.taxonomy and self.taxonomy_name is not None:
-            raise ValueError("taxonomy_name should be provided for taxonomy type only")
-        return self
-
-    @model_validator(mode="after")
     def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
         """Validator that checks that `bucket_agg` is only provided for
         fields with types `keyword`, `double`, `float`, `integer` or `bool`."""

@@ -11,11 +11,72 @@ from ._types import (
     QueryAnalysis,
     SearchResponse,
 )
+from .taxonomy_es import get_taxonomy_names
+
+
+def _get_translations(
+    lang: str, items: list[tuple[str, str]], index_config: config.IndexConfig
+) -> dict[tuple[str, str], str]:
+    # go from field_name to taxonomy
+    field_names = set([field_name for _, field_name in items])
+    field_taxonomy: dict[str, str] = {
+        # note: the `or ""` is only to make typing understand it can't be None
+        field_name: index_config.fields[field_name].taxonomy_name or ""
+        for field_name in field_names
+        if index_config.fields[field_name].taxonomy_name
+    }
+    # fetch items names
+    items_to_fetch = [
+        (id, field_taxonomy[field_name])
+        for id, field_name in items
+        if field_name in field_taxonomy
+    ]
+    items_names = get_taxonomy_names(items_to_fetch, index_config)
+    # compute best translations
+    translations: dict[tuple[str, str], str] = {}
+    for id, field_name in items:
+        item_translations = None
+        names = (
+            items_names.get((id, field_taxonomy[field_name]))
+            if field_name in field_taxonomy
+            else None
+        )
+        if names:
+            item_translations = names.get(lang, None)
+            # fold back to main language for item
+            if not item_translations:
+                main_lang = id.split(":", 1)[0]
+                item_translations = names.get(main_lang, None)
+            # fold back to english
+            if not translations:
+                item_translations = names.get("en", None)
+        # eventually translate
+        if item_translations:
+            translations[(id, field_name)] = item_translations[0]
+    return translations
+
+
+def translate_facets_values(
+    lang: str, facets: FacetsInfos, index_config: config.IndexConfig
+):
+    """Translate values of facets"""
+    # harvest items to translate
+    items = [
+        (item.key, field_name)
+        for field_name, info in facets.items()
+        for item in info.items
+    ]
+    translations = _get_translations(lang, items, index_config)
+    # translate facets
+    for field_name, info in facets.items():
+        for item in info.items:
+            item.name = translations.get((item.key, field_name), item.name)
 
 
 def build_facets(
     search_result: SearchResponse,
     query_analysis: QueryAnalysis,
+    lang: str,
     index_config: config.IndexConfig,
     facets_names: list[str] | None,
 ) -> FacetsInfos:
@@ -83,8 +144,7 @@ def build_facets(
         #             key="--none--",
         #             # TODO: translate in target language ?
         #             name="None",
-        #             # Note: this depends on search_result.is_count_exact,
-        #             # but we leave it to user to verify
+        #             # Note:translate_facets_values leave it to user to verify
         #             count=search_result.count - items_count,
         #             # FIXME: compute selected !
         #             selected=False,
@@ -105,5 +165,6 @@ def build_facets(
             items=facet_items,
             count_error_margin=count_error_margin,
         )
-
+    # translate
+    translate_facets_values(lang, facets, index_config)
     return facets

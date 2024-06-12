@@ -2,7 +2,7 @@ import {LitElement, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
-import {SearchaliciousResultCtlMixin} from './search-results-ctl';
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchResultEvent} from './events';
 import {
   MissingResultTemplateError,
