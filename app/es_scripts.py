@@ -48,9 +48,6 @@ def _store_script(
 
 def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, int]:
     """Resync the scripts between configuration and elasticsearch"""
-    import pdb
-
-    pdb.set_trace()
     # list existing
     current_ids = _list_stored_scripts(index_config, prefix=get_script_prefix(index_id))
     # remove them

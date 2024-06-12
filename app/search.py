@@ -47,16 +47,10 @@ def search(
     )
     index_config = params.index_config
     query = build_search_query(
-        q=params.q,
-        langs=params.langs_set,
-        size=params.page_size,
-        page=params.page,
-        config=index_config,
-        sort_by=params.sort_by,
+        params,
         # filter query builder is generated from elasticsearch mapping and
         # takes ~40ms to generate, build-it before hand to avoid this delay
         filter_query_builder=FILTER_QUERY_BUILDERS[params.valid_index_id],
-        facets=params.facets,
     )
     logger.debug(
         "Elasticsearch query: %s",

@@ -8,18 +8,21 @@ from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.parser import parser
 
-from app._types import (
+from ._types import (
     ErrorSearchResponse,
+    JSONType,
     QueryAnalysis,
+    SearchParameters,
     SearchResponse,
     SearchResponseDebug,
     SearchResponseError,
     SuccessSearchResponse,
 )
-from app.config import FieldType, IndexConfig
-from app.indexing import generate_index_object
-from app.postprocessing import BaseResultProcessor
-from app.utils import get_logger
+from .config import FieldType, IndexConfig
+from .es_scripts import get_script_id
+from .indexing import generate_index_object
+from .postprocessing import BaseResultProcessor
+from .utils import get_logger, str_utils
 
 logger = get_logger(__name__)
 
@@ -34,7 +37,7 @@ def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQuery
     return ElasticsearchQueryBuilder(**options)
 
 
-def build_query_clause(query: str, langs: set[str], config: IndexConfig) -> Query:
+def build_query_clause(query: str, langs: list[str], config: IndexConfig) -> Query:
     fields = []
     supported_langs = config.get_supported_langs()
     taxonomy_langs = config.get_taxonomy_langs()
@@ -47,7 +50,7 @@ def build_query_clause(query: str, langs: set[str], config: IndexConfig) -> Quer
             if field.type in (FieldType.taxonomy, FieldType.text_lang):
                 # language subfields are not the same depending on whether the
                 # field is a `taxonomy` or a `text_lang` field
-                langs_subset = (
+                langs_subset = frozenset(
                     supported_langs
                     if field.type is FieldType.text_lang
                     else taxonomy_langs
@@ -223,7 +226,7 @@ def compute_facets_filters(q: QueryAnalysis) -> QueryAnalysis:
     return q.clone(facets_filters=filters)
 
 
-def parse_sort_by_parameter(sort_by: str | None, config: IndexConfig) -> str | None:
+def parse_sort_by_field(sort_by: str | None, config: IndexConfig) -> str | None:
     """Parse `sort_by` parameter, special handling is performed for `text_lang`
     subfield.
 
@@ -234,8 +237,7 @@ def parse_sort_by_parameter(sort_by: str | None, config: IndexConfig) -> str | N
     if sort_by is None:
         return None
 
-    if negative_operator := sort_by.startswith("-"):
-        sort_by = sort_by[1:]
+    operator, sort_by = str_utils.split_sort_by_sign(sort_by)
 
     for field in config.fields.values():
         if field.name == sort_by:
@@ -244,10 +246,36 @@ def parse_sort_by_parameter(sort_by: str | None, config: IndexConfig) -> str | N
                 sort_by = f"{field.name}.main"
                 break
 
-    if negative_operator:
+    if operator == "-":
         sort_by = f"-{sort_by}"
 
     return sort_by
+
+
+def parse_sort_by_script(
+    es_query: Search,
+    sort_by: str,
+    params: JSONType | None,
+    config: IndexConfig,
+    index_id: str,
+) -> JSONType:
+    """Create the the ES sort expression to sort by a script"""
+    # remove negation mark while retaining we want negative sorting
+    operator, sort_by = str_utils.split_sort_by_sign(sort_by)
+    script = (config.scripts or {}).get(sort_by)
+    if script is None:
+        raise ValueError(f"Unknown script '{sort_by}'")
+    script_id = get_script_id(index_id, sort_by)
+    return {
+        "_script": {
+            "type": "number",
+            "script": {
+                "id": script_id,
+                "params": params,
+            },
+            "order": "desc" if operator == "-" else "asc",
+        }
+    }
 
 
 def create_aggregation_clauses(
@@ -268,14 +296,8 @@ def create_aggregation_clauses(
 
 
 def build_search_query(
-    q: str | None,
-    langs: set[str],
-    size: int,
-    page: int,
-    config: IndexConfig,
+    params: SearchParameters,
     filter_query_builder: ElasticsearchQueryBuilder,
-    facets: list[str] | None = None,
-    sort_by: str | None = None,
 ) -> QueryAnalysis:
     """Build an elasticsearch_dsl Query.
 
@@ -289,44 +311,46 @@ def build_search_query(
     :param sort_by: sorting key, defaults to None (=relevance-based sorting)
     :return: the built Search query
     """
-    analysis = parse_query(q)
+    analysis = parse_query(params.q)
     analysis = decompose_query(analysis, filter_query_builder)
     analysis = compute_facets_filters(analysis)
 
     logger.debug("filter query: %s", analysis.filter_query)
     logger.debug("remaining terms: '%s'", analysis.fulltext)
 
-    return build_es_query(analysis, langs, size, page, config, facets, sort_by)
+    return build_es_query(analysis, params)
 
 
 def build_es_query(
     q: QueryAnalysis,
-    langs: set[str],
-    size: int,
-    page: int,
-    config: IndexConfig,
-    facets: list[str] | None = None,
-    sort_by: str | None = None,
+    params: SearchParameters,
 ) -> QueryAnalysis:
+    config = params.index_config
     es_query = Search(index=config.index.name)
 
     if q.fulltext:
-        base_multi_match_q = build_query_clause(q.fulltext, langs, config)
+        base_multi_match_q = build_query_clause(q.fulltext, params.langs, config)
         es_query = es_query.query(base_multi_match_q)
 
     if q.filter_query:
         es_query = es_query.query("bool", filter=q.filter_query)
 
-    for agg_name, agg in create_aggregation_clauses(config, facets).items():
+    for agg_name, agg in create_aggregation_clauses(config, params.facets).items():
         es_query.aggs.bucket(agg_name, agg)
 
-    sort_by = parse_sort_by_parameter(sort_by, config)
+    sort_by: JSONType | str | None = None
+    if params.uses_sort_script and params.sort_by is not None:
+        sort_by = parse_sort_by_script(
+            es_query, params.sort_by, params.sort_params, config, params.valid_index_id
+        )
+    else:
+        sort_by = parse_sort_by_field(params.sort_by, config)
     if sort_by is not None:
         es_query = es_query.sort(sort_by)
 
     es_query = es_query.extra(
-        size=size,
-        from_=size * (page - 1),
+        size=params.page_size,
+        from_=params.page_size * (params.page - 1),
     )
     return q.clone(es_query=es_query)
 

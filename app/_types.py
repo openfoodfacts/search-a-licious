@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Annotated, Any, Optional, cast, get_type_hints
+from typing import Annotated, Any, Optional, Tuple, cast, get_type_hints
 
 import elasticsearch_dsl.query
 import luqum.tree
@@ -7,6 +7,7 @@ from fastapi import Query
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from . import config
+from .utils import str_utils
 from .validations import check_all_facets_fields_are_agg, check_index_id_is_defined
 
 #: A precise expectation of what mappings looks like in json.
@@ -186,6 +187,8 @@ If not provided, `['en']` is used."""
             description="""Field name to use to sort results, the field should exist
             and be sortable. If it is not provided, results are sorted by descending relevance score.
 
+            If you put a minus before the name, the results will be sorted by descending order.
+
             If the field name match a known script (defined in your configuration),
             it will be use for sorting.
 
@@ -209,7 +212,7 @@ If not provided, `['en']` is used."""
             description="""Additional parameters when using  a sort script in sort_by.
             If the sort script needs parameters, you can only be used the POST method.""",
         ),
-    ]
+    ] = None
     index_id: Annotated[
         str | None,
         INDEX_ID_QUERY_PARAM,
@@ -258,15 +261,17 @@ If not provided, `['en']` is used."""
     def uses_sort_script(self):
         """Does sort_by use a script?"""
         index_config = self.index_config
-        return self.sort_by in index_config.scripts.keys()
+        _, sort_by = self.sign_sort_by
+        return sort_by in index_config.scripts.keys()
 
     @model_validator(mode="after")
     def sort_by_is_field_or_script(self):
         """Verify sort_by is a valid field or script name"""
         index_config = self.index_config
-        is_field = self.sort_by in index_config.fields
+        _, sort_by = self.sign_sort_by
+        is_field = sort_by in index_config.fields
         # TODO: verify field type is compatible with sorting
-        if not (is_field or self.uses_sort_script):
+        if not (self.sort_by is None or is_field or self.uses_sort_script):
             raise ValueError("`sort_by` must be a valid field name or script name")
         return self
 
@@ -315,6 +320,12 @@ If not provided, `['en']` is used."""
     @property
     def langs_set(self):
         return set(self.langs)
+
+    @property
+    def sign_sort_by(self) -> Tuple[str_utils.BoolOperator, str] | None:
+        return (
+            None if self.sort_by is None else str_utils.split_sort_by_sign(self.sort_by)
+        )
 
 
 def _annotation_new_type(type_, annotation):
