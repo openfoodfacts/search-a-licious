@@ -62,7 +62,7 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
     langs = 'en';
 
     /**
-     * Method to get terms URL.
+     * build URL to search taxonomies terms from input
      * @param {string} q - The query string.
      * @param {string[]} taxonomyNames - The taxonomy names.
      * @returns {string} - The terms URL.
