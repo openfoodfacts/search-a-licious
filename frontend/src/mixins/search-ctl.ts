@@ -12,15 +12,15 @@ import {
   SearchResultDetail,
 } from '../events';
 import {Constructor} from './utils';
-import {SearchaliciousFacets} from './search-facets';
+import {SearchaliciousFacets} from '../search-facets';
 import {
   addParamPrefixes,
   removeParamPrefixes,
   removeParenthesis,
   setCurrentURLHistory,
-} from './utils/url';
-import {FACETS_DIVIDER, OFF_PREFIX, QueryOperator} from './utils/constants';
-import {isNullOrUndefined} from './utils';
+} from '../utils/url';
+import {FACETS_DIVIDER, OFF_PREFIX, QueryOperator} from '../utils/constants';
+import {isNullOrUndefined} from '../utils';
 
 export type BuildParamsOutput = {
   q: string;

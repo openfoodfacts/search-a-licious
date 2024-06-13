@@ -7,6 +7,7 @@ export enum SearchaliciousEvents {
   CHANGE_PAGE = 'searchalicious-change-page',
   AUTOCOMPLETE_SUBMIT = 'searchalicious-autocomplete-submit',
   AUTOCOMPLETE_INPUT = 'searchalicious-autocomplete-input',
+  LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
 }
 
 /**
