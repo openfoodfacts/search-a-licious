@@ -67,6 +67,12 @@ export class SearchaliciousFacets extends SearchActionMixin(
     ) as SearchaliciousFacet[];
   }
 
+  setSelectedTermsByFacet(selectedTermsByFacet: Record<string, string[]>) {
+    this._facetNodes().forEach((node) => {
+      node.setSelectedTerms(selectedTermsByFacet[node.name]);
+    });
+  }
+
   /**
    * Names of facets we need to query,
    * this is the names of contained facetNodes.
@@ -246,9 +252,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
    * This is used to restore the state of the facet
    * @param terms
    */
-  override setSelectedTerms(terms: string[]) {
+  override setSelectedTerms(terms?: string[]) {
     this.selectedTerms = {};
-    for (const term of terms) {
+    for (const term of terms ?? []) {
       this.selectedTerms[term] = true;
     }
   }

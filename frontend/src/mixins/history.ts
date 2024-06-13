@@ -137,13 +137,11 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
      */
     setValuesFromHistory = (values: HistoryOutput) => {
       this.query = values.query ?? '';
-      this._facetsNodes().forEach((facets) => {
-        facets._facetNodes().forEach((facet) => {
-          if (values.selectedTermsByFacet?.[facet.name]?.length) {
-            facet.setSelectedTerms(values.selectedTermsByFacet[facet.name]);
-          }
-        });
-      });
+      if (values.selectedTermsByFacet) {
+        this._facetsNodes().forEach((facets) =>
+          facets.setSelectedTermsByFacet(values.selectedTermsByFacet!)
+        );
+      }
     };
 
     /**
