@@ -8,7 +8,7 @@ import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
-import {QueryOperator} from './utils/constants';
+import {QueryOperator} from './utils/enums';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -81,6 +81,12 @@ export class SearchaliciousFacets extends SearchActionMixin(
     return this._facetNodes()
       .map((node) => node.searchFilter())
       .filter(stringGuard);
+  }
+
+  setSelectedTerms(terms: string[]) {
+    this._facetNodes().forEach((node) => {
+      node.setSelectedTerms(terms);
+    });
   }
 
   /**

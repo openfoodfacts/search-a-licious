@@ -4,7 +4,7 @@ import {
   EventRegistrationInterface,
   EventRegistrationMixin,
 } from '../event-listener-setup';
-import {SearchaliciousEvents} from '../utils/enums';
+import {QueryOperator, SearchaliciousEvents} from '../utils/enums';
 import {
   ChangePageEvent,
   LaunchSearchEvent,
@@ -13,14 +13,13 @@ import {
 } from '../events';
 import {Constructor} from './utils';
 import {SearchaliciousFacets} from '../search-facets';
+import {setCurrentURLHistory} from '../utils/url';
+import {FACETS_DIVIDER} from '../utils/constants';
 import {
-  addParamPrefixes,
-  removeParamPrefixes,
-  removeParenthesis,
-  setCurrentURLHistory,
-} from '../utils/url';
-import {FACETS_DIVIDER, OFF_PREFIX, QueryOperator} from '../utils/constants';
-import {isNullOrUndefined} from '../utils';
+  HistorySearchParams,
+  SearchaliciousHistoryInterface,
+  SearchaliciousHistoryMixin,
+} from './history';
 
 export type BuildParamsOutput = {
   q: string;
@@ -31,7 +30,8 @@ export type BuildParamsOutput = {
   facets?: string;
 };
 export interface SearchaliciousSearchInterface
-  extends EventRegistrationInterface {
+  extends EventRegistrationInterface,
+    SearchaliciousHistoryInterface {
   query: string;
   name: string;
   baseUrl: string;
@@ -40,74 +40,11 @@ export interface SearchaliciousSearchInterface
   pageSize: number;
 
   search(): Promise<void>;
-}
-
-/**
- * Parameters we need to put in URL to be able to deep link the search
- */
-export enum HistorySearchParams {
-  QUERY = 'q',
-  FACETS_FILTERS = 'facetsFilters',
-  PAGE = 'page',
+  _facetsNodes(): SearchaliciousFacets[];
+  _facetsFilters(): string;
 }
 
 // name of search params as an array (to ease iteration)
-export const SEARCH_PARAMS = Object.values(HistorySearchParams);
-
-// type of object containing search parameters
-export type HistoryParams = {
-  [key in HistorySearchParams]?: string;
-};
-export type HistoryOutput = {
-  query?: string;
-  page?: number;
-  selectedTermsByFacet?: Record<string, string[]>;
-};
-
-/**
- * Object to convert the URL params to the original values
- *
- * It maps parameter names to a function to transforms it to a JS value
- */
-const HISTORY_VALUES: Record<
-  HistorySearchParams,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (history: Record<string, string>) => Record<string, any>
-> = {
-  [HistorySearchParams.PAGE]: (history) =>
-    history.page
-      ? {
-          page: parseInt(history.page),
-        }
-      : {},
-  [HistorySearchParams.QUERY]: (history) => {
-    // Avoid empty query but allow empty string
-    if (isNullOrUndefined(history.q)) {
-      return {};
-    }
-    return {
-      query: history.q,
-    };
-  },
-  [HistorySearchParams.FACETS_FILTERS]: (history) => {
-    if (!history.facetsFilters) {
-      return {};
-    }
-    // we split back the facetsFilters expression to its sub components
-    // parameter value is facet1:(value1 OR value2) AND facet2:(value3 OR value4)
-    const selectedTermsByFacet = history.facetsFilters
-      .split(QueryOperator.AND)
-      .reduce((acc, filter) => {
-        const [key, value] = filter.split(':');
-        acc[key] = removeParenthesis(value).split(QueryOperator.OR);
-        return acc;
-      }, {} as Record<string, string[]>);
-
-    return {
-      selectedTermsByFacet,
-    };
-  },
-};
 
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
@@ -115,14 +52,14 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   /**
    * The search mixin, encapsulate the logic of dialog with server
    */
-  class SearchaliciousSearchMixinClass extends EventRegistrationMixin(
-    superClass
+  class SearchaliciousSearchMixinClass extends SearchaliciousHistoryMixin(
+    EventRegistrationMixin(superClass)
   ) {
     /**
      * Query that will be sent to searchalicious
      */
     @property({attribute: false})
-    query = '';
+    override query = '';
 
     /**
      * The name of this search
@@ -158,7 +95,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Number of result per page
      */
     @state()
-    _currentPage?: number;
+    override _currentPage?: number;
 
     /**
      * Last search page count
@@ -178,10 +115,34 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
+    constructor() {
+      super();
+      this.firstSearch();
+    }
+
+    firstSearch = () => {
+      // we need to wait for the facets to be ready
+      setTimeout(() => {
+        const {launchSearch, values} = this.setParamFromUrl();
+        if (launchSearch) {
+          // launch the first search event to trigger the search only once
+          this.dispatchEvent(
+            new CustomEvent(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, {
+              bubbles: true,
+              composed: true,
+              detail: {
+                page: values[HistorySearchParams.PAGE],
+              },
+            })
+          );
+        }
+      }, 0);
+    };
+
     /**
      * @returns all searchalicious-facets elements linked to this search ctl
      */
-    _facetsNodes(): SearchaliciousFacets[] {
+    override _facetsNodes = (): SearchaliciousFacets[] => {
       const allNodes: SearchaliciousFacets[] = [];
       // search facets elements, we can't filter on search-name because of default value…
       const facetsElements = document.querySelectorAll('searchalicious-facets');
@@ -192,7 +153,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         }
       });
       return allNodes;
-    }
+    };
 
     /**
      * Get the list of facets we want to request
@@ -208,12 +169,12 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Get the filter linked to facets
      * @returns an expression to be added to query
      */
-    _facetsFilters(): string {
+    override _facetsFilters = (): string => {
       const allFilters: string[] = this._facetsNodes()
         .map((facets) => facets.getSearchFilters())
         .flat();
       return allFilters.join(QueryOperator.AND);
-    }
+    };
     /*
      * Compute search URL, associated parameters and history entry
      * based upon the requested page, and the state of other search components
@@ -254,9 +215,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.addEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
       );
-      // launch first search from search-pages dispatch
-      this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, () =>
-        this.firstSearch()
+      this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, (event) =>
+        this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
     }
     // connect to our specific events
@@ -269,8 +229,10 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.removeEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
       );
-      this.removeEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, () =>
-        this.firstSearch()
+      this.removeEventHandler(
+        SearchaliciousEvents.LAUNCH_FIRST_SEARCH,
+        (event) =>
+          this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
     }
 
@@ -333,67 +295,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         params.facets = this._facets().join(FACETS_DIVIDER);
       }
       return params;
-    };
-
-    /**
-     * Build the history params from the current state
-     * It will be used to update the URL when searching
-     * @param params
-     */
-    buildHistoryParams = (params: BuildParamsOutput) => {
-      return addParamPrefixes(
-        {
-          [HistorySearchParams.QUERY]: this.query,
-          [HistorySearchParams.FACETS_FILTERS]: this._facetsFilters(),
-          [HistorySearchParams.PAGE]: params.page,
-        },
-        OFF_PREFIX
-      ) as HistoryParams;
-    };
-
-    /**
-     * Convert the URL params to the original values
-     * so that we can use them to launch a search.
-     * @param params
-     */
-    convertHistoryParamsToValues = (params: URLSearchParams): HistoryOutput => {
-      const values: HistoryOutput = {};
-      const history = removeParamPrefixes(
-        Object.fromEntries(params),
-        OFF_PREFIX
-      );
-      for (const key of SEARCH_PARAMS) {
-        Object.assign(values, HISTORY_VALUES[key](history));
-      }
-      return values;
-    };
-
-    /**
-     * Set the values from the history
-     * It will set the params from the URL params
-     * @param values
-     */
-    setValuesFromHistory = (values: HistoryOutput) => {
-      this.query = values.query ?? '';
-      this._currentPage = values.page;
-      this._facetsNodes().forEach((facets) => {
-        facets._facetNodes().forEach((facet) => {
-          if (values.selectedTermsByFacet?.[facet.name]?.length) {
-            facet.setSelectedTerms(values.selectedTermsByFacet[facet.name]);
-          }
-        });
-      });
-    };
-
-    /**
-     * Launching first search if there is a query in the URL
-     */
-    firstSearch = () => {
-      const params = new URLSearchParams(window.location.search);
-      const values = this.convertHistoryParamsToValues(params);
-
-      this.setValuesFromHistory(values);
-      this.search();
     };
 
     /**

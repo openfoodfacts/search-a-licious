@@ -16,3 +16,11 @@ export enum SearchaliciousEvents {
 export enum BasicEvents {
   CLICK = 'click',
 }
+
+/**
+ *  This enum defines the possible operators for the search query
+ */
+export enum QueryOperator {
+  AND = ' AND ',
+  OR = ' OR ',
+}
