@@ -1,17 +1,21 @@
 # ![Search-a-licious](./assets/RVB_HORIZONTAL_WHITE_BG_SEARCH-A-LICIOUS-50.png "Search-a-licious logo")
 
 
-**NOTE:** this is a prototype which will be heavily evolved to be more generic, more robust and have much more functionalities.
+**NOTE:** This is a prototype which is being heavily evolved to be more generic, more robust and have much more functionalities.
 
 This API is currently in development. Read [Search-a-licious roadmap architecture notes](https://docs.google.com/document/d/1mibE8nACcmen6paSrqT9JQk5VbuvlFUXI1S93yHCK2I/edit) to understand where we are headed.
 
 ### Organization
 
+There is a [Lit/JS Frontend](frontend/README.md) and a Python (FastAPI) Backend (current README) located on this repository.
+
+### Backend
+
 The main file is `api.py`, and the schema is in `models/product.py`.
 
 A CLI is available to perform common tasks.
 
-### Running locally
+### Running the project on your machine
 
 Note: the Makefile will align the user id with your own uid for a smooth editing experience.
 
@@ -48,11 +52,11 @@ You will then need to import from a JSONL dump (see instructions below).
 ### Development
 
 #### Pre-requisites
-##### Docker
+##### Installing Docker
 - First of all, you need to have Docker installed on your machine. You can download it [here](https://www.docker.com/products/docker-desktop).
 - Be sure you can [run docker without sudo](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
 
-##### Direnv
+##### Installing Direnv
 For Linux and macOS users, You can follow our tutorial to install [direnv](https://openfoodfacts.github.io/openfoodfacts-server/dev/how-to-use-direnv/).[^winEnvrc]
 
 Get your user id and group id by running `id -u` and `id -g` in your terminal.
@@ -68,10 +72,10 @@ export ALLOWED_ORIGINS='http://localhost,http://127.0.0.1,https://*.openfoodfact
 
 [^winEnvrc]: For Windows users, the .envrc is only taken into account by the `make` commands.
 
-##### Pre-commit
+##### Installing Pre-commit
 You can follow the following [tutorial](https://pre-commit.com/#install) to install pre-commit on your machine.
 
-#### Install
+##### Installing mmap
 Be sure that your [system mmap count is high enough for Elasticsearch to run](https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html). You can do this by running:
 ```shell
 sudo sysctl -w vm.max_map_count=262144
@@ -79,20 +83,19 @@ sudo sysctl -w vm.max_map_count=262144
 To make the change permanent, you need to add a line `vm.max_map_count=262144` to the `/etc/sysctl.conf` file and run the command `sudo sysctl -p` to apply the changes.
 This will ensure that the modified value of `vm.max_map_count` is retained even after a system reboot. Without this step, the value will be reset to its default value after a reboot.
 
-#### Run
+#### Running your local instance using Docker
 Now you can run the project with Docker ```docker compose up ```.
 After that run the following command on another shell to compile the project: ```make tsc_watch```.
 Do this for next installation steps and to run the project.
 
-#### How to explore Elasticsearch data
+#### Exploring Elasticsearch data
 
 - Go to http://127.0.0.1:8080/welcome
 - Click on "Add Elasticsearch cluster"
 - change the cluster name to "docker-cluster"
 - Click on "Connect"
 
-
-#### Importing data
+#### Importing data into your development environment
 - Import Taxonomies: `make import-taxonomies` 
 - Import products :
 ```shell
@@ -122,16 +125,13 @@ To run tests without committing:
 pre-commit run
 ```
 
-
-#### Debug Backend App 
+#### Debugging the backend app 
 To debug the backend app:
 * stop API instance: `docker compose stop api`
 * add a pdb.set_trace() at the point you want,
 * then launch `docker compose run --rm  --use-aliases api uvicorn app.api:app --proxy-headers --host 0.0.0.0 --port 8000 --reload`[^use_aliases]
 
-
-
-### Running the import:
+### Running the full import (45-60 min)
 To import data from the [JSONL export](https://world.openfoodfacts.org/data), download the dataset in the `data` folder, then run:
 
 `make import-dataset filepath='products.jsonl.gz'`
@@ -148,9 +148,9 @@ You should also import taxonomies:
 `make import-taxonomies`
 
 
-## Fundings
+## Thank you to our sponsors !
 
-This project has received financial support from the NGI Search (New Generation Internet) program, funded by the European Commission.
+This project has received financial support from the NGI Search (New Generation Internet) program, funded by the 🇪🇺 European Commission. Thank you for supporting Open-Souce, Open Data, and the Commons.
 
 <img src="./assets/NGISearch_logo_tag_icon.svg" alt="NGI-search logo" title="NGI-search logo" height="100" />
 <img src="./assets/europa-flag.jpg" alt="European flag" title="European flag" height="100" />
