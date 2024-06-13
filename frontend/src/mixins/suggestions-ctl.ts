@@ -50,9 +50,10 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
 ): Constructor<SearchaliciousTaxonomiesInterface> & T => {
   class SearchaliciousTermsMixinClass extends superClass {
     // this olds terms corresponding to current input for each taxonomy
-    @property()
+    @state()
     termsByTaxonomyId: Record<string, TermOption[]> = {};
 
+    // this tracks the version of the call to avoid updating with older responses
     @state()
     versionByTaxonomyId: Record<string, number> = {};
 
