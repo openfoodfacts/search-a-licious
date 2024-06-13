@@ -261,7 +261,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       // update options in  termsByTaxonomyId SearchaliciousTermsMixin
       // which will update the property of the autocomplete component during render
       this.getTaxonomiesTerms(value, [taxonomy]);
-    });
+    }, 500);
   }
 
   /**

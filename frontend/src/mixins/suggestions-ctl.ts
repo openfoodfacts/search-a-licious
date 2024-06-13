@@ -50,8 +50,11 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
 ): Constructor<SearchaliciousTaxonomiesInterface> & T => {
   class SearchaliciousTermsMixinClass extends superClass {
     // this olds terms corresponding to current input for each taxonomy
-    @state()
+    @property()
     termsByTaxonomyId: Record<string, TermOption[]> = {};
+
+    @state()
+    versionByTaxonomyId: Record<string, number> = {};
 
     @state()
     loadingByTaxonomyId = {} as Record<string, boolean>;
@@ -87,6 +90,37 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
+     * Method to get versions by taxonomy id.
+     * It returns the version of the terms for each taxonomy.
+     * It is used to ignore responses that are older than the current version.
+     * @param taxonomyNames
+     */
+    getVersionsByTaxonomyId(taxonomyNames: string[]): Record<string, number> {
+      return taxonomyNames.reduce((acc, taxonomyName) => {
+        acc[taxonomyName] =
+          taxonomyName in this.versionByTaxonomyId
+            ? this.versionByTaxonomyId[taxonomyName] + 1
+            : 0;
+        return acc;
+      }, {} as Record<string, number>);
+    }
+
+    /**
+     * Method to check if the version of the terms is newer.
+     * @param taxonomyName
+     * @param version
+     */
+    isANewerVersionOfTermsByTaxonomyId(
+      taxonomyName: string,
+      version: number
+    ): boolean {
+      return (
+        this.versionByTaxonomyId[taxonomyName] === undefined ||
+        this.versionByTaxonomyId[taxonomyName] < version
+      );
+    }
+
+    /**
      * Method to get taxonomies terms.
      * @param {string} q - The query string.
      * @param {string[]} taxonomyNames - The taxonomy names.
@@ -97,6 +131,9 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
       taxonomyNames: string[]
     ): Promise<TaxomiesTermsResponse> {
       this._setIsLoadingByTaxonomyNames(taxonomyNames, true);
+      // get the version of the terms for each taxonomy
+      const versionByTaxonomyId = this.getVersionsByTaxonomyId(taxonomyNames);
+
       return fetch(this._termsUrl(q, taxonomyNames), {
         method: 'GET',
         headers: {
@@ -112,13 +149,32 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
           return response.json() as Promise<TaxomiesTermsResponse>;
         })
         .then((response) => {
-          this.termsByTaxonomyId = response.options.reduce((acc, option) => {
+          // group terms by taxonomy id
+          const termsByTaxonomyId = response.options.reduce((acc, option) => {
             if (!acc[option.taxonomy_name]) {
               acc[option.taxonomy_name] = [];
             }
             acc[option.taxonomy_name].push(option);
             return acc;
           }, {} as Record<string, TermOption[]>);
+
+          // only update terms if the response is newer
+          Object.entries(termsByTaxonomyId).forEach(([taxonomyName, terms]) => {
+            if (
+              this.isANewerVersionOfTermsByTaxonomyId(
+                taxonomyName,
+                versionByTaxonomyId[taxonomyName]
+              )
+            ) {
+              this.versionByTaxonomyId[taxonomyName] =
+                versionByTaxonomyId[taxonomyName];
+              this.termsByTaxonomyId = {
+                ...this.termsByTaxonomyId,
+                [taxonomyName]: terms,
+              };
+            }
+          });
+
           return response;
         });
     }
