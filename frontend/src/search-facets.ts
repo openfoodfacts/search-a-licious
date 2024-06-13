@@ -258,7 +258,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     const value = event.detail.value;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     this.debounce(() => {
-      // update options in  termsByTaxonomyId SearchaliciousTermsMixin
+      // update options in terms SearchaliciousTermsMixin
       // which will update the property of the autocomplete component during render
       this.getTaxonomiesTerms(value, [taxonomy]);
     }, 500);
@@ -277,7 +277,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       this.onInputAddTerm(e, taxonomy);
     };
 
-    const options = (this.termsByTaxonomyId[taxonomy] || []).map((term) => {
+    const options = (this.terms || []).map((term) => {
       return {
         value: term.id.replace(/^en:/, ''),
         label: term.text,
@@ -292,7 +292,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
         <searchalicious-autocomplete
           .inputName=${inputName}
           .options=${options}
-          .isLoading=${this.loadingByTaxonomyId[taxonomy]}
+          .isLoading=${this.isTermsLoading}
           @searchalicious-autocomplete-submit=${this.addTerm}
           @searchalicious-autocomplete-input=${onInput}
         ></searchalicious-autocomplete>
