@@ -31,7 +31,7 @@ The project is currently composed of several widgets
   * it will influence the search adding terms to the search
 * searchalicious-checkbox is a simple checkbox
   * it can be used to replace the default checkbox
-  * it allows to keep the state of the checkbox
+  * it allows to keep the state of the checkbox when you change the property
 * searchalicious-secondary-button is a button with defined style
   * it can be used to replace the default button
 * searchalicious-button-transparent is a transparent button with defined style
