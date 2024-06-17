@@ -9,7 +9,7 @@ from ._types import (
     FacetsFilters,
     FacetsInfos,
     QueryAnalysis,
-    SearchResponse,
+    SuccessSearchResponse,
 )
 from .taxonomy_es import get_taxonomy_names
 
@@ -74,7 +74,7 @@ def translate_facets_values(
 
 
 def build_facets(
-    search_result: SearchResponse,
+    search_result: SuccessSearchResponse,
     query_analysis: QueryAnalysis,
     lang: str,
     index_config: config.IndexConfig,

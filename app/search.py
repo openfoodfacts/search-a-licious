@@ -2,7 +2,7 @@ import logging
 from typing import cast
 
 from . import config
-from ._types import SearchParameters, SearchResponse
+from ._types import SearchParameters, SearchResponse, SuccessSearchResponse
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
@@ -65,9 +65,10 @@ def search(
         page_size=params.page_size,
         projection=projection,
     )
-    search_result.facets = build_facets(
-        search_result, query, params.main_lang, index_config, params.facets
-    )
-    # remove aggregations to avoid sending too much information
-    search_result.aggregations = None
+    if isinstance(search_result, SuccessSearchResponse):
+        search_result.facets = build_facets(
+            search_result, query, params.main_lang, index_config, params.facets
+        )
+        # remove aggregations to avoid sending too much information
+        search_result.aggregations = None
     return search_result
