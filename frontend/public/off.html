@@ -124,6 +124,102 @@
         margin-top: .2rem;
       }
     </style>
+    <script lang="javascript">
+      // we use a closure that will return our important functions
+      const [showPreferencesConfig, storePreferences] = (function () {
+
+        // this is small demo of a preferences box
+        const preferences = {};
+
+        /**
+         * As document loads, load preferences from local storage,
+         * and update preferences form
+         **/
+        document.onload = function() {
+          try {
+            loadPreferences();
+            updateForm(preferences);
+          } catch (e) {
+            console.log(e);
+          }
+        }
+
+        /**
+         * load preferences from local storage
+         **/
+        function loadPreferences() {
+          Object.assign(preferences, JSON.parse(localStorage.getItem("off_preferences") ?? "{}"));
+        }
+
+        /**
+         * update the form to reflect user preferences
+         **/
+        function updateForm(preferences) {
+          const preferences_form = document.getElementById("preferences_form");
+          const preferences_form_elements = preferences_form.elements;
+          for (let i = 0; i < preferences_form_elements.length; i++) {
+            const element = preferences_form_elements[i];
+            if (element.nodeName === "SELECT") {
+              const targetValue = preferences[element.name] ?? element.value;
+              const options = Array.from(element.getElementsByTagName("option"));
+              options.forEach(item => {
+                if (item.value === targetValue) {
+                  item.selected = true;
+                }
+              });
+            }
+          }
+        }
+
+        /**
+         * show or hide preferences according to showPrefs value
+         **/
+        function togglePreferences(showPrefs) {
+          const preferences_config_toggle = document.getElementById("preferences_config_toggle");
+          const preferences_config = document.getElementById("preferences_config");
+          if (! showPrefs) {
+            preferences_config_toggle.style.display = "block";
+            preferences_config.style.display = "none";
+          } else {
+            preferences_config_toggle.style.display = "none";
+            preferences_config.style.display = "block";
+          }
+        }
+
+        /**
+         * action to show the preference dialog
+         **/
+        function showPreferencesConfig() {
+          togglePreferences(true);
+          return false;
+        }
+
+        /**
+         * action to store preferences (form submission)
+         **/
+        function storePreferences() {
+          try {
+            const preferences_form = document.getElementById("preferences_form");
+            const preferences_form_elements = preferences_form.elements;
+            const preferences = {};
+            for (let i = 0; i < preferences_form_elements.length; i++) {
+              const preference = preferences_form_elements[i];
+              if (preference.nodeName === "SELECT") {
+                preferences[preference.name] = preference.value;
+              }
+            }
+            localStorage.setItem("off_preferences", JSON.stringify(preferences));
+            togglePreferences(false);
+          }
+          catch (error) {
+            console.log("error storing preferences", error);
+          }
+
+          return false; // avoid form submission
+        }
+        return [showPreferencesConfig, storePreferences];
+      })();
+    </script>
   </head>
   <body class="products_page">
     <div id="page">
@@ -246,10 +342,37 @@
                           </ul>
                         </div>
                       </div>
-                    </div>
+                    </div></a>
                   </div>
                 </div>
                 <div class="row" style="padding-top: 1rem">
+                  <div id="preferences_config_toggle" class="large-2 columns">
+                    <a onclick="return showPreferencesConfig()">Define my preferences</a>
+                  </div>
+                  <div id="preferences_config" class="large-2 columns" style="display:none">
+                    <form id="preferences_form" onSubmit="return storePreferences()">
+                      <div>Select your Food preferences :</div>
+                      <label for="nutriscore">Nutriscore</label>
+                      <select name="nutriscore">
+                        <option value="0">not important</option>
+                        <option value="1">important</option>
+                        <option value="2">very important</option>
+                      </select>
+                      <label for="nova">Nova</label>
+                      <select name="nova">
+                        <option value="0">not important</option>
+                        <option value="1">important</option>
+                        <option value="2">very important</option>
+                      </select>
+                      <label for="ecoscore">Environmental impact</label>
+                      <select name="ecoscore">
+                        <option value="0">not important</option>
+                        <option value="1">important</option>
+                        <option value="2">very important</option>
+                      </select>
+                      <button type="submit" >Configure</button>
+                    </form>
+                  </div>
                   <div class="large-2 columns">
                     <searchalicious-facets search-name="off">
                       <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
