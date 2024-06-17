@@ -26,6 +26,16 @@ The project is currently composed of several widgets
 * searchalicious-facet-terms renders the facet for terms (list of entries, with number of docs).
   * it must be in a `searchalicious-facets`
   * the user can select facets to filter the search
+* searchalicious-autocomplete is a component that displays a list of suggestions
+  * it must be in a `searchalicious-facet`
+  * it will influence the search adding terms to the search
+* searchalicious-checkbox is a simple checkbox
+  * it can be used to replace the default checkbox
+  * it allows to keep the state of the checkbox when you change the property
+* searchalicious-secondary-button is a button with defined style
+  * it can be used to replace the default button
+* searchalicious-button-transparent is a transparent button with defined style
+  * it can be used to replace the default button
 
 You can give a specific `name` attribute to your search bar.
 Then all other component that needs to connect with this search must use the same value in `search-name` attribute
