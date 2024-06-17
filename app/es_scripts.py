@@ -6,17 +6,17 @@ from app.utils import connection
 
 
 def get_script_prefix(index_id: str):
-    """We prefix scripts specific to an index with the index_id"""
+    """We prefix scripts specific to an index with the index_id."""
     return f"{index_id}__"
 
 
-def get_script_id(index_id, script_id):
-    """We prefix scripts specific to an index with the index_id"""
+def get_script_id(index_id: str, script_id: str):
+    """We prefix scripts specific to an index with the index_id."""
     return f"{index_id}__{script_id}"
 
 
 def _list_stored_scripts(index_config: config.IndexConfig, prefix: str) -> list[str]:
-    """List Elasticsearch stored scripts filtered by a prefix"""
+    """List Elasticsearch stored scripts filtered by a prefix."""
     es = connection.current_es_client()
     metadata = es.cluster.state(metric="metadata")["metadata"]
     scripts = metadata.get("stored_scripts") or {}
@@ -25,7 +25,7 @@ def _list_stored_scripts(index_config: config.IndexConfig, prefix: str) -> list[
 
 
 def _remove_scripts(scripts_ids: list[str], index_config: config.IndexConfig):
-    """Remove scripts from Elasticsearch"""
+    """Remove scripts from Elasticsearch."""
     es = connection.current_es_client()
     for script_id in scripts_ids:
         es.delete_script(id=script_id)
@@ -34,7 +34,7 @@ def _remove_scripts(scripts_ids: list[str], index_config: config.IndexConfig):
 def _store_script(
     script_id: str, script: config.ScriptConfig, index_config: config.IndexConfig
 ):
-    """Store a script in Elasticsearch"""
+    """Store a script in Elasticsearch."""
     payload = {
         "lang": script.lang.value,
         "source": script.source,
@@ -47,7 +47,7 @@ def _store_script(
 
 
 def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, int]:
-    """Resync the scripts between configuration and elasticsearch"""
+    """Resync the scripts between configuration and elasticsearch."""
     # list existing
     current_ids = _list_stored_scripts(index_config, prefix=get_script_prefix(index_id))
     # remove them

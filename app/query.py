@@ -253,13 +253,12 @@ def parse_sort_by_field(sort_by: str | None, config: IndexConfig) -> str | None:
 
 
 def parse_sort_by_script(
-    es_query: Search,
     sort_by: str,
     params: JSONType | None,
     config: IndexConfig,
     index_id: str,
 ) -> JSONType:
-    """Create the the ES sort expression to sort by a script"""
+    """Create the ES sort expression to sort by a script"""
     # remove negation mark while retaining we want negative sorting
     operator, sort_by = str_utils.split_sort_by_sign(sort_by)
     script = (config.scripts or {}).get(sort_by)
@@ -341,7 +340,7 @@ def build_es_query(
     sort_by: JSONType | str | None = None
     if params.uses_sort_script and params.sort_by is not None:
         sort_by = parse_sort_by_script(
-            es_query, params.sort_by, params.sort_params, config, params.valid_index_id
+            params.sort_by, params.sort_params, config, params.valid_index_id
         )
     else:
         sort_by = parse_sort_by_field(params.sort_by, config)

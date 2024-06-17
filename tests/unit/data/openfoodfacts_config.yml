@@ -6,6 +6,13 @@ indices:
       name: openfoodfacts
       number_of_replicas: 1
       number_of_shards: 4
+    scripts:
+      personal_score:
+        lang: expression
+        source: |
+          1
+        params:
+          preferences: 2
     fields:
       code:
         required: true
@@ -65,13 +72,16 @@ indices:
       countries_tags:
         type: keyword
         bucket_agg: true
+        taxonomy_name: country
       states_tags:
         type: keyword
         bucket_agg: true
+        taxonomy_name: state
       origins_tags:
         type: keyword
       ingredients_tags:
         type: keyword
+        taxonomy_name: ingredient
       unique_scans_n:
         type: integer
       scans_n:
@@ -95,6 +105,7 @@ indices:
         type: integer
       allergens_tags:
         type: keyword
+        taxonomy_name: allergen
       ecoscore_data:
         type: disabled
       ecoscore_score:

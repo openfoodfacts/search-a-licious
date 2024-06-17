@@ -12,7 +12,7 @@ def get_es_client(**kwargs):
 
 
 def current_es_client():
-    """Return elasticsearch default connection"""
+    """Return ElasticSearch default connection"""
     return connections.get_connection()
 
 

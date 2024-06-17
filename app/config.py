@@ -282,7 +282,7 @@ class TaxonomyConfig(BaseModel):
 class ScriptConfig(BaseModel):
     """Scripts can be used to sort results of a search.
 
-    This use Elastic search internal capabilities
+    This use ElasticSearch internal capabilities
     """
 
     lang: Annotated[

@@ -125,7 +125,7 @@ def search_get(
             facets=facets_list,
             index_id=index_id,
         )
-        return search(search_parameters)
+        return app_search.search(search_parameters)
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -198,7 +198,7 @@ def html_search(
     if not q:
         return templates.TemplateResponse("search.html", {"request": request})
 
-    results = search(
+    results = search_get(
         q=q,
         langs=langs,
         page_size=page_size,

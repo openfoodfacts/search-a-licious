@@ -7,7 +7,7 @@ This is the easiest method, and more generic one, but not necessarily optimize f
 * scripts can be declared in the config
 * we run a command to store them in Elasticsearch (removing the eventual non declared ones)
 ``
-* (maybe at startup we should verify that the scripts declared in config are in elastic search)
+* (maybe at startup we should verify that the scripts declared in config are in ElasticSearch)
 * scripts accepts parameters
 * as you call search API, you specify a script name (as in config) and provide parameters
 
@@ -32,7 +32,7 @@ Also the script filter may help, if it's faster than score to remove some values
 
 ## Using KNN
 
-There is a good support for KNNs in Elastic Search, with approximate matching.
+There is a good support for KNNs in ElasticSearch, with approximate matching.
 
 If we can reduce scoring to a KNN search this might be worth exploring.
 
