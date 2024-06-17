@@ -21,6 +21,7 @@ export class ResultsCounterDisplay
 
   // the last number of results found
   @state()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   nbResults: number = 0;
 
   // HTML to display before the search is launched
