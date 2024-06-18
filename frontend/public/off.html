@@ -11,6 +11,10 @@
     />
     <script type="module" src="./search-a-licious.bundled.js"></script>
     <style>
+      #content {
+        /* avoid sort by options to be hidden on a blank page */
+        min-height: 20em;
+      }
       /* temporary inline styles to test CSS customization */
       /* search bar styling */
       
@@ -122,6 +126,22 @@
         height: 32px;
         margin-right: .2rem;
         margin-top: .2rem;
+      }
+      searchalicious-sort {
+        --sort-options-color: rgb(52, 17, 0);
+        --sort-options-background-color: #f6f3f0;
+        --sort-options-hover-background-color: #BBBBBB;
+      }
+      searchalicious-sort::part(button) {
+        display: flex;
+        align-items: center;
+        border-color: #cfac9e;
+        border-radius: 1000px;
+        padding: .4em 1em;
+        border-style: solid;
+      }
+      searchalicious-sort::part(options) {
+        border: solid #cfac9e 1px;
       }
     </style>
     <script lang="javascript">

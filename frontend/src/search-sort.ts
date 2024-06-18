@@ -161,6 +161,9 @@ export class SearchaliciousSortOption extends LitElement {
       text-decoration: none;
       color: var(--sort-options-color, #000000);
     }
+    .sort-option:hover {
+      background-color: var(--sort-options-hover-background-color, #dddddd);
+    }
   `;
 
   /**
