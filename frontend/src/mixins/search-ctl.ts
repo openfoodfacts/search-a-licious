@@ -4,17 +4,34 @@ import {
   EventRegistrationInterface,
   EventRegistrationMixin,
 } from '../event-listener-setup';
-import {SearchaliciousEvents} from '../utils/enums';
+import {QueryOperator, SearchaliciousEvents} from '../utils/enums';
 import {
   ChangePageEvent,
   LaunchSearchEvent,
   SearchResultEvent,
   SearchResultDetail,
 } from '../events';
-import {SearchaliciousFacets} from '../search-facets';
 import {Constructor} from './utils';
+import {SearchaliciousFacets} from '../search-facets';
+import {setCurrentURLHistory} from '../utils/url';
+import {FACETS_DIVIDER} from '../utils/constants';
+import {
+  HistorySearchParams,
+  SearchaliciousHistoryInterface,
+  SearchaliciousHistoryMixin,
+} from './history';
+
+export type BuildParamsOutput = {
+  q: string;
+  langs: string;
+  page_size: string;
+  page?: string;
+  index?: string;
+  facets?: string;
+};
 export interface SearchaliciousSearchInterface
-  extends EventRegistrationInterface {
+  extends EventRegistrationInterface,
+    SearchaliciousHistoryInterface {
   query: string;
   name: string;
   baseUrl: string;
@@ -23,7 +40,11 @@ export interface SearchaliciousSearchInterface
   pageSize: number;
 
   search(): Promise<void>;
+  _facetsNodes(): SearchaliciousFacets[];
+  _facetsFilters(): string;
 }
+
+// name of search params as an array (to ease iteration)
 
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
@@ -31,20 +52,20 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   /**
    * The search mixin, encapsulate the logic of dialog with server
    */
-  class SearchaliciousSearchMixinClass extends EventRegistrationMixin(
-    superClass
+  class SearchaliciousSearchMixinClass extends SearchaliciousHistoryMixin(
+    EventRegistrationMixin(superClass)
   ) {
     /**
      * Query that will be sent to searchalicious
      */
     @property({attribute: false})
-    query = '';
+    override query = '';
 
     /**
      * The name of this search
      */
     @property()
-    name = 'searchalicious';
+    override name = 'searchalicious';
 
     /**
      * The base api url
@@ -74,7 +95,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Number of result per page
      */
     @state()
-    _currentPage?: number;
+    override _currentPage?: number;
 
     /**
      * Last search page count
@@ -95,9 +116,37 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _count?: number;
 
     /**
+     * Wether search should be launched at page load
+     */
+    @property({attribute: 'auto-launch', type: Boolean})
+    autoLaunch = false;
+
+    /**
+     * Launch search at page loaded if needed (we have a search in url)
+     */
+    firstSearch = () => {
+      // we need to wait for the facets to be ready
+      setTimeout(() => {
+        const {launchSearch, values} = this.setParamFromUrl();
+        if (this.autoLaunch || launchSearch) {
+          // launch the first search event to trigger the search only once
+          this.dispatchEvent(
+            new CustomEvent(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, {
+              bubbles: true,
+              composed: true,
+              detail: {
+                page: values[HistorySearchParams.PAGE],
+              },
+            })
+          );
+        }
+      }, 0);
+    };
+
+    /**
      * @returns all searchalicious-facets elements linked to this search ctl
      */
-    _facetsNodes(): SearchaliciousFacets[] {
+    override _facetsNodes = (): SearchaliciousFacets[] => {
       const allNodes: SearchaliciousFacets[] = [];
       // search facets elements, we can't filter on search-name because of default value…
       const facetsElements = document.querySelectorAll('searchalicious-facets');
@@ -108,7 +157,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         }
       });
       return allNodes;
-    }
+    };
 
     /**
      * Get the list of facets we want to request
@@ -124,45 +173,21 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Get the filter linked to facets
      * @returns an expression to be added to query
      */
-    _facetsFilters(): string {
+    override _facetsFilters = (): string => {
       const allFilters: string[] = this._facetsNodes()
         .map((facets) => facets.getSearchFilters())
         .flat();
-      return allFilters.join(' AND ');
-    }
-
+      return allFilters.join(QueryOperator.AND);
+    };
+    /*
+     * Compute search URL, associated parameters and history entry
+     * based upon the requested page, and the state of other search components
+     * (search bar, facets, etc.)
+     */
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
-      const queryParts = [];
-      if (this.query) {
-        queryParts.push(this.query);
-      }
-      const facetsFilters = this._facetsFilters();
-      if (facetsFilters) {
-        queryParts.push(facetsFilters);
-      }
-      // build parameters
-      const params: {
-        q: string;
-        langs: string;
-        page_size: string;
-        page?: string;
-        index?: string;
-        facets?: string;
-      } = {
-        q: queryParts.join(' '),
-        langs: this.langs,
-        page_size: this.pageSize.toString(),
-        index: this.index,
-      };
-      if (page) {
-        params.page = page.toString();
-      }
-      const facets = this._facets();
-      if (facets && facets.length > 0) {
-        params.facets = facets.join(',');
-      }
+      const params = this.buildParams(page);
       const queryStr = Object.entries(params)
         .filter(
           ([_, value]) => value != null // null or undefined
@@ -173,8 +198,13 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         )
         .sort() // for perdictability in tests !
         .join('&');
-
-      return `${baseUrl}/search?${queryStr}`;
+      return {
+        searchUrl: `${baseUrl}/search?${queryStr}`,
+        q: queryStr,
+        params,
+        // this will help update browser history
+        history: this.buildHistoryParams(params),
+      };
     }
 
     // connect to our specific events
@@ -189,6 +219,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.addEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
       );
+      this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, (event) =>
+        this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
+      );
     }
     // connect to our specific events
     override disconnectedCallback() {
@@ -200,6 +233,17 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.removeEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
       );
+      this.removeEventHandler(
+        SearchaliciousEvents.LAUNCH_FIRST_SEARCH,
+        (event) =>
+          this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
+      );
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    override firstUpdated(changedProperties: Map<any, any>) {
+      super.firstUpdated(changedProperties);
+      this.firstSearch();
     }
 
     /**
@@ -229,10 +273,47 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
+     * Build the params to send to the search API
+     * @param page
+     */
+    buildParams = (page?: number): BuildParamsOutput => {
+      const queryParts = [];
+      if (this.query) {
+        queryParts.push(this.query);
+      }
+      const facetsFilters = this._facetsFilters();
+      if (facetsFilters) {
+        queryParts.push(facetsFilters);
+      }
+      const params: {
+        q: string;
+        langs: string;
+        page_size: string;
+        page?: string;
+        index?: string;
+        facets?: string;
+      } = {
+        q: queryParts.join(' '),
+        langs: this.langs,
+        page_size: this.pageSize.toString(),
+        index: this.index,
+      };
+      if (page) {
+        params.page = page.toString();
+      }
+      if (this._facets().length > 0) {
+        params.facets = this._facets().join(FACETS_DIVIDER);
+      }
+      return params;
+    };
+
+    /**
      * Launching search
      */
     async search(page?: number) {
-      const response = await fetch(this._searchUrl(page));
+      const {searchUrl, history} = this._searchUrl(page);
+      setCurrentURLHistory(history);
+      const response = await fetch(searchUrl);
       // FIXME data should be typed…
       const data = await response.json();
       this._results = data.hits;

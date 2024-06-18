@@ -8,6 +8,7 @@ import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
+import {QueryOperator} from './utils/enums';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -66,6 +67,12 @@ export class SearchaliciousFacets extends SearchActionMixin(
     ) as SearchaliciousFacet[];
   }
 
+  setSelectedTermsByFacet(selectedTermsByFacet: Record<string, string[]>) {
+    this._facetNodes().forEach((node) => {
+      node.setSelectedTerms(selectedTermsByFacet[node.name]);
+    });
+  }
+
   /**
    * Names of facets we need to query,
    * this is the names of contained facetNodes.
@@ -80,6 +87,12 @@ export class SearchaliciousFacets extends SearchActionMixin(
     return this._facetNodes()
       .map((node) => node.searchFilter())
       .filter(stringGuard);
+  }
+
+  setSelectedTerms(terms: string[]) {
+    this._facetNodes().forEach((node) => {
+      node.setSelectedTerms(terms);
+    });
   }
 
   /**
@@ -148,6 +161,13 @@ export class SearchaliciousFacet extends LitElement {
       `reset not implemented: implement in sub class with submit ${submit}`
     );
   };
+  setSelectedTerms(terms: string[]) {
+    throw new Error(
+      `setSelectedTerms not implemented: implement in sub class ${terms.join(
+        ', '
+      )}`
+    );
+  }
 
   override render() {
     if (this.infos) {
@@ -228,6 +248,18 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   }
 
   /**
+   * Set the selected terms from an array of terms
+   * This is used to restore the state of the facet
+   * @param terms
+   */
+  override setSelectedTerms(terms?: string[]) {
+    this.selectedTerms = {};
+    for (const term of terms ?? []) {
+      this.selectedTerms[term] = true;
+    }
+  }
+
+  /**
    * Create the search term based upon the selected terms
    */
   override searchFilter(): string | undefined {
@@ -241,7 +273,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     if (values.length === 0) {
       return undefined;
     }
-    let orValues = values.join(' OR ');
+    let orValues = values.join(QueryOperator.OR);
     if (values.length > 1) {
       orValues = `(${orValues})`;
     }

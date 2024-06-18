@@ -7,6 +7,7 @@ export enum SearchaliciousEvents {
   CHANGE_PAGE = 'searchalicious-change-page',
   AUTOCOMPLETE_SUBMIT = 'searchalicious-autocomplete-submit',
   AUTOCOMPLETE_INPUT = 'searchalicious-autocomplete-input',
+  LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
 }
 
 /**
@@ -14,4 +15,12 @@ export enum SearchaliciousEvents {
  */
 export enum BasicEvents {
   CLICK = 'click',
+}
+
+/**
+ *  This enum defines the possible operators for the search query
+ */
+export enum QueryOperator {
+  AND = ' AND ',
+  OR = ' OR ',
 }
