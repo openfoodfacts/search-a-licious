@@ -56,6 +56,7 @@ export class SearchaliciousTermLine extends LitElement {
     return html`
       <div class="term-line">
         <div class="term-line-img-wrapper">
+          <!-- if no imageUrl show empty circle -->
           ${this.term?.imageUrl
             ? html`<img src=${this.term?.imageUrl} />`
             : html`<div></div>`}
