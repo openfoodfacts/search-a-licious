@@ -27,7 +27,7 @@ export class SearchaliciousTermLine extends LitElement {
       width: calc(100% - var(--img-size) - var(--margin-left));
     }
 
-    .term-line-img-wrapper img {
+    .term-line-img-wrapper > * {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -56,7 +56,9 @@ export class SearchaliciousTermLine extends LitElement {
     return html`
       <div class="term-line">
         <div class="term-line-img-wrapper">
-          <img src=${this.term?.imageUrl ?? ''} />
+          ${this.term?.imageUrl
+            ? html`<img src=${this.term?.imageUrl} />`
+            : html`<div></div>`}
         </div>
         <div class="term-line-text-wrapper">
           <div class="term-line-text">${this.term?.text}</div>
