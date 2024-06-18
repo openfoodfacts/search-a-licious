@@ -280,67 +280,11 @@
                         </span>
                       </div>
                       <div class="filterProducts__buttons">
-                        <div>
-                          <button
-                            href="#"
-                            data-dropdown="drop_sort"
-                            aria-controls="drop_sort"
-                            aria-expanded="false"
-                            class="button round dropdown small secondary unmarged"
-                          >
-                            <span class="material-icons">swap_vert</span>
-                            Relevance
-                          </button>
-                          <ul
-                            id="drop_sort"
-                            data-dropdown-content=""
-                            class="f-dropdown"
-                            aria-hidden="true"
-                            style="
-                              position: absolute;
-                              left: -99999px;
-                              top: 38px;
-                            "
-                          >
-                            <li>
-                              <a href="/?q=test&amp;page_size=24">Relevance</a>
-                            </li>
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=-unique_scans_n&amp;page_size=24"
-                                >Most scanned products</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=nutriscore_score&amp;page_size=24"
-                                >Products with the best Nutri-Score</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=-ecoscore_score&amp;page_size=24"
-                                >Products with the best Eco-Score</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=created_t&amp;page_size=24"
-                                >Recently added products</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=last_modified_t&amp;page_size=24"
-                                >Recently modified products</a
-                              >
-                            </li>
-                          </ul>
-                        </div>
+                        <searchalicious-sort search-name="off">
+                          <span slot="label">Sort by ▿</span>
+                          <searchalicious-sort-field field="ecoscore_grade">Eco-Score</searchalicious-sort-field>
+                          <searchalicious-sort-field field="nutriscore_grade">Nutri-Score</searchalicious-sort-field>
+                        </searchalicious-sort>
                       </div>
                     </div></a>
                   </div>
