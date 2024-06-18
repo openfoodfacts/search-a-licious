@@ -65,6 +65,9 @@ export class SearchaliciousBar extends AutocompleteMixin(
   @property()
   placeholder = 'Search...';
 
+  /**
+   * It parses the string taxonomies attribute and returns an array
+   */
   get parsedTaxonomies() {
     return this.taxonomies.split(',');
   }

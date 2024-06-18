@@ -73,17 +73,28 @@ export class SearchaliciousFacets extends SearchActionMixin(
     });
   }
 
+  /**
+   * Get a facet node by its taxonomy
+   * It will return undefined if the taxonomy is not found
+   * @param taxonomy
+   */
   getFacetNodeByTaxonomy(taxonomy: string): SearchaliciousFacet | undefined {
     return this._facetNodes().find((node) => node.taxonomy === taxonomy);
   }
 
+  /**
+   * Select a term by its taxonomy and term name
+   * It will return false if the taxonomy is not found
+   * @param taxonomy
+   * @param term
+   */
   selectTermByTaxonomy(taxonomy: string, term: string): boolean {
     const node = this.getFacetNodeByTaxonomy(taxonomy);
-    if (node) {
-      node.setTermSelected(true, term);
-      return true;
+    if (!node) {
+      return false;
     }
-    return false;
+    node.setTermSelected(true, term);
+    return true;
   }
 
   /**
