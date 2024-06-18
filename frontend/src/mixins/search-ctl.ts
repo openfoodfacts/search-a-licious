@@ -13,6 +13,7 @@ import {
 } from '../events';
 import {SearchaliciousFacets} from '../search-facets';
 import {Constructor} from './utils';
+import {SearchaliciousSort} from '../search-sort';
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface {
   query: string;
@@ -95,6 +96,27 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _count?: number;
 
     /**
+     * @returns the sort element linked to this search ctl
+     */
+    _sortElement(): SearchaliciousSort | null {
+      let sortElement: SearchaliciousSort | null = null;
+      document.querySelectorAll(`searchalicious-sort`).forEach((item) => {
+        const sortElementItem = item as SearchaliciousSort;
+        if (sortElementItem.searchName == this.name) {
+          if (sortElement !== null) {
+            console.warn(
+              `searchalicious-sort element with search-name ${this.name} already exists, ignoring`
+            );
+          } else {
+            sortElement = sortElementItem;
+          }
+        }
+      });
+
+      return sortElement;
+    }
+
+    /**
      * @returns all searchalicious-facets elements linked to this search ctl
      */
     _facetsNodes(): SearchaliciousFacets[] {
@@ -158,6 +180,10 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       };
       if (page) {
         params.page = page.toString();
+      }
+      const sortElement = this._sortElement();
+      if (sortElement) {
+        Object.assign(params, sortElement.getSortParameters());
       }
       const facets = this._facets();
       if (facets && facets.length > 0) {

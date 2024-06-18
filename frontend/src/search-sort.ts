@@ -21,6 +21,7 @@ export class SearchaliciousSort extends SearchActionMixin(
       padding: 0.3em;
       margin: 0;
       background-color: var(--sort-options-background-color, #ffffff);
+      position: absolute;
     }
   `;
 
@@ -64,10 +65,23 @@ export class SearchaliciousSort extends SearchActionMixin(
     );
   }
 
+  /**
+   * Duplicate our selected marker to all children sort options that did not have it yet
+   */
   assignSelectedMarker() {
     this.sortOptions().forEach((node) => {
-      node.selectedMarker = this.selectedMarker;
+      if (!node.selectedMarker) {
+        node.selectedMarker = this.selectedMarker;
+      }
     });
+  }
+
+  /**
+   * Get sort parameters of selected option or return an empty Object
+   */
+  getSortParameters() {
+    const option = this.currentSortOption();
+    return option ? option.getSortParameters() : {};
   }
 
   /**
@@ -157,7 +171,7 @@ export class SearchaliciousSortOption extends LitElement {
   selected = false;
 
   @property()
-  selectedMarker = '▶';
+  selectedMarker = '';
 
   /**
    * This is the method that should return the sort paratemetrs

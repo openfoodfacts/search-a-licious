@@ -126,7 +126,7 @@
     </style>
     <script lang="javascript">
       // we use a closure that will return our important functions
-      const [showPreferencesConfig, storePreferences] = (function () {
+      const [togglePreferences, storePreferences] = (function () {
 
         // this is small demo of a preferences box
         const preferences = {};
@@ -184,13 +184,6 @@
             preferences_config_toggle.style.display = "none";
             preferences_config.style.display = "block";
           }
-        }
-
-        /**
-         * action to show the preference dialog
-         **/
-        function showPreferencesConfig() {
-          togglePreferences(true);
           return false;
         }
 
@@ -217,7 +210,7 @@
 
           return false; // avoid form submission
         }
-        return [showPreferencesConfig, storePreferences];
+        return [togglePreferences, storePreferences];
       })();
     </script>
   </head>
@@ -282,6 +275,8 @@
                       <div class="filterProducts__buttons">
                         <searchalicious-sort search-name="off">
                           <span slot="label">Sort by ▿</span>
+                          <searchalicious-sort-field field="created_t">Last creation</searchalicious-sort-field>                          
+                          <searchalicious-sort-field field="last_modified_t">Last modification</searchalicious-sort-field>
                           <searchalicious-sort-field field="ecoscore_grade">Eco-Score</searchalicious-sort-field>
                           <searchalicious-sort-field field="nutriscore_grade">Nutri-Score</searchalicious-sort-field>
                         </searchalicious-sort>
@@ -290,34 +285,34 @@
                   </div>
                 </div>
                 <div class="row" style="padding-top: 1rem">
-                  <div id="preferences_config_toggle" class="large-2 columns">
-                    <a onclick="return showPreferencesConfig()">Define my preferences</a>
-                  </div>
-                  <div id="preferences_config" class="large-2 columns" style="display:none">
-                    <form id="preferences_form" onSubmit="return storePreferences()">
-                      <div>Select your Food preferences :</div>
-                      <label for="nutriscore">Nutriscore</label>
-                      <select name="nutriscore">
-                        <option value="0">not important</option>
-                        <option value="1">important</option>
-                        <option value="2">very important</option>
-                      </select>
-                      <label for="nova">Nova</label>
-                      <select name="nova">
-                        <option value="0">not important</option>
-                        <option value="1">important</option>
-                        <option value="2">very important</option>
-                      </select>
-                      <label for="ecoscore">Environmental impact</label>
-                      <select name="ecoscore">
-                        <option value="0">not important</option>
-                        <option value="1">important</option>
-                        <option value="2">very important</option>
-                      </select>
-                      <button type="submit" >Configure</button>
-                    </form>
-                  </div>
                   <div class="large-2 columns">
+                    <div id="preferences_config_toggle">
+                      <a onclick="return togglePreferences(true)">Define my preferences</a>
+                    </div>
+                    <div id="preferences_config" style="display:none">
+                      <form id="preferences_form" onSubmit="return storePreferences()">
+                        <div><a onclick="return togglePreferences(false)">Select your Food preferences :</a></div>
+                        <label for="nutriscore">Nutriscore</label>
+                        <select name="nutriscore">
+                          <option value="0">not important</option>
+                          <option value="1">important</option>
+                          <option value="2">very important</option>
+                        </select>
+                        <label for="nova">Nova</label>
+                        <select name="nova">
+                          <option value="0">not important</option>
+                          <option value="1">important</option>
+                          <option value="2">very important</option>
+                        </select>
+                        <label for="ecoscore">Environmental impact</label>
+                        <select name="ecoscore">
+                          <option value="0">not important</option>
+                          <option value="1">important</option>
+                          <option value="2">very important</option>
+                        </select>
+                        <button type="submit" >Configure</button>
+                      </form>
+                    </div>
                     <searchalicious-facets search-name="off">
                       <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
                       <searchalicious-facet-terms  name="categories_tags" show-other="true"></searchalicious-facet-terms>
