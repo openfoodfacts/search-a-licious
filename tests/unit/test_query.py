@@ -4,7 +4,7 @@ import orjson
 import pytest
 from luqum.elasticsearch import ElasticsearchQueryBuilder
 
-from app._types import JSONType
+from app._types import JSONType, SearchParameters
 from app.config import IndexConfig
 from app.query import build_search_query, decompose_query, parse_query
 from app.utils.io import dump_json, load_json
@@ -163,14 +163,15 @@ def test_build_search_query(
     default_filter_query_builder: ElasticsearchQueryBuilder,
 ):
     query = build_search_query(
-        q=q,
-        langs=langs,
-        size=size,
-        page=page,
-        config=default_config,
+        SearchParameters(
+            q=q,
+            langs=langs,
+            page_size=size,
+            page=page,
+            sort_by=sort_by,
+            facets=facets,
+        ),
         filter_query_builder=default_filter_query_builder,
-        sort_by=sort_by,
-        facets=facets,
     )
 
     if update_results:
