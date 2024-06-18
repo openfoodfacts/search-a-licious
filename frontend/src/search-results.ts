@@ -107,7 +107,12 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
 
   override render() {
     if (this.results.length) {
-      return this.renderResults();
+      return html`
+        <div>
+          <search-top-filters></search-top-filters>
+          <div>${this.renderResults()}</div>
+        </div>
+      `;
     } else if (this.searchLaunched) {
       return html`<slot name="no-results">${this.noResults}</slot>`;
     } else {

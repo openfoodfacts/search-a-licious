@@ -11,9 +11,22 @@
     />
     <script type="module" src="./search-a-licious.bundled.js"></script>
     <style>
+      #page {
+        --navbar-height: 82px;
+        height: 100vh;
+        max-height: 100vh;
+        overflow-y: hidden;
+      }
+
+      .full-height-component {
+        height: calc(100vh - var(--navbar-height));
+        max-height: calc(100vh - var(--navbar-height));
+        overflow: auto;
+      }
+
       /* temporary inline styles to test CSS customization */
       /* search bar styling */
-      
+
       /* columns of search-bar must use flex so that we can center things vertically */
       .search-bar .columns {
         display: flex;
@@ -116,7 +129,7 @@
         overflow: hidden;
         padding-top: .75rem;
         padding-bottom: .75rem;
-        height: 82px;
+        height: var(--navbar-height);
       }
       searchalicious-results::part(scores logo) {
         height: 32px;
@@ -174,92 +187,19 @@
             <a class="exit-off-canvas"></a>
             <div class="main block_light">
               <div id="main_column">
-                <div class="block short block_ristreto">
-                  <div class="row">
-                    <div class="small-12 columns filterProducts">
-                      <div>
-                        <span class="filterProducts__results">
-                          <span class="material-icons">search</span>
-                          565 products, found in 1804 ms
-                        </span>
-                      </div>
-                      <div class="filterProducts__buttons">
-                        <div>
-                          <button
-                            href="#"
-                            data-dropdown="drop_sort"
-                            aria-controls="drop_sort"
-                            aria-expanded="false"
-                            class="button round dropdown small secondary unmarged"
-                          >
-                            <span class="material-icons">swap_vert</span>
-                            Relevance
-                          </button>
-                          <ul
-                            id="drop_sort"
-                            data-dropdown-content=""
-                            class="f-dropdown"
-                            aria-hidden="true"
-                            style="
-                              position: absolute;
-                              left: -99999px;
-                              top: 38px;
-                            "
-                          >
-                            <li>
-                              <a href="/?q=test&amp;page_size=24">Relevance</a>
-                            </li>
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=-unique_scans_n&amp;page_size=24"
-                                >Most scanned products</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=nutriscore_score&amp;page_size=24"
-                                >Products with the best Nutri-Score</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=-ecoscore_score&amp;page_size=24"
-                                >Products with the best Eco-Score</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=created_t&amp;page_size=24"
-                                >Recently added products</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=last_modified_t&amp;page_size=24"
-                                >Recently modified products</a
-                              >
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
+                <div class="row" style="">
+                  <div class="large-2 columns full-height-component ">
+                    <searchalicious-sidebar>
+                      <searchalicious-facets search-name="off">
+                        <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
+                        <searchalicious-facet-terms  name="categories_tags" show-other="true"></searchalicious-facet-terms>
+                        <searchalicious-facet-terms  name="nutrition_grades"></searchalicious-facet-terms>
+                        <searchalicious-facet-terms  name="ecoscore_grade"></searchalicious-facet-terms>
+                      </searchalicious-facets>
+                    </searchalicious-sidebar>
                   </div>
-                </div>
-                <div class="row" style="padding-top: 1rem">
-                  <div class="large-2 columns">
-                    <searchalicious-facets search-name="off">
-                      <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="categories_tags" show-other="true"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="nutrition_grades"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="ecoscore_grade"></searchalicious-facet-terms>
-                    </searchalicious-facets>
-                  </div>
-                  <div class="large-10 columns">
-                    <div id="search_results" style="clear: left">
+                  <div class="large-10 columns full-height-component">
+                    <div id="search_results" style="clear: left; padding-top: 1rem;">
                       <div id="products_tabs_content" class="tabs-content">
                         <div class="tabs content active" id="products_all">
                           <searchalicious-results class="off-search-results" search-name="off" search-id="code">
@@ -310,6 +250,11 @@
                       <searchalicious-pages search-name="off">
                       </searchalicious-pages>
                     </div>
+                  </div>
+                  <div class="large-2 columns full-height-component">
+                    <searchalicious-sidebar>
+                      Graphes
+                    </searchalicious-sidebar>
                   </div>
                 </div>
               </div>
