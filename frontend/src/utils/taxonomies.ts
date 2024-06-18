@@ -3,5 +3,5 @@
  * @param taxonomy
  */
 export const getTaxonomyName = (taxonomy: string): string => {
-  return `${taxonomy}`.replace('s_tags', '').replace('ies_tags', 'y');
+  return `${taxonomy}`.replace('ies_tags', 'y').replace('s_tags', '');
 };

@@ -1,6 +1,7 @@
 import {Constructor} from './utils';
 import {LitElement} from 'lit';
 import {property, state} from 'lit/decorators.js';
+import {VersioningMixin, VersioningMixinInterface} from './versioning';
 
 /**
  * Type for term options.
@@ -21,9 +22,10 @@ export type TaxomiesTermsResponse = {
 /**
  * Interface for the SearchaliciousTaxonomies.
  */
-export interface SearchaliciousTaxonomiesInterface {
-  termsByTaxonomyId: Record<string, TermOption[]>;
-  loadingByTaxonomyId: Record<string, boolean>;
+export interface SearchaliciousTaxonomiesInterface
+  extends VersioningMixinInterface {
+  terms: TermOption[];
+  isTermsLoading: boolean;
   taxonomiesBaseUrl: string;
   langs: string;
 
@@ -48,13 +50,13 @@ export interface SearchaliciousTaxonomiesInterface {
 export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
   superClass: T
 ): Constructor<SearchaliciousTaxonomiesInterface> & T => {
-  class SearchaliciousTermsMixinClass extends superClass {
+  class SearchaliciousTermsMixinClass extends VersioningMixin(superClass) {
     // this olds terms corresponding to current input for each taxonomy
     @state()
-    termsByTaxonomyId: Record<string, TermOption[]> = {};
+    terms: TermOption[] = [];
 
     @state()
-    loadingByTaxonomyId = {} as Record<string, boolean>;
+    isTermsLoading = {} as boolean;
 
     @property({attribute: 'base-url'})
     taxonomiesBaseUrl = '/';
@@ -74,19 +76,6 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
-     * Method to set loading state by taxonomy names.
-     * We support more than one taxonomy at once,
-     * as suggest requests can target multiple taxonomies at once
-     * @param {string[]} taxonomyNames - The taxonomy names.
-     * @param {boolean} isLoading - The loading state.
-     */
-    _setIsLoadingByTaxonomyNames(taxonomyNames: string[], isLoading: boolean) {
-      taxonomyNames.forEach((taxonomyName) => {
-        this.loadingByTaxonomyId[taxonomyName] = isLoading;
-      });
-    }
-
-    /**
      * Method to get taxonomies terms.
      * @param {string} q - The query string.
      * @param {string[]} taxonomyNames - The taxonomy names.
@@ -96,7 +85,10 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
       q: string,
       taxonomyNames: string[]
     ): Promise<TaxomiesTermsResponse> {
-      this._setIsLoadingByTaxonomyNames(taxonomyNames, true);
+      this.isTermsLoading = true;
+      // get the version of the terms for each taxonomy
+      const version = this.incrementVersion();
+
       return fetch(this._termsUrl(q, taxonomyNames), {
         method: 'GET',
         headers: {
@@ -104,21 +96,22 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
         },
       })
         .then((response) => {
-          this._setIsLoadingByTaxonomyNames(taxonomyNames, false);
-
+          if (this.isLatestVersion(version)) {
+            // this is the legitimate suggestion request, loading finished
+            this.isTermsLoading = false;
+          }
           if (!response.ok) {
             throw new Error('Network response was not ok');
           }
           return response.json() as Promise<TaxomiesTermsResponse>;
         })
         .then((response) => {
-          this.termsByTaxonomyId = response.options.reduce((acc, option) => {
-            if (!acc[option.taxonomy_name]) {
-              acc[option.taxonomy_name] = [];
-            }
-            acc[option.taxonomy_name].push(option);
-            return acc;
-          }, {} as Record<string, TermOption[]>);
+          if (!this.isLatestVersion(version)) {
+            // another suggestion request was launched in the mean time,
+            // give up
+            return response;
+          }
+          this.terms = response.options;
           return response;
         });
     }

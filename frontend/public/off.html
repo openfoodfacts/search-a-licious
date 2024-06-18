@@ -262,7 +262,7 @@
                   <li class="search-li">
                     <div class="row collapse postfix-round search-bar">
                       <div class="columns">
-                        <searchalicious-bar name="off" page-size="24" ></searchalicious-bar>
+                        <searchalicious-bar name="off" page-size="24"></searchalicious-bar>
                       </div>
                       <div class="columns">
                         <searchalicious-button search-name="off">
@@ -286,21 +286,20 @@
                 <div class="block short block_ristreto">
                   <div class="row">
                     <div class="small-12 columns filterProducts">
-                      <div>
-                        <span class="filterProducts__results">
-                          <span class="material-icons">search</span>
-                          565 products, found in 1804 ms
-                        </span>
-                      </div>
                       <div class="filterProducts__buttons">
-                        <searchalicious-sort search-name="off">
-                          <span slot="label">Sort by ▿</span>
-                          <searchalicious-sort-field field="-unique_scans_n">Most scanned products</searchalicious-sort-field>
-                          <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score</searchalicious-sort-field>
-                          <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score</searchalicious-sort-field>
-                          <searchalicious-sort-field field="-created_t">Recently added products</searchalicious-sort-field>
-                          <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
-                        </searchalicious-sort>
+                        <div>
+                          <searchalicious-count search-name="off"></searchalicious-count>
+                        </div>
+                        <div>
+                          <searchalicious-sort search-name="off">
+                            <span slot="label">Sort by ▿</span>
+                            <searchalicious-sort-field field="-unique_scans_n">Most scanned products</searchalicious-sort-field>
+                            <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score</searchalicious-sort-field>
+                            <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score</searchalicious-sort-field>
+                            <searchalicious-sort-field field="-created_t">Recently added products</searchalicious-sort-field>
+                            <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
+                          </searchalicious-sort>  
+                        </div>
                       </div>
                     </div></a>
                   </div>
