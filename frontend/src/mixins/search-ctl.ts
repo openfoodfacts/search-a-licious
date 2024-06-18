@@ -116,13 +116,19 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _count?: number;
 
     /**
+     * Wether search should be launched at page load
+     */
+    @property({attribute: 'auto-launch', type: Boolean})
+    autoLaunch = false;
+
+    /**
      * Launch search at page loaded if needed (we have a search in url)
      */
     firstSearch = () => {
       // we need to wait for the facets to be ready
       setTimeout(() => {
         const {launchSearch, values} = this.setParamFromUrl();
-        if (launchSearch) {
+        if (this.autoLaunch || launchSearch) {
           // launch the first search event to trigger the search only once
           this.dispatchEvent(
             new CustomEvent(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, {
