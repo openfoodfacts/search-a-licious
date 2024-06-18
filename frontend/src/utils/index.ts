@@ -2,6 +2,7 @@
  * Filter an object by keys
  * @param obj
  * @param keys
+ * @return a new object with keys matching filter and corresponding values.
  */
 export const filterObjectByKeys = <T>(obj: T, keys: string[]): Partial<T> => {
   const newObj: Partial<T> = {};
