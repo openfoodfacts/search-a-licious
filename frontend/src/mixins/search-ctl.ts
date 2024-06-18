@@ -65,7 +65,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * The name of this search
      */
     @property()
-    name = 'searchalicious';
+    override name = 'searchalicious';
 
     /**
      * The base api url

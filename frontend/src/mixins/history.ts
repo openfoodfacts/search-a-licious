@@ -4,7 +4,6 @@ import {
   removeParamPrefixes,
   removeParenthesis,
 } from '../utils/url';
-import {OFF_PREFIX} from '../utils/constants';
 import {isNullOrUndefined} from '../utils';
 import {BuildParamsOutput} from './search-ctl';
 import {property} from 'lit/decorators.js';
@@ -14,6 +13,7 @@ import {Constructor} from './utils';
 
 export type SearchaliciousHistoryInterface = {
   query: string;
+  name: string;
   _currentPage?: number;
   _facetsNodes: () => SearchaliciousFacets[];
   _facetsFilters: () => string;
@@ -105,6 +105,12 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
     @property({attribute: false})
     query = '';
 
+    /**
+     * The name of this search
+     */
+    @property()
+    name = 'searchalicious';
+
     _facetsNodes = (): SearchaliciousFacets[] => {
       throw new Error('Method not implemented.');
     };
@@ -122,7 +128,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
       const values: HistoryOutput = {};
       const history = removeParamPrefixes(
         Object.fromEntries(params),
-        OFF_PREFIX
+        this.name
       );
       for (const key of SEARCH_PARAMS) {
         Object.assign(values, HISTORY_VALUES[key](history));
@@ -156,7 +162,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
           [HistorySearchParams.FACETS_FILTERS]: this._facetsFilters(),
           [HistorySearchParams.PAGE]: params.page,
         },
-        OFF_PREFIX
+        this.name
       ) as HistoryParams;
     };
 
