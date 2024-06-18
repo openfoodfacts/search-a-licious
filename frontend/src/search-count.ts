@@ -7,7 +7,7 @@ import {
 } from './mixins/search-results-ctl';
 
 @customElement('searchalicious-count')
-export class ResultsCounterDisplay
+export class SearchCount
   extends SearchaliciousResultCtlMixin(LitElement)
   implements SearchaliciousResultsCtlInterface
 {
@@ -52,6 +52,6 @@ export class ResultsCounterDisplay
 
 declare global {
   interface HTMLElementTagNameMap {
-    'searchalicious-count': ResultsCounterDisplay;
+    'searchalicious-count': SearchCount;
   }
 }
