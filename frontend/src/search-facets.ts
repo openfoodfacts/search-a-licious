@@ -5,7 +5,7 @@ import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchResultEvent} from './events';
 import {DebounceMixin} from './mixins/debounce';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
-import {getTaxonomyName} from './utils/taxonomies';
+import {getTaxonomyName, removeLangFromTermId} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
 import {QueryOperator} from './utils/enums';
@@ -71,6 +71,19 @@ export class SearchaliciousFacets extends SearchActionMixin(
     this._facetNodes().forEach((node) => {
       node.setSelectedTerms(selectedTermsByFacet[node.name]);
     });
+  }
+
+  getFacetNodeByTaxonomy(taxonomy: string): SearchaliciousFacet | undefined {
+    return this._facetNodes().find((node) => node.taxonomy === taxonomy);
+  }
+
+  selectTermByTaxonomy(taxonomy: string, term: string): boolean {
+    const node = this.getFacetNodeByTaxonomy(taxonomy);
+    if (node) {
+      node.setTermSelected(true, term);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -147,6 +160,16 @@ export class SearchaliciousFacet extends LitElement {
   @property({attribute: false})
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   infos?: FacetInfo;
+
+  get taxonomy(): string {
+    return getTaxonomyName(this.name);
+  }
+
+  setTermSelected(checked: boolean, name: string) {
+    throw new Error(
+      `setTermSelected not implemented: implement in sub class with checked ${checked} and name ${name}`
+    );
+  }
 
   renderFacet() {
     throw new Error('renderFacet not implemented: implement in sub class');
@@ -231,10 +254,10 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   /**
    * Set wether a term is selected or not
    */
-  setTermSelected({detail}: {detail: {checked: boolean; name: string}}) {
+  override setTermSelected(checked: boolean, name: string) {
     this.selectedTerms = {
       ...this.selectedTerms,
-      ...{[detail.name]: detail.checked},
+      ...{[name]: checked},
     };
   }
 
@@ -311,7 +334,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
 
     const options = (this.terms || []).map((term) => {
       return {
-        value: term.id.replace(/^en:/, ''),
+        value: removeLangFromTermId(term.id),
         label: term.text,
       };
     });
@@ -331,6 +354,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       </div>
     `;
   }
+  onCheckboxChange({detail}: {detail: {checked: boolean; name: string}}) {
+    this.setTermSelected(detail.checked, detail.name);
+  }
 
   /**
    * Renders a single term
@@ -341,7 +367,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
         <searchalicious-checkbox
           .name=${term.key}
           .checked=${this.selectedTerms[term.key]}
-          @change=${this.setTermSelected}
+          @change=${this.onCheckboxChange}
         ></searchalicious-checkbox>
         <label for="${term.key}"
           >${term.name}

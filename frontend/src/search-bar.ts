@@ -4,6 +4,7 @@ import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {AutocompleteMixin} from './mixins/autocomplete';
 import {classMap} from 'lit/directives/class-map.js';
+import {removeLangFromTermId} from './utils/taxonomies';
 
 /**
  * The search bar element
@@ -90,8 +91,12 @@ export class SearchaliciousBar extends AutocompleteMixin(
    */
   override submit(isSuggestion?: boolean) {
     console.log(this.query, this.value, isSuggestion);
+    // If the value is a suggestion, select the term and reset the input otherwise search
     if (isSuggestion) {
-      // TODO filter by query
+      this.selectTermByTaxonomy(
+        this.terms[this.getOptionIndex].taxonomy_name,
+        removeLangFromTermId(this.terms[this.getOptionIndex].id)
+      );
       this.resetInput();
       this.query = '';
     } else {

@@ -11,10 +11,10 @@ export interface AutocompleteMixinInterface extends DebounceMixinInterface {
   options: AutocompleteOption[];
   value: string;
   currentIndex: number;
+  getOptionIndex: number;
   visible: boolean;
   isLoading: boolean;
   currentOption: AutocompleteOption | undefined;
-  getCurrentIndex: number;
 
   onInput(event: InputEvent): void;
   handleInput(value: string): void;
@@ -77,12 +77,12 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
      * It remove the offset of 1 because the currentIndex is 1-based.
      * @returns {number} The current index.
      */
-    get getCurrentIndex() {
+    get getOptionIndex() {
       return this.currentIndex - 1;
     }
 
     get currentOption() {
-      return this.options[this.getCurrentIndex];
+      return this.options[this.getOptionIndex];
     }
 
     /**
