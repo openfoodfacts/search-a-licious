@@ -176,7 +176,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
 
       this.setValuesFromHistory(values);
 
-      const launchSearch = HistorySearchParams.QUERY in values;
+      const launchSearch = !!Object.keys(values).length;
       return {
         launchSearch,
         values,

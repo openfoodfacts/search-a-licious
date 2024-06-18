@@ -115,11 +115,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
-    constructor() {
-      super();
-      this.firstSearch();
-    }
-
+    /**
+     * Launch search at page loaded if needed (we have a search in url)
+     */
     firstSearch = () => {
       // we need to wait for the facets to be ready
       setTimeout(() => {
@@ -234,6 +232,12 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         (event) =>
           this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    override firstUpdated(changedProperties: Map<any, any>) {
+      super.firstUpdated(changedProperties);
+      this.firstSearch();
     }
 
     /**
