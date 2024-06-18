@@ -105,28 +105,6 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
     this.requestUpdate();
   }
 
-  constructor() {
-    super();
-    this._launchFirstSearch();
-  }
-
-  /**
-   * Launch the first search
-   * We choose to run it here because it only run once
-   */
-  _launchFirstSearch() {
-    // we need to wait a bit to be sure that all components are ready
-    setTimeout(() => {
-      // fire the first search event
-      const event = new CustomEvent(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, {
-        bubbles: true,
-        composed: true,
-        detail: {},
-      });
-      this.dispatchEvent(event);
-    }, 10);
-  }
-
   /**
    * compute startRange and endRange
    */
