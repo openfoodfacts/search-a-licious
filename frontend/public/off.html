@@ -275,10 +275,11 @@
                       <div class="filterProducts__buttons">
                         <searchalicious-sort search-name="off">
                           <span slot="label">Sort by ▿</span>
-                          <searchalicious-sort-field field="created_t">Last creation</searchalicious-sort-field>                          
-                          <searchalicious-sort-field field="last_modified_t">Last modification</searchalicious-sort-field>
-                          <searchalicious-sort-field field="ecoscore_grade">Eco-Score</searchalicious-sort-field>
-                          <searchalicious-sort-field field="nutriscore_grade">Nutri-Score</searchalicious-sort-field>
+                          <searchalicious-sort-field field="-unique_scans_n">Most scanned products</searchalicious-sort-field>
+                          <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score</searchalicious-sort-field>
+                          <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score</searchalicious-sort-field>
+                          <searchalicious-sort-field field="-created_t">Recently added products</searchalicious-sort-field>
+                          <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
                         </searchalicious-sort>
                       </div>
                     </div></a>
