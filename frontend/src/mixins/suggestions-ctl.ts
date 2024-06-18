@@ -96,7 +96,10 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
         },
       })
         .then((response) => {
-          this.isTermsLoading = false;
+          if (this.isLatestVersion(version)) {
+            // this is the legitimate suggestion request, loading finished
+            this.isTermsLoading = false;
+          }
           if (!response.ok) {
             throw new Error('Network response was not ok');
           }
