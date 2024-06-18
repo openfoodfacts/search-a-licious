@@ -172,6 +172,9 @@ export class SearchaliciousFacet extends LitElement {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   infos?: FacetInfo;
 
+  /**
+   * Get the name of the taxonomy from the facet name
+   */
   get taxonomy(): string {
     return getTaxonomyName(this.name);
   }
