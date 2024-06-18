@@ -365,6 +365,12 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       </div>
     `;
   }
+
+  /**
+   * Handle the checkbox change event
+   * It will select or unselect term
+   * @param detail
+   */
   onCheckboxChange({detail}: {detail: {checked: boolean; name: string}}) {
     this.setTermSelected(detail.checked, detail.name);
   }
