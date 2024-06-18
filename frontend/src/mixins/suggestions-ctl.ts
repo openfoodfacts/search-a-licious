@@ -104,6 +104,8 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
         })
         .then((response) => {
           if (!this.isLatestVersion(version)) {
+            // another suggestion request was launched in the mean time,
+            // give up
             return response;
           }
           this.terms = response.options;
