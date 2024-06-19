@@ -1,6 +1,11 @@
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
+/**
+ * This component represent a suggestion to the user as he types his search.
+ *
+ * It's an internal component meant to be used by the search-bar.
+ */
 @customElement('searchalicious-term-line')
 export class SearchaliciousTermLine extends LitElement {
   static override styles = css`
@@ -52,6 +57,9 @@ export class SearchaliciousTermLine extends LitElement {
     taxonomy_name: string;
   };
 
+  /**
+   * We display the taxonomy term and corresponding filter name
+   */
   override render() {
     return html`
       <div class="term-line">

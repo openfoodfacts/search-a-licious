@@ -26,6 +26,7 @@ export class SearchaliciousBar extends AutocompleteMixin(
       position: relative;
     }
 
+    /* Search suggestions list */
     .search-bar ul {
       --left-offset: 8px;
       position: absolute;
@@ -54,7 +55,7 @@ export class SearchaliciousBar extends AutocompleteMixin(
   `;
 
   /**
-   * The selected taxonomies
+   * Taxonomies we want to use for suggestions
    */
   @property({type: String, attribute: 'taxonomies'})
   taxonomies = '';
@@ -90,7 +91,7 @@ export class SearchaliciousBar extends AutocompleteMixin(
   }
 
   /**
-   * Submit the search
+   * Submit - might either be selecting  a suggestion or submitting a search expression
    */
   override submit(isSuggestion?: boolean) {
     console.log(this.query, this.value, isSuggestion);
@@ -138,7 +139,7 @@ export class SearchaliciousBar extends AutocompleteMixin(
 
   override render() {
     return html`
-      <div class="search-bar">
+      <div class="search-bar" part="wrapper">
         <input
           type="text"
           name="q"

@@ -116,6 +116,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
+    /** list of facets containers */
     _facetsParentNode() {
       return document.querySelectorAll('searchalicious-facets');
     }

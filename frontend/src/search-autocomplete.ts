@@ -94,7 +94,7 @@ export class SearchaliciousAutocomplete extends AutocompleteMixin(LitElement) {
   /**
    * This method is used to submit the input value.
    * It is used to submit the input value after selecting an option.
-   * @param {boolean} isSuggestion - A boolean value to check if the value is a suggestion.
+   * @param {boolean} isSuggestion - A boolean value to check if the value is a suggestion or a free input from the user.
    */
   override submit(isSuggestion = false) {
     if (!this.value) return;

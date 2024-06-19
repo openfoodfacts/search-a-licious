@@ -45,6 +45,12 @@ export type AutocompleteResult = {
   label?: string;
 };
 
+/**
+ * This mixin handles the logic of having a list of suggestion, 
+ * and letting the user choose on suggestion.
+ * 
+ * It factors the interaction logic but does not deal with the rendering.
+ */
 export const AutocompleteMixin = <T extends Constructor<LitElement>>(
   superClass: T
 ): Constructor<AutocompleteMixinInterface> & T => {
@@ -96,7 +102,7 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
     }
 
     handleInput(value: string) {
-      throw new Error(`handleInput method must be implemented with ${value}`);
+      throw new Error(`handleInput method must be implemented for ${this} with ${value}`);
     }
     /**
      * This method is used to remove focus from the input element.
@@ -125,7 +131,7 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
      * @param {boolean} isSuggestion - A boolean value to check if the value is a suggestion.
      */
     submit(isSuggestion = false) {
-      throw new Error(`submit method must be implemented with ${isSuggestion}`);
+      throw new Error(`submit method must be implemented for ${this} with ${isSuggestion}`);
     }
 
     /**
