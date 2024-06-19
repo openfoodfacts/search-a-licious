@@ -29,23 +29,23 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   // eslint-disable-next-line
   vegaRepresentation: any = undefined;
 
+  @property({attribute: false})
+  vegaInstalled: boolean;
+
+  constructor() {
+    super();
+    this.vegaInstalled = this.testVegaInstalled();
+  }
+
   override render() {
-    try {
-      vega;
-    } catch (e) {
-      if (e instanceof ReferenceError) {
-        console.error(
-          'Vega is required to use searchalicious-chart, you can import it using \
-<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>'
-        );
-        return html`<p>Please install vega to use searchalicious-chart</p>`;
-      }
-      throw e;
+    if (!this.vegaInstalled) {
+      return html`<p>Please install vega to use searchalicious-chart</p>`;
     }
 
     if (this.vegaRepresentation === undefined) {
-      return html`<p>no data</p>`;
+      return html`<slot name="no-data"><p>no data</p></slot>`;
     }
+
     return html`<div id="${this.key!}"></div>`;
   }
 
@@ -55,7 +55,7 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   // Vega function assumes that rendered had been previously
   // called.
   override handleResults(event: SearchResultEvent) {
-    if (event.detail.results.length === 0) {
+    if (event.detail.results.length === 0 || !this.vegaInstalled) {
       this.vegaRepresentation = undefined;
       return;
     }
@@ -172,6 +172,22 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
         },
       ],
     };
+  }
+
+  testVegaInstalled() {
+    try {
+      vega;
+      return true;
+    } catch (e) {
+      if (e instanceof ReferenceError) {
+        console.error(
+          'Vega is required to use searchalicious-chart, you can import it using \
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>'
+        );
+        return false;
+      }
+      throw e;
+    }
   }
 
   // vega rendering requires an html component with id == this.key
