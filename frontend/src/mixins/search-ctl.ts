@@ -119,7 +119,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * @returns the sort element linked to this search ctl
      */
-    _sortElement(): SearchaliciousSort | null {
+    override _sortElement = (): SearchaliciousSort | null => {
       let sortElement: SearchaliciousSort | null = null;
       document.querySelectorAll(`searchalicious-sort`).forEach((item) => {
         const sortElementItem = item as SearchaliciousSort;
@@ -135,7 +135,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       });
 
       return sortElement;
-    }
+    };
 
     /**
      * Wether search should be launched at page load

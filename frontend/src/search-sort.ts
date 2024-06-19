@@ -53,7 +53,9 @@ export class SearchaliciousSort extends SearchActionMixin(
    * Sort option currently selected
    */
   currentSortOption() {
-    return this.sortOptions().filter((node) => node.selected)[0];
+    return (this.sortOptions().filter((node) => node.selected) ?? [
+      undefined,
+    ])[0];
   }
 
   /**
@@ -62,6 +64,22 @@ export class SearchaliciousSort extends SearchActionMixin(
   setSortOption(option: SearchaliciousSortOption) {
     this.sortOptions().forEach(
       (node) => ((node as SearchaliciousSortOption).selected = node === option)
+    );
+  }
+
+  getSortOptionId() {
+    return this.currentSortOption()?.id;
+  }
+
+  /**
+   * set selected sort option by using it's id.
+   *
+   * If optionId is undefined, unselect all
+   */
+  setSortOptionById(optionId: string | undefined) {
+    this.sortOptions().forEach(
+      (node) =>
+        ((node as SearchaliciousSortOption).selected = node.id === optionId)
     );
   }
 
@@ -177,6 +195,24 @@ export class SearchaliciousSortOption extends LitElement {
   selectedMarker = '';
 
   /**
+   * Eventually gives a default value to id
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  override firstUpdated(changedProperties: Map<any, any>) {
+    super.firstUpdated(changedProperties);
+    if (!this.id) {
+      this.id = this.getDefaultId();
+    }
+  }
+
+  /**
+   * Create a sensible default id for this sort option
+   */
+  getDefaultId(): string {
+    throw new Error('Not implemented');
+  }
+
+  /**
    * This is the method that should return the sort paratemetrs
    */
   getSortParameters() {
@@ -221,6 +257,11 @@ export class SearchaliciousSortField extends SearchaliciousSortOption {
    */
   @property()
   field = '';
+
+  /** id defaults to field-<field-name> */
+  override getDefaultId() {
+    return `field-${this.field}`;
+  }
 
   override getSortParameters() {
     return {
