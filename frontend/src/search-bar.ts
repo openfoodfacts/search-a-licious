@@ -25,6 +25,7 @@ export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
    * Place holder in search bar
    */
   @property()
+  // it is mandatory to have a getter and setter for the property because of msg() function. doc : https://lit.dev/docs/localization/best-practices/#ensure-re-evaluation-on-render
   get placeholder() {
     return (
       this._placeholder ?? msg('Search...', {desc: 'Search bar placeholder'})
