@@ -1,7 +1,7 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
-import {msg} from '@lit/localize';
+import {localized, msg} from '@lit/localize';
 
 /**
  * The search bar element
@@ -9,6 +9,7 @@ import {msg} from '@lit/localize';
  * This is the main component, it will enable the input of the search query
  * and it also manage all the search thanks to SearchaliciousSearchMixin inheritance.
  */
+@localized()
 @customElement('searchalicious-bar')
 export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
   static override styles = css`
@@ -18,12 +19,20 @@ export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
     }
   `;
 
+  private _placeholder?: string;
+
   /**
    * Place holder in search bar
    */
   @property()
-  placeholder = msg('Search...', {desc: 'Search bar placeholder'});
-
+  get placeholder() {
+    return (
+      this._placeholder ?? msg('Search...', {desc: 'Search bar placeholder'})
+    );
+  }
+  set placeholder(value: string) {
+    this._placeholder = value;
+  }
   override render() {
     return html`
       <input

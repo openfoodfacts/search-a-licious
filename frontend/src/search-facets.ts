@@ -9,6 +9,11 @@ import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
 import {QueryOperator} from './utils/enums';
+import {
+  getDynamicTranslation,
+  getPluralTranslation,
+} from './localization/translations';
+import {msg} from '@lit/localize';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -319,7 +324,12 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     return html`
       <div class="add-term" part="add-term">
         <label for="${inputName}"
-          >Other ${otherItem?.count ? `(${otherItem.count})` : nothing}</label
+          >${getPluralTranslation(
+            otherItem?.count,
+            msg('Other'),
+            msg('Others')
+          )}
+          ${otherItem?.count ? `(${otherItem.count})` : nothing}</label
         >
         <searchalicious-autocomplete
           .inputName=${inputName}
@@ -378,7 +388,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       <fieldset name=${this.name}>
         <!-- FIXME: translate -->
         <div class="legend-wrapper">
-          <legend>${this.name}</legend>
+          <legend>${getDynamicTranslation(this.name)}</legend>
           <span class="buttons">
             <searchalicious-button-transparent
                 title="Reset ${this.name}"

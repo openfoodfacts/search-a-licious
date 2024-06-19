@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+<file target-language="fr" source-language="en" original="lit-localize-inputs" datatype="plaintext">
+<body>
+<trans-unit id="s49730f3d5751a433">
+  <source>Loading...</source>
+  <target>Chargement...</target>
+</trans-unit>
+<trans-unit id="sffa721bb6aa3128d">
+  <source>Search...</source>
+  <note from="lit-localize">Search bar placeholder</note>
+  <target>Rechercher...</target>
+</trans-unit>
+<trans-unit id="s79fc990a2b58f27f">
+  <source>Brands</source>
+  <target>Marques</target>
+</trans-unit>
+<trans-unit id="s2cc7cd11d9b856cd">
+  <source>Categories</source>
+  <target>Catégories</target>
+</trans-unit>
+<trans-unit id="s23767519403f7575">
+  <source>Nutrition grades</source>
+  <target>Nutri-Scores</target>
+</trans-unit>
+<trans-unit id="s7001c0cef399d2df">
+  <source>Ecoscore grade</source>
+  <target>Écoscore</target>
+</trans-unit>
+<trans-unit id="sc9e494c8346b7cb5">
+  <source>Other</source>
+  <target>Autre</target>
+</trans-unit>
+<trans-unit id="s7ae5963112a50472">
+  <source>Others</source>
+  <target>Autres</target>
+</trans-unit>
+</body>
+</file>
+</xliff>

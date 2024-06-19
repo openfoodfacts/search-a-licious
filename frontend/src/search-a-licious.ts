@@ -10,3 +10,4 @@ export {SearchaliciousSecondaryButton} from './secondary-button';
 export {SearchaliciousButtonTransparent} from './button-transparent';
 export {SearchaliciousIconCross} from './icons/cross';
 export {SearchaliciousChart} from './search-chart';
+export {setLocale, getLocale} from './localization';
