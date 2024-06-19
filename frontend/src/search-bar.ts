@@ -2,7 +2,7 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
-import {AutocompleteMixin} from './mixins/autocomplete';
+import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
 import {classMap} from 'lit/directives/class-map.js';
 import {removeLangFromTermId} from './utils/taxonomies';
 
@@ -13,7 +13,7 @@ import {removeLangFromTermId} from './utils/taxonomies';
  * and it also manage all the search thanks to SearchaliciousSearchMixin inheritance.
  */
 @customElement('searchalicious-bar')
-export class SearchaliciousBar extends AutocompleteMixin(
+export class SearchaliciousBar extends SuggestionSelectionMixin(
   SearchaliciousTermsMixin(SearchaliciousSearchMixin(LitElement))
 ) {
   static override styles = css`
@@ -57,8 +57,8 @@ export class SearchaliciousBar extends AutocompleteMixin(
   /**
    * Taxonomies we want to use for suggestions
    */
-  @property({type: String, attribute: 'taxonomies'})
-  taxonomies = '';
+  @property({type: String, attribute: 'suggestions'})
+  suggestions = '';
 
   /**
    * Place holder in search bar
@@ -67,10 +67,10 @@ export class SearchaliciousBar extends AutocompleteMixin(
   placeholder = 'Search...';
 
   /**
-   * It parses the string taxonomies attribute and returns an array
+   * It parses the string suggestions attribute and returns an array
    */
-  get parsedTaxonomies() {
-    return this.taxonomies.split(',');
+  get parsedSuggestions() {
+    return this.suggestions.split(',');
   }
 
   /**
@@ -81,7 +81,7 @@ export class SearchaliciousBar extends AutocompleteMixin(
   override handleInput(value: string) {
     this.query = value;
     this.debounce(() => {
-      this.getTaxonomiesTerms(value, this.parsedTaxonomies).then(() => {
+      this.getTaxonomiesTerms(value, this.parsedSuggestions).then(() => {
         this.options = this.terms.map((term) => ({
           value: term.text,
           label: term.text,
@@ -91,10 +91,9 @@ export class SearchaliciousBar extends AutocompleteMixin(
   }
 
   /**
-   * Submit - might either be selecting  a suggestion or submitting a search expression
+   * Submit - might either be selecting a suggestion or submitting a search expression
    */
   override submit(isSuggestion?: boolean) {
-    console.log(this.query, this.value, isSuggestion);
     // If the value is a suggestion, select the term and reset the input otherwise search
     if (isSuggestion) {
       this.selectTermByTaxonomy(
@@ -127,9 +126,9 @@ export class SearchaliciousBar extends AutocompleteMixin(
               class=${classMap({selected: index + 1 === this.currentIndex})}
               @click=${this.onClick(index)}
             >
-              <searchalicious-term-line
+              <searchalicious-suggestion-entry
                 .term=${term}
-              ></searchalicious-term-line>
+              ></searchalicious-suggestion-entry>
             </li>
           `
         )}

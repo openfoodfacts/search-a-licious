@@ -4,24 +4,24 @@ import {property} from 'lit/decorators.js';
 import {DebounceMixin, DebounceMixinInterface} from './debounce';
 
 /**
- * Interface for the Autocomplete mixin.
+ * Interface for the Suggestion Selection mixin.
  */
-export interface AutocompleteMixinInterface extends DebounceMixinInterface {
+export interface SuggestionSelectionMixinInterface
+  extends DebounceMixinInterface {
   inputName: string;
-  options: AutocompleteOption[];
+  options: SuggestionSelectionOption[];
   value: string;
   currentIndex: number;
   getOptionIndex: number;
   visible: boolean;
   isLoading: boolean;
-  currentOption: AutocompleteOption | undefined;
+  currentOption: SuggestionSelectionOption | undefined;
 
   onInput(event: InputEvent): void;
   handleInput(value: string): void;
   blurInput(): void;
   resetInput(): void;
   submit(isSuggestion?: boolean): void;
-  getAutocompleteValueByIndex(index: number): string;
   handleArrowKey(direction: 'up' | 'down'): void;
   handleEnter(event: KeyboardEvent): void;
   handleEscape(): void;
@@ -31,39 +31,39 @@ export interface AutocompleteMixinInterface extends DebounceMixinInterface {
   onBlur(): void;
 }
 /**
- * Type for autocomplete option.
+ * Type for suggestion option.
  */
-export type AutocompleteOption = {
+export type SuggestionSelectionOption = {
   value: string;
   label: string;
 };
 /**
- * Type for autocomplete result.
+ * Type for suggestion result.
  */
-export type AutocompleteResult = {
+export type SuggestionSelectionResult = {
   value: string;
   label?: string;
 };
 
 /**
- * This mixin handles the logic of having a list of suggestion, 
+ * This mixin handles the logic of having a list of suggestion,
  * and letting the user choose on suggestion.
- * 
+ *
  * It factors the interaction logic but does not deal with the rendering.
  */
-export const AutocompleteMixin = <T extends Constructor<LitElement>>(
+export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
   superClass: T
-): Constructor<AutocompleteMixinInterface> & T => {
-  class AutocompleteMixinClass extends DebounceMixin(superClass) {
+): Constructor<SuggestionSelectionMixinInterface> & T => {
+  class SuggestionSelectionMixinClass extends DebounceMixin(superClass) {
     @property({attribute: 'input-name'})
-    inputName = 'autocomplete';
+    inputName = 'suggestion';
 
     /**
-     * The options for the autocomplete.
+     * The options for the suggestion.
      * It is provided by the parent component.
      */
     @property({attribute: false, type: Array})
-    options: AutocompleteOption[] = [];
+    options: SuggestionSelectionOption[] = [];
 
     // selected values
     @property()
@@ -92,7 +92,7 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
-     * Handles the input event on the autocomplete and dispatch custom event : "autocomplete-input".
+     * Handles the input event on the suggestion and dispatch custom event : "suggestion-input".
      * @param {InputEvent} event - The input event.
      */
     onInput(event: InputEvent) {
@@ -102,7 +102,9 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
     }
 
     handleInput(value: string) {
-      throw new Error(`handleInput method must be implemented for ${this} with ${value}`);
+      throw new Error(
+        `handleInput method must be implemented for ${this} with ${value}`
+      );
     }
     /**
      * This method is used to remove focus from the input element.
@@ -131,7 +133,9 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
      * @param {boolean} isSuggestion - A boolean value to check if the value is a suggestion.
      */
     submit(isSuggestion = false) {
-      throw new Error(`submit method must be implemented for ${this} with ${isSuggestion}`);
+      throw new Error(
+        `submit method must be implemented for ${this} with ${isSuggestion}`
+      );
     }
 
     /**
@@ -152,15 +156,15 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
      * @param event
      */
     handleEnter(event: KeyboardEvent) {
-      let isAutoComplete = false;
+      let isSuggestion = false;
       if (this.currentIndex) {
-        isAutoComplete = true;
+        isSuggestion = true;
         this.value = this.currentOption!.value;
       } else {
         const value = (event.target as HTMLInputElement).value;
         this.value = value;
       }
-      this.submit(isAutoComplete);
+      this.submit(isSuggestion);
     }
 
     /**
@@ -192,7 +196,7 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
-     * On a click on the autocomplete option, we select it as value and submit it.
+     * On a click on the suggestion option, we select it as value and submit it.
      * @param index
      */
     onClick(index: number) {
@@ -206,7 +210,7 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
 
     /**
      * This method is used to handle the focus event on the input element.
-     * It is used to show the autocomplete options when the input is focused.
+     * It is used to show the suggestion options when the input is focused.
      */
     onFocus() {
       this.visible = true;
@@ -214,7 +218,7 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
 
     /**
      * This method is used to handle the blur event on the input element.
-     * It is used to hide the autocomplete options when the input is blurred.
+     * It is used to hide the suggestion options when the input is blurred.
      * It is debounced to avoid to quit before select with click.
      */
     onBlur() {
@@ -224,5 +228,6 @@ export const AutocompleteMixin = <T extends Constructor<LitElement>>(
     }
   }
 
-  return AutocompleteMixinClass as Constructor<AutocompleteMixinInterface> & T;
+  return SuggestionSelectionMixinClass as Constructor<SuggestionSelectionMixinInterface> &
+    T;
 };

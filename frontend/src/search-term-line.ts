@@ -6,8 +6,8 @@ import {customElement, property} from 'lit/decorators.js';
  *
  * It's an internal component meant to be used by the search-bar.
  */
-@customElement('searchalicious-term-line')
-export class SearchaliciousTermLine extends LitElement {
+@customElement('searchalicious-suggestion-entry')
+export class SearchaliciousSuggestionEntry extends LitElement {
   static override styles = css`
     .term-line {
       display: flex;
@@ -80,6 +80,6 @@ export class SearchaliciousTermLine extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'searchalicious-term-line': SearchaliciousTermLine;
+    'searchalicious-suggestion-entry': SearchaliciousSuggestionEntry;
   }
 }

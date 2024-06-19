@@ -1,7 +1,10 @@
 import {LitElement, html, css} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import {classMap} from 'lit/directives/class-map.js';
-import {AutocompleteMixin, AutocompleteResult} from './mixins/autocomplete';
+import {
+  SuggestionSelectionMixin,
+  SuggestionSelectionResult,
+} from './mixins/suggestion-selection';
 import {SearchaliciousEvents} from './utils/enums';
 
 /**
@@ -13,7 +16,9 @@ import {SearchaliciousEvents} from './utils/enums';
  * @slot - This slot is for the button contents, default to "Search" string.
  */
 @customElement('searchalicious-autocomplete')
-export class SearchaliciousAutocomplete extends AutocompleteMixin(LitElement) {
+export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
+  LitElement
+) {
   static override styles = css`
     .search-autocomplete {
       position: relative;
@@ -60,7 +65,7 @@ export class SearchaliciousAutocomplete extends AutocompleteMixin(LitElement) {
    * Renders the possiblibility as list for user to select from
    * @returns {import('lit').TemplateResult<1>} The HTML template for the possible terms.
    */
-  _renderPossibility() {
+  _renderSuggestions() {
     return this.options.length
       ? this.options.map(
           (option, index) => html` <li
@@ -106,7 +111,7 @@ export class SearchaliciousAutocomplete extends AutocompleteMixin(LitElement) {
         detail: {
           value: this.value,
           label: isSuggestion ? this.currentOption!.label : undefined,
-        } as AutocompleteResult,
+        } as SuggestionSelectionResult,
         bubbles: true,
         composed: true,
       }
@@ -136,7 +141,7 @@ export class SearchaliciousAutocomplete extends AutocompleteMixin(LitElement) {
         <ul class=${classMap({visible: this.visible && this.value.length})}>
           ${this.isLoading
             ? html`<li>Loading...</li>`
-            : this._renderPossibility()}
+            : this._renderSuggestions()}
         </ul>
       </span>
     `;
