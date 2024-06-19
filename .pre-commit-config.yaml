@@ -34,7 +34,7 @@ repos:
 
       # Check translations
       - id: check-translations
-        name: check-translations
+        name: "Check translations files in 'frontend/xliff' need to be updated"
         entry: make check_translations
         language: system
         files: '\.(ts|json|xlf)$'
