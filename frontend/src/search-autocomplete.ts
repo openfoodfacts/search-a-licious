@@ -3,6 +3,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {DebounceMixin} from './mixins/debounce';
 import {classMap} from 'lit/directives/class-map.js';
 import {SearchaliciousEvents} from './utils/enums';
+import {msg} from '@lit/localize';
 /**
  * Type for autocomplete option.
  */
@@ -293,7 +294,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
         />
         <ul class=${classMap({visible: this.visible && this.value.length})}>
           ${this.isLoading
-            ? html`<li>Loading...</li>`
+            ? html`<li>${msg('Loading...')}</li>`
             : this._renderPossibleTerms()}
         </ul>
       </span>

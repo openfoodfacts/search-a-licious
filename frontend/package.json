@@ -11,6 +11,8 @@
     "//build": "echo 'compile typescript files'",
     "build": "tsc",
     "build:watch": "tsc --watch",
+    "build:translations": "lit-localize build",
+    "extract:translations": "lit-localize extract",
     "clean": "rimraf search-a-licious.{d.ts,d.ts.map,js,js.map} test/search-a-licious.{d.ts,d.ts.map,js,js.map} test/search-a-licious_test.{d.ts,d.ts.map,js,js.map}",
     "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
     "lint:eslint": "eslint 'src/*.ts' 'src/**/*.ts'",
@@ -41,10 +43,12 @@
   "author": "Open Food Facts",
   "license": "BSD-3-Clause",
   "dependencies": {
+    "@lit/localize": "^0.12.1",
     "lit": "^3.0.0"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.6.3",
+    "@lit/localize-tools": "^0.7.2",
     "@open-wc/dev-server-hmr": "^0.1.2-next.0",
     "@open-wc/testing": "^3.1.5",
     "@rollup/plugin-node-resolve": "^13.3.0",

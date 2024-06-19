@@ -1,6 +1,7 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
+import {msg} from '@lit/localize';
 
 /**
  * The search bar element
@@ -21,7 +22,7 @@ export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
    * Place holder in search bar
    */
   @property()
-  placeholder = 'Search...';
+  placeholder = msg('Search...', {desc: 'Search bar placeholder'});
 
   override render() {
     return html`

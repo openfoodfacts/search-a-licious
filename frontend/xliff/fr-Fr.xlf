@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+<file target-language="fr-Fr" source-language="en" original="lit-localize-inputs" datatype="plaintext">
+<body>
+<trans-unit id="sffa721bb6aa3128d">
+  <source>Search...</source>
+  <note from="lit-localize">Search bar placeholder</note>
+  <target>Rechercher...</target>
+</trans-unit>
+<trans-unit id="s49730f3d5751a433">
+  <source>Loading...</source>
+  <target>Chargement...</target>
+</trans-unit>
+</body>
+</file>
+</xliff>
