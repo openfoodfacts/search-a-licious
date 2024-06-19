@@ -94,7 +94,7 @@ check_front:  _ensure_network
 
 check_translations:
 	@echo "🔎 Checking translations …"
-	cd frontend && npm install && npm run translations:check
+	cd frontend && npm install && npm run translations:extract
 
 lint: lint_back lint_front
 

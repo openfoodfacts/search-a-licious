@@ -4,3 +4,4 @@ rollup-config.js
 custom-elements.json
 web-dev-server.config.js
 lit-localize.json
+src/localization/generated/*

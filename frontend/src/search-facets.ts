@@ -129,7 +129,7 @@ export class SearchaliciousFacets extends SearchActionMixin(
       <slot></slot>
       <div class="reset-button-wrapper">
         <searchalicious-secondary-button @click=${this.reset}
-          >Reset filters</searchalicious-secondary-button
+          >${msg('Reset filters')}</searchalicious-secondary-button
         >
       </div>
     </div> `;

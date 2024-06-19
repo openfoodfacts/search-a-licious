@@ -35,6 +35,9 @@
   <source>Others</source>
   <target>Autres</target>
 </trans-unit>
+<trans-unit id="sde0081b1dc3582d3">
+  <source>Reset filters</source>
+</trans-unit>
 </body>
 </file>
 </xliff>

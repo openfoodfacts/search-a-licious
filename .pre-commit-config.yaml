@@ -32,8 +32,9 @@ repos:
         require_serial: false
         pass_filenames: false
 
+      # Check translations
       - id: check-translations
         name: check-translations
         entry: make check_translations
         language: system
-        files: '\.(ts|json)$'
+        files: '\.(ts|json|xlf)$'
