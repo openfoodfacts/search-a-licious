@@ -56,6 +56,7 @@ This enables supporting multiple searches in the same page
   * it can be used to replace the default button
 * searchalicious-button-transparent is a transparent button with defined style
   * it can be used to replace the default button
+* searchalicious-chart renders vega chart, currently only for distribution. Requires [vega](https://vega.github.io/).
 
 
 ## Explanation on code structure
