@@ -19,6 +19,11 @@ export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
     }
   `;
 
+  /**
+   * Placeholder attribute is stored in a private variable to be able to use the msg() function
+   * it stores the placeholder attribute value if it is set
+   * @private
+   */
   private _placeholder?: string;
 
   /**
