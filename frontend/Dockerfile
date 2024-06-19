@@ -50,6 +50,7 @@ ENV PATH /opt/search-a-licious/node_modules/.bin:$PATH
 
 # copy files
 COPY --chown=node:node src /opt/search-a-licious/src
+COPY --chown=node:node lit-localize.json /opt/search-a-licious/lit-localize.json
 COPY --chown=node:node public /opt/search-a-licious/public
 COPY --chown=node:node .eslintrc.json /opt/search-a-licious/.eslintrc.json
 COPY --chown=node:node .prettierrc.json /opt/search-a-licious/.prettierrc.json

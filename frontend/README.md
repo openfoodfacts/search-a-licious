@@ -86,6 +86,10 @@ To add a new translation you need to :
 - add your translation with 'target' tag in the `xliff/<your_language>.xlf` files
 - run `npm run build:translations` to update the translations in the `src/generated/locales/<your_language>.js` file
 
+### Translations in Crowdin
+We use Crowdin to manage translations. 
+All files in the `xliff/` folder are automatically uploaded to Crowdin. 
+When translations are done, they are automatically downloaded to the `xliff/` folder.
 
 ## Credits
 

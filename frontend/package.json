@@ -9,10 +9,11 @@
   "type": "module",
   "scripts": {
     "//build": "echo 'compile typescript files'",
-    "build": "tsc",
-    "build:watch": "tsc --watch",
+    "build": "npm run translations:build && tsc",
+    "build:watch": "npm run translations:build && tsc --watch",
     "translations:build": "lit-localize build",
     "translations:extract": "lit-localize extract",
+    "translations:check": "npm run translations:extract && git diff --exit-code -- frontend/xliff || (echo 'Error: Changes detected in frontend/xliff files, run \"translations:extract\"' && exit 1)",
     "clean": "rimraf search-a-licious.{d.ts,d.ts.map,js,js.map} test/search-a-licious.{d.ts,d.ts.map,js,js.map} test/search-a-licious_test.{d.ts,d.ts.map,js,js.map}",
     "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
     "lint:eslint": "eslint 'src/*.ts' 'src/**/*.ts'",

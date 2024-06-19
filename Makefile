@@ -92,6 +92,10 @@ check:
 check_front:  _ensure_network
 	${DOCKER_COMPOSE} run --rm -T search_nodejs npm run check
 
+check_translations:
+	@echo "🔎 Checking translations …"
+	cd frontend && npm install && npm run translations:check
+
 lint: lint_back lint_front
 
 lint_back:

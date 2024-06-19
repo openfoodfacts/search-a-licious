@@ -31,3 +31,9 @@ repos:
         types: [ts]
         require_serial: false
         pass_filenames: false
+
+      - id: check-translations
+        name: check-translations
+        entry: make check_translations
+        language: system
+        files: '\.(ts|json)$'

@@ -1,5 +1,5 @@
 import {configureLocalization} from '@lit/localize';
-import {sourceLocale, targetLocales} from '../generated/locale-codes';
+import {sourceLocale, targetLocales} from './generated/locale-codes';
 
 export const getBrowserLocale = () => {
   return (navigator.language || navigator.languages[0]).split('-')[0];
