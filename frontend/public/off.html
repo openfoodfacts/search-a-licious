@@ -123,6 +123,33 @@
         margin-right: .2rem;
         margin-top: .2rem;
       }
+      .test {
+        background-color: #f00;
+      }
+      .grid {
+        display: grid;
+        gap: 10px;
+      }
+      .column {
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      /* WHEN GRAPH IS DISPLAYED */
+      .graph-is-active {
+        grid-template-columns: 20% 50% 30%;
+      }
+      /* WHEN GRAPH IS HIDDEN */
+      .graph-is-not-active {
+        grid-template-columns: 20% 80%;
+      }
+      .graph-is-not-active .column-3 {
+        display: none;
+      }
+      @media (max-width: 768px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body class="products_page">
@@ -246,8 +273,8 @@
                     </div>
                   </div>
                 </div>
-                <div class="row" style="padding-top: 1rem">
-                  <div class="large-2 columns">
+                <div class="grid graph-is-active" style="padding-top: 1rem">
+                  <div class="column column-1">
                     <searchalicious-facets search-name="off">
                       <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
                       <searchalicious-facet-terms  name="categories_tags" show-other="true"></searchalicious-facet-terms>
@@ -255,7 +282,7 @@
                       <searchalicious-facet-terms  name="ecoscore_grade"></searchalicious-facet-terms>
                     </searchalicious-facets>
                   </div>
-                  <div class="large-10 columns">
+                  <div class="column column-2">
                     <div id="search_results" style="clear: left">
                       <div id="products_tabs_content" class="tabs-content">
                         <div class="tabs content active" id="products_all">
@@ -307,6 +334,9 @@
                       <searchalicious-pages search-name="off">
                       </searchalicious-pages>
                     </div>
+                  </div>
+                  <div class="column column-3">
+                    <!-- Graphs inside -->
                   </div>
                 </div>
               </div>
