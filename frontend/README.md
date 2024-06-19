@@ -76,6 +76,17 @@ Note that we use:
   * which run tests using [playwright](https://playwright.dev/)
   * and [Chai](https://www.chaijs.com/) for assertions
 
+## Translations
+To translate we use [lit-localize](https://lit.dev/docs/localization/overview/), which is a library that uses lit-element to handle translations.
+The translations are stored in the `translations` folder in the root of the project.
+
+To add a new translation you need to :
+- add `msg` in your code like this https://lit.dev/docs/localization/overview/#message-types
+- run `npm run extract:translations` to extract the new translations
+- add your translation with 'target' tag in the `xliff/<your_language>.xlf` files
+- run `npm run build:translations` to update the translations in the `src/generated/locales/<your_language>.js` file
+
+
 ## Credits
 
 This part of the project was bootstrap using [lit-element-starter-ts](https://github.com/lit/lit-element-starter-ts/).
