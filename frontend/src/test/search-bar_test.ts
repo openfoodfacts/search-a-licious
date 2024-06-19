@@ -72,7 +72,7 @@ suite('searchalicious-bar', () => {
     input!.dispatchEvent(new Event('input'));
     const bar = el as SearchaliciousBar;
     assert.equal(
-      (bar as any)['_searchUrl'](),
+      (bar as any)['_searchUrl']().searchUrl,
       '/search?index=foo&langs=en&page_size=10&q=test'
     );
   });

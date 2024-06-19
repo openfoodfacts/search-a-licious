@@ -1,6 +1,6 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-import {SearchaliciousSearchMixin} from './search-ctl';
+import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 
 /**
  * The search bar element

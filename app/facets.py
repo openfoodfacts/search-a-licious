@@ -9,40 +9,9 @@ from ._types import (
     FacetsFilters,
     FacetsInfos,
     QueryAnalysis,
-    SearchResponse,
+    SuccessSearchResponse,
 )
 from .taxonomy_es import get_taxonomy_names
-
-
-def safe_get_index_config(
-    index: str | None = None, configuration: config.Config | None = None
-) -> config.IndexConfig | None:
-    """Safely get config"""
-    if configuration is None:
-        configuration = config.CONFIG
-    if configuration is None:
-        return None
-    _, index_config = configuration.get_index_config(index)
-    return index_config
-
-
-def check_all_facets_fields_are_agg(
-    index_id: str | None, facets: list[str] | None
-) -> list[str]:
-    """Check all facets are valid,
-    that is, correspond to a field with aggregation"""
-    errors: list[str] = []
-    if facets is None:
-        return errors
-    config = safe_get_index_config(index_id)
-    if config is None:
-        raise ValueError(f"Cannot get index config for index_id {index_id}")
-    for field_name in facets:
-        if field_name not in config.fields:
-            errors.append(f"Unknown field name in facets: {field_name}")
-        elif not config.fields[field_name].bucket_agg:
-            errors.append(f"Non aggregation field name in facets: {field_name}")
-    return errors
 
 
 def _get_translations(
@@ -105,7 +74,7 @@ def translate_facets_values(
 
 
 def build_facets(
-    search_result: SearchResponse,
+    search_result: SuccessSearchResponse,
     query_analysis: QueryAnalysis,
     lang: str,
     index_config: config.IndexConfig,

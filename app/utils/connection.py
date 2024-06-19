@@ -11,6 +11,11 @@ def get_es_client(**kwargs):
     )
 
 
+def current_es_client():
+    """Return ElasticSearch default connection"""
+    return connections.get_connection()
+
+
 def get_redis_client(**kwargs) -> Redis:
     return Redis(
         host=settings.redis_host,

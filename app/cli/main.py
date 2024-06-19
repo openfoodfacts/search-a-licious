@@ -3,10 +3,33 @@ from typing import Optional
 
 import typer
 
-app = typer.Typer()
+import app
+
+cli = typer.Typer()
 
 
-@app.command(name="import")
+def _get_index_config(
+    config_path: Optional[Path], index_id: Optional[str]
+) -> tuple[str, "app.config.IndexConfig"]:
+    from typing import cast
+
+    from app import config
+    from app.config import check_config_is_defined, set_global_config
+
+    if config_path:
+        set_global_config(config_path)
+
+    check_config_is_defined()
+    global_config = cast(config.Config, config.CONFIG)
+    index_id, index_config = global_config.get_index_config(index_id)
+    if index_config is None:
+        raise typer.BadParameter(
+            "You must specify an index ID when there are multiple indices"
+        )
+    return index_id, index_config
+
+
+@cli.command(name="import")
 def import_data(
     input_path: Path = typer.Argument(
         ...,
@@ -41,26 +64,14 @@ def import_data(
 ):
     """Import data into Elasticsearch."""
     import time
-    from typing import cast
 
-    from app import config
     from app._import import run_full_import
-    from app.config import check_config_is_defined, set_global_config
     from app.utils import get_logger
 
     logger = get_logger()
 
-    if config_path:
-        set_global_config(config_path)
-
     start_time = time.perf_counter()
-    check_config_is_defined()
-    global_config = cast(config.Config, config.CONFIG)
-    index_id, index_config = global_config.get_index_config(index_id)
-    if index_config is None:
-        raise typer.BadParameter(
-            "You must specify an index ID when there are multiple indices"
-        )
+    index_id, index_config = _get_index_config(config_path, index_id)
 
     run_full_import(
         input_path,
@@ -73,7 +84,7 @@ def import_data(
     logger.info("Import time: %s seconds", end_time - start_time)
 
 
-@app.command()
+@cli.command()
 def import_taxonomies(
     config_path: Optional[Path] = typer.Option(
         default=None,
@@ -91,25 +102,13 @@ def import_taxonomies(
 ):
     """Import taxonomies into Elasticsearch."""
     import time
-    from typing import cast
 
-    from app import config
     from app._import import perform_taxonomy_import
-    from app.config import check_config_is_defined, set_global_config
     from app.utils import get_logger
 
     logger = get_logger()
 
-    if config_path:
-        set_global_config(config_path)
-
-    check_config_is_defined()
-    global_config = cast(config.Config, config.CONFIG)
-    index_id, index_config = global_config.get_index_config(index_id)
-    if index_config is None:
-        raise typer.BadParameter(
-            "You must specify an index ID when there are multiple indices"
-        )
+    index_id, index_config = _get_index_config(config_path, index_id)
 
     start_time = time.perf_counter()
     perform_taxonomy_import(index_config)
@@ -117,7 +116,35 @@ def import_taxonomies(
     logger.info("Import time: %s seconds", end_time - start_time)
 
 
-@app.command()
+@cli.command()
+def sync_scripts(
+    config_path: Optional[Path] = typer.Option(
+        default=None,
+        help="path of the yaml configuration file, it overrides CONFIG_PATH envvar",
+        dir_okay=False,
+        file_okay=True,
+        exists=True,
+    ),
+    index_id: Optional[str] = typer.Option(
+        default=None,
+        help="Each index has its own configuration in the configuration file, "
+        "and the ID is used to know which index to use. "
+        "If there is only one index, this option is not needed.",
+    ),
+):
+    from app import es_scripts
+    from app.utils import connection, get_logger
+
+    logger = get_logger()
+    index_id, index_config = _get_index_config(config_path, index_id)
+    connection.get_es_client()
+    stats = es_scripts.sync_scripts(index_id, index_config)
+    logger.info(
+        f"Synced scripts (removed: {stats['removed']}, added: {stats['added']})"
+    )
+
+
+@cli.command()
 def run_update_daemon(
     config_path: Optional[Path] = typer.Option(
         default=None,
@@ -150,4 +177,4 @@ def run_update_daemon(
 
 
 def main() -> None:
-    app()
+    cli()

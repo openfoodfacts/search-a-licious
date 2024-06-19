@@ -29,7 +29,7 @@ py-healthcheck = "^1.10.1"
 pytest = "^7.4.3"
 coverage = {extras = ["toml"], version = "^7.3.2"}
 pytest-cov = "^4.1.0"
-mypy = "^1.9.0"
+mypy = "^1.10.0"
 types-cachetools = "^5.3.0.7"
 types-requests = "^2.31.0.10"
 types-pyyaml = "^6.0.12.12"

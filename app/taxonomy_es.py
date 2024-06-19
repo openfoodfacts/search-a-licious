@@ -1,4 +1,4 @@
-"""Operations on taxonomies in Elastic Search"""
+"""Operations on taxonomies in ElasticSearch"""
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q

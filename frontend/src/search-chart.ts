@@ -1,7 +1,7 @@
 import {LitElement, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {SearchaliciousResultCtlMixin} from './search-results-ctl';
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 
 import {SearchResultEvent} from './events';
 

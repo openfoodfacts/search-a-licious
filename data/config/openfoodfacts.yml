@@ -6,6 +6,13 @@ indices:
       name: openfoodfacts
       number_of_replicas: 1
       number_of_shards: 4
+    scripts:
+      personal_score:
+        lang: expression
+        source: |
+          1
+        params:
+          preferences: 2
     fields:
       code:
         required: true
