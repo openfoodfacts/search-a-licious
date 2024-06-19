@@ -1,9 +1,7 @@
 import {LitElement, html} from 'lit';
 import {
   customElement,
-  state,
   property,
-  queryAssignedNodes,
 } from 'lit/decorators.js';
 
 import {SearchaliciousResultCtlMixin} from './search-results-ctl';
@@ -12,55 +10,20 @@ import {SearchResultEvent} from './events';
 // @ts-ignore eslint-disable-next-line @typescript-eslint/ban-ts-comment  no-var
 declare var vega: any;
 
-interface ChartInfo {
-  id: string;
-  key: string;
-  values: HistogramValues;
-}
+// interface ChartInfo {
+//   id: string;
+//   key: string;
+//   values: HistogramValues;
+// }
 
-interface HistogramValues {
-  [key: string]: number;
-}
-
-@customElement('searchalicious-charts')
-export class SearchaliciousCharts extends SearchaliciousResultCtlMixin(
-  LitElement
-) {
-  @state()
-  @property()
-  charts?: Array<ChartInfo>;
-
-  @queryAssignedNodes({flatten: true})
-  slotNodes!: Array<Node>;
-
-  override render() {
-    return html`<div><slot></slot></div>`;
-  }
-
-  _chartNodes(): SearchaliciousChart[] {
-    return this.slotNodes.filter(
-      (node) => node instanceof SearchaliciousChart
-    ) as SearchaliciousChart[];
-  }
-
-  override handleResults(event: SearchResultEvent) {
-    this._chartNodes().forEach((node) => {
-      node.values = Object.fromEntries(
-        node.categories.map((category) => [category, 0])
-      );
-    });
-
-    for (const result of event.detail.results) {
-      this._chartNodes().forEach((node) => {
-        // @ts-ignore
-        node.values[result[node.key]] += 1;
-      });
-    }
-  }
-}
+// interface HistogramValues {
+//   [key: string]: number;
+// }
 
 @customElement('searchalicious-chart')
-export class SearchaliciousChart extends LitElement {
+export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
+  LitElement
+) {
   @property()
   // @ts-ignore
   key: string;
@@ -88,10 +51,37 @@ export class SearchaliciousChart extends LitElement {
     return html`<div id="${this.key}" style="${display}"></div>`;
   }
 
-  override updated() {
+  // Computes the vega representation for given results
+  // The logic will be partially moved in API in a following
+  // PR.
+  // Vega function assumes that rendered had been previously
+  // called.
+  override handleResults(event: SearchResultEvent) {
+
+    // Compute the distribution
+    this.values = Object.fromEntries(
+      this.categories.map((category) => [category, 0])
+    );
+
+    for (const result of event.detail.results) {
+      // @ts-ignore
+      this.values[result[this.key]] += 1;
+    }
+
     const container = this.renderRoot.querySelector(`#${this.key}`);
-    // Make vega responsive
+
+    // Vega is used as a JSON visualization grammar
+    // Doc: https://vega.github.io/vega/docs/
+    // It would have been possible to use higher lever vega-lite API,
+    // which is able to write vega specifications but it's probably too
+    // much for our usage
+    // Inspired by: https://vega.github.io/vega/examples/bar-chart/
+
+    // I recommend to search on Internet for specific uses like:
+    // * How to make vega responsive:
+    // Solution: using signals and auto-size
     // https://gist.github.com/donghaoren/023b2246569e8f0615017507b473e55e
+    // * How to hide vertical axis: do not add { scale: yscale, ...} in axes section
 
     const view = new vega.View(
       vega.parse({
@@ -143,7 +133,6 @@ export class SearchaliciousChart extends LitElement {
             range: 'height',
           },
         ],
-
         axes: [
           {orient: 'bottom', scale: 'xscale', domain: false, ticks: false},
         ],
@@ -199,7 +188,6 @@ export class SearchaliciousChart extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'searchalicious-charts': SearchaliciousCharts;
     'searchalicious-chart': SearchaliciousChart;
   }
 }

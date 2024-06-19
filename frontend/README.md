@@ -26,6 +26,7 @@ The project is currently composed of several widgets
 * searchalicious-facet-terms renders the facet for terms (list of entries, with number of docs).
   * it must be in a `searchalicious-facets`
   * the user can select facets to filter the search
+* searchalicious-chart renders the distribution chart
 
 You can give a specific `name` attribute to your search bar.
 Then all other component that needs to connect with this search must use the same value in `search-name` attribute
