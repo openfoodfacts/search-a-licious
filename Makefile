@@ -92,6 +92,7 @@ check:
 check_front:  _ensure_network
 	${DOCKER_COMPOSE} run --rm -T search_nodejs npm run check
 
+# note: this is called by pre-commit, it will also extract translations
 check_translations:
 	@echo "🔎 Checking translations …"
 	cd frontend && npm install && npm run translations:extract
