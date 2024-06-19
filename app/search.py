@@ -4,6 +4,7 @@ from typing import cast
 from . import config
 from ._types import SearchParameters, SearchResponse, SuccessSearchResponse
 from .facets import build_facets
+from .charts import build_charts
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
 
@@ -32,18 +33,20 @@ def search(
     params: SearchParameters,
 ) -> SearchResponse:
     """Run a search"""
+    print('PARAMS', params)
     result_processor = cast(
         BaseResultProcessor, RESULT_PROCESSORS[params.valid_index_id]
     )
     logger.debug(
         "Received search query: q='%s', langs='%s', page=%d, "
-        "page_size=%d, fields='%s', sort_by='%s'",
+        "page_size=%d, fields='%s', sort_by='%s', charts='%s'",
         params.q,
         params.langs_set,
         params.page,
         params.page_size,
         params.fields,
         params.sort_by,
+        params.charts,
     )
     index_config = params.index_config
     query = build_search_query(
@@ -65,10 +68,14 @@ def search(
         page_size=params.page_size,
         projection=projection,
     )
+    # print(search_result)
     if isinstance(search_result, SuccessSearchResponse):
         search_result.facets = build_facets(
             search_result, query, params.main_lang, index_config, params.facets
         )
+        print(params)
+        search_result.charts = build_charts(search_result, params.charts)
+        print(search_result.charts)
         # remove aggregations to avoid sending too much information
         search_result.aggregations = None
     return search_result

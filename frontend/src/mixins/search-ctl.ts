@@ -292,11 +292,13 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         page?: string;
         index?: string;
         facets?: string;
+        charts?: string;
       } = {
         q: queryParts.join(' '),
         langs: this.langs,
         page_size: this.pageSize.toString(),
         index: this.index,
+        charts: ['nutriscore_grade', 'nova_group', 'ecoscore_grade'].join(',')
       };
       if (page) {
         params.page = page.toString();
@@ -330,6 +332,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         currentPage: this._currentPage!,
         pageSize: this.pageSize,
         facets: data.facets,
+        charts: data.charts,
       };
       this.dispatchEvent(
         new CustomEvent(SearchaliciousEvents.NEW_RESULT, {

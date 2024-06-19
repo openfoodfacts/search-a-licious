@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from . import config
 from .utils import str_utils
-from .validations import check_all_facets_fields_are_agg, check_index_id_is_defined
+from .validations import check_all_charts_are_valid, check_all_facets_fields_are_agg, check_index_id_is_defined
 
 #: A precise expectation of what mappings looks like in json.
 #: (dict where keys are always of type `str`).
@@ -42,6 +42,9 @@ class FacetInfo(BaseModel):
 FacetsInfos = dict[str, FacetInfo]
 """Information about facets for a search result"""
 
+ChartsInfos = dict[str, JSONType]
+"""Information about facets for a search result"""
+
 FacetsFilters = dict[str, list[str]]
 """Data about selected filters for each facet: facet name -> list of values"""
 
@@ -67,6 +70,7 @@ class SuccessSearchResponse(BaseModel):
     hits: list[JSONType]
     aggregations: JSONType | None = None
     facets: FacetsInfos | None = None
+    charts: ChartsInfos | None = None
     page: int
     page_size: int
     page_count: int
@@ -206,6 +210,13 @@ If not provided, `['en']` is used."""
             If None (default) no facets are returned."""
         ),
     ] = None
+    charts: Annotated[
+        list[str] | None,
+        Query(
+            description="""Name of vega representations to return in the response.
+            If None (default) no charts are returrned."""
+        )
+    ] = None
     sort_params: Annotated[
         JSONType | None,
         Query(
@@ -309,6 +320,14 @@ If not provided, `['en']` is used."""
         return self
 
     @model_validator(mode="after")
+    def check_charts_are_valid(self):
+        """Check that the graph names are valid."""
+        errors = check_all_charts_are_valid(self.charts)
+        if errors:
+            raise ValueError(errors)
+        return self
+
+    @model_validator(mode="after")
     def check_max_results(self):
         """Check we don't ask too many results at once"""
         if self.page * self.page_size > 10_000:
@@ -352,4 +371,5 @@ class GetSearchParamsTypes:
     fields = _annotation_new_type(str, SEARCH_PARAMS_ANN["fields"])
     sort_by = SEARCH_PARAMS_ANN["sort_by"]
     facets = _annotation_new_type(str, SEARCH_PARAMS_ANN["facets"])
+    charts = _annotation_new_type(str, SEARCH_PARAMS_ANN["charts"])
     index_id = SEARCH_PARAMS_ANN["index_id"]

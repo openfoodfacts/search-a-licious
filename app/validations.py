@@ -40,3 +40,15 @@ def check_all_facets_fields_are_agg(
         elif not index_config.fields[field_name].bucket_agg:
             errors.append(f"Non aggregation field name in facets: {field_name}")
     return errors
+
+
+def check_all_charts_are_valid(charts: list[str] | None) -> list[str]:
+    """Check all charts are valid,
+    that is, are in the hardcoded list"""
+    errors: list[str] = []
+    if charts is None:
+        return errors
+    for field_name in charts:
+        if field_name not in ["nutriscore_grade", "nova_group", "ecoscore_grade"]:
+            errors.append(f"Unknown field name in charts: {field_name}")
+    return errors

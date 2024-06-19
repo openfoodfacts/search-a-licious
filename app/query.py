@@ -291,6 +291,9 @@ def create_aggregation_clauses(
             if field.bucket_agg:
                 # TODO - aggregation might depend on agg type or field type
                 clauses[field.name] = A("terms", field=field.name)
+    clauses['nutriscore_grade'] = A("terms", field='nutriscore_grade')
+    clauses['nova_group'] = A("terms", field='nova_group')
+    # TODO: add  A("terms", field=field.name) for field.name in charts
     return clauses
 
 
