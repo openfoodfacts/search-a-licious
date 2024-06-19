@@ -255,7 +255,7 @@
                       <searchalicious-facet-terms  name="ecoscore_grade"></searchalicious-facet-terms>
                     </searchalicious-facets>
                   </div>
-                  <div class="large-10 columns">
+                  <div class="large-8 columns">
                     <div id="search_results" style="clear: left">
                       <div id="products_tabs_content" class="tabs-content">
                         <div class="tabs content active" id="products_all">
@@ -308,6 +308,11 @@
                       </searchalicious-pages>
                     </div>
                   </div>
+                  <div class="large-2 columns">
+                    <searchalicious-chart search-name="off" label="Nutri-score distribution" key="nutriscore_grade", categories='["a", "b", "c", "d", "e", "unknown", "not-applicable"]''></searchalicious-chart>
+                    <searchalicious-chart search-name="off" label="Nova score distribution" key="nova_group", categories='["1", "2", "3", "4", "undefined", "not-applicable"]'></searchalicious-chart>
+                    <searchalicious-chart search-name="off" label="Eco score distribution" key="ecoscore_grade", categories='["a", "b", "c", "d", "e", "unknown", "not-applicable"]''></searchalicious-chart>
+                  </div>
                 </div>
               </div>
             </div>
@@ -322,6 +327,8 @@
     <script src="https://static.openfoodfacts.org/js/dist/display.js"></script>
     <script src="https://static.openfoodfacts.org/js/dist/stikelem.js"></script>
     <script src="https://static.openfoodfacts.org/js/dist/scrollNav.js"></script>
+
+    <script src="vega5.js"></script>
 
     <script
       src="https://static.openfoodfacts.org/js/dist/foundation.js"

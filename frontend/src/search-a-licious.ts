@@ -9,3 +9,4 @@ export {SearchaliciousAutocomplete} from './search-autocomplete';
 export {SearchaliciousSecondaryButton} from './secondary-button';
 export {SearchaliciousButtonTransparent} from './button-transparent';
 export {SearchaliciousIconCross} from './icons/cross';
+export {SearchaliciousChart} from './search-chart';

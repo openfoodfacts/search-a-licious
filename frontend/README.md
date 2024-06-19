@@ -36,6 +36,7 @@ The project is currently composed of several widgets
   * it can be used to replace the default button
 * searchalicious-button-transparent is a transparent button with defined style
   * it can be used to replace the default button
+* searchalicious-chart renders vega chart, currently only for distribution. Requires [vega](https://vega.github.io/).
 
 You can give a specific `name` attribute to your search bar.
 Then all other component that needs to connect with this search must use the same value in `search-name` attribute
