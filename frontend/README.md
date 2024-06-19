@@ -36,6 +36,10 @@ The project is currently composed of several widgets
   * it can be used to replace the default button
 * searchalicious-button-transparent is a transparent button with defined style
   * it can be used to replace the default button
+* searchalicious-icon-cross is a cross icon
+    * it can be used to delete actions
+* searchalicious-suggestion-entry is a suggestion entry
+    * it can be used to display a suggestion in searchalicious-bar
 
 You can give a specific `name` attribute to your search bar.
 Then all other component that needs to connect with this search must use the same value in `search-name` attribute

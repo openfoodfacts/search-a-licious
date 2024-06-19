@@ -11,9 +11,9 @@ export class SearchaliciousSuggestionEntry extends LitElement {
   /**
    * The styles for the suggestion entry.
    * .suggestion-entry: The container for the suggestion entry, it contains the image and the text.
-   * .suggestion-entry-img-wrapper: The container for the image.
-   * .suggestion-entry-text-wrapper: The container for the text.
-   * .suggestion-entry-img-wrapper > *: The image itself.
+   * .suggestion-entry-img-wrapper: The container for the image. It takes a fixed size by default is 2rem.
+   * .suggestion-entry-text-wrapper: The container for the text. It takes the remaining space.
+   * .suggestion-entry-img-wrapper > *: The image itself. It takes the full size of the container.
    * .suggestion-entry-text: The text of the suggestion.
    */
   static override styles = css`
