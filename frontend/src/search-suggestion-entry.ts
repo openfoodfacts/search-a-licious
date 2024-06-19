@@ -8,8 +8,16 @@ import {customElement, property} from 'lit/decorators.js';
  */
 @customElement('searchalicious-suggestion-entry')
 export class SearchaliciousSuggestionEntry extends LitElement {
+  /**
+   * The styles for the suggestion entry.
+   * .suggestion-entry: The container for the suggestion entry, it contains the image and the text.
+   * .suggestion-entry-img-wrapper: The container for the image.
+   * .suggestion-entry-text-wrapper: The container for the text.
+   * .suggestion-entry-img-wrapper > *: The image itself.
+   * .suggestion-entry-text: The text of the suggestion.
+   */
   static override styles = css`
-    .term-line {
+    .suggestion-entry {
       display: flex;
       align-items: center;
       padding: 0.5rem 1rem;
@@ -17,22 +25,22 @@ export class SearchaliciousSuggestionEntry extends LitElement {
       overflow: hidden;
       max-width: 100%;
 
-      --img-size: 2rem;
+      --img-size: var(--searchalicious-suggestion-entry-img-size, 2rem);
     }
 
-    .term-line-img-wrapper {
-      width: 2rem;
-      height: 2rem;
+    .suggestion-entry .suggestion-entry-img-wrapper {
+      width: var(--img-size);
+      height: var(--img-size);
       overflow: hidden;
     }
 
-    .term-line-text-wrapper {
+    .suggestion-entry .suggestion-entry-text-wrapper {
       --margin-left: 1rem;
       margin-left: var(--margin-left);
       width: calc(100% - var(--img-size) - var(--margin-left));
     }
 
-    .term-line-img-wrapper > * {
+    .suggestion-entry-img-wrapper > * {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -40,7 +48,7 @@ export class SearchaliciousSuggestionEntry extends LitElement {
       background-color: var(--img-background-color, #d9d9d9);
     }
 
-    .term-line-text {
+    .suggestion-entry-text {
       font-weight: bold;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -62,15 +70,15 @@ export class SearchaliciousSuggestionEntry extends LitElement {
    */
   override render() {
     return html`
-      <div class="term-line">
-        <div class="term-line-img-wrapper">
+      <div class="suggestion-entry">
+        <div class="suggestion-entry-img-wrapper">
           <!-- if no imageUrl show empty circle -->
           ${this.term?.imageUrl
             ? html`<img src=${this.term?.imageUrl} />`
             : html`<div></div>`}
         </div>
-        <div class="term-line-text-wrapper">
-          <div class="term-line-text">${this.term?.text}</div>
+        <div class="suggestion-entry-text-wrapper">
+          <div class="suggestion-entry-text">${this.term?.text}</div>
           <div>${this.term?.taxonomy_name}</div>
         </div>
       </div>
