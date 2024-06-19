@@ -44,7 +44,8 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@lit/localize": "^0.12.1",
-    "lit": "^3.0.0"
+    "lit": "^3.0.0",
+    "minimist": "^1.2.8"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.6.3",
