@@ -71,9 +71,17 @@ suite('searchalicious-bar', () => {
     input!.value = 'test';
     input!.dispatchEvent(new Event('input'));
     const bar = el as SearchaliciousBar;
+    const searchParams = (bar as any)['_searchUrl']();
+    assert.equal(searchParams.searchUrl, '/search');
+    assert.deepEqual(searchParams.params, {
+      index_id: 'foo',
+      langs: ['en'],
+      page_size: '10',
+      q: 'test',
+    });
     assert.equal(
-      (bar as any)['_searchUrl']().searchUrl,
-      '/search?index=foo&langs=en&page_size=10&q=test'
+      (bar as any)._paramsToQueryStr(searchParams.params),
+      'index_id=foo&langs=en&page_size=10&q=test'
     );
   });
 });
