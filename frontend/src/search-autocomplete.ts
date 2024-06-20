@@ -272,7 +272,7 @@ export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
             ${option.label}
           </li>`
         )
-      : html`<li>No results found</li>`;
+      : html`<li>${msg('No results found')}</li>`;
   }
 
   /**

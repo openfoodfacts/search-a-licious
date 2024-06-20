@@ -5,6 +5,7 @@ import {
   SearchaliciousResultCtlMixin,
   SearchaliciousResultsCtlInterface,
 } from './mixins/search-results-ctl';
+import {msg} from '@lit/localize';
 
 @customElement('searchalicious-count')
 export class SearchCount
@@ -27,7 +28,9 @@ export class SearchCount
   beforeSearch = html``;
 
   // HTML to display when there are no results
-  noResults = html`<div>No results found</div>`;
+  get noResults() {
+    return html`<div>${msg('No results found')}</div>`;
+  }
 
   /**
    * Render the component

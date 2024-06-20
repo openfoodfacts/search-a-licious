@@ -7,7 +7,6 @@ import {sourceLocale, targetLocales} from './generated/locale-codes';
 export const getBrowserLocale = () => {
   return (navigator.language || navigator.languages[0]).split('-')[0];
 };
-
 /**
  * Configure the localization, it will load the locale files and set the source and target locales
  */
@@ -22,6 +21,7 @@ export const {getLocale, setLocale} = configureLocalization({
     // Defer first render until our initial locale is ready, to avoid a flash of
     // the wrong locale.
     // It sets the locale to the browser locale
+
     await setLocale(getBrowserLocale());
   } catch (e) {
     // Either the URL locale code was invalid, or there was a problem loading

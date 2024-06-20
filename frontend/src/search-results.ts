@@ -8,6 +8,7 @@ import {
   MissingResultTemplateError,
   MultipleResultTemplateError,
 } from './errors';
+import {localized, msg} from '@lit/localize';
 
 // we need it to declare functions
 type htmlType = typeof html;
@@ -20,6 +21,7 @@ type htmlType = typeof html;
  *
  * It reacts to the `searchalicious-result` event fired by the search controller.
  */
+@localized()
 @customElement('searchalicious-results')
 export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
   LitElement
@@ -55,7 +57,9 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
    *
    * Can be overridden by a "no-results" slot
    */
-  noResults = html`<div>No results found</div>`;
+  get noResults() {
+    return html`<div>${msg('No results found')}</div>`;
+  }
 
   /**
    * HTML to display before anysearch is launched

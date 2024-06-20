@@ -9,10 +9,7 @@ import {getTaxonomyName} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
 import {QueryOperator} from './utils/enums';
-import {
-  getDynamicTranslation,
-  getPluralTranslation,
-} from './localization/translations';
+import {getPluralTranslation} from './localization/translations';
 import {msg, localized} from '@lit/localize';
 
 interface FacetsInfos {
@@ -390,7 +387,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       <fieldset name=${this.name}>
         <!-- FIXME: translate -->
         <div class="legend-wrapper">
-          <legend>${getDynamicTranslation(this.name)}</legend>
+          <!-- Allow to customize the legend -->
+          <legend><slot name="legend">${this.name}</slot></legend>
           <span class="buttons">
             <searchalicious-button-transparent
                 title="Reset ${this.name}"

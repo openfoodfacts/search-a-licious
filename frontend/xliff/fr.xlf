@@ -11,22 +11,6 @@
   <note from="lit-localize">Search bar placeholder</note>
   <target>Rechercher...</target>
 </trans-unit>
-<trans-unit id="s79fc990a2b58f27f">
-  <source>Brands</source>
-  <target>Marques</target>
-</trans-unit>
-<trans-unit id="s2cc7cd11d9b856cd">
-  <source>Categories</source>
-  <target>Catégories</target>
-</trans-unit>
-<trans-unit id="s23767519403f7575">
-  <source>Nutrition grades</source>
-  <target>Nutri-Scores</target>
-</trans-unit>
-<trans-unit id="s7001c0cef399d2df">
-  <source>Ecoscore grade</source>
-  <target>Écoscore</target>
-</trans-unit>
 <trans-unit id="sc9e494c8346b7cb5">
   <source>Other</source>
   <target>Autre</target>
@@ -38,6 +22,10 @@
 <trans-unit id="sde0081b1dc3582d3">
   <source>Reset filters</source>
   <target>Réinitialiser les filtres</target>
+</trans-unit>
+<trans-unit id="s9094c0cde8fb5058">
+  <source>No results found</source>
+  <target>Aucun résultat trouvé</target>
 </trans-unit>
 </body>
 </file>
