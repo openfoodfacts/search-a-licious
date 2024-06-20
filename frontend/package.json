@@ -44,8 +44,7 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@lit/localize": "^0.12.1",
-    "lit": "^3.0.0",
-    "minimist": "^1.2.8"
+    "lit": "^3.0.0"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.6.3",
@@ -69,7 +68,8 @@
     "rollup": "^2.73.0",
     "rollup-plugin-summary": "^1.4.3",
     "rollup-plugin-terser": "^7.0.2",
-    "typescript": "~5.3.3"
+    "typescript": "~5.3.3",
+    "minimist": "^1.2.8"
   },
   "customElements": "custom-elements.json"
 }
