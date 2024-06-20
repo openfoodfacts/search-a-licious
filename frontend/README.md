@@ -77,8 +77,9 @@ Note that we use:
   * and [Chai](https://www.chaijs.com/) for assertions
 
 ## Translations
-To translate we use [lit-localize](https://lit.dev/docs/localization/overview/), which is a library that uses lit-element to handle translations.
-The translations are stored in the `translations` folder in the root of the project.
+In the frontend, we utilize [lit-localize](https://lit.dev/docs/localization/overview/), a library that leverages lit-element for managing translations from hardcoded text.
+The language is set to the browser's language if it is supported by the project, otherwise it is set to default language (English).
+The translations are stored in `xliff` files in the `frontend/xliff` directory.
 
 To add a new translation you need to :
 - add `msg` in your code like this https://lit.dev/docs/localization/overview/#message-types
@@ -89,7 +90,7 @@ To add a new translation you need to :
 To add a language, you have to add the language code to `targetLocales` in `lit-localize.json`
 
 ### Translations in Crowdin
-We use Crowdin to manage translations.
+We can use Crowdin to manage translations.
 All files in the xliff/ folder can be uploaded to Crowdin, as it supports the [xlf format](https://store.crowdin.com/xliff).
 
 ## Credits
