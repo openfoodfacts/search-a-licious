@@ -13,7 +13,7 @@ import {
   getDynamicTranslation,
   getPluralTranslation,
 } from './localization/translations';
-import {msg} from '@lit/localize';
+import {msg, localized} from '@lit/localize';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -47,6 +47,7 @@ function stringGuard(s: string | undefined): s is string {
  *
  * It must contains a SearchaliciousFacet component for each facet we want to display.
  */
+@localized
 @customElement('searchalicious-facets')
 export class SearchaliciousFacets extends SearchActionMixin(
   SearchaliciousResultCtlMixin(LitElement)
@@ -186,6 +187,7 @@ export class SearchaliciousFacet extends LitElement {
 /**
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
+@localized
 @customElement('searchalicious-facet-terms')
 export class SearchaliciousTermsFacet extends SearchActionMixin(
   SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
