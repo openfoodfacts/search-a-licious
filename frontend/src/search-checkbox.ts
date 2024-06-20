@@ -1,5 +1,6 @@
-import {LitElement, html, PropertyValues} from 'lit';
+import {LitElement, html, PropertyValues, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {BasicEvents} from './utils/enums';
 
 /**
  * A custom element that represents a checkbox.
@@ -10,6 +11,51 @@ import {customElement, property} from 'lit/decorators.js';
  */
 @customElement('searchalicious-checkbox')
 export class SearchaliciousCheckbox extends LitElement {
+  /**
+   * The styles for the checkbox.
+   * "appearance: none" is used to remove the default checkbox style.
+   * We use an svg icon for the checked state, it is located in the public/icons folder.
+   * @type {import('lit').CSSResult}
+   */
+  static override styles = css`
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+    }
+
+    input[type='checkbox'] {
+      cursor: pointer;
+      position: relative;
+      width: 20px;
+      height: 20px;
+      margin-right: 0;
+      appearance: none;
+      border: 1px solid black;
+      background-color: transparent;
+    }
+    input[type='checkbox']:checked {
+      background-color: black;
+    }
+    input[type='checkbox']:focus {
+      outline: 1px solid blue;
+    }
+    input[type='checkbox']:checked:after {
+      position: absolute;
+      content: '';
+      height: 12px;
+      width: 12px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: url('/static/icons/checkbox-check.svg') no-repeat center
+        center;
+    }
+
+    label {
+      cursor: pointer;
+      padding-left: 8px;
+    }
+  `;
   /**
    * Represents the checked state of the checkbox.
    * @type {boolean}
@@ -49,14 +95,17 @@ export class SearchaliciousCheckbox extends LitElement {
    */
   override render() {
     return html`
-      <input
-        part="checkbox"
-        .name=${this.name}
-        .id="${this.name}"
-        type="checkbox"
-        ?checked=${this.checked}
-        @change=${this._handleChange}
-      />
+      <div class="checkbox-wrapper">
+        <input
+          part="checkbox"
+          .name=${this.name}
+          .id="${this.name}"
+          type="checkbox"
+          ?checked=${this.checked}
+          @change=${this._handleChange}
+        />
+        <label for="${this.name}"><slot name="label">${this.name}</slot></label>
+      </div>
     `;
   }
 
@@ -66,7 +115,7 @@ export class SearchaliciousCheckbox extends LitElement {
    */
   _handleChange(e: {target: HTMLInputElement}) {
     this.checked = e.target.checked;
-    const inputEvent = new CustomEvent('change', {
+    const inputEvent = new CustomEvent(BasicEvents.CHANGE, {
       detail: {checked: this.checked, name: this.name},
       bubbles: true,
       composed: true,

@@ -189,9 +189,6 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     fieldset {
       margin-top: 1rem;
     }
-    .term-wrapper {
-      display: block;
-    }
     .button {
       margin-left: auto;
       margin-right: auto;
@@ -337,18 +334,20 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
    */
   renderTerm(term: FacetTerm) {
     return html`
-      <div class="term-wrapper" part="term-wrapper">
+      <div>
         <searchalicious-checkbox
           .name=${term.key}
           .checked=${this.selectedTerms[term.key]}
           @change=${this.setTermSelected}
-        ></searchalicious-checkbox>
-        <label for="${term.key}"
-          >${term.name}
-          ${term.count
-            ? html`<span part="docCount">(${term.count})</span>`
-            : nothing}</label
         >
+          <!--     "display: contents;" is used to avoid the wrapping of the span in a div cf https://lit.dev/docs/frameworks/react/#using-slots -->
+          <div slot="label" style="display: contents;">
+            ${term.name}
+            ${term.count
+              ? html`<span part="docCount">(${term.count})</span>`
+              : nothing}
+          </div>
+        </searchalicious-checkbox>
       </div>
     `;
   }
