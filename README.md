@@ -125,7 +125,7 @@ To run tests without committing:
 pre-commit run
 ```
 
-#### Debugging the backend app 
+#### Debugging the backend app
 To debug the backend app:
 * stop API instance: `docker compose stop api`
 * add a pdb.set_trace() at the point you want,
@@ -146,6 +146,51 @@ use `make import-dataset filepath='products.jsonl.gz' args="--skip-updates"`
 You should also import taxonomies:
 
 `make import-taxonomies`
+
+### Using sort script
+
+In your index configuration, you can add scripts, used for personalized sorting.
+
+For example:
+```yaml
+    scripts:
+      personal_score:
+        # see https://www.elastic.co/guide/en/elasticsearch/painless/8.14/index.html
+        lang: painless
+        # the script source, here a trivial example
+        source: |-
+          doc[params["preferred_field"]].size > 0 ? doc[params["preferred_field"]].value : (doc[params["secondary_field"]].size > 0 ? doc[params["secondary_field"]].value : 0)
+        # gives an example of parameters
+        params:
+          preferred_field: "field1"
+          secondary_field: "field2"
+        # more non editable parameters, can be easier than to declare constants in the script
+        static_params:
+          param1 : "foo"
+```
+
+You then have to import this script in your elasticsearch instance, by running:
+
+```bash
+docker compose run --rm api python -m app sync-scripts
+```
+
+You can now use it with the POST API:
+```bash
+curl -X POST http://127.0.0.1:8000/search \
+  -H "Content-type: application/json" \
+  -d '{"q": "", "sort_by": "personal_score", "sort_params": {"preferred_field": "nova_group", "secondary_field": "last_modified_t"}}
+```
+
+Or you can now use it inside a the sort web-component:
+```html
+  <searchalicious-sort auto-refresh>
+    <searchalicious-sort-script script="personal_score" parameters='{"preferred_field": "nova_group", "secondary_field": "last_modified_t"}}'>
+      Personal preferences
+    </searchalicious-sort-script>
+  </searchalicious-sort>
+```
+even better the parameters might be retrieved for local storage.
 
 
 ## Thank you to our sponsors !
