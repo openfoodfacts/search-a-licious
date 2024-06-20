@@ -17,7 +17,7 @@ export class LayoutPage extends LitElement {
         flex: 1;
         }
         .col-1 {
-        flex-basis: 20%;
+        flex-basis: 10%;
         }
         .col-2 {
         flex-basis: 50%;
