@@ -21,8 +21,8 @@ type htmlType = typeof html;
  *
  * It reacts to the `searchalicious-result` event fired by the search controller.
  */
-@localized()
 @customElement('searchalicious-results')
+@localized()
 export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
   LitElement
 ) {

@@ -184,8 +184,8 @@ export class SearchaliciousFacet extends LitElement {
 /**
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
-@localized()
 @customElement('searchalicious-facet-terms')
+@localized()
 export class SearchaliciousTermsFacet extends SearchActionMixin(
   SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
 ) {

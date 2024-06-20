@@ -27,8 +27,8 @@ export type AutocompleteResult = {
  * @extends {LitElement}
  * @slot - This slot is for the button contents, default to "Search" string.
  */
-@localized()
 @customElement('searchalicious-autocomplete')
+@localized()
 export class SearchaliciousAutocomplete extends DebounceMixin(LitElement) {
   static override styles = css`
     .search-autocomplete {

@@ -9,8 +9,8 @@ import {localized, msg} from '@lit/localize';
  * This is the main component, it will enable the input of the search query
  * and it also manage all the search thanks to SearchaliciousSearchMixin inheritance.
  */
-@localized()
 @customElement('searchalicious-bar')
+@localized()
 export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
   static override styles = css`
     :host {
