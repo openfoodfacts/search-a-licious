@@ -1,3 +1,4 @@
+export {LayoutPage} from './layout-page';
 export {SearchaliciousCheckbox} from './search-checkbox';
 export {SearchaliciousBar} from './search-bar';
 export {SearchaliciousButton} from './search-button';
