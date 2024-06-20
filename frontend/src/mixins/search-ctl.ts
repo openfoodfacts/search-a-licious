@@ -12,6 +12,7 @@ import {
   SearchResultDetail,
 } from '../events';
 import {Constructor} from './utils';
+import {SearchaliciousSort} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {setCurrentURLHistory} from '../utils/url';
 import {FACETS_DIVIDER} from '../utils/constants';
@@ -139,6 +140,27 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         }
       }
     }
+
+    /**
+     * @returns the sort element linked to this search ctl
+     */
+    override _sortElement = (): SearchaliciousSort | null => {
+      let sortElement: SearchaliciousSort | null = null;
+      document.querySelectorAll(`searchalicious-sort`).forEach((item) => {
+        const sortElementItem = item as SearchaliciousSort;
+        if (sortElementItem.searchName == this.name) {
+          if (sortElement !== null) {
+            console.warn(
+              `searchalicious-sort element with search-name ${this.name} already exists, ignoring`
+            );
+          } else {
+            sortElement = sortElementItem;
+          }
+        }
+      });
+
+      return sortElement;
+    };
 
     /**
      * Wether search should be launched at page load
@@ -322,9 +344,16 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         page_size: this.pageSize.toString(),
         index: this.index,
       };
+      // sorting parameters
+      const sortElement = this._sortElement();
+      if (sortElement) {
+        Object.assign(params, sortElement.getSortParameters());
+      }
+      // page
       if (page) {
         params.page = page.toString();
       }
+      // facets
       if (this._facets().length > 0) {
         params.facets = this._facets().join(FACETS_DIVIDER);
       }
