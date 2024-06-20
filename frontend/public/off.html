@@ -145,6 +145,9 @@
       }
     </style>
     <script lang="javascript">
+      /**
+       * Helpers to display a form for the user to enter his preferences for the personal search demo.
+       */
       // we use a closure that will return our important functions
       const [togglePreferences, storePreferences] = (function () {
 
@@ -306,6 +309,7 @@
                 </div>
                 <div class="row" style="padding-top: 1rem">
                   <div class="large-2 columns">
+                    <!-- A form to input user preferences, to showcase personal sort -->
                     <div id="preferences_config_toggle">
                       <a onclick="return togglePreferences(true)">Define my preferences</a>
                     </div>
