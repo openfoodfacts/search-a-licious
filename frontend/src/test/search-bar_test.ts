@@ -14,7 +14,7 @@ suite('searchalicious-bar', () => {
     assert.shadowDom.equal(
       el,
       `
-      <div class="search-bar">
+      <div class="search-bar" part="wrapper">
         <input
           autocomplete="off"
           name="q"
@@ -44,7 +44,7 @@ suite('searchalicious-bar', () => {
     assert.shadowDom.equal(
       el,
       `
-       <div class="search-bar">
+       <div class="search-bar" part="wrapper">
         <input
           autocomplete="off"
           name="q"
