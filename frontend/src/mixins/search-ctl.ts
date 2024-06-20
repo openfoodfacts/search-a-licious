@@ -228,12 +228,20 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       const needsPOST =
         Object.keys(params).filter((key) => !supportedGETParams.has(key))
           .length > 0;
+      const history = this.buildHistoryParams(params);
+      // remove empty values from params
+      // (do this after buildHistoryParams to be sure to have all parameters)
+      Object.entries(params).forEach(([key, value]) => {
+        if (isNullOrUndefined(value)) {
+          delete params[key as keyof SearchParameters];
+        }
+      });
       return {
         searchUrl: `${baseUrl}/search`,
         method: needsPOST ? 'POST' : 'GET',
         params,
         // this will help update browser history
-        history: this.buildHistoryParams(params),
+        history,
       };
     }
 
@@ -348,19 +356,13 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (this._facets().length > 0) {
         params.facets = this._facets();
       }
-      // remove empty
-      Object.entries(params).forEach(([key, value]) => {
-        if (isNullOrUndefined(value)) {
-          delete params[key as keyof SearchParameters];
-        }
-      });
       return params;
     };
 
     /**
      * Launching search
      */
-    async search(page?: number) {
+    async search(page = 1) {
       const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
       let response;
