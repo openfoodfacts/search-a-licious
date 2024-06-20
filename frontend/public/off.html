@@ -158,14 +158,14 @@
          * As document loads, load preferences from local storage,
          * and update preferences form
          **/
-        document.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
           try {
             loadPreferences();
             updateForm(preferences);
           } catch (e) {
             console.log(e);
           }
-        }
+        });
 
         /**
          * load preferences from local storage
@@ -184,12 +184,14 @@
             const element = preferences_form_elements[i];
             if (element.nodeName === "SELECT") {
               const targetValue = preferences[element.name] ?? element.value;
-              const options = Array.from(element.getElementsByTagName("option"));
-              options.forEach(item => {
-                if (item.value.toString() === targetValue) {
-                  item.selected = true;
-                }
-              });
+              if (targetValue != null) {
+                const options = Array.from(element.getElementsByTagName("option"));
+                options.forEach(item => {
+                  if (item.value.toString() === targetValue.toString()) {
+                    item.selected = true;
+                  }
+                });
+              }
             }
           }
         }
