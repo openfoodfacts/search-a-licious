@@ -14,6 +14,7 @@ export class SearchaliciousCheckbox extends LitElement {
   /**
    * The styles for the checkbox.
    * "appearance: none" is used to remove the default checkbox style.
+   * margin-right: 0 is used to remove the default margin between the checkbox and the label.
    * We use an svg icon for the checked state, it is located in the public/icons folder.
    * @type {import('lit').CSSResult}
    */
@@ -30,14 +31,14 @@ export class SearchaliciousCheckbox extends LitElement {
       height: 20px;
       margin-right: 0;
       appearance: none;
-      border: 1px solid black;
+      border: 1px solid var(--searchalicious-checkbox-color, black);
       background-color: transparent;
     }
     input[type='checkbox']:checked {
-      background-color: black;
+      background-color: var(--searchalicious-checkbox-color, black);
     }
     input[type='checkbox']:focus {
-      outline: 1px solid blue;
+      outline: 1px solid var(--searchalicious-checkbox-focus-color, black);
     }
     input[type='checkbox']:checked:after {
       position: absolute;
