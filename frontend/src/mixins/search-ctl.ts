@@ -43,6 +43,7 @@ export interface SearchaliciousSearchInterface
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
   _facetsFilters(): string;
+  selectTermByTaxonomy(taxonomy: string, term: string): void;
 }
 
 // name of search params as an array (to ease iteration)
@@ -116,6 +117,30 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
+    /** list of facets containers */
+    _facetsParentNode() {
+      return document.querySelectorAll(
+        `searchalicious-facets[search-name=${this.name}]`
+      );
+    }
+
+    /**
+     * Select a term by taxonomy in all facets
+     * It will update the selected terms in facets
+     * @param taxonomy
+     * @param term
+     */
+    selectTermByTaxonomy(taxonomy: string, term: string) {
+      for (const facets of this._facetsParentNode()) {
+        // if true, the facets has been updated
+        if (
+          (facets as SearchaliciousFacets).selectTermByTaxonomy(taxonomy, term)
+        ) {
+          return;
+        }
+      }
+    }
+
     /**
      * @returns the sort element linked to this search ctl
      */
@@ -171,8 +196,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     override _facetsNodes = (): SearchaliciousFacets[] => {
       const allNodes: SearchaliciousFacets[] = [];
       // search facets elements, we can't filter on search-name because of default value…
-      const facetsElements = document.querySelectorAll('searchalicious-facets');
-      facetsElements.forEach((item) => {
+      this._facetsParentNode()?.forEach((item) => {
         const facetElement = item as SearchaliciousFacets;
         if (facetElement.searchName == this.name) {
           allNodes.push(facetElement);

@@ -57,6 +57,10 @@ This enables supporting multiple searches in the same page
 * searchalicious-button-transparent is a transparent button with defined style
   * it can be used to replace the default button
 * searchalicious-chart renders vega chart, currently only for distribution. Requires [vega](https://vega.github.io/).
+* searchalicious-icon-cross is a cross icon
+    * it can be used to delete actions
+* searchalicious-suggestion-entry is a suggestion entry
+    * it can be used to display a suggestion in searchalicious-bar
 
 
 ## Explanation on code structure
