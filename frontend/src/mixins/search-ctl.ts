@@ -15,7 +15,7 @@ import {Constructor} from './utils';
 import {SearchaliciousSort} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {setCurrentURLHistory} from '../utils/url';
-import {FACETS_DIVIDER} from '../utils/constants';
+import {DEFAULT_SEARCH_NAME, FACETS_DIVIDER} from '../utils/constants';
 import {
   HistorySearchParams,
   SearchaliciousHistoryInterface,
@@ -67,7 +67,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * The name of this search
      */
     @property()
-    override name = 'searchalicious';
+    override name = DEFAULT_SEARCH_NAME;
 
     /**
      * The base api url
@@ -119,9 +119,16 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
 
     /** list of facets containers */
     _facetsParentNode() {
-      return document.querySelectorAll(
-        `searchalicious-facets[search-name=${this.name}]`
-      );
+      if (this.name === DEFAULT_SEARCH_NAME) {
+        // manually filtering, as it may be implicit
+        return Array.from(
+          document.querySelectorAll('searchalicious-facets')
+        ).filter((facets) => facets.searchName === this.name);
+      } else {
+        return document.querySelectorAll(
+          `searchalicious-facets[search-name=${this.name}]`
+        );
+      }
     }
 
     /**

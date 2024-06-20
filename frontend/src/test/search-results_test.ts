@@ -1,4 +1,5 @@
 import {SearchaliciousResults} from '../search-results';
+import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 import {SearchaliciousEvents} from '../utils/enums';
 import {SearchResultDetail} from '../events';
 
@@ -16,7 +17,7 @@ suite('searchalicious-results', () => {
     results: Array<Record<string, unknown>>
   ) => {
     const detail: SearchResultDetail = {
-      searchName: 'searchalicious',
+      searchName: DEFAULT_SEARCH_NAME,
       results: results,
       count: 3,
       pageCount: 1,

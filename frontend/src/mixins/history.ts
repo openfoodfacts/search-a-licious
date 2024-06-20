@@ -5,6 +5,7 @@ import {
   removeParenthesis,
 } from '../utils/url';
 import {isNullOrUndefined} from '../utils';
+import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 import {BuildParamsOutput} from './search-ctl';
 import {property} from 'lit/decorators.js';
 import {QueryOperator} from '../utils/enums';
@@ -117,7 +118,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
     @property({attribute: false})
     query = '';
     @property()
-    name = 'searchalicious';
+    name = DEFAULT_SEARCH_NAME;
 
     // stub methods defined in search-ctl
     _sortElement = (): SearchaliciousSort | null => {

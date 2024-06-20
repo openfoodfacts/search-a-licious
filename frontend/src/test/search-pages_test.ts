@@ -1,4 +1,5 @@
 import {SearchaliciousPages} from '../search-pages';
+import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 import {SearchaliciousEvents} from '../utils/enums';
 import {SearchResultDetail, SearchResultEvent} from '../events';
 
@@ -13,7 +14,7 @@ suite('searchalicious-pages', () => {
     pageCount: number
   ) => {
     const detail: SearchResultDetail = {
-      searchName: 'searchalicious',
+      searchName: DEFAULT_SEARCH_NAME,
       results: [], // we don't really care
       count: Math.ceil(pageCount / 10),
       pageCount: pageCount,
