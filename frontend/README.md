@@ -89,6 +89,12 @@ To add a new translation you need to :
 
 To add a language, you have to add the language code to `targetLocales` in `lit-localize.json`
 
+
+### Personalizing translations as a search-a-licious user
+
+We only translated basic messages and most labels can generally be overridden using slots inside web component, where your own translation framework might be use (be it in javascript, or through your template engine or any technique).
+
+If you however needs to override current translations, you might clone this project, change translations in xliff files and regenerate the bundle.
 ### Translations in Crowdin
 We can use Crowdin to manage translations.
 All files in the xliff/ folder can be uploaded to Crowdin, as it supports the [xlf format](https://store.crowdin.com/xliff).
