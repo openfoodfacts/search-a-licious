@@ -21,7 +21,6 @@ export const {getLocale, setLocale} = configureLocalization({
     // Defer first render until our initial locale is ready, to avoid a flash of
     // the wrong locale.
     // It sets the locale to the browser locale
-
     await setLocale(getBrowserLocale());
   } catch (e) {
     // Either the URL locale code was invalid, or there was a problem loading

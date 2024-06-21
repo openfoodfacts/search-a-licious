@@ -2,6 +2,7 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
+import {setLocale} from './localization';
 
 /**
  * The search bar element
@@ -38,6 +39,14 @@ export class SearchaliciousBar extends SearchaliciousSearchMixin(LitElement) {
   }
   set placeholder(value: string) {
     this._placeholder = value;
+  }
+
+  constructor() {
+    super();
+
+    // allow to set the locale from the browser
+    // @ts-ignore
+    window.setLocale = setLocale;
   }
   override render() {
     return html`
