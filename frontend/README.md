@@ -5,10 +5,11 @@ These are built using [lit](https://lit.dev) and [typescript](https://www.typesc
 
 ## Widgets
 
-The project is currently composed of several widgets
+The project is currently composed of several widgets.
+
+### Main widgets
 
 * searchalicious-bar is at the core, it represent the search bar, but also handle the search logic (see searchalicious-ctl.ts)
-* searchalicious-button is a simple button to launch the search
 * searchalicious-results is the component that displays the search results
   * you must provide an element with attribute `slot="result"` that contains a template to display a single search result.
     It's a good idea to use a `template` as enclosing element with `style="display: none"`,
@@ -23,6 +24,25 @@ The project is currently composed of several widgets
 * searchalicious-facets is a container for facets (helpers to filter search results)
   * it must contains some actual facets
   * it will influence the search adding filters
+* searchalicious-sort is a button to choose a sort order
+  * you must add searchalicious-sort-field elements inside to add sort options
+    * with a field= to indicate the field
+    * the label is the text inside the element
+  * you can add element to slot `label` to change the label
+
+**IMPORTANT:**
+You can give a specific `name` attribute to your search bar.
+Then all other component that needs to connect with this search must use the same value in `search-name` attribute.
+This enables supporting multiple searches in the same page
+
+
+### Secondary widgets
+
+* searchalicious-button is a simple button to launch the search
+* searchalicious-count is a simple counter of the  number of search results
+
+
+### Internal widgets
 * searchalicious-facet-terms renders the facet for terms (list of entries, with number of docs).
   * it must be in a `searchalicious-facets`
   * the user can select facets to filter the search
@@ -36,9 +56,12 @@ The project is currently composed of several widgets
   * it can be used to replace the default button
 * searchalicious-button-transparent is a transparent button with defined style
   * it can be used to replace the default button
+* searchalicious-chart renders vega chart, currently only for distribution. Requires [vega](https://vega.github.io/).
+* searchalicious-icon-cross is a cross icon
+    * it can be used to delete actions
+* searchalicious-suggestion-entry is a suggestion entry
+    * it can be used to display a suggestion in searchalicious-bar
 
-You can give a specific `name` attribute to your search bar.
-Then all other component that needs to connect with this search must use the same value in `search-name` attribute
 
 ## Explanation on code structure
 

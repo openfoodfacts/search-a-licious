@@ -5,9 +5,10 @@ import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchResultEvent} from './events';
 import {DebounceMixin} from './mixins/debounce';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
-import {getTaxonomyName} from './utils/taxonomies';
+import {getTaxonomyName, removeLangFromTermId} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
+import {QueryOperator} from './utils/enums';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -66,6 +67,36 @@ export class SearchaliciousFacets extends SearchActionMixin(
     ) as SearchaliciousFacet[];
   }
 
+  setSelectedTermsByFacet(selectedTermsByFacet: Record<string, string[]>) {
+    this._facetNodes().forEach((node) => {
+      node.setSelectedTerms(selectedTermsByFacet[node.name]);
+    });
+  }
+
+  /**
+   * Get a facet node by its taxonomy
+   * It will return undefined if the taxonomy is not found
+   * @param taxonomy
+   */
+  getFacetNodeByTaxonomy(taxonomy: string): SearchaliciousFacet | undefined {
+    return this._facetNodes().find((node) => node.taxonomy === taxonomy);
+  }
+
+  /**
+   * Select a term by its taxonomy and term name
+   * It will return false if the taxonomy is not found
+   * @param taxonomy
+   * @param term
+   */
+  selectTermByTaxonomy(taxonomy: string, term: string): boolean {
+    const node = this.getFacetNodeByTaxonomy(taxonomy);
+    if (!node) {
+      return false;
+    }
+    node.setTermSelected(true, term);
+    return true;
+  }
+
   /**
    * Names of facets we need to query,
    * this is the names of contained facetNodes.
@@ -80,6 +111,12 @@ export class SearchaliciousFacets extends SearchActionMixin(
     return this._facetNodes()
       .map((node) => node.searchFilter())
       .filter(stringGuard);
+  }
+
+  setSelectedTerms(terms: string[]) {
+    this._facetNodes().forEach((node) => {
+      node.setSelectedTerms(terms);
+    });
   }
 
   /**
@@ -135,6 +172,19 @@ export class SearchaliciousFacet extends LitElement {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   infos?: FacetInfo;
 
+  /**
+   * Get the name of the taxonomy from the facet name
+   */
+  get taxonomy(): string {
+    return getTaxonomyName(this.name);
+  }
+
+  setTermSelected(checked: boolean, name: string) {
+    throw new Error(
+      `setTermSelected not implemented: implement in sub class with checked ${checked} and name ${name}`
+    );
+  }
+
   renderFacet() {
     throw new Error('renderFacet not implemented: implement in sub class');
   }
@@ -148,6 +198,13 @@ export class SearchaliciousFacet extends LitElement {
       `reset not implemented: implement in sub class with submit ${submit}`
     );
   };
+  setSelectedTerms(terms: string[]) {
+    throw new Error(
+      `setSelectedTerms not implemented: implement in sub class ${terms.join(
+        ', '
+      )}`
+    );
+  }
 
   override render() {
     if (this.infos) {
@@ -211,10 +268,10 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   /**
    * Set wether a term is selected or not
    */
-  setTermSelected({detail}: {detail: {checked: boolean; name: string}}) {
+  override setTermSelected(checked: boolean, name: string) {
     this.selectedTerms = {
       ...this.selectedTerms,
-      ...{[detail.name]: detail.checked},
+      ...{[name]: checked},
     };
   }
 
@@ -225,6 +282,18 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     this.selectedTerms[value] = true;
     // Launch search so that filters will be automatically refreshed
     this._launchSearchWithDebounce();
+  }
+
+  /**
+   * Set the selected terms from an array of terms
+   * This is used to restore the state of the facet
+   * @param terms
+   */
+  override setSelectedTerms(terms?: string[]) {
+    this.selectedTerms = {};
+    for (const term of terms ?? []) {
+      this.selectedTerms[term] = true;
+    }
   }
 
   /**
@@ -241,7 +310,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     if (values.length === 0) {
       return undefined;
     }
-    let orValues = values.join(' OR ');
+    let orValues = values.join(QueryOperator.OR);
     if (values.length > 1) {
       orValues = `(${orValues})`;
     }
@@ -258,10 +327,10 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     const value = event.detail.value;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     this.debounce(() => {
-      // update options in  termsByTaxonomyId SearchaliciousTermsMixin
+      // update options in terms SearchaliciousTermsMixin
       // which will update the property of the autocomplete component during render
       this.getTaxonomiesTerms(value, [taxonomy]);
-    });
+    }, 500);
   }
 
   /**
@@ -277,9 +346,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       this.onInputAddTerm(e, taxonomy);
     };
 
-    const options = (this.termsByTaxonomyId[taxonomy] || []).map((term) => {
+    const options = (this.terms || []).map((term) => {
       return {
-        value: term.id.replace(/^en:/, ''),
+        value: removeLangFromTermId(term.id),
         label: term.text,
       };
     });
@@ -292,12 +361,21 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
         <searchalicious-autocomplete
           .inputName=${inputName}
           .options=${options}
-          .isLoading=${this.loadingByTaxonomyId[taxonomy]}
+          .isLoading=${this.isTermsLoading}
           @searchalicious-autocomplete-submit=${this.addTerm}
           @searchalicious-autocomplete-input=${onInput}
         ></searchalicious-autocomplete>
       </div>
     `;
+  }
+
+  /**
+   * Handle the checkbox change event
+   * It will select or unselect term
+   * @param detail
+   */
+  onCheckboxChange({detail}: {detail: {checked: boolean; name: string}}) {
+    this.setTermSelected(detail.checked, detail.name);
   }
 
   /**
@@ -309,7 +387,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
         <searchalicious-checkbox
           .name=${term.key}
           .checked=${this.selectedTerms[term.key]}
-          @change=${this.setTermSelected}
+          @change=${this.onCheckboxChange}
         ></searchalicious-checkbox>
         <label for="${term.key}"
           >${term.name}
