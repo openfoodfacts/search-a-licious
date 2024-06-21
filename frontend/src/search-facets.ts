@@ -385,23 +385,13 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
           .name=${term.key}
           .checked=${this.selectedTerms[term.key]}
           @change=${this.onCheckboxChange}
-        ></searchalicious-checkbox>
-        <label for="${term.key}"
-          >${term.name}
-          ${
-            term.count
-              ? html`<span part="docCount">(${term.count})</span>`
-              : nothing
-          }</label
         >
           <!--     "display: contents;" is used to avoid the wrapping of the span in a div cf https://lit.dev/docs/frameworks/react/#using-slots -->
           <div slot="label" style="display: contents;">
             ${term.name}
-            ${
-              term.count
-                ? html`<span part="docCount">(${term.count})</span>`
-                : nothing
-            }
+            ${term.count
+              ? html`<span part="docCount">(${term.count})</span>`
+              : nothing}
           </div>
         </searchalicious-checkbox>
       </div>
