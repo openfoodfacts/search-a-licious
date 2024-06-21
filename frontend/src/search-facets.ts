@@ -5,7 +5,7 @@ import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchResultEvent} from './events';
 import {DebounceMixin} from './mixins/debounce';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
-import {getTaxonomyName} from './utils/taxonomies';
+import {getTaxonomyName, removeLangFromTermId} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
 import {QueryOperator} from './utils/enums';
@@ -71,6 +71,30 @@ export class SearchaliciousFacets extends SearchActionMixin(
     this._facetNodes().forEach((node) => {
       node.setSelectedTerms(selectedTermsByFacet[node.name]);
     });
+  }
+
+  /**
+   * Get a facet node by its taxonomy
+   * It will return undefined if the taxonomy is not found
+   * @param taxonomy
+   */
+  getFacetNodeByTaxonomy(taxonomy: string): SearchaliciousFacet | undefined {
+    return this._facetNodes().find((node) => node.taxonomy === taxonomy);
+  }
+
+  /**
+   * Select a term by its taxonomy and term name
+   * It will return false if the taxonomy is not found
+   * @param taxonomy
+   * @param term
+   */
+  selectTermByTaxonomy(taxonomy: string, term: string): boolean {
+    const node = this.getFacetNodeByTaxonomy(taxonomy);
+    if (!node) {
+      return false;
+    }
+    node.setTermSelected(true, term);
+    return true;
   }
 
   /**
@@ -147,6 +171,19 @@ export class SearchaliciousFacet extends LitElement {
   @property({attribute: false})
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   infos?: FacetInfo;
+
+  /**
+   * Get the name of the taxonomy from the facet name
+   */
+  get taxonomy(): string {
+    return getTaxonomyName(this.name);
+  }
+
+  setTermSelected(checked: boolean, name: string) {
+    throw new Error(
+      `setTermSelected not implemented: implement in sub class with checked ${checked} and name ${name}`
+    );
+  }
 
   renderFacet() {
     throw new Error('renderFacet not implemented: implement in sub class');
@@ -228,10 +265,10 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   /**
    * Set wether a term is selected or not
    */
-  setTermSelected({detail}: {detail: {checked: boolean; name: string}}) {
+  override setTermSelected(checked: boolean, name: string) {
     this.selectedTerms = {
       ...this.selectedTerms,
-      ...{[detail.name]: detail.checked},
+      ...{[name]: checked},
     };
   }
 
@@ -308,7 +345,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
 
     const options = (this.terms || []).map((term) => {
       return {
-        value: term.id.replace(/^en:/, ''),
+        value: removeLangFromTermId(term.id),
         label: term.text,
       };
     });
@@ -330,6 +367,15 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   }
 
   /**
+   * Handle the checkbox change event
+   * It will select or unselect term
+   * @param detail
+   */
+  onCheckboxChange({detail}: {detail: {checked: boolean; name: string}}) {
+    this.setTermSelected(detail.checked, detail.name);
+  }
+
+  /**
    * Renders a single term
    */
   renderTerm(term: FacetTerm) {
@@ -338,14 +384,24 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
         <searchalicious-checkbox
           .name=${term.key}
           .checked=${this.selectedTerms[term.key]}
-          @change=${this.setTermSelected}
+          @change=${this.onCheckboxChange}
+        ></searchalicious-checkbox>
+        <label for="${term.key}"
+          >${term.name}
+          ${
+            term.count
+              ? html`<span part="docCount">(${term.count})</span>`
+              : nothing
+          }</label
         >
           <!--     "display: contents;" is used to avoid the wrapping of the span in a div cf https://lit.dev/docs/frameworks/react/#using-slots -->
           <div slot="label" style="display: contents;">
             ${term.name}
-            ${term.count
-              ? html`<span part="docCount">(${term.count})</span>`
-              : nothing}
+            ${
+              term.count
+                ? html`<span part="docCount">(${term.count})</span>`
+                : nothing
+            }
           </div>
         </searchalicious-checkbox>
       </div>
