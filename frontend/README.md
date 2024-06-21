@@ -55,7 +55,7 @@ This enables supporting multiple searches in the same page
 * searchalicious-radio is a simple radio button
   * it can be used to replace the default radio button
   * it allows to keep the state of the radio button when you change the property
-  * You can unselect the radio button by clicking on it
+  * You can unchecked the radio button by clicking on it
 * searchalicious-secondary-button is a button with defined style
   * it can be used to replace the default button
 * searchalicious-button-transparent is a transparent button with defined style
