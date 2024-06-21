@@ -1,5 +1,7 @@
 export {LayoutPage} from './layout-page';
 export {SearchaliciousCheckbox} from './search-checkbox';
+export {SearchaliciousRadio} from './search-radio';
+export {SearchaliciousToggle} from './search-toggle';
 export {SearchaliciousBar} from './search-bar';
 export {SearchaliciousButton} from './search-button';
 export {SearchaliciousPages} from './search-pages';

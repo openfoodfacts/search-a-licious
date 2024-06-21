@@ -19,6 +19,7 @@ export enum SearchaliciousEvents {
  */
 export enum BasicEvents {
   CLICK = 'click',
+  CHANGE = 'change',
 }
 
 /**
