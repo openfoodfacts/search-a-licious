@@ -19,7 +19,6 @@ export class SearchaliciousRadio extends CheckedInputMixin(LitElement) {
     .radio-wrapper {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
     }
 
     input[type='radio'] {
