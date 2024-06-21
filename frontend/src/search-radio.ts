@@ -25,13 +25,13 @@ export class SearchaliciousRadio extends CheckedInputMixin(LitElement) {
     input[type='radio'] {
       cursor: pointer;
       position: relative;
+      flex-shrink: 0;
       width: 20px;
       height: 20px;
       margin-right: 0;
       appearance: none;
       border: 1px solid var(--searchalicious-radio-color, black);
       background-color: transparent;
-
       border-radius: 50%;
     }
 

@@ -28,6 +28,7 @@ export class SearchaliciousCheckbox extends CheckedInputMixin(LitElement) {
     input[type='checkbox'] {
       cursor: pointer;
       position: relative;
+      flex-shrink: 0;
       width: 20px;
       height: 20px;
       margin-right: 0;
