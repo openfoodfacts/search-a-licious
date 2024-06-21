@@ -11,11 +11,11 @@ indices:
         # see https://www.elastic.co/guide/en/elasticsearch/painless/8.14/index.html
         lang: painless
         source: |-
-          int nova_index = (doc['nova_group'].size() != 0) ? doc['nova_group'].value.intValue() : 4;
+          String nova_index = (doc['nova_group'].size() != 0) ? doc['nova_group'].value.toString() : "unknown";
           String nutri_index = (doc['nutriscore_grade'].size() != 0) ? doc['nutriscore_grade'].value : 'e';
           String eco_index = (doc['ecoscore_grade'].size() != 0) ? doc['ecoscore_grade'].value : 'e';
           return (
-            params['nova_to_score'][nova_index] * params['nova_group']
+            params['nova_to_score'].getOrDefault(nova_index, 0) * params['nova_group']
             + params['grades_to_score'].getOrDefault(nutri_index, 0) * params['nutri_score']
             + params['grades_to_score'].getOrDefault(eco_index, 0) * params['eco_score']
           );
@@ -24,8 +24,8 @@ indices:
           nutri_score: 1
           nova_group: 1
         static_params:
-          nova_to_score: [100, 100, 100, 75, 4]
-          grades_to_score: {"a": 100, "b": 75, "c": 50, "d": 25,"e": 0}
+          nova_to_score: {"1": 100, "2": 100, "3": 75, "4": 0, "unknown": 0}
+          grades_to_score: {"a": 100, "b": 75, "c": 50, "d": 25, "e": 0, "unknown": 0, "not-applicable": 0}
     fields:
       code:
         required: true
