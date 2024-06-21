@@ -293,65 +293,6 @@
                           <searchalicious-count search-name="off"></searchalicious-count>
                         </div>
                         <div>
-                          <button
-                            href="#"
-                            data-dropdown="drop_sort"
-                            aria-controls="drop_sort"
-                            aria-expanded="false"
-                            class="button round dropdown small secondary unmarged"
-                          >
-                            <span class="material-icons">swap_vert</span>
-                            Relevance
-                          </button>
-                          <ul
-                            id="drop_sort"
-                            data-dropdown-content=""
-                            class="f-dropdown"
-                            aria-hidden="true"
-                            style="
-                              position: absolute;
-                              left: -99999px;
-                              top: 38px;
-                            "
-                          >
-                            <li>
-                              <a href="/?q=test&amp;page_size=24">Relevance</a>
-                            </li>
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=-unique_scans_n&amp;page_size=24"
-                                >Most scanned products</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=nutriscore_score&amp;page_size=24"
-                                >Products with the best Nutri-Score</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=-ecoscore_score&amp;page_size=24"
-                                >Products with the best Eco-Score</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=created_t&amp;page_size=24"
-                                >Recently added products</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=last_modified_t&amp;page_size=24"
-                                >Recently modified products</a
-                              >
-                            </li>
-                          </ul>
                           <searchalicious-sort search-name="off" auto-refresh>
                             <span slot="label">Sort by ▿</span>
                             <searchalicious-sort-field field="-unique_scans_n">Most scanned products</searchalicious-sort-field>
@@ -457,13 +398,11 @@
                   </div>
                   <div slot="col-3">
                     <!-- Graphs inside -->
+                    <searchalicious-chart search-name="off" label="Nutri-score distribution" key="nutriscore_grade", categories='["a", "b", "c", "d", "e", "unknown", "not-applicable"]'></searchalicious-chart>
+                    <searchalicious-chart search-name="off" label="Nova score distribution" key="nova_group", categories='["1", "2", "3", "4", "undefined", "not-applicable"]'></searchalicious-chart>
+                    <searchalicious-chart search-name="off" label="Eco score distribution" key="ecoscore_grade", categories='["a", "b", "c", "d", "e", "unknown", "not-applicable"]'></searchalicious-chart>
                   </div>
                 </layout-page>
-                  <div class="large-2 columns">
-                    <searchalicious-chart search-name="off" label="Nutri-score distribution" key="nutriscore_grade", categories='["a", "b", "c", "d", "e", "unknown", "not-applicable"]''></searchalicious-chart>
-                    <searchalicious-chart search-name="off" label="Nova score distribution" key="nova_group", categories='["1", "2", "3", "4", "undefined", "not-applicable"]'></searchalicious-chart>
-                    <searchalicious-chart search-name="off" label="Eco score distribution" key="ecoscore_grade", categories='["a", "b", "c", "d", "e", "unknown", "not-applicable"]''></searchalicious-chart>
-                  </div>
                 </div>
               </div>
             </div>
