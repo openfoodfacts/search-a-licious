@@ -56,6 +56,9 @@ This enables supporting multiple searches in the same page
   * it can be used to replace the default radio button
   * it allows to keep the state of the radio button when you change the property
   * You can unchecked the radio button by clicking on it
+* searchalicious-toggle is a simple toggle button
+  * it can be used to replace the checkbox
+  * it allows to keep the state of the toggle button when you change the property
 * searchalicious-secondary-button is a button with defined style
   * it can be used to replace the default button
 * searchalicious-button-transparent is a transparent button with defined style

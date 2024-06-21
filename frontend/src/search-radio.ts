@@ -13,15 +13,13 @@ import {CheckedInputMixin} from './mixins/checked-input';
 export class SearchaliciousRadio extends CheckedInputMixin(LitElement) {
   /**
    * The styles for the radio.
-   * "appearance: none" is used to remove the default radio style.
-   * margin-right: 0 is used to remove the default margin between the radio and the label.
-   * We use an svg icon for the checked state, it is located in the public/icons folder.
    * @type {import('lit').CSSResult}
    */
   static override styles = css`
     .radio-wrapper {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     input[type='radio'] {
@@ -99,10 +97,6 @@ export class SearchaliciousRadio extends CheckedInputMixin(LitElement) {
   }
 }
 declare global {
-  /**
-   * The HTMLElementTagNameMap interface represents a map of custom element tag names to custom element constructors.
-   * Here, it's extended to include 'searchalicious-radio' as a valid custom element tag name.
-   */
   interface HTMLElementTagNameMap {
     'searchalicious-radio': SearchaliciousRadio;
   }

@@ -22,6 +22,7 @@ export class SearchaliciousCheckbox extends CheckedInputMixin(LitElement) {
     .checkbox-wrapper {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     input[type='checkbox'] {
@@ -80,10 +81,6 @@ export class SearchaliciousCheckbox extends CheckedInputMixin(LitElement) {
 }
 
 declare global {
-  /**
-   * The HTMLElementTagNameMap interface represents a map of custom element tag names to custom element constructors.
-   * Here, it's extended to include 'searchalicious-checkbox' as a valid custom element tag name.
-   */
   interface HTMLElementTagNameMap {
     'searchalicious-checkbox': SearchaliciousCheckbox;
   }
