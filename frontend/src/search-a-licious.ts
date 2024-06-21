@@ -14,3 +14,4 @@ export {SearchaliciousButtonTransparent} from './button-transparent';
 export {SearchaliciousIconCross} from './icons/cross';
 export {SearchaliciousChart} from './search-chart';
 export {SearchaliciousSuggestionEntry} from './search-suggestion-entry';
+export {setLocale, getLocale} from './localization';

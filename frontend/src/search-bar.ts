@@ -1,6 +1,8 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
+import {localized, msg} from '@lit/localize';
+import {setLocale} from './localization';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
 import {classMap} from 'lit/directives/class-map.js';
@@ -13,6 +15,7 @@ import {removeLangFromTermId} from './utils/taxonomies';
  * and it also manage all the search thanks to SearchaliciousSearchMixin inheritance.
  */
 @customElement('searchalicious-bar')
+@localized()
 export class SearchaliciousBar extends SuggestionSelectionMixin(
   SearchaliciousTermsMixin(SearchaliciousSearchMixin(LitElement))
 ) {
@@ -55,6 +58,13 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   `;
 
   /**
+   * Placeholder attribute is stored in a private variable to be able to use the msg() function
+   * it stores the placeholder attribute value if it is set
+   * @private
+   */
+  private _placeholder?: string;
+
+  /**
    * Taxonomies we want to use for suggestions
    */
   @property({type: String, attribute: 'suggestions'})
@@ -64,8 +74,23 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
    * Place holder in search bar
    */
   @property()
-  placeholder = 'Search...';
+  // it is mandatory to have a getter and setter for the property because of msg() function. doc : https://lit.dev/docs/localization/best-practices/#ensure-re-evaluation-on-render
+  get placeholder() {
+    return (
+      this._placeholder ?? msg('Search...', {desc: 'Search bar placeholder'})
+    );
+  }
+  set placeholder(value: string) {
+    this._placeholder = value;
+  }
 
+  constructor() {
+    super();
+
+    // allow to set the locale from the browser
+    // @ts-ignore
+    window.setLocale = setLocale;
+  }
   /**
    * It parses the string suggestions attribute and returns an array
    */

@@ -9,6 +9,8 @@ import {getTaxonomyName, removeLangFromTermId} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
 import {QueryOperator} from './utils/enums';
+import {getPluralTranslation} from './localization/translations';
+import {msg, localized} from '@lit/localize';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -42,6 +44,7 @@ function stringGuard(s: string | undefined): s is string {
  *
  * It must contains a SearchaliciousFacet component for each facet we want to display.
  */
+@localized()
 @customElement('searchalicious-facets')
 export class SearchaliciousFacets extends SearchActionMixin(
   SearchaliciousResultCtlMixin(LitElement)
@@ -148,7 +151,7 @@ export class SearchaliciousFacets extends SearchActionMixin(
       <slot></slot>
       <div class="reset-button-wrapper">
         <searchalicious-secondary-button @click=${this.reset}
-          >Reset filters</searchalicious-secondary-button
+          >${msg('Reset filters')}</searchalicious-secondary-button
         >
       </div>
     </div> `;
@@ -219,6 +222,7 @@ export class SearchaliciousFacet extends LitElement {
  * This is a "terms" facet, this must be within a searchalicious-facets element
  */
 @customElement('searchalicious-facet-terms')
+@localized()
 export class SearchaliciousTermsFacet extends SearchActionMixin(
   SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
 ) {
@@ -353,7 +357,12 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     return html`
       <div class="add-term" part="add-term">
         <label for="${inputName}"
-          >Other ${otherItem?.count ? `(${otherItem.count})` : nothing}</label
+          >${getPluralTranslation(
+            otherItem?.count,
+            msg('Other'),
+            msg('Others')
+          )}
+          ${otherItem?.count ? `(${otherItem.count})` : nothing}</label
         >
         <searchalicious-autocomplete
           .inputName=${inputName}
@@ -423,7 +432,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       <fieldset name=${this.name}>
         <!-- FIXME: translate -->
         <div class="legend-wrapper">
-          <legend>${this.name}</legend>
+          <!-- Allow to customize the legend -->
+          <legend><slot name="legend">${this.name}</slot></legend>
           <span class="buttons">
             <searchalicious-button-transparent
                 title="Reset ${this.name}"

@@ -105,6 +105,29 @@ Note that we use:
   * which run tests using [playwright](https://playwright.dev/)
   * and [Chai](https://www.chaijs.com/) for assertions
 
+## Translations
+In the frontend, we utilize [lit-localize](https://lit.dev/docs/localization/overview/), a library that leverages lit-element for managing translations from hardcoded text.
+The language is set to the browser's language if it is supported by the project, otherwise it is set to default language (English).
+The translations are stored in `xliff` files in the `frontend/xliff` directory.
+
+To add a new translation you need to :
+- add `msg` in your code like this https://lit.dev/docs/localization/overview/#message-types
+- run `npm run extract:translations` to extract the new translations
+- add your translation with 'target' tag in the `xliff/<your_language>.xlf` files
+- run `npm run build:translations` to update the translations in the `src/generated/locales/<your_language>.js` file
+
+To add a language, you have to add the language code to `targetLocales` in `lit-localize.json`
+
+
+### Personalizing translations as a search-a-licious user
+
+We only translated basic messages and most labels can generally be overridden using slots inside web component, where your own translation framework might be use (be it in javascript, or through your template engine or any technique).
+
+If you however needs to override current translations, you might clone this project, change translations in xliff files and regenerate the bundle.
+### Translations in Crowdin
+We can use Crowdin to manage translations.
+All files in the xliff/ folder can be uploaded to Crowdin, as it supports the [xlf format](https://store.crowdin.com/xliff).
+
 ## Credits
 
 This part of the project was bootstrap using [lit-element-starter-ts](https://github.com/lit/lit-element-starter-ts/).
