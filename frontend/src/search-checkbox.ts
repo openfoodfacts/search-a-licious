@@ -75,7 +75,9 @@ export class SearchaliciousCheckbox extends CheckedInputMixin(LitElement) {
           ?checked=${this.checked}
           @change=${this._handleChange}
         />
-        <label for="${this.name}"><slot name="label">${this.name}</slot></label>
+        <label for="${this.name}"
+          ><slot name="label">${this.label}</slot></label
+        >
       </div>
     `;
   }

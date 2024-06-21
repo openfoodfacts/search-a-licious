@@ -6,6 +6,7 @@ import {BasicEvents} from '../utils/enums';
 export interface CheckedInputMixinInterface {
   checked: boolean;
   name: string;
+  label: string;
   getInputElement(): HTMLInputElement | null;
   _dispatchChangeEvent(checked: boolean, name: string): void;
   refreshInput(): void;
@@ -29,6 +30,13 @@ export const CheckedInputMixin = <T extends Constructor<LitElement>>(
      */
     @property({type: String})
     name = '';
+
+    /**
+     * Represents the label of the input.
+     * @type {string}
+     */
+    @property({type: String})
+    label = '';
 
     getInputElement() {
       return this.shadowRoot?.querySelector('input');

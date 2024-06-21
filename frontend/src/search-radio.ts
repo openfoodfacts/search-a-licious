@@ -60,8 +60,17 @@ export class SearchaliciousRadio extends CheckedInputMixin(LitElement) {
     }
   `;
 
+  /**
+   * Allows or disallows the radio to be unchecked.
+   */
   @property({type: Boolean, attribute: 'can-be-unchecked'})
   canBeUnchecked = false;
+
+  /**
+   * Represents the id of the input.
+   */
+  @property({type: String})
+  inputId = '';
 
   /**
    * Allows for the radio to be unchecked.
@@ -83,14 +92,14 @@ export class SearchaliciousRadio extends CheckedInputMixin(LitElement) {
         <input
           part="radio"
           .name=${this.name}
-          .id="${this.name}"
+          .id="${this.inputId}"
           type="radio"
           ?checked=${this.checked}
           @change=${this._handleChange}
           @click="${this._handleClick}"
         />
-        <label for="${this.name}">
-          <slot name="label">${this.name}</slot>
+        <label for="${this.inputId}">
+          <slot name="label">${this.label}</slot>
         </label>
       </div>
     `;

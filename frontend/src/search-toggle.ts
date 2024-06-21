@@ -96,7 +96,9 @@ export class SearchaliciousToggle extends CheckedInputMixin(LitElement) {
   override render() {
     return html`
       <div class="toggle-wrapper">
-        <label for="${this.name}"><slot name="label">${this.name}</slot></label>
+        <label for="${this.name}"
+          ><slot name="label">${this.label}</slot></label
+        >
         <div class="toggle">
           <input
             part="toggle-input"
