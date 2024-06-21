@@ -1,4 +1,5 @@
 export {SearchaliciousCheckbox} from './search-checkbox';
+export {SearchaliciousRadio} from './search-radio';
 export {SearchaliciousBar} from './search-bar';
 export {SearchaliciousButton} from './search-button';
 export {SearchaliciousPages} from './search-pages';

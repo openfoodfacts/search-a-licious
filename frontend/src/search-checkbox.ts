@@ -1,6 +1,6 @@
-import {LitElement, html, PropertyValues, css} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
-import {BasicEvents} from './utils/enums';
+import {LitElement, html, css} from 'lit';
+import {customElement} from 'lit/decorators.js';
+import {CheckedInputMixin} from './mixins/checked-input';
 
 /**
  * A custom element that represents a checkbox.
@@ -10,7 +10,7 @@ import {BasicEvents} from './utils/enums';
  * @extends {LitElement}
  */
 @customElement('searchalicious-checkbox')
-export class SearchaliciousCheckbox extends LitElement {
+export class SearchaliciousCheckbox extends CheckedInputMixin(LitElement) {
   /**
    * The styles for the checkbox.
    * "appearance: none" is used to remove the default checkbox style.
@@ -57,38 +57,6 @@ export class SearchaliciousCheckbox extends LitElement {
       padding-left: 8px;
     }
   `;
-  /**
-   * Represents the checked state of the checkbox.
-   * @type {boolean}
-   */
-  @property({type: Boolean})
-  checked = false;
-
-  /**
-   * Represents the name of the checkbox.
-   * @type {string}
-   */
-  @property({type: String})
-  name = '';
-
-  /**
-   * Refreshes the checkbox to reflect the current state of the `checked` property.
-   */
-  refreshCheckbox() {
-    const inputElement = this.shadowRoot?.querySelector('input');
-    if (inputElement) {
-      inputElement.checked = this.checked;
-    }
-  }
-
-  /**
-   * Called when the element’s DOM has been updated and rendered.
-   * @param {PropertyValues} _changedProperties - The changed properties.
-   */
-  protected override updated(_changedProperties: PropertyValues) {
-    this.refreshCheckbox();
-    super.updated(_changedProperties);
-  }
 
   /**
    * Renders the checkbox.
@@ -108,20 +76,6 @@ export class SearchaliciousCheckbox extends LitElement {
         <label for="${this.name}"><slot name="label">${this.name}</slot></label>
       </div>
     `;
-  }
-
-  /**
-   * Handles the change event on the checkbox.
-   * @param {Event} e - The change event.
-   */
-  _handleChange(e: {target: HTMLInputElement}) {
-    this.checked = e.target.checked;
-    const inputEvent = new CustomEvent(BasicEvents.CHANGE, {
-      detail: {checked: this.checked, name: this.name},
-      bubbles: true,
-      composed: true,
-    });
-    this.dispatchEvent(inputEvent);
   }
 }
 

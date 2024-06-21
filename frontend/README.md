@@ -52,6 +52,10 @@ This enables supporting multiple searches in the same page
 * searchalicious-checkbox is a simple checkbox
   * it can be used to replace the default checkbox
   * it allows to keep the state of the checkbox when you change the property
+* searchalicious-radio is a simple radio button
+  * it can be used to replace the default radio button
+  * it allows to keep the state of the radio button when you change the property
+  * You can unselect the radio button by clicking on it
 * searchalicious-secondary-button is a button with defined style
   * it can be used to replace the default button
 * searchalicious-button-transparent is a transparent button with defined style
