@@ -12,6 +12,7 @@ import {
   SearchResultDetail,
 } from '../events';
 import {Constructor} from './utils';
+import {SearchaliciousSort} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {setCurrentURLHistory} from '../utils/url';
 import {FACETS_DIVIDER} from '../utils/constants';
@@ -42,6 +43,7 @@ export interface SearchaliciousSearchInterface
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
   _facetsFilters(): string;
+  selectTermByTaxonomy(taxonomy: string, term: string): void;
 }
 
 // name of search params as an array (to ease iteration)
@@ -115,6 +117,51 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
+    /** list of facets containers */
+    _facetsParentNode() {
+      return document.querySelectorAll(
+        `searchalicious-facets[search-name=${this.name}]`
+      );
+    }
+
+    /**
+     * Select a term by taxonomy in all facets
+     * It will update the selected terms in facets
+     * @param taxonomy
+     * @param term
+     */
+    selectTermByTaxonomy(taxonomy: string, term: string) {
+      for (const facets of this._facetsParentNode()) {
+        // if true, the facets has been updated
+        if (
+          (facets as SearchaliciousFacets).selectTermByTaxonomy(taxonomy, term)
+        ) {
+          return;
+        }
+      }
+    }
+
+    /**
+     * @returns the sort element linked to this search ctl
+     */
+    override _sortElement = (): SearchaliciousSort | null => {
+      let sortElement: SearchaliciousSort | null = null;
+      document.querySelectorAll(`searchalicious-sort`).forEach((item) => {
+        const sortElementItem = item as SearchaliciousSort;
+        if (sortElementItem.searchName == this.name) {
+          if (sortElement !== null) {
+            console.warn(
+              `searchalicious-sort element with search-name ${this.name} already exists, ignoring`
+            );
+          } else {
+            sortElement = sortElementItem;
+          }
+        }
+      });
+
+      return sortElement;
+    };
+
     /**
      * Wether search should be launched at page load
      */
@@ -149,8 +196,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     override _facetsNodes = (): SearchaliciousFacets[] => {
       const allNodes: SearchaliciousFacets[] = [];
       // search facets elements, we can't filter on search-name because of default value…
-      const facetsElements = document.querySelectorAll('searchalicious-facets');
-      facetsElements.forEach((item) => {
+      this._facetsParentNode()?.forEach((item) => {
         const facetElement = item as SearchaliciousFacets;
         if (facetElement.searchName == this.name) {
           allNodes.push(facetElement);
@@ -298,9 +344,16 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         page_size: this.pageSize.toString(),
         index: this.index,
       };
+      // sorting parameters
+      const sortElement = this._sortElement();
+      if (sortElement) {
+        Object.assign(params, sortElement.getSortParameters());
+      }
+      // page
       if (page) {
         params.page = page.toString();
       }
+      // facets
       if (this._facets().length > 0) {
         params.facets = this._facets().join(FACETS_DIVIDER);
       }
