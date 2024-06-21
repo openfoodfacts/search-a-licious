@@ -142,6 +142,14 @@
       searchalicious-sort::part(options) {
         border: solid #cfac9e 1px;
       }
+      toggle-graphs::part(button) {
+        display: flex;
+        align-items: center;
+        border-color: #cfac9e;
+        border-radius: 1000px;
+        padding: .4em 1em;
+        border-style: solid;
+      }
     </style>
     <script lang="javascript">
       /**
@@ -302,11 +310,13 @@
                             <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
                           </searchalicious-sort>  
                         </div>
+                        <div>
+                          <toggle-graphs></toggle-graphs>
+                        </div>
                       </div>
                     </div></a>
                   </div>
                 </div>
-                <toggle-graphs></toggle-graphs>
                 <layout-page>
                   <div slot="col-1">
                     <!-- A form to input user preferences, to showcase personal sort -->

@@ -37,7 +37,7 @@ export class LayoutPage extends LitElement {
      * Display graphs or not
      */
     @state()
-    displayGraphs = true;
+    displayGraphs = false;
 
     override connectedCallback() {
         super.connectedCallback();

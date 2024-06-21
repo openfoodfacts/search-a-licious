@@ -4,13 +4,13 @@ import { customElement } from 'lit/decorators.js';
 @customElement('toggle-graphs')
 export class ToggleGraphs extends LitElement {
     static override styles = css`
-        button {
+        /* button {
             padding: 10px;
-            background-color: #007bff;
-            color: white;
+            background-color: #EFEFEF;
+            color: black;
             border: none;
             cursor: pointer;
-        }
+        } */
     `;
 
     private toggleGraphs() {
@@ -22,7 +22,7 @@ export class ToggleGraphs extends LitElement {
 
     override render() {
         return html`
-            <button @click="${this.toggleGraphs}">Toggle Graphs</button>
+            <button part='button' @click="${this.toggleGraphs}">Toggle Graphs</button>
         `;
     }
 }
