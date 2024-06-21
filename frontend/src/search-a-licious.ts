@@ -7,6 +7,7 @@ export {SearchaliciousPages} from './search-pages';
 export {SearchaliciousFacets} from './search-facets';
 export {SearchaliciousResults} from './search-results';
 export {SearchCount} from './search-count';
+export {SearchaliciousSortScript} from './search-sort-script';
 export {SearchaliciousSort, SearchaliciousSortField} from './search-sort';
 export {SearchaliciousAutocomplete} from './search-autocomplete';
 export {SearchaliciousSecondaryButton} from './secondary-button';

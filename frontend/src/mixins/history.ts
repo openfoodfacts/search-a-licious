@@ -5,7 +5,7 @@ import {
   removeParenthesis,
 } from '../utils/url';
 import {isNullOrUndefined} from '../utils';
-import {BuildParamsOutput} from './search-ctl';
+import {SearchParameters} from './search-ctl';
 import {property} from 'lit/decorators.js';
 import {QueryOperator} from '../utils/enums';
 import {SearchaliciousSort} from '../search-sort';
@@ -21,7 +21,7 @@ export type SearchaliciousHistoryInterface = {
   _sortElement: () => SearchaliciousSort | null;
   convertHistoryParamsToValues: (params: URLSearchParams) => HistoryOutput;
   setValuesFromHistory: (values: HistoryOutput) => void;
-  buildHistoryParams: (params: BuildParamsOutput) => HistoryParams;
+  buildHistoryParams: (params: SearchParameters) => HistoryParams;
   setParamFromUrl: () => {launchSearch: boolean; values: HistoryOutput};
 };
 
@@ -169,7 +169,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
      * It will be used to update the URL when searching
      * @param params
      */
-    buildHistoryParams = (params: BuildParamsOutput) => {
+    buildHistoryParams = (params: SearchParameters) => {
       const urlParams: Record<string, string | undefined | null> = {
         [HistorySearchParams.QUERY]: this.query,
         [HistorySearchParams.SORT_BY]: this._sortElement()?.getSortOptionId(),

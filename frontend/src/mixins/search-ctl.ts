@@ -12,24 +12,25 @@ import {
   SearchResultDetail,
 } from '../events';
 import {Constructor} from './utils';
-import {SearchaliciousSort} from '../search-sort';
+import {SearchaliciousSort, SortParameters} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {setCurrentURLHistory} from '../utils/url';
-import {FACETS_DIVIDER} from '../utils/constants';
+import {isNullOrUndefined} from '../utils';
+import {API_LIST_DIVIDER, PROPERTY_LIST_DIVIDER} from '../utils/constants';
 import {
   HistorySearchParams,
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
 
-export type BuildParamsOutput = {
+export interface SearchParameters extends SortParameters {
   q: string;
-  langs: string;
+  langs: string[];
   page_size: string;
   page?: string;
-  index?: string;
-  facets?: string;
-};
+  index_id?: string;
+  facets?: string[];
+}
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface,
     SearchaliciousHistoryInterface {
@@ -45,6 +46,18 @@ export interface SearchaliciousSearchInterface
   _facetsFilters(): string;
   selectTermByTaxonomy(taxonomy: string, term: string): void;
 }
+
+// We should not use GET if other params than those are present in the search request
+const supportedGETParams = new Set([
+  'q',
+  'langs',
+  'page_size',
+  'page',
+  'fields',
+  'sort_by',
+  'facets',
+  'index_id',
+]);
 
 // name of search params as an array (to ease iteration)
 
@@ -225,6 +238,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         .flat();
       return allFilters.join(QueryOperator.AND);
     };
+
     /*
      * Compute search URL, associated parameters and history entry
      * based upon the requested page, and the state of other search components
@@ -234,23 +248,37 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
       const params = this.buildParams(page);
-      const queryStr = Object.entries(params)
-        .filter(
-          ([_, value]) => value != null // null or undefined
-        )
-        .map(
-          ([key, value]) =>
-            `${encodeURIComponent(key)}=${encodeURIComponent(value!)}`
-        )
-        .sort() // for perdictability in tests !
-        .join('&');
+      // we needs a POST if a parameter is not supported by GET
+      const needsPOST =
+        Object.keys(params).filter((key) => !supportedGETParams.has(key))
+          .length > 0;
+      const history = this.buildHistoryParams(params);
+      // remove empty values from params
+      // (do this after buildHistoryParams to be sure to have all parameters)
+      Object.entries(params).forEach(([key, value]) => {
+        if (isNullOrUndefined(value)) {
+          delete params[key as keyof SearchParameters];
+        }
+      });
       return {
-        searchUrl: `${baseUrl}/search?${queryStr}`,
-        q: queryStr,
+        searchUrl: `${baseUrl}/search`,
+        method: needsPOST ? 'POST' : 'GET',
         params,
         // this will help update browser history
-        history: this.buildHistoryParams(params),
+        history,
       };
+    }
+
+    _paramsToQueryStr(params: SearchParameters): string {
+      return Object.entries(params)
+        .map(([key, value]) => {
+          if (value.constructor === Array) {
+            value = value.join(API_LIST_DIVIDER);
+          }
+          return `${encodeURIComponent(key)}=${encodeURIComponent(value!)}`;
+        })
+        .sort() // for perdictability in tests !
+        .join('&');
     }
 
     // connect to our specific events
@@ -322,7 +350,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Build the params to send to the search API
      * @param page
      */
-    buildParams = (page?: number): BuildParamsOutput => {
+    buildParams = (page?: number): SearchParameters => {
       const queryParts = [];
       if (this.query) {
         queryParts.push(this.query);
@@ -331,18 +359,13 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (facetsFilters) {
         queryParts.push(facetsFilters);
       }
-      const params: {
-        q: string;
-        langs: string;
-        page_size: string;
-        page?: string;
-        index?: string;
-        facets?: string;
-      } = {
+      const params: SearchParameters = {
         q: queryParts.join(' '),
-        langs: this.langs,
+        langs: this.langs
+          .split(PROPERTY_LIST_DIVIDER)
+          .map((lang) => lang.trim()),
         page_size: this.pageSize.toString(),
-        index: this.index,
+        index_id: this.index,
       };
       // sorting parameters
       const sortElement = this._sortElement();
@@ -355,7 +378,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       }
       // facets
       if (this._facets().length > 0) {
-        params.facets = this._facets().join(FACETS_DIVIDER);
+        params.facets = this._facets();
       }
       return params;
     };
@@ -363,10 +386,23 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * Launching search
      */
-    async search(page?: number) {
-      const {searchUrl, history} = this._searchUrl(page);
+    async search(page = 1) {
+      const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
-      const response = await fetch(searchUrl);
+      let response;
+      if (method === 'GET') {
+        response = await fetch(
+          `${searchUrl}?${this._paramsToQueryStr(params)}`
+        );
+      } else {
+        response = await fetch(searchUrl, {
+          method: 'POST',
+          body: JSON.stringify(params),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
       // FIXME data should be typed…
       const data = await response.json();
       this._results = data.hits;

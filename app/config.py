@@ -295,7 +295,6 @@ class ScriptConfig(BaseModel):
     ]
     params: (
         Annotated[
-            # FIXME: not sure of the type here
             dict[str, Any],
             Field(
                 description="Params for the scripts. We need this to retrieve and validate parameters"
@@ -303,7 +302,15 @@ class ScriptConfig(BaseModel):
         ]
         | None
     )
-    # TODO: do we want to add a list of mandatory parameters ?
+    static_params: (
+        Annotated[
+            dict[str, Any],
+            Field(
+                description="Additional params for the scripts that can't be supplied by the API (constants)"
+            ),
+        ]
+        | None
+    )
     # Or some type checking/transformation ?
 
 

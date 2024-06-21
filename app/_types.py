@@ -289,7 +289,8 @@ If not provided, `['en']` is used."""
                 raise ValueError("`sort_params` must be a dict")
             # verifies keys are those expected
             request_keys = set(self.sort_params.keys())
-            expected_keys = set(self.index_config.scripts[self.sort_by].params.keys())
+            sort_sign, sort_by = self.sign_sort_by
+            expected_keys = set(self.index_config.scripts[sort_by].params.keys())
             if request_keys != expected_keys:
                 missing = expected_keys - request_keys
                 missing_str = ("missing keys: " + ", ".join(missing)) if missing else ""

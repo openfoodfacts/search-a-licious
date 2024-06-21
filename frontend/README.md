@@ -28,6 +28,10 @@ The project is currently composed of several widgets.
   * you must add searchalicious-sort-field elements inside to add sort options
     * with a field= to indicate the field
     * the label is the text inside the element
+  * or a searchalicious-sort-script
+    * with a script= to indicate a script
+    * and a params= which is a either a json encoded object, 
+      or a key in localStorage prefixed with "local:"
   * you can add element to slot `label` to change the label
 
 **IMPORTANT:**
