@@ -41,16 +41,16 @@ export class LayoutPage extends LitElement {
 
     override connectedCallback() {
         super.connectedCallback();
-        this.addEventListener('toggle-graphs', this.toggleGraphs);
+        window.addEventListener('toggle-graphs', (event: Event) => this.toggleGraphs(event));
     }
 
     override disconnectedCallback() {
-        this.removeEventListener('toggle-graphs', this.toggleGraphs);
+        window.removeEventListener('toggle-graphs', (event: Event) => this.toggleGraphs(event));
         super.disconnectedCallback();
     }
 
-    private toggleGraphs() {
-        this.displayGraphs = !this.displayGraphs;
+    private toggleGraphs(_: Event) {
+        this.displayGraphs = !this.displayGraphs; 
     }
     
     override render() {
