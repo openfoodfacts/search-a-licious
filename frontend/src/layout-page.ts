@@ -38,6 +38,20 @@ export class LayoutPage extends LitElement {
      */
     @state()
     displayGraphs = true;
+
+    override connectedCallback() {
+        super.connectedCallback();
+        this.addEventListener('toggle-graphs', this.toggleGraphs);
+    }
+
+    override disconnectedCallback() {
+        this.removeEventListener('toggle-graphs', this.toggleGraphs);
+        super.disconnectedCallback();
+    }
+
+    private toggleGraphs() {
+        this.displayGraphs = !this.displayGraphs;
+    }
     
     override render() {
         return html`
