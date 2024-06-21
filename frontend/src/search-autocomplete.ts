@@ -48,6 +48,7 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
     ul {
       display: none;
       position: absolute;
+      z-index: 1;
       width: 100%;
       max-width: 100%;
       background-color: white;
