@@ -13,6 +13,8 @@ import {CheckedInputMixin} from './mixins/checked-input';
 export class SearchaliciousToggle extends CheckedInputMixin(LitElement) {
   /**
    * The styles for the toggle.
+   * input[type='checkbox'] is hidden and the slider is used to represent the toggle.
+   * We keep input for accessibility.
    * @type {import('lit').CSSResult}
    */
   static override styles = css`
