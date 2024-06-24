@@ -1,6 +1,7 @@
-import {LitElement, html} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import {SearchActionMixin} from './mixins/search-action';
+import {searchBarInputAndButtonStyle} from './css/header';
 
 /**
  * An optional search button element that launch the search.
@@ -9,6 +10,21 @@ import {SearchActionMixin} from './mixins/search-action';
  */
 @customElement('searchalicious-button')
 export class SearchaliciousButton extends SearchActionMixin(LitElement) {
+  static override styles = [
+    searchBarInputAndButtonStyle,
+    css`
+      button {
+        background-color: var(--search-button-background-color, #341100);
+        border-radius: 0px 1000px 1000px 0px;
+        padding: 0.4rem 0.5rem;
+        margin: 0;
+        border: 0;
+        z-index: 2;
+        cursor: pointer;
+      }
+    `,
+  ];
+
   /**
    * the search we should trigger,
    * this corresponds to `name` attribute of corresponding search-bar
@@ -21,6 +37,7 @@ export class SearchaliciousButton extends SearchActionMixin(LitElement) {
         @keyup=${this._onKeyUp}
         part="button"
         role="button"
+        class="search-button"
       >
         <slot> Search </slot>
       </button>

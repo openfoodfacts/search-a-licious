@@ -40,6 +40,7 @@ export interface SearchaliciousSearchInterface
   langs: string;
   index: string;
   pageSize: number;
+  lastQuery?: string;
 
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
@@ -129,6 +130,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     @state()
     _count?: number;
+
+    lastQuery = '';
 
     /** list of facets containers */
     _facetsParentNode() {
@@ -352,6 +355,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     buildParams = (page?: number): SearchParameters => {
       const queryParts = [];
+      this.lastQuery = this.query;
       if (this.query) {
         queryParts.push(this.query);
       }

@@ -13,6 +13,7 @@ export {SearchaliciousAutocomplete} from './search-autocomplete';
 export {SearchaliciousSecondaryButton} from './secondary-button';
 export {SearchaliciousButtonTransparent} from './button-transparent';
 export {SearchaliciousIconCross} from './icons/cross';
+export {SearchaliciousIconSearch} from './icons/search';
 export {SearchaliciousChart} from './search-chart';
 export {SearchaliciousSuggestionEntry} from './search-suggestion-entry';
 export {setLocale, getLocale} from './localization';

@@ -1,4 +1,4 @@
-import {LitElement, html, css} from 'lit';
+import {LitElement, html, css, nothing} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
@@ -7,6 +7,7 @@ import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
 import {classMap} from 'lit/directives/class-map.js';
 import {removeLangFromTermId} from './utils/taxonomies';
+import {searchBarInputAndButtonStyle} from './css/header';
 
 /**
  * The search bar element
@@ -19,43 +20,64 @@ import {removeLangFromTermId} from './utils/taxonomies';
 export class SearchaliciousBar extends SuggestionSelectionMixin(
   SearchaliciousTermsMixin(SearchaliciousSearchMixin(LitElement))
 ) {
-  static override styles = css`
-    :host {
-      display: block;
-      padding: 5px;
-    }
+  static override styles = [
+    searchBarInputAndButtonStyle,
+    css`
+      :host {
+        display: block;
+        padding: 5px;
+      }
 
-    .search-bar {
-      position: relative;
-    }
+      .search-bar {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
 
-    /* Search suggestions list */
-    .search-bar ul {
-      --left-offset: 8px;
-      position: absolute;
-      left: var(--left-offset);
-      background-color: LightYellow;
-      border: 1px solid #ccc;
-      width: 100%;
-      width: calc(100% - var(--left-offset) - 1px);
-      z-index: 1000;
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
+      /* Search suggestions list */
+      .search-bar ul {
+        --left-offset: 8px;
+        position: absolute;
+        left: var(--left-offset);
+        background-color: LightYellow;
+        border: 1px solid #ccc;
+        width: 100%;
+        width: calc(100% - var(--left-offset) - 1px);
+        z-index: 1000;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
 
-    ul li {
-      cursor: pointer;
-    }
+      ul li {
+        cursor: pointer;
+      }
 
-    ul li:hover,
-    ul li.selected {
-      background-color: var(
-        --searchalicious-autocomplete-selected-background-color,
-        #cfac9e
-      );
-    }
-  `;
+      ul li:hover,
+      ul li.selected {
+        background-color: var(
+          --searchalicious-autocomplete-selected-background-color,
+          #cfac9e
+        );
+      }
+
+      .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--searchalicious-button-text-color, white);
+      }
+
+      .button-content span {
+        margin-right: 0.5rem;
+        margin-left: 0.3rem;
+      }
+
+      .input-wrapper {
+        position: relative;
+      }
+    `,
+  ];
 
   /**
    * Placeholder attribute is stored in a private variable to be able to use the msg() function
@@ -163,20 +185,34 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
 
   override render() {
     return html`
+      lastQuery = ${this.lastQuery}
       <div class="search-bar" part="wrapper">
-        <input
-          type="text"
-          name="q"
-          @input=${this.onInput}
-          @keydown=${this.onKeyDown}
-          @focus="${this.onFocus}"
-          @blur="${this.onBlur}"
-          .value=${this.value}
-          placeholder=${this.placeholder}
-          part="input"
-          autocomplete="off"
-        />
-        ${this.renderSuggestions()}
+        <div class="input-wrapper" part="input-wrapper">
+          <input
+            class="search-input"
+            type="text"
+            name="q"
+            @input=${this.onInput}
+            @keydown=${this.onKeyDown}
+            @focus="${this.onFocus}"
+            @blur="${this.onBlur}"
+            .value=${this.value}
+            placeholder=${this.placeholder}
+            part="input"
+            autocomplete="off"
+          />
+          ${this.renderSuggestions()}
+        </div>
+        <div>
+          <searchalicious-button :search-name="${this.name}">
+            <div class="button-content">
+              <searchalicious-icon-search></searchalicious-icon-search>
+              ${this.value && this.value !== this.lastQuery
+                ? html`<span>${msg('Search', {desc: 'Search button'})}</span>`
+                : nothing}
+            </div>
+          </searchalicious-button>
+        </div>
       </div>
     `;
   }
