@@ -8,7 +8,11 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from . import config
 from .utils import str_utils
-from .validations import check_all_charts_are_valid, check_all_facets_fields_are_agg, check_index_id_is_defined
+from .validations import (
+    check_all_charts_are_valid,
+    check_all_facets_fields_are_agg,
+    check_index_id_is_defined,
+)
 
 #: A precise expectation of what mappings looks like in json.
 #: (dict where keys are always of type `str`).
@@ -300,7 +304,8 @@ If not provided, `['en']` is used."""
                 raise ValueError("`sort_params` must be a dict")
             # verifies keys are those expected
             request_keys = set(self.sort_params.keys())
-            expected_keys = set(self.index_config.scripts[self.sort_by].params.keys())
+            sort_sign, sort_by = self.sign_sort_by
+            expected_keys = set(self.index_config.scripts[sort_by].params.keys())
             if request_keys != expected_keys:
                 missing = expected_keys - request_keys
                 missing_str = ("missing keys: " + ", ".join(missing)) if missing else ""

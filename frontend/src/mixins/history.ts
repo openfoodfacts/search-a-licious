@@ -5,9 +5,10 @@ import {
   removeParenthesis,
 } from '../utils/url';
 import {isNullOrUndefined} from '../utils';
-import {BuildParamsOutput} from './search-ctl';
+import {SearchParameters} from './search-ctl';
 import {property} from 'lit/decorators.js';
 import {QueryOperator} from '../utils/enums';
+import {SearchaliciousSort} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {Constructor} from './utils';
 
@@ -17,15 +18,21 @@ export type SearchaliciousHistoryInterface = {
   _currentPage?: number;
   _facetsNodes: () => SearchaliciousFacets[];
   _facetsFilters: () => string;
+  _sortElement: () => SearchaliciousSort | null;
   convertHistoryParamsToValues: (params: URLSearchParams) => HistoryOutput;
   setValuesFromHistory: (values: HistoryOutput) => void;
-  buildHistoryParams: (params: BuildParamsOutput) => HistoryParams;
+  buildHistoryParams: (params: SearchParameters) => HistoryParams;
   setParamFromUrl: () => {launchSearch: boolean; values: HistoryOutput};
 };
 
+/**
+ * A set of values that can be deduced from parameters,
+ * and are easy to use to set search components to corresponding values
+ */
 export type HistoryOutput = {
   query?: string;
   page?: number;
+  sortOptionId?: string;
   selectedTermsByFacet?: Record<string, string[]>;
 };
 /**
@@ -35,6 +42,7 @@ export enum HistorySearchParams {
   QUERY = 'q',
   FACETS_FILTERS = 'facetsFilters',
   PAGE = 'page',
+  SORT_BY = 'sort_by',
 }
 
 // name of search params as an array (to ease iteration)
@@ -69,6 +77,12 @@ const HISTORY_VALUES: Record<
       query: history.q,
     };
   },
+  [HistorySearchParams.SORT_BY]: (history) => {
+    // in sort by we simply put the sort option id, so it's trivial
+    return {
+      sortOptionId: history.sort_by,
+    };
+  },
   [HistorySearchParams.FACETS_FILTERS]: (history) => {
     if (!history.facetsFilters) {
       return {};
@@ -99,22 +113,19 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
   superClass: T
 ) => {
   class SearchaliciousHistoryMixinClass extends superClass {
-    /**
-     * Query that will be sent to searchalicious
-     */
+    // stub methods really defined in search-ctl
     @property({attribute: false})
     query = '';
-
-    /**
-     * The name of this search
-     */
     @property()
     name = 'searchalicious';
 
+    // stub methods defined in search-ctl
+    _sortElement = (): SearchaliciousSort | null => {
+      throw new Error('Method not implemented.');
+    };
     _facetsNodes = (): SearchaliciousFacets[] => {
       throw new Error('Method not implemented.');
     };
-
     _facetsFilters = (): string => {
       throw new Error('Method not implemented.');
     };
@@ -130,6 +141,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
         Object.fromEntries(params),
         this.name
       );
+      // process each entry using it's specific function in HISTORY_VALUES
       for (const key of SEARCH_PARAMS) {
         Object.assign(values, HISTORY_VALUES[key](history));
       }
@@ -143,6 +155,8 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
      */
     setValuesFromHistory = (values: HistoryOutput) => {
       this.query = values.query ?? '';
+      this._sortElement()?.setSortOptionById(values.sortOptionId);
+      // set facets terms using linked facets nodes
       if (values.selectedTermsByFacet) {
         this._facetsNodes().forEach((facets) =>
           facets.setSelectedTermsByFacet(values.selectedTermsByFacet!)
@@ -155,15 +169,20 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
      * It will be used to update the URL when searching
      * @param params
      */
-    buildHistoryParams = (params: BuildParamsOutput) => {
-      return addParamPrefixes(
-        {
-          [HistorySearchParams.QUERY]: this.query,
-          [HistorySearchParams.FACETS_FILTERS]: this._facetsFilters(),
-          [HistorySearchParams.PAGE]: params.page,
-        },
-        this.name
-      ) as HistoryParams;
+    buildHistoryParams = (params: SearchParameters) => {
+      const urlParams: Record<string, string | undefined | null> = {
+        [HistorySearchParams.QUERY]: this.query,
+        [HistorySearchParams.SORT_BY]: this._sortElement()?.getSortOptionId(),
+        [HistorySearchParams.FACETS_FILTERS]: this._facetsFilters(),
+        [HistorySearchParams.PAGE]: params.page,
+      };
+      // remove empty elements
+      Object.keys(urlParams).forEach((key) => {
+        if (isNullOrUndefined(urlParams[key])) {
+          delete urlParams[key];
+        }
+      });
+      return addParamPrefixes(urlParams, this.name) as HistoryParams;
     };
 
     /**

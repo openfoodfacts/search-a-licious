@@ -1,4 +1,5 @@
 import elastic_transport
+import elasticsearch
 import luqum.exceptions
 from elasticsearch_dsl import A, Q, Search
 from elasticsearch_dsl.aggs import Agg
@@ -265,12 +266,14 @@ def parse_sort_by_script(
     if script is None:
         raise ValueError(f"Unknown script '{sort_by}'")
     script_id = get_script_id(index_id, sort_by)
+    # join params and static params
+    script_params = dict((params or {}), **(script.static_params or {}))
     return {
         "_script": {
             "type": "number",
             "script": {
                 "id": script_id,
-                "params": params,
+                "params": script_params,
             },
             "order": "desc" if operator == "-" else "asc",
         }
@@ -291,8 +294,8 @@ def create_aggregation_clauses(
             if field.bucket_agg:
                 # TODO - aggregation might depend on agg type or field type
                 clauses[field.name] = A("terms", field=field.name)
-    clauses['nutriscore_grade'] = A("terms", field='nutriscore_grade')
-    clauses['nova_group'] = A("terms", field='nova_group')
+    clauses["nutriscore_grade"] = A("terms", field="nutriscore_grade")
+    clauses["nova_group"] = A("terms", field="nova_group")
     # TODO: add  A("terms", field=field.name) for field.name in charts
     return clauses
 
@@ -405,6 +408,10 @@ def execute_query(
     debug = SearchResponseDebug(query=query.to_dict())
     try:
         results = query.execute()
+    except elasticsearch.ApiError as e:
+        logger.error("Error while running query: %s %s", str(e), str(e.body))
+        errors.append(SearchResponseError(title="es_api_error", description=str(e)))
+        return ErrorSearchResponse(debug=debug, errors=errors)
     except elastic_transport.ConnectionError as e:
         errors.append(
             SearchResponseError(title="es_connection_error", description=str(e))

@@ -11,6 +11,10 @@
     />
     <script type="module" src="./search-a-licious.bundled.js"></script>
     <style>
+      #content {
+        /* avoid sort by options to be hidden on a blank page */
+        min-height: 20em;
+      }
       /* temporary inline styles to test CSS customization */
       /* search bar styling */
       
@@ -123,7 +127,117 @@
         margin-right: .2rem;
         margin-top: .2rem;
       }
+      searchalicious-sort {
+        --sort-options-color: rgb(52, 17, 0);
+        --sort-options-background-color: #f6f3f0;
+        --sort-options-hover-background-color: #BBBBBB;
+      }
+      searchalicious-sort::part(button) {
+        display: flex;
+        align-items: center;
+        border-color: #cfac9e;
+        border-radius: 1000px;
+        padding: .4em 1em;
+        border-style: solid;
+      }
+      searchalicious-sort::part(options) {
+        border: solid #cfac9e 1px;
+      }
     </style>
+    <script lang="javascript">
+      /**
+       * Helpers to display a form for the user to enter his preferences for the personal search demo.
+       */
+      // we use a closure that will return our important functions
+      const [togglePreferences, storePreferences] = (function () {
+
+        // this is small demo of a preferences box
+        const preferences = {};
+
+        /**
+         * As document loads, load preferences from local storage,
+         * and update preferences form
+         **/
+        document.addEventListener('DOMContentLoaded', function() {
+          try {
+            loadPreferences();
+            updateForm(preferences);
+          } catch (e) {
+            console.log(e);
+          }
+        });
+
+        /**
+         * load preferences from local storage
+         **/
+        function loadPreferences() {
+          Object.assign(preferences, JSON.parse(localStorage.getItem("off_preferences") ?? "{}"));
+        }
+
+        /**
+         * update the form to reflect user preferences
+         **/
+        function updateForm(preferences) {
+          const preferences_form = document.getElementById("preferences_form");
+          const preferences_form_elements = preferences_form.elements;
+          for (let i = 0; i < preferences_form_elements.length; i++) {
+            const element = preferences_form_elements[i];
+            if (element.nodeName === "SELECT") {
+              const targetValue = preferences[element.name] ?? element.value;
+              if (targetValue != null) {
+                const options = Array.from(element.getElementsByTagName("option"));
+                options.forEach(item => {
+                  if (item.value.toString() === targetValue.toString()) {
+                    item.selected = true;
+                  }
+                });
+              }
+            }
+          }
+        }
+
+        /**
+         * show or hide preferences according to showPrefs value
+         **/
+        function togglePreferences(showPrefs) {
+          const preferences_config_toggle = document.getElementById("preferences_config_toggle");
+          const preferences_config = document.getElementById("preferences_config");
+          if (! showPrefs) {
+            preferences_config_toggle.style.display = "block";
+            preferences_config.style.display = "none";
+          } else {
+            preferences_config_toggle.style.display = "none";
+            preferences_config.style.display = "block";
+          }
+          return false;
+        }
+
+        /**
+         * action to store preferences (form submission)
+         **/
+        function storePreferences() {
+          try {
+            const preferences_form = document.getElementById("preferences_form");
+            const preferences_form_elements = preferences_form.elements;
+            const preferences = {};
+            for (let i = 0; i < preferences_form_elements.length; i++) {
+              const preference = preferences_form_elements[i];
+              if (preference.nodeName === "SELECT") {
+                preferences[preference.name] = parseInt(preference.value);
+              }
+            }
+            localStorage.setItem("off_preferences", JSON.stringify(preferences));
+            togglePreferences(false);
+          }
+          catch (error) {
+            console.log("error storing preferences", error);
+          }
+
+          return false; // avoid form submission
+        }
+        return [togglePreferences, storePreferences];
+      })();
+    </script>
   </head>
   <body class="products_page">
     <div id="page">
@@ -153,7 +267,7 @@
                   <li class="search-li">
                     <div class="row collapse postfix-round search-bar">
                       <div class="columns">
-                        <searchalicious-bar name="off" page-size="24"></searchalicious-bar>
+                        <searchalicious-bar name="off" page-size="24" suggestions="brand,category"></searchalicious-bar>
                       </div>
                       <div class="columns">
                         <searchalicious-button search-name="off">
@@ -182,72 +296,50 @@
                           <searchalicious-count search-name="off"></searchalicious-count>
                         </div>
                         <div>
-                          <button
-                            href="#"
-                            data-dropdown="drop_sort"
-                            aria-controls="drop_sort"
-                            aria-expanded="false"
-                            class="button round dropdown small secondary unmarged"
-                          >
-                            <span class="material-icons">swap_vert</span>
-                            Relevance
-                          </button>
-                          <ul
-                            id="drop_sort"
-                            data-dropdown-content=""
-                            class="f-dropdown"
-                            aria-hidden="true"
-                            style="
-                              position: absolute;
-                              left: -99999px;
-                              top: 38px;
-                            "
-                          >
-                            <li>
-                              <a href="/?q=test&amp;page_size=24">Relevance</a>
-                            </li>
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=-unique_scans_n&amp;page_size=24"
-                                >Most scanned products</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=nutriscore_score&amp;page_size=24"
-                                >Products with the best Nutri-Score</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=-ecoscore_score&amp;page_size=24"
-                                >Products with the best Eco-Score</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=created_t&amp;page_size=24"
-                                >Recently added products</a
-                              >
-                            </li>
-
-                            <li>
-                              <a
-                                href="/?q=test&amp;sort_by=last_modified_t&amp;page_size=24"
-                                >Recently modified products</a
-                              >
-                            </li>
-                          </ul>
+                          <searchalicious-sort search-name="off" auto-refresh>
+                            <span slot="label">Sort by ▿</span>
+                            <searchalicious-sort-field field="-unique_scans_n">Most scanned products</searchalicious-sort-field>
+                            <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score</searchalicious-sort-field>
+                            <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score</searchalicious-sort-field>
+                            <searchalicious-sort-field field="-created_t">Recently added products</searchalicious-sort-field>
+                            <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
+                            <searchalicious-sort-script script="-personal_score" parameters="local:off_preferences">Personal preferences</searchalicious-sort-script>
+                          </searchalicious-sort>  
                         </div>
                       </div>
-                    </div>
+                    </div></a>
                   </div>
                 </div>
                 <div class="row" style="padding-top: 1rem">
                   <div class="large-2 columns">
+                    <!-- A form to input user preferences, to showcase personal sort -->
+                    <div id="preferences_config_toggle">
+                      <a onclick="return togglePreferences(true)">Define my preferences</a>
+                    </div>
+                    <div id="preferences_config" style="display:none">
+                      <form id="preferences_form" onSubmit="return storePreferences()">
+                        <div><a onclick="return togglePreferences(false)">Select your Food preferences :</a></div>
+                        <label for="nutri_score">Nutriscore</label>
+                        <select name="nutri_score">
+                          <option value="0">not important</option>
+                          <option value="1">important</option>
+                          <option value="2">very important</option>
+                        </select>
+                        <label for="nova_group">Nova</label>
+                        <select name="nova_group">
+                          <option value="0">not important</option>
+                          <option value="1">important</option>
+                          <option value="2">very important</option>
+                        </select>
+                        <label for="eco_score">Environmental impact</label>
+                        <select name="eco_score">
+                          <option value="0">not important</option>
+                          <option value="1">important</option>
+                          <option value="2">very important</option>
+                        </select>
+                        <button type="submit" >Configure</button>
+                      </form>
+                    </div>
                     <searchalicious-facets search-name="off">
                       <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
                       <searchalicious-facet-terms  name="categories_tags" show-other="true"></searchalicious-facet-terms>

@@ -10,16 +10,19 @@ suite('searchalicious-bar', () => {
   });
 
   test('renders with default values', async () => {
-    const el = await fixture(html`<searchalicious-bar></searchalicious-bar>`);
+    const el = await fixture(html` <searchalicious-bar></searchalicious-bar>`);
     assert.shadowDom.equal(
       el,
       `
-      <input
-        name="q"
-        part="input"
-        placeholder="Search..."
-        type="text"
+      <div class="search-bar" part="wrapper">
+        <input
+          autocomplete="off"
+          name="q"
+          part="input"
+          placeholder="Search..."
+          type="text"
         >
+      </div>
     `
     );
     const input = el.shadowRoot!.querySelector('input');
@@ -31,7 +34,7 @@ suite('searchalicious-bar', () => {
 
   test('renders with custom attributes', async () => {
     const el = await fixture(
-      html`<searchalicious-bar
+      html` <searchalicious-bar
         placeholder="Try it !"
         index="foo"
       ></searchalicious-bar>`
@@ -41,12 +44,15 @@ suite('searchalicious-bar', () => {
     assert.shadowDom.equal(
       el,
       `
-      <input
-        name="q"
-        part="input"
-        placeholder="Try it !"
-        type="text"
+       <div class="search-bar" part="wrapper">
+        <input
+          autocomplete="off"
+          name="q"
+          part="input"
+          placeholder="Try it !"
+          type="text"
         >
+      </div>
     `
     );
     const bar = el as SearchaliciousBar;
@@ -55,7 +61,7 @@ suite('searchalicious-bar', () => {
   });
 
   test('text input in query', async () => {
-    const el = await fixture(html`<searchalicious-bar></searchalicious-bar>`);
+    const el = await fixture(html` <searchalicious-bar></searchalicious-bar>`);
     const input = el.shadowRoot!.querySelector('input');
     input!.value = 'test';
     input!.dispatchEvent(new Event('input'));
@@ -65,15 +71,23 @@ suite('searchalicious-bar', () => {
 
   test('_searchUrl computation', async () => {
     const el = await fixture(
-      html`<searchalicious-bar index="foo"></searchalicious-bar>`
+      html` <searchalicious-bar index="foo"></searchalicious-bar>`
     );
     const input = el.shadowRoot!.querySelector('input');
     input!.value = 'test';
     input!.dispatchEvent(new Event('input'));
     const bar = el as SearchaliciousBar;
+    const searchParams = (bar as any)['_searchUrl']();
+    assert.equal(searchParams.searchUrl, '/search');
+    assert.deepEqual(searchParams.params, {
+      index_id: 'foo',
+      langs: ['en'],
+      page_size: '10',
+      q: 'test',
+    });
     assert.equal(
-      (bar as any)['_searchUrl']().searchUrl,
-      '/search?index=foo&langs=en&page_size=10&q=test'
+      (bar as any)._paramsToQueryStr(searchParams.params),
+      'index_id=foo&langs=en&page_size=10&q=test'
     );
   });
 });
