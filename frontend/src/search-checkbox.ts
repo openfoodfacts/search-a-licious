@@ -22,7 +22,6 @@ export class SearchaliciousCheckbox extends CheckedInputMixin(LitElement) {
     .checkbox-wrapper {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
     }
 
     input[type='checkbox'] {
