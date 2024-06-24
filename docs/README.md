@@ -3,7 +3,7 @@
 Welcome to the documentation of search-a-licious,
 a ready to use search component built on top of [Elasticsearch](https://www.elastic.co/).
 
-We created this project in order to leverage collections of )uniform enough) data
+We created this project in order to leverage collections of (uniform enough) data
 to build tools that can:
 * make this data reachable by a large public
 * help users find the right items according to their criteria
@@ -28,7 +28,7 @@ On a technical level, you can use:
 
 It leverage existing components:
 * [Elasticsearch](https://www.elastic.co/elasticsearch) for the search engine[^OpenSearchWanted]
-* [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_Components) (built thanks to [Lit framework]())
+* [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_Components) (built thanks to [Lit framework](https://lit.dev/))
 * [Vega](https://vega.github.io/) for the charts
 * [Redis] for event stream[^AltRedisWanted]
 
