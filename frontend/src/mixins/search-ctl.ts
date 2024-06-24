@@ -368,7 +368,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         langs: this.langs
           .split(PROPERTY_LIST_DIVIDER)
           .map((lang) => lang.trim()),
-        page_size: this.pageSize.toString(),
+        page_size: this.pageSize?.toString(),
         index_id: this.index,
       };
       // sorting parameters

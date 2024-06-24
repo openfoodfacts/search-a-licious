@@ -206,6 +206,10 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     this.search();
   };
 
+  onClickSearch() {
+    this.search();
+  }
+
   override render() {
     return html`
       <div class="search-bar" part="wrapper">
@@ -218,7 +222,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
             @keydown=${this.onKeyDown}
             @focus="${this.onFocus}"
             @blur="${this.onBlur}"
-            .value=${this.value}
+            .value=${this.query}
             placeholder=${this.placeholder}
             part="input"
             autocomplete="off"
@@ -226,7 +230,10 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
           ${this.renderSuggestions()}
         </div>
         <div>
-          <searchalicious-button :search-name="${this.name}">
+          <searchalicious-button
+            :search-name="${this.name}"
+            @click=${this.onClickSearch}
+          >
             <div class="button-content">
               <searchalicious-icon-search></searchalicious-icon-search>
               ${this.value !== this.lastQuery
@@ -235,7 +242,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
             </div>
           </searchalicious-button>
         </div>
-        ${this.value
+        ${this.query
           ? html`<searchalicious-button-transparent @click=${this.onResetInput}
               >${msg('Reset')}</searchalicious-button-transparent
             >`
