@@ -337,7 +337,6 @@ def build_es_query(
     if q.filter_query:
         es_query = es_query.query("bool", filter=q.filter_query)
 
-    # TODO: bug if one is None
     agg_fields = set(params.facets) if params.facets is not None else set()
     if params.charts is not None:
         agg_fields.update(params.charts)

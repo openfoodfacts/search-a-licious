@@ -33,7 +33,6 @@ def search(
     params: SearchParameters,
 ) -> SearchResponse:
     """Run a search"""
-    print("PARAMS", params)
     result_processor = cast(
         BaseResultProcessor, RESULT_PROCESSORS[params.valid_index_id]
     )
@@ -68,14 +67,11 @@ def search(
         page_size=params.page_size,
         projection=projection,
     )
-    # print(search_result)
     if isinstance(search_result, SuccessSearchResponse):
         search_result.facets = build_facets(
             search_result, query, params.main_lang, index_config, params.facets
         )
-        print(params)
         search_result.charts = build_charts(search_result, params.charts)
-        print(search_result.charts)
         # remove aggregations to avoid sending too much information
-        # search_result.aggregations = None
+        search_result.aggregations = None
     return search_result

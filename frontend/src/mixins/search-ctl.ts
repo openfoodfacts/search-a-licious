@@ -141,10 +141,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
-     *
+     * Return the list of searchalicious-chart nodes
      */
     _chartsNodes(): SearchaliciousChart[] {
-      console.log('charts ?');
       return Array.from(
         document.querySelectorAll(
           `searchalicious-chart[search-name=${this.name}`
