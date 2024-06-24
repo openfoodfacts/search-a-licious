@@ -23,6 +23,7 @@ suite('searchalicious-results', () => {
       currentPage: 1,
       pageSize: 10,
       facets: {},
+      charts: {},
     };
     el._handleResults(
       new CustomEvent(SearchaliciousEvents.NEW_RESULT, {

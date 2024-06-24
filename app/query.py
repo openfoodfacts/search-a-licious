@@ -281,22 +281,19 @@ def parse_sort_by_script(
 
 
 def create_aggregation_clauses(
-    config: IndexConfig, facets: list[str] | None
+    config: IndexConfig, fields: list[str] | None
 ) -> dict[str, Agg]:
     """Create term bucket aggregation clauses
     for all fields corresponding to facets,
     as defined in the config
     """
     clauses = {}
-    if facets is not None:
-        for field_name in facets:
+    if fields is not None:
+        for field_name in fields:
             field = config.fields[field_name]
             if field.bucket_agg:
                 # TODO - aggregation might depend on agg type or field type
                 clauses[field.name] = A("terms", field=field.name)
-    clauses["nutriscore_grade"] = A("terms", field="nutriscore_grade")
-    clauses["nova_group"] = A("terms", field="nova_group")
-    # TODO: add  A("terms", field=field.name) for field.name in charts
     return clauses
 
 
@@ -340,7 +337,11 @@ def build_es_query(
     if q.filter_query:
         es_query = es_query.query("bool", filter=q.filter_query)
 
-    for agg_name, agg in create_aggregation_clauses(config, params.facets).items():
+    # TODO: bug if one is None
+    agg_fields = set(params.facets) if params.facets is not None else set()
+    if params.charts is not None:
+        agg_fields.update(params.charts)
+    for agg_name, agg in create_aggregation_clauses(config, agg_fields).items():
         es_query.aggs.bucket(agg_name, agg)
 
     sort_by: JSONType | str | None = None

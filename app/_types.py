@@ -8,11 +8,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from . import config
 from .utils import str_utils
-from .validations import (
-    check_all_charts_are_valid,
-    check_all_facets_fields_are_agg,
-    check_index_id_is_defined,
-)
+from .validations import check_all_values_are_fields_agg, check_index_id_is_defined
 
 #: A precise expectation of what mappings looks like in json.
 #: (dict where keys are always of type `str`).
@@ -47,7 +43,7 @@ FacetsInfos = dict[str, FacetInfo]
 """Information about facets for a search result"""
 
 ChartsInfos = dict[str, JSONType]
-"""Information about facets for a search result"""
+"""Information about charts for a search result"""
 
 FacetsFilters = dict[str, list[str]]
 """Data about selected filters for each facet: facet name -> list of values"""
@@ -319,7 +315,7 @@ If not provided, `['en']` is used."""
     @model_validator(mode="after")
     def check_facets_are_valid(self):
         """Check that the facets names are valid."""
-        errors = check_all_facets_fields_are_agg(self.index_id, self.facets)
+        errors = check_all_values_are_fields_agg(self.index_id, self.facets)
         if errors:
             raise ValueError(errors)
         return self
@@ -327,7 +323,7 @@ If not provided, `['en']` is used."""
     @model_validator(mode="after")
     def check_charts_are_valid(self):
         """Check that the graph names are valid."""
-        errors = check_all_charts_are_valid(self.charts)
+        errors = check_all_values_are_fields_agg(self.index_id, self.charts)
         if errors:
             raise ValueError(errors)
         return self

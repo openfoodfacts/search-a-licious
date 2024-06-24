@@ -3,8 +3,8 @@ from typing import cast
 
 from . import config
 from ._types import SearchParameters, SearchResponse, SuccessSearchResponse
-from .facets import build_facets
 from .charts import build_charts
+from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
 
@@ -33,7 +33,7 @@ def search(
     params: SearchParameters,
 ) -> SearchResponse:
     """Run a search"""
-    print('PARAMS', params)
+    print("PARAMS", params)
     result_processor = cast(
         BaseResultProcessor, RESULT_PROCESSORS[params.valid_index_id]
     )
@@ -77,5 +77,5 @@ def search(
         search_result.charts = build_charts(search_result, params.charts)
         print(search_result.charts)
         # remove aggregations to avoid sending too much information
-        search_result.aggregations = None
+        # search_result.aggregations = None
     return search_result

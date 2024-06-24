@@ -14,13 +14,8 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
 ) {
   // All these properties will change when vega logic
   // will be moved in API.
-  // TODO: fail if some required properties are unset
-  // (eg. key)
   @property()
-  key?: string;
-
-  @property()
-  label?: string;
+  name = '';
 
   @property({type: Array})
   categories: Array<string> = [];
@@ -37,6 +32,10 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     this.vegaInstalled = this.testVegaInstalled();
   }
 
+  getName() {
+    return this.name;
+  }
+
   override render() {
     if (!this.vegaInstalled) {
       return html`<p>Please install vega to use searchalicious-chart</p>`;
@@ -46,7 +45,7 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
       return html`<slot name="no-data"><p>no data</p></slot>`;
     }
 
-    return html`<div id="${this.key!}"></div>`;
+    return html`<div id="${this.name!}"></div>`;
   }
 
   // Computes the vega representation for given results
@@ -60,12 +59,8 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
       return;
     }
 
-    // Compute the distribution
-    const values = Object.fromEntries(
-      this.categories.map((category) => [category, 0])
-    );
-
-    this.vegaRepresentation = event.detail.charts[this.key!];
+    // @ts-ignore
+    this.vegaRepresentation = event.detail.charts[this.name!];
   }
 
   testVegaInstalled() {
@@ -84,14 +79,14 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     }
   }
 
-  // vega rendering requires an html component with id == this.key
+  // vega rendering requires an html component with id == this.name
   // and consequently must be called AFTER render
   // Method updated is perfect for that
   // See lit.dev components lifecycle: https://lit.dev/docs/components/lifecycle/
   override updated() {
     if (this.vegaRepresentation === undefined) return;
 
-    const container = this.renderRoot.querySelector(`#${this.key}`);
+    const container = this.renderRoot.querySelector(`#${this.name}`);
 
     // How to display a vega chart: https://vega.github.io/vega/usage/#view
     const view = new vega.View(vega.parse(this.vegaRepresentation), {
