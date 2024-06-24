@@ -76,6 +76,18 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
       .input-wrapper {
         position: relative;
       }
+
+      searchalicious-icon-cross {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 0.5rem;
+        cursor: pointer;
+      }
+
+      searchalicious-button-transparent {
+        margin-left: 0.5rem;
+      }
     `,
   ];
 
@@ -113,6 +125,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     // @ts-ignore
     window.setLocale = setLocale;
   }
+
   /**
    * It parses the string suggestions attribute and returns an array
    */
@@ -183,6 +196,12 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     `;
   }
 
+  onResetInput = () => {
+    this.query = '';
+    this.resetInput();
+    this.search();
+  };
+
   override render() {
     return html`
       <div class="search-bar" part="wrapper">
@@ -206,12 +225,17 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
           <searchalicious-button :search-name="${this.name}">
             <div class="button-content">
               <searchalicious-icon-search></searchalicious-icon-search>
-              ${this.value && this.value !== this.lastQuery
+              ${this.value !== this.lastQuery
                 ? html`<span>${msg('Search', {desc: 'Search button'})}</span>`
                 : nothing}
             </div>
           </searchalicious-button>
         </div>
+        ${this.value
+          ? html`<searchalicious-button-transparent @click=${this.onResetInput}
+              >${msg('Reset')}</searchalicious-button-transparent
+            >`
+          : nothing}
       </div>
     `;
   }

@@ -32,6 +32,10 @@
   <target>Rechercher</target>
   <note from="lit-localize">Search button</note>
 </trans-unit>
+<trans-unit id="s255857544a9d5ec0">
+  <source>Reset</source>
+  <target>Réinitialiser</target>
+</trans-unit>
 </body>
 </file>
 </xliff>
