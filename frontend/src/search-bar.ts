@@ -196,6 +196,9 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     `;
   }
 
+  /**
+   * Reset the input value, blur it and search with empty query.
+   */
   onResetInput = () => {
     this.query = '';
     this.resetInput();

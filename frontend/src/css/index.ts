@@ -1,5 +1,8 @@
 import {css} from 'lit';
 
+/**
+ * The styles for icon elements from off styles
+ */
 export const iconStyle = css`
   .icon {
     display: inline-block;

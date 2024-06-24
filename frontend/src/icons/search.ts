@@ -1,6 +1,6 @@
 import {customElement} from 'lit/decorators.js';
 import {html, LitElement} from 'lit';
-import {iconStyle} from '../css/utils';
+import {iconStyle} from '../css';
 
 /**
  * A custom element that represents a search icon.
