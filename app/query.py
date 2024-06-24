@@ -281,7 +281,7 @@ def parse_sort_by_script(
 
 
 def create_aggregation_clauses(
-    config: IndexConfig, fields: list[str] | None
+    config: IndexConfig, fields: set[str] | list[str] | None
 ) -> dict[str, Agg]:
     """Create term bucket aggregation clauses
     for all fields corresponding to facets,

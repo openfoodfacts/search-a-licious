@@ -214,8 +214,8 @@ If not provided, `['en']` is used."""
         list[str] | None,
         Query(
             description="""Name of vega representations to return in the response.
-            If None (default) no charts are returrned."""
-        )
+            If None (default) no charts are returned."""
+        ),
     ] = None
     sort_params: Annotated[
         JSONType | None,

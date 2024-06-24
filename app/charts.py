@@ -1,16 +1,20 @@
-from ._types import SuccessSearchResponse
+from ._types import ChartsInfos, SuccessSearchResponse
 
 
 def build_charts(
     search_result: SuccessSearchResponse,
     charts_names: list[str] | None,
-) -> str:
-    charts = {}
-    if charts_names is None:
+) -> ChartsInfos:
+    charts: ChartsInfos = {}
+    aggregations = search_result.aggregations
+
+    if charts_names is None or aggregations is None:
         return charts
 
     for chart_name in charts_names:
-        buckets = search_result.aggregations[chart_name]["buckets"]
+        agg_data = aggregations.get(chart_name, {})
+
+        buckets = agg_data.get("buckets", []) if agg_data else []
 
         # Filter unknown values
         values = [
