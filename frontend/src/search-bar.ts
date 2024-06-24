@@ -126,7 +126,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
    * @param value
    */
   override handleInput(value: string) {
-    this.query = value;
+    this.value = value;
     this.debounce(() => {
       this.getTaxonomiesTerms(value, this.parsedSuggestions).then(() => {
         this.options = this.terms.map((term) => ({
@@ -185,7 +185,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
 
   override render() {
     return html`
-      lastQuery = ${this.lastQuery}
       <div class="search-bar" part="wrapper">
         <div class="input-wrapper" part="input-wrapper">
           <input
@@ -196,7 +195,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
             @keydown=${this.onKeyDown}
             @focus="${this.onFocus}"
             @blur="${this.onBlur}"
-            .value=${this.value}
+            .value=${this.query}
             placeholder=${this.placeholder}
             part="input"
             autocomplete="off"
