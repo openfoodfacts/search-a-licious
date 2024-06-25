@@ -37,6 +37,12 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
     .column {
       padding: 1rem;
     }
+
+    @media (max-width: 800px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
   `;
 
   /**
