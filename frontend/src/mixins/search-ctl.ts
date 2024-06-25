@@ -22,7 +22,7 @@ import {
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
-import {SearchaliciousChart} from '../search-chart';
+import {SearchaliciousDistributionChart} from '../search-chart';
 
 export interface SearchParameters extends SortParameters {
   q: string;
@@ -143,10 +143,10 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * Return the list of searchalicious-chart nodes
      */
-    _chartsNodes(): SearchaliciousChart[] {
+    _chartsNodes(): SearchaliciousDistributionChart[] {
       return Array.from(
         document.querySelectorAll(
-          `searchalicious-chart[search-name=${this.name}`
+          `searchalicious-distribution-chart[search-name=${this.name}`
         )
       );
     }
