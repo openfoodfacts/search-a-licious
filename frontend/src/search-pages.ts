@@ -5,6 +5,7 @@ import {repeat} from 'lit/directives/repeat.js';
 import {SearchaliciousEvents} from './utils/enums';
 import {SearchResultEvent} from './events';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
+import {classMap} from 'lit/directives/class-map.js';
 
 // small utility to have a range
 // inspired from https://stackoverflow.com/a/44957114/2886726
@@ -22,12 +23,27 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
   static override styles = css`
+    .hide-element {
+      opacity: 0;
+      user-select: none;
+    }
     ul {
       list-style-type: none;
+      padding-left: 0;
+      display: flex;
+      justify-content: center;
     }
     li {
       display: inline-block;
       margin: 0 0.5rem;
+      width: 30px;
+      text-align: center;
+    }
+    li button {
+      width: 100%;
+    }
+    li button:not(:disabled) {
+      cursor: pointer;
     }
     .current button {
       font-weight: bold;
@@ -179,11 +195,14 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
               ><button ?disabled=${this._isFirstPage()}>&lt;</button></slot
             >
           </li>
-          ${this._hasStartEllipsis()
-            ? html` <li part="start-ellipsis">
-                <slot name="start-ellipsis">…</slot>
-              </li>`
-            : ''}
+          <li
+            part="start-ellipsis"
+            class="${classMap({
+              'hide-element': !this._hasStartEllipsis(),
+            })}"
+          >
+            <slot name="start-ellipsis">…</slot>
+          </li>
           ${repeat(
             this._displayPages(),
             (page, _) => html` <li
@@ -193,11 +212,14 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
               <button @click=${() => this._askPageChange(page)}>${page}</button>
             </li>`
           )}
-          ${this._hasEndEllipsis()
-            ? html` <li part="end-ellipsis">
-                <slot name="end-ellipsis">…</slot>
-              </li>`
-            : ''}
+          <li
+            part="end-ellipsis"
+            class="${classMap({
+              'hide-element': !this._hasEndEllipsis(),
+            })}"
+          >
+            <slot name="end-ellipsis">…</slot>
+          </li>
           <li @click=${this._nextPage} part="next">
             <slot name="next"
               ><button ?disabled=${this._isLastPage()}>&gt;</button></slot

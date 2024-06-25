@@ -229,6 +229,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   static override styles = css`
     fieldset {
       margin-top: 1rem;
+      border: none;
     }
     .button {
       margin-left: auto;

@@ -1,11 +1,24 @@
-import {LitElement, html} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement} from 'lit/decorators.js';
+import {SearchaliciousEvents} from './utils/enums';
+import {msg} from '@lit/localize';
 
 @customElement('toggle-graphs')
 export class ToggleGraphs extends LitElement {
-  private toggleGraphs() {
+  static override styles = css`
+    button {
+      display: flex;
+      align-items: center;
+      border-color: #cfac9e;
+      border-radius: 1000px;
+      padding: 0.4em 1em;
+      border-style: solid;
+      cursor: pointer;
+    }
+  `;
+  private toggleGraphSidebar() {
     this.dispatchEvent(
-      new CustomEvent('toggle-graphs', {
+      new CustomEvent(SearchaliciousEvents.OPEN_CLOSE_GRAPH_SIDEBAR, {
         bubbles: true,
         composed: true,
       })
@@ -14,7 +27,9 @@ export class ToggleGraphs extends LitElement {
 
   override render() {
     return html`
-      <button part="button" @click="${this.toggleGraphs}">Show Graphs</button>
+      <button part="button" @click="${this.toggleGraphSidebar}">
+        ${msg('Show charts')}
+      </button>
     `;
   }
 }

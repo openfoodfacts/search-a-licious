@@ -1,4 +1,4 @@
-import {LitElement, html} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
@@ -12,6 +12,15 @@ declare const vega: any;
 export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
+  static override styles = css`
+    .chart-container {
+      margin-bottom: 1rem;
+      background-color: white;
+      padding: 0.5rem;
+      border-radius: 5px;
+    }
+  `;
+
   // All these properties will change when vega logic
   // will be moved in API.
   // TODO: fail if some required properties are unset
@@ -37,7 +46,7 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     this.vegaInstalled = this.testVegaInstalled();
   }
 
-  override render() {
+  renderChart() {
     if (!this.vegaInstalled) {
       return html`<p>Please install vega to use searchalicious-chart</p>`;
     }
@@ -46,7 +55,10 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
       return html`<slot name="no-data"><p>no data</p></slot>`;
     }
 
-    return html`<div id="${this.key!}"></div>`;
+    return html`<div class="chart-container" id="${this.key!}"></div>`;
+  }
+  override render() {
+    return html` <div>${this.renderChart()}</div>`;
   }
 
   // Computes the vega representation for given results

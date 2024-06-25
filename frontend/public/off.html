@@ -69,7 +69,7 @@
         list-style: none;
         display: grid;
         gap: 5px;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         margin: 0;
         padding: 0;
       }
@@ -141,14 +141,6 @@
       }
       searchalicious-sort::part(options) {
         border: solid #cfac9e 1px;
-      }
-      toggle-graphs::part(button) {
-        display: flex;
-        align-items: center;
-        border-color: #cfac9e;
-        border-radius: 1000px;
-        padding: .4em 1em;
-        border-style: solid;
       }
     </style>
     <script lang="javascript">
@@ -327,7 +319,7 @@
                             <searchalicious-sort-field field="-created_t">Recently added products</searchalicious-sort-field>
                             <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
                             <searchalicious-sort-script script="-personal_score" parameters="local:off_preferences">Personal preferences</searchalicious-sort-script>
-                          </searchalicious-sort>  
+                          </searchalicious-sort>
                         </div>
                         <div>
                           <toggle-graphs></toggle-graphs>
@@ -376,7 +368,7 @@
                   <div slot="col-2">
                     <div id="search_results" style="clear: left">
                       <div id="products_tabs_content" class="tabs-content">
-                        <div class="tabs content active" id="products_all">
+                        <div class="tabs content active" id="products_all" style="padding-top: 0">
                           <searchalicious-results class="off-search-results" search-name="off" search-id="code">
                             <!-- template for each result -->
                             <template slot="result" style="display: none">
@@ -582,6 +574,10 @@
       margin-top: 1.6rem !important;
       margin-bottom: 0.2rem !important;
       border-bottom: 1px solid lightgrey;
+    }
+
+    #main_column {
+      padding-bottom: 0;
     }
 
     /* Special background color for all input fieds */
