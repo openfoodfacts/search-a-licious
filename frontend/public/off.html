@@ -165,14 +165,14 @@
          * As document loads, load preferences from local storage,
          * and update preferences form
          **/
-        document.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
           try {
             loadPreferences();
             updateForm(preferences);
           } catch (e) {
             console.log(e);
           }
-        }
+        });
 
         /**
          * load preferences from local storage
@@ -191,12 +191,14 @@
             const element = preferences_form_elements[i];
             if (element.nodeName === "SELECT") {
               const targetValue = preferences[element.name] ?? element.value;
-              const options = Array.from(element.getElementsByTagName("option"));
-              options.forEach(item => {
-                if (item.value === targetValue) {
-                  item.selected = true;
-                }
-              });
+              if (targetValue != null) {
+                const options = Array.from(element.getElementsByTagName("option"));
+                options.forEach(item => {
+                  if (item.value.toString() === targetValue.toString()) {
+                    item.selected = true;
+                  }
+                });
+              }
             }
           }
         }
@@ -228,7 +230,7 @@
             for (let i = 0; i < preferences_form_elements.length; i++) {
               const preference = preferences_form_elements[i];
               if (preference.nodeName === "SELECT") {
-                preferences[preference.name] = preference.value;
+                preferences[preference.name] = parseInt(preference.value);
               }
             }
             localStorage.setItem("off_preferences", JSON.stringify(preferences));
@@ -308,6 +310,7 @@
                             <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score</searchalicious-sort-field>
                             <searchalicious-sort-field field="-created_t">Recently added products</searchalicious-sort-field>
                             <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
+                            <searchalicious-sort-script script="-personal_score" parameters="local:off_preferences">Personal preferences</searchalicious-sort-script>
                           </searchalicious-sort>  
                         </div>
                         <div>
@@ -326,20 +329,20 @@
                     <div id="preferences_config" style="display:none">
                       <form id="preferences_form" onSubmit="return storePreferences()">
                         <div><a onclick="return togglePreferences(false)">Select your Food preferences :</a></div>
-                        <label for="nutriscore">Nutriscore</label>
-                        <select name="nutriscore">
+                        <label for="nutri_score">Nutriscore</label>
+                        <select name="nutri_score">
                           <option value="0">not important</option>
                           <option value="1">important</option>
                           <option value="2">very important</option>
                         </select>
-                        <label for="nova">Nova</label>
-                        <select name="nova">
+                        <label for="nova_group">Nova</label>
+                        <select name="nova_group">
                           <option value="0">not important</option>
                           <option value="1">important</option>
                           <option value="2">very important</option>
                         </select>
-                        <label for="ecoscore">Environmental impact</label>
-                        <select name="ecoscore">
+                        <label for="eco_score">Environmental impact</label>
+                        <select name="eco_score">
                           <option value="0">not important</option>
                           <option value="1">important</option>
                           <option value="2">very important</option>

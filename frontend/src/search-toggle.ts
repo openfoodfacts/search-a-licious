@@ -21,7 +21,6 @@ export class SearchaliciousToggle extends CheckedInputMixin(LitElement) {
     .toggle-wrapper {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
     }
 
     label {

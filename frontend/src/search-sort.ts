@@ -5,6 +5,11 @@ import {SearchActionMixin} from './mixins/search-action';
 import {EventRegistrationMixin} from './event-listener-setup';
 import {SearchaliciousEvents} from './utils/enums';
 
+export interface SortParameters {
+  sort_by?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sort_params?: Record<string, any>;
+}
 /**
  * A component to enable user to choose a search order
  *
@@ -97,7 +102,7 @@ export class SearchaliciousSort extends SearchActionMixin(
   /**
    * Get sort parameters of selected option or return an empty Object
    */
-  getSortParameters() {
+  getSortParameters(): SortParameters {
     const option = this.currentSortOption();
     return option ? option.getSortParameters() : {};
   }
@@ -175,12 +180,14 @@ export class SearchaliciousSortOption extends LitElement {
       display: block;
       margin: 0 0.5rem;
     }
-    .sort-option a {
-      text-decoration: none;
-      color: var(--sort-options-color, #000000);
-    }
     .sort-option:hover {
       background-color: var(--sort-options-hover-background-color, #dddddd);
+    }
+    /* making button appear as normal text */
+    .sort-option button {
+      background-color: transparent;
+      border: none;
+      color: var(--sort-options-color, #000000);
     }
   `;
 
@@ -215,7 +222,7 @@ export class SearchaliciousSortOption extends LitElement {
   /**
    * This is the method that should return the sort paratemetrs
    */
-  getSortParameters() {
+  getSortParameters(): SortParameters {
     throw new Error('Not implemented');
   }
 
@@ -226,14 +233,15 @@ export class SearchaliciousSortOption extends LitElement {
     return html`
       <li
         class="sort-option"
+        id="${this.id}-li"
         part="sort-option${this.selected ? '-selected' : ''}"
       >
-        <a href="#" @click=${this._onClick}>
+        <button @click=${this._onClick}>
           ${this.selected
             ? html`<span part="selected-marker">${this.selectedMarker}</span>`
             : nothing}
           <slot></slot>
-        </a>
+        </button>
       </li>
     `;
   }

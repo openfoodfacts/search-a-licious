@@ -6,6 +6,21 @@ import {
   SuggestionSelectionResult,
 } from './mixins/suggestion-selection';
 import {SearchaliciousEvents} from './utils/enums';
+import {localized, msg} from '@lit/localize';
+/**
+ * Type for autocomplete option.
+ */
+export type AutocompleteOption = {
+  value: string;
+  label: string;
+};
+/**
+ * Type for autocomplete result.
+ */
+export type AutocompleteResult = {
+  value: string;
+  label?: string;
+};
 
 /**
  * Search autocomplete that can be used in facets to add terms that are not yet displayed (because they haven't enough elements).
@@ -16,6 +31,7 @@ import {SearchaliciousEvents} from './utils/enums';
  * @slot - This slot is for the button contents, default to "Search" string.
  */
 @customElement('searchalicious-autocomplete')
+@localized()
 export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
   LitElement
 ) {
@@ -32,6 +48,7 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
     ul {
       display: none;
       position: absolute;
+      z-index: 1;
       width: 100%;
       max-width: 100%;
       background-color: white;
@@ -140,7 +157,7 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
         />
         <ul class=${classMap({visible: this.visible && this.value.length})}>
           ${this.isLoading
-            ? html`<li>Loading...</li>`
+            ? html`<li>${msg('Loading...')}</li>`
             : this._renderSuggestions()}
         </ul>
       </span>
