@@ -159,14 +159,20 @@
       const [togglePreferences, storePreferences] = (function () {
 
         // this is small demo of a preferences box
+        const DEFAULT_PREFERENCES = {
+          nutri_score: 1,
+          nova_group: 1,
+          eco_score: 1,
+        }
         const preferences = {};
 
         /**
          * As document loads, load preferences from local storage,
          * and update preferences form
-         **/
+         */
         document.addEventListener('DOMContentLoaded', function() {
           try {
+            ensurePreferences();
             loadPreferences();
             updateForm(preferences);
           } catch (e) {
@@ -175,8 +181,18 @@
         });
 
         /**
+         * Ensure we always have a preferences object in local storage
+         * to avoid errors if user has never used the demo before and use personal search
+         */
+        function ensurePreferences() {
+          if (!localStorage.getItem("off_preferences")) {
+            localStorage.setItem("off_preferences", JSON.stringify(DEFAULT_PREFERENCES));
+          }
+        }
+
+        /**
          * load preferences from local storage
-         **/
+         */
         function loadPreferences() {
           Object.assign(preferences, JSON.parse(localStorage.getItem("off_preferences") ?? "{}"));
         }
