@@ -35,7 +35,6 @@ def check_all_values_are_fields_agg(
     index_id, index_config = global_config.get_index_config(index_id)
     if index_config is None:
         raise ValueError(f"Cannot get index config for index_id {index_id}")
-    print(index_config)
     for field_name in values:
         if field_name not in index_config.fields:
             errors.append(f"Unknown field name in facets: {field_name}")

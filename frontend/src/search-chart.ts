@@ -17,9 +17,6 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   @property()
   name = '';
 
-  @property({type: Array})
-  categories: Array<string> = [];
-
   @property({attribute: false})
   // eslint-disable-next-line
   vegaRepresentation: any = undefined;
