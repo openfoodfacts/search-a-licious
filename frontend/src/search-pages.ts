@@ -1,11 +1,10 @@
-import {LitElement, html, css} from 'lit';
+import {LitElement, html, css, nothing} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
 import {SearchaliciousEvents} from './utils/enums';
 import {SearchResultEvent} from './events';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-import {classMap} from 'lit/directives/class-map.js';
 
 // small utility to have a range
 // inspired from https://stackoverflow.com/a/44957114/2886726
@@ -23,10 +22,6 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
   static override styles = css`
-    .hide-element {
-      opacity: 0;
-      user-select: none;
-    }
     ul {
       list-style-type: none;
       padding-left: 0;
@@ -195,14 +190,11 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
               ><button ?disabled=${this._isFirstPage()}>&lt;</button></slot
             >
           </li>
-          <li
-            part="start-ellipsis"
-            class="${classMap({
-              'hide-element': !this._hasStartEllipsis(),
-            })}"
-          >
-            <slot name="start-ellipsis">…</slot>
-          </li>
+          ${this._hasStartEllipsis()
+            ? html`<li part="start-ellipsis">
+                <slot name="start-ellipsis">…</slot>
+              </li>`
+            : html`<li></li>`}
           ${repeat(
             this._displayPages(),
             (page, _) => html` <li
@@ -212,14 +204,12 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
               <button @click=${() => this._askPageChange(page)}>${page}</button>
             </li>`
           )}
-          <li
-            part="end-ellipsis"
-            class="${classMap({
-              'hide-element': !this._hasEndEllipsis(),
-            })}"
-          >
-            <slot name="end-ellipsis">…</slot>
-          </li>
+          ${this._hasEndEllipsis()
+            ? html`<li part="end-ellipsis">
+                <slot name="end-ellipsis">…</slot>
+              </li>`
+            : html`<li></li>`}
+
           <li @click=${this._nextPage} part="next">
             <slot name="next"
               ><button ?disabled=${this._isLastPage()}>&gt;</button></slot
@@ -231,7 +221,7 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
                   ><button ?disabled=${this._isLastPage()}>&gt;|</button></slot
                 >
               </li>`
-            : ''}
+            : nothing}
         </ul>
       </nav>
     `;
