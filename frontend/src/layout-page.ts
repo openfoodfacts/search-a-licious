@@ -17,19 +17,19 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
       box-sizing: border-box;
       max-width: 100%;
     }
-    .row.display-graphs {
+    .row.display-charts {
       grid-template-columns: 20% 1fr 20%;
     }
-    .row.display-graphs.is-expanded {
+    .row.display-charts.is-expanded {
       grid-template-columns: 20% 1fr 30%;
     }
 
     .col-1,
     .col-3 {
       height: 100%;
+      //background-color: #f2e9e4;
       background-color: #d1d1d1;
       border: 1px solid #cccccc;
-      //background-color: rgba(0, 0, 0, 20%);
     }
     .col-2 {
       flex-grow: 1;
@@ -40,56 +40,56 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
   `;
 
   /**
-   * Display graphs or not
+   * Display charts or not
    */
   @state()
-  isGraphSidebarOpened = false;
+  isChartSidebarOpened = false;
 
   /**
-   * Expand the graph sidebar
+   * Expand the chart sidebar
    */
   @state()
-  isGraphSidebarExpanded = false;
+  isChartSidebarExpanded = false;
 
-  private _toggleIsGraphSidebarOpened() {
-    this.isGraphSidebarOpened = !this.isGraphSidebarOpened;
-    if (!this.isGraphSidebarOpened) {
-      this.isGraphSidebarExpanded = false;
+  private _toggleIsChartSidebarOpened() {
+    this.isChartSidebarOpened = !this.isChartSidebarOpened;
+    if (!this.isChartSidebarOpened) {
+      this.isChartSidebarExpanded = false;
     }
   }
 
-  private _toggleIsGraphSidebarExpanded() {
-    this.isGraphSidebarExpanded = !this.isGraphSidebarExpanded;
+  private _toggleIsChartSidebarExpanded() {
+    this.isChartSidebarExpanded = !this.isChartSidebarExpanded;
   }
 
   override connectedCallback() {
     super.connectedCallback();
 
-    window.addEventListener(SearchaliciousEvents.OPEN_CLOSE_GRAPH_SIDEBAR, () =>
-      this._toggleIsGraphSidebarOpened()
+    window.addEventListener(SearchaliciousEvents.OPEN_CLOSE_CHART_SIDEBAR, () =>
+      this._toggleIsChartSidebarOpened()
     );
     window.addEventListener(
-      SearchaliciousEvents.REDUCE_EXPAND_GRAPH_SIDEBAR,
-      () => this._toggleIsGraphSidebarExpanded()
+      SearchaliciousEvents.REDUCE_EXPAND_CHART_SIDEBAR,
+      () => this._toggleIsChartSidebarExpanded()
     );
   }
 
   override disconnectedCallback() {
     window.removeEventListener(
-      SearchaliciousEvents.OPEN_CLOSE_GRAPH_SIDEBAR,
-      this._toggleIsGraphSidebarOpened
+      SearchaliciousEvents.OPEN_CLOSE_CHART_SIDEBAR,
+      this._toggleIsChartSidebarOpened
     );
     window.removeEventListener(
-      SearchaliciousEvents.OPEN_CLOSE_GRAPH_SIDEBAR,
-      this._toggleIsGraphSidebarExpanded
+      SearchaliciousEvents.OPEN_CLOSE_CHART_SIDEBAR,
+      this._toggleIsChartSidebarExpanded
     );
     super.disconnectedCallback();
   }
 
   override render() {
     const rowClass = {
-      'display-graphs': this.isGraphSidebarOpened,
-      'is-expanded': this.isGraphSidebarExpanded,
+      'display-charts': this.isChartSidebarOpened,
+      'is-expanded': this.isChartSidebarExpanded,
     };
     return html`
       <div class="row ${classMap(rowClass)}">
@@ -100,7 +100,7 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
           <slot name="col-2-header"></slot>
           <slot name="col-2"></slot>
         </div>
-        ${this.isGraphSidebarOpened
+        ${this.isChartSidebarOpened
           ? html`
               <div class="column col-3">
                 <slot name="col-3"></slot>

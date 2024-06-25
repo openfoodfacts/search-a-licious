@@ -1,9 +1,10 @@
-import {LitElement, html, css} from 'lit';
+import {LitElement, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 
 import {SearchResultEvent} from './events';
+import {WHITE_PANEL_STYLE} from './styles';
 
 // eslint-disable-next-line
 declare const vega: any;
@@ -12,14 +13,7 @@ declare const vega: any;
 export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
-  static override styles = css`
-    .chart-container {
-      margin-bottom: 1rem;
-      background-color: white;
-      padding: 0.5rem;
-      border-radius: 5px;
-    }
-  `;
+  static override styles = [WHITE_PANEL_STYLE];
 
   // All these properties will change when vega logic
   // will be moved in API.
@@ -55,10 +49,10 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
       return html`<slot name="no-data"><p>no data</p></slot>`;
     }
 
-    return html`<div class="chart-container" id="${this.key!}"></div>`;
+    return html`<div id="${this.key!}"></div>`;
   }
   override render() {
-    return html` <div>${this.renderChart()}</div>`;
+    return html` <div class="white-panel">${this.renderChart()}</div>`;
   }
 
   // Computes the vega representation for given results

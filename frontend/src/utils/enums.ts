@@ -12,10 +12,10 @@ export enum SearchaliciousEvents {
   SORT_OPTION_SELECTED = 'searchalicious-sort-option-selected',
   // askin for first search launch is a specific event
   LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
-  // event for opening or closing graph sidebar
-  OPEN_CLOSE_GRAPH_SIDEBAR = 'searchalicious-open-close-graph-sidebar',
-  // event for reducing or expanding the graph sidebar
-  REDUCE_EXPAND_GRAPH_SIDEBAR = 'searchalicious-reduce-expand-graph-sidebar',
+  // event for opening or closing chart sidebar
+  OPEN_CLOSE_CHART_SIDEBAR = 'searchalicious-open-close-chart-sidebar',
+  // event for reducing or expanding the chart sidebar
+  REDUCE_EXPAND_CHART_SIDEBAR = 'searchalicious-reduce-expand-chart-sidebar',
 }
 
 /**

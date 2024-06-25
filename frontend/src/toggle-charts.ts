@@ -1,10 +1,11 @@
 import {LitElement, html, css} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import {SearchaliciousEvents} from './utils/enums';
-import {msg} from '@lit/localize';
+import {localized, msg} from '@lit/localize';
 
-@customElement('toggle-graphs')
-export class ToggleGraphs extends LitElement {
+@customElement('toggle-charts')
+@localized()
+export class ToggleCharts extends LitElement {
   static override styles = css`
     button {
       display: flex;
@@ -16,9 +17,9 @@ export class ToggleGraphs extends LitElement {
       cursor: pointer;
     }
   `;
-  private toggleGraphSidebar() {
+  private toggleChartsSidebar() {
     this.dispatchEvent(
-      new CustomEvent(SearchaliciousEvents.OPEN_CLOSE_GRAPH_SIDEBAR, {
+      new CustomEvent(SearchaliciousEvents.OPEN_CLOSE_CHART_SIDEBAR, {
         bubbles: true,
         composed: true,
       })
@@ -27,7 +28,7 @@ export class ToggleGraphs extends LitElement {
 
   override render() {
     return html`
-      <button part="button" @click="${this.toggleGraphSidebar}">
+      <button part="button" @click="${this.toggleChartsSidebar}">
         ${msg('Show charts')}
       </button>
     `;
@@ -36,6 +37,6 @@ export class ToggleGraphs extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'toggle-graphs': ToggleGraphs;
+    'toggle-charts': ToggleCharts;
   }
 }
