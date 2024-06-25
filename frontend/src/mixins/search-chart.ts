@@ -11,6 +11,7 @@ export interface SearchaliciousChartInterface extends LitElement {
   vegaRepresentation: any;
 
   testVegaInstalled(): void;
+  getName(): string;
 }
 
 export const SearchaliciousChartMixin = <T extends Constructor<LitElement>>(
@@ -27,6 +28,10 @@ export const SearchaliciousChartMixin = <T extends Constructor<LitElement>>(
     constructor(...args: any[]) {
       super(args);
       this.vegaInstalled = this.testVegaInstalled();
+    }
+
+    getName() {
+      return '';
     }
 
     override render() {

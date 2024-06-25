@@ -13,7 +13,7 @@ export class SearchaliciousDistributionChart extends SearchaliciousResultCtlMixi
   @property()
   name = '';
 
-  getName() {
+  override getName() {
     return this.name;
   }
 
@@ -26,7 +26,7 @@ export class SearchaliciousDistributionChart extends SearchaliciousResultCtlMixi
     }
 
     // @ts-ignore
-    this.vegaRepresentation = event.detail.charts[this.name!];
+    this.vegaRepresentation = event.detail.charts[this.getName()];
   }
 }
 @customElement('searchalicious-scatter-chart')
@@ -39,6 +39,10 @@ export class SearchaliciousScatterChart extends SearchaliciousResultCtlMixin(
   @property()
   y = '';
 
+  override getName() {
+    return `${this.x}:${this.y}`;
+  }
+
   // Vega function assumes that rendered had been previously
   // called.
   override handleResults(event: SearchResultEvent) {
@@ -46,9 +50,9 @@ export class SearchaliciousScatterChart extends SearchaliciousResultCtlMixin(
       this.vegaRepresentation = undefined;
       return;
     }
-
     // @ts-ignore
-    this.vegaRepresentation = event.detail.charts[this.name!];
+    this.vegaRepresentation = event.detail.charts[this.getName()];
+    console.log(this.vegaRepresentation)
   }
 }
 

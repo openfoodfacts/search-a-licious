@@ -339,7 +339,7 @@ def build_es_query(
 
     agg_fields = set(params.facets) if params.facets is not None else set()
     if params.charts is not None:
-        agg_fields.update(params.charts)
+        agg_fields.update([x for x in params.charts if ':' not in x])
     for agg_name, agg in create_aggregation_clauses(config, agg_fields).items():
         es_query.aggs.bucket(agg_name, agg)
 

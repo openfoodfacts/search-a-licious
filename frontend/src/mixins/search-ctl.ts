@@ -22,7 +22,9 @@ import {
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
-import {SearchaliciousDistributionChart} from '../search-chart';
+import {
+  SearchaliciousChartInterface,
+} from './search-chart'
 
 export interface SearchParameters extends SortParameters {
   q: string;
@@ -141,14 +143,18 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
-     * Return the list of searchalicious-chart nodes
+     * Return the list of searchalicious-distribution-chart nodes
      */
-    _chartsNodes(): SearchaliciousDistributionChart[] {
+    _chartsNodes(): SearchaliciousChartInterface[] {
       return Array.from(
         document.querySelectorAll(
-          `searchalicious-distribution-chart[search-name=${this.name}`
+          `searchalicious-distribution-chart[search-name=${this.name}]`
         )
-      );
+      ).concat(
+        Array.from(document.querySelectorAll(
+          `searchalicious-scatter-chart[search-name=${this.name}]`
+        )
+      ));
     }
 
     /**
@@ -402,9 +408,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (this._facets().length > 0) {
         params.facets = this._facets();
       }
-      if (this._charts().length > 0) {
-        params.charts = this._charts();
-      }
+      params.charts = this._charts();
       return params;
     };
 

@@ -214,6 +214,8 @@ If not provided, `['en']` is used."""
         list[str] | None,
         Query(
             description="""Name of vega representations to return in the response.
+            Agg fields to return distribution chart.
+            xfield:yfield to return a scatter xfield, yfield chart
             If None (default) no charts are returned."""
         ),
     ] = None
@@ -323,7 +325,8 @@ If not provided, `['en']` is used."""
     @model_validator(mode="after")
     def check_charts_are_valid(self):
         """Check that the graph names are valid."""
-        errors = check_all_values_are_fields_agg(self.index_id, self.charts)
+        # Ignore scatter charts
+        errors = check_all_values_are_fields_agg(self.index_id, [x for x in self.charts if ':' not in x])
         if errors:
             raise ValueError(errors)
         return self
