@@ -3,6 +3,7 @@ from typing import cast
 
 from . import config
 from ._types import SearchParameters, SearchResponse, SuccessSearchResponse
+from .charts import build_charts
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
@@ -37,13 +38,14 @@ def search(
     )
     logger.debug(
         "Received search query: q='%s', langs='%s', page=%d, "
-        "page_size=%d, fields='%s', sort_by='%s'",
+        "page_size=%d, fields='%s', sort_by='%s', charts='%s'",
         params.q,
         params.langs_set,
         params.page,
         params.page_size,
         params.fields,
         params.sort_by,
+        params.charts,
     )
     index_config = params.index_config
     query = build_search_query(
@@ -69,6 +71,7 @@ def search(
         search_result.facets = build_facets(
             search_result, query, params.main_lang, index_config, params.facets
         )
+        search_result.charts = build_charts(search_result, params.charts)
         # remove aggregations to avoid sending too much information
         search_result.aggregations = None
     return search_result

@@ -15,6 +15,7 @@ export interface SearchResultDetail extends BaseSearchDetail {
   pageSize: number;
   currentPage: number;
   facets: Object; // FIXME: we could be more precise
+  charts: Object; // FIXME: we could be more precise
 }
 
 /**
