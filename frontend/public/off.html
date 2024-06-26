@@ -19,10 +19,7 @@
       /* search bar styling */
       
       /* columns of search-bar must use flex so that we can center things vertically */
-      .search-bar .columns {
-        display: flex;
-      }
-      searchalicious-button, searchalicious-bar{
+      searchalicious-bar {
         position:relative;
         align-self: center;
       }
@@ -44,25 +41,6 @@
         border-width: 1px;
         border-color: #ccc;
         color: rgba(0,0,0,.75);
-      }
-      searchalicious-button::part(button), searchalicious-bar::part(input) {
-        line-height: normal;
-        height: 2.35rem;
-        top: 0;
-        box-sizing: border-box;
-        position: relative;
-      }
-      /* search button styling */
-      searchalicious-button::part(button) {
-        border-radius: 0px 1000px 1000px 0px;
-        background-color: #341100;
-        padding: .4rem .5rem;
-        margin: 0;
-        border: 0;
-        z-index: 2;
-      }
-      searchalicious-button .icon {
-        fill: #fff;
       }
       /* search results styling */
       searchalicious-results::part(results) {
@@ -280,16 +258,7 @@
               <section class="top-bar-section">
                 <ul class="left" style="margin-right: 2rem">
                   <li class="search-li">
-                    <div class="row collapse postfix-round search-bar">
-                      <div class="columns">
-                        <searchalicious-bar name="off" page-size="24" suggestions="brand,category"></searchalicious-bar>
-                      </div>
-                      <div class="columns">
-                        <searchalicious-button search-name="off">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="icon" aria-hidden="true" focusable="false"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg>
-                        </searchalicious-button>
-                      </div>
-                    </div>
+                    <searchalicious-bar name="off" page-size="24" suggestions="brand,category"></searchalicious-bar>
                   </li>
                 </ul>
               </section>
@@ -420,9 +389,9 @@
                   </div>
                   <div slot="col-3">
                     <!-- Graphs inside -->
-                    <searchalicious-chart search-name="off" label="Nutri-score distribution" key="nutriscore_grade", categories='["a", "b", "c", "d", "e", "unknown", "not-applicable"]'></searchalicious-chart>
-                    <searchalicious-chart search-name="off" label="Nova score distribution" key="nova_group", categories='["1", "2", "3", "4", "undefined", "not-applicable"]'></searchalicious-chart>
-                    <searchalicious-chart search-name="off" label="Eco score distribution" key="ecoscore_grade", categories='["a", "b", "c", "d", "e", "unknown", "not-applicable"]'></searchalicious-chart>
+                    <searchalicious-chart search-name="off" name="nutrition_grades"'></searchalicious-chart>
+                    <searchalicious-chart search-name="off" name="ecoscore_grade"></searchalicious-chart>
+                    <searchalicious-chart search-name="off" name="nova_groups"></searchalicious-chart>
                   </div>
                 </layout-page>
                 </div>

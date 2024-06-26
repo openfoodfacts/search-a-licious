@@ -22,6 +22,7 @@ import {
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
+import {SearchaliciousChart} from '../search-chart';
 
 export interface SearchParameters extends SortParameters {
   q: string;
@@ -30,6 +31,8 @@ export interface SearchParameters extends SortParameters {
   page?: string;
   index_id?: string;
   facets?: string[];
+  params?: string[];
+  charts?: string[];
 }
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface,
@@ -40,6 +43,7 @@ export interface SearchaliciousSearchInterface
   langs: string;
   index: string;
   pageSize: number;
+  lastQuery?: string;
 
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
@@ -130,10 +134,23 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
+    lastQuery = '';
+
     /** list of facets containers */
     _facetsParentNode() {
       return document.querySelectorAll(
         `searchalicious-facets[search-name=${this.name}]`
+      );
+    }
+
+    /**
+     * Return the list of searchalicious-chart nodes
+     */
+    _chartsNodes(): SearchaliciousChart[] {
+      return Array.from(
+        document.querySelectorAll(
+          `searchalicious-chart[search-name=${this.name}`
+        )
       );
     }
 
@@ -225,6 +242,14 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       const names = this._facetsNodes()
         .map((facets) => facets.getFacetsNames())
         .flat();
+      return [...new Set(names)];
+    }
+
+    /**
+     * Get the list of charts we want to request
+     */
+    _charts(): string[] {
+      const names = this._chartsNodes().map((chart) => chart.getName());
       return [...new Set(names)];
     }
 
@@ -352,6 +377,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     buildParams = (page?: number): SearchParameters => {
       const queryParts = [];
+      this.lastQuery = this.query;
       if (this.query) {
         queryParts.push(this.query);
       }
@@ -379,6 +405,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       // facets
       if (this._facets().length > 0) {
         params.facets = this._facets();
+      }
+      if (this._charts().length > 0) {
+        params.charts = this._charts();
       }
       return params;
     };
@@ -419,6 +448,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         currentPage: this._currentPage!,
         pageSize: this.pageSize,
         facets: data.facets,
+        charts: data.charts,
       };
       this.dispatchEvent(
         new CustomEvent(SearchaliciousEvents.NEW_RESULT, {

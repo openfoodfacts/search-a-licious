@@ -91,6 +91,10 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
       return this.options[this.getOptionIndex];
     }
 
+    getInput() {
+      return this.shadowRoot!.querySelector('input');
+    }
+
     /**
      * Handles the input event on the suggestion and dispatch custom event : "suggestion-input".
      * @param {InputEvent} event - The input event.
@@ -111,7 +115,7 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
      * It is used to quit after selecting an option.
      */
     blurInput() {
-      const input = this.shadowRoot!.querySelector('input');
+      const input = this.getInput();
       if (input) {
         input.blur();
       }
@@ -124,6 +128,11 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
     resetInput() {
       this.value = '';
       this.currentIndex = 0;
+      const input = this.getInput();
+      if (!input) {
+        return;
+      }
+      input.value = '';
       this.blurInput();
     }
 
