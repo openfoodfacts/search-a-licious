@@ -44,13 +44,14 @@ export class ToggleCharts extends LitElement {
   }
 
   override render() {
+    const text =
+      this.chartSideBarState.value === SideBarState.CLOSED
+        ? msg('Show charts')
+        : msg('Hide charts');
+
     return html`
       <button part="button" @click="${this.toggleChartsSidebar}">
-        <span class="text">
-          ${this.chartSideBarState.value === SideBarState.CLOSED
-            ? msg('Show charts')
-            : msg('Hide charts')}
-        </span>
+        <span class="text"> ${text} </span>
         <searchalicious-icon-chart size="12"></searchalicious-icon-chart>
       </button>
     `;

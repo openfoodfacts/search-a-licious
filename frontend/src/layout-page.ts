@@ -78,8 +78,10 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
    * @private
    */
   private _getAllCharts() {
-    return (this.slotNodes[0] as HTMLElement).querySelectorAll(
-      'searchalicious-chart'
+    return (
+      (this.slotNodes[0] as HTMLElement)?.querySelectorAll(
+        'searchalicious-chart'
+      ) ?? []
     );
   }
 
