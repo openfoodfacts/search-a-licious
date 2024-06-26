@@ -2,7 +2,7 @@ import {LitElement, html, css, nothing} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
-import {setLocale} from './localization';
+import {setLocale} from './localization/main';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
 import {classMap} from 'lit/directives/class-map.js';
