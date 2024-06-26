@@ -21,11 +21,21 @@ export class SearchaliciousToggleCharts extends LitElement {
     }
   `;
 
+  /**
+   * Context consumer for the sidebar state
+   * It is provided by the app component
+   * @private
+   */
   private chartSideBarState = new ContextConsumer(this, {
     context: chartSideBarStateContext,
     subscribe: true,
   });
 
+  /**
+   * Toggle the charts sidebar
+   * It dispatches an event to change the state of the sidebar to app component
+   * @private
+   */
   private toggleChartsSidebar() {
     const newState =
       this.chartSideBarState.value === SideBarState.CLOSED
