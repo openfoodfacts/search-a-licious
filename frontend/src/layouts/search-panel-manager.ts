@@ -16,7 +16,7 @@ export class SearchaliciousPanelManager extends EventRegistrationMixin(
    */
   @provide({context: chartSideBarStateContext})
   @property({type: String, attribute: 'chart-sidebar-state'})
-  chartSideBarState = SideBarState.CLOSED;
+  chartSideBarState = SideBarState.OPENED;
 
   override connectedCallback() {
     super.connectedCallback();
