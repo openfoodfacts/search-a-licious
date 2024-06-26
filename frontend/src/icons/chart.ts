@@ -21,6 +21,7 @@ export class SearchaliciousIconChart extends LitElement {
         width=${this.size}
         height=${this.size}
         preserveAspectRatio="xMidYMid meet"
+        part="icon"
       >
         <rect x="2" y="8" width="3" height="8" fill="#000000" />
         <rect x="7" y="4" width="3" height="12" fill="#000000" />
