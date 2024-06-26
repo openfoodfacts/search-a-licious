@@ -8,6 +8,7 @@ import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
 import {classMap} from 'lit/directives/class-map.js';
 import {removeLangFromTermId} from './utils/taxonomies';
 import {searchBarInputAndButtonStyle} from './css/header';
+import {SearchaliciousEvents} from './utils/enums';
 
 /**
  * The search bar element
@@ -118,12 +119,35 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     this._placeholder = value;
   }
 
-  constructor() {
-    super();
+  /**
+   * Check if the query has changed since the last search
+   */
+  get isQueryChanged() {
+    return this.query !== this.lastQuery;
+  }
 
-    // allow to set the locale from the browser
-    // @ts-ignore
-    window.setLocale = setLocale;
+  /**
+   * Check if the facets filters have changed since the last search
+   */
+  get isFacetsChanged() {
+    return this._facetsFilters() !== this.lastFacetsFilters;
+  }
+
+  /**
+   * Check if the search button text should be displayed
+   */
+  get showSearchButtonText() {
+    return this.isQueryChanged || this.isFacetsChanged;
+  }
+
+  /**
+   * Check if the filters can be reset
+   * Filters is facets filters and query
+   */
+  get canReset() {
+    const isQueryChanged = this.query || this.isQueryChanged;
+    const facetsChanged = this._facetsFilters() || this.isFacetsChanged;
+    return isQueryChanged || facetsChanged;
   }
 
   /**
@@ -131,6 +155,14 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
    */
   get parsedSuggestions() {
     return this.suggestions.split(',');
+  }
+
+  constructor() {
+    super();
+
+    // allow to set the locale from the browser
+    // @ts-ignore
+    window.setLocale = setLocale;
   }
 
   /**
@@ -202,14 +234,38 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
    */
   onResetInput = () => {
     this.query = '';
+    this.lastQuery = '';
     this.resetInput();
-    this.search();
   };
+
+  /**
+   * Reset the facets filters, query and search with empty query.
+   */
+  onReset() {
+    this.onResetInput();
+    this.resetFacets(false);
+    this.search();
+  }
 
   onClickSearch() {
     this.search();
   }
 
+  override connectedCallback() {
+    super.connectedCallback();
+
+    this.addEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
+      this.requestUpdate();
+    });
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+
+    this.removeEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
+      this.requestUpdate();
+    });
+  }
   override render() {
     return html`
       <div class="search-bar" part="wrapper">
@@ -236,14 +292,14 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
           >
             <div class="button-content">
               <searchalicious-icon-search></searchalicious-icon-search>
-              ${this.value !== this.lastQuery
+              ${this.showSearchButtonText
                 ? html`<span>${msg('Search', {desc: 'Search button'})}</span>`
                 : nothing}
             </div>
           </searchalicious-button>
         </div>
-        ${this.query
-          ? html`<searchalicious-button-transparent @click=${this.onResetInput}
+        ${this.canReset
+          ? html`<searchalicious-button-transparent @click=${this.onReset}
               >${msg('Reset')}</searchalicious-button-transparent
             >`
           : nothing}

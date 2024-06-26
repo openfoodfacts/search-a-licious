@@ -44,10 +44,12 @@ export interface SearchaliciousSearchInterface
   index: string;
   pageSize: number;
   lastQuery?: string;
+  lastFacetsFilters?: string;
 
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
   _facetsFilters(): string;
+  resetFacets(launchSearch?: boolean): void;
   selectTermByTaxonomy(taxonomy: string, term: string): void;
 }
 
@@ -134,7 +136,14 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     @state()
     _count?: number;
 
+    /**
+     * Last search query
+     */
     lastQuery = '';
+    /**
+     * Last search facets filters
+     */
+    lastFacetsFilters = '';
 
     /** list of facets containers */
     _facetsParentNode() {
@@ -264,6 +273,10 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       return allFilters.join(QueryOperator.AND);
     };
 
+    resetFacets(launchSearch = true) {
+      this._facetsNodes().forEach((facets) => facets.reset(launchSearch));
+    }
+
     /*
      * Compute search URL, associated parameters and history entry
      * based upon the requested page, and the state of other search components
@@ -382,6 +395,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         queryParts.push(this.query);
       }
       const facetsFilters = this._facetsFilters();
+      this.lastFacetsFilters = this._facetsFilters();
+
       if (facetsFilters) {
         queryParts.push(facetsFilters);
       }
