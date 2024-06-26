@@ -40,6 +40,10 @@
   <source>Reset</source>
   <target>Réinitialiser</target>
 </trans-unit>
+<trans-unit id="sd2cd02bfec5af316">
+  <source>Hide charts</source>
+  <target/>Masquer les graphiques
+</trans-unit>
 </body>
 </file>
 </xliff>

@@ -1,3 +1,4 @@
+export {SearchaliciousApp} from './search-app';
 export {LayoutPage} from './layout-page';
 export {SearchaliciousCheckbox} from './search-checkbox';
 export {SearchaliciousRadio} from './search-radio';

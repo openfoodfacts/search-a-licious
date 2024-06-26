@@ -1,9 +1,11 @@
-import {LitElement, html, css} from 'lit';
-import {customElement, state, queryAssignedNodes} from 'lit/decorators.js';
+import {css, html, LitElement} from 'lit';
+import {customElement, queryAssignedNodes} from 'lit/decorators.js';
 import {classMap} from 'lit/directives/class-map.js';
-import {SearchaliciousEvents} from './utils/enums';
+import {SideBarState} from './utils/enums';
 import {EventRegistrationMixin} from './event-listener-setup';
 import {HIDE_STYLE} from './styles';
+import {ContextConsumer} from '@lit/context';
+import {chartSideBarStateContext} from './context';
 
 /**
  * Component for the layout of the page
@@ -49,16 +51,21 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
   ];
 
   /**
-   * Display charts or not
+   * Context consumer for the sidebar state
+   * This is used to open and close the sidebar
+   * @private
    */
-  @state()
-  isChartSidebarOpened = false;
-
-  /**
-   * Expand the chart sidebar
-   */
-  @state()
-  isChartSidebarExpanded = false;
+  private chartSideBarState = new ContextConsumer(this, {
+    context: chartSideBarStateContext,
+    subscribe: true,
+    callback: (state: SideBarState) => {
+      if (state !== SideBarState.CLOSED) {
+        // Refresh the charts when the sidebar is opened
+        // if we don't do this, the charts will not be displayed correctly
+        this._refreshCharts();
+      }
+    },
+  });
 
   /**
    * Slot nodes
@@ -66,53 +73,28 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
   @queryAssignedNodes({slot: 'col-3', flatten: true})
   slotNodes!: Array<Node>;
 
+  /**
+   * Get all the charts in slot 3
+   * @private
+   */
   private _getAllCharts() {
     return (this.slotNodes[0] as HTMLElement).querySelectorAll(
       'searchalicious-chart'
     );
   }
-  private _toggleIsChartSidebarOpened() {
-    this.isChartSidebarOpened = !this.isChartSidebarOpened;
-    if (!this.isChartSidebarOpened) {
-      this.isChartSidebarExpanded = false;
-    } else {
-      // Force all charts to update their size
-      this._getAllCharts().forEach((chart) => chart.requestUpdate());
-    }
-  }
 
-  private _toggleIsChartSidebarExpanded() {
-    this.isChartSidebarExpanded = !this.isChartSidebarExpanded;
-  }
-
-  override connectedCallback() {
-    super.connectedCallback();
-
-    window.addEventListener(SearchaliciousEvents.OPEN_CLOSE_CHART_SIDEBAR, () =>
-      this._toggleIsChartSidebarOpened()
-    );
-    window.addEventListener(
-      SearchaliciousEvents.REDUCE_EXPAND_CHART_SIDEBAR,
-      () => this._toggleIsChartSidebarExpanded()
-    );
-  }
-
-  override disconnectedCallback() {
-    window.removeEventListener(
-      SearchaliciousEvents.OPEN_CLOSE_CHART_SIDEBAR,
-      this._toggleIsChartSidebarOpened
-    );
-    window.removeEventListener(
-      SearchaliciousEvents.OPEN_CLOSE_CHART_SIDEBAR,
-      this._toggleIsChartSidebarExpanded
-    );
-    super.disconnectedCallback();
+  /**
+   * Refresh all the charts in slot 3
+   * @private
+   */
+  private _refreshCharts() {
+    this._getAllCharts().forEach((chart) => chart.requestUpdate());
   }
 
   override render() {
     const rowClass = {
-      'display-charts': this.isChartSidebarOpened,
-      'is-expanded': this.isChartSidebarExpanded,
+      'display-charts': this.chartSideBarState.value !== SideBarState.CLOSED,
+      'is-expanded': this.chartSideBarState.value === SideBarState.EXPANDED,
     };
     return html`
       <div class="row ${classMap(rowClass)}">
@@ -125,7 +107,7 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
 
         <div
           class="column col-3 ${classMap({
-            hidden: !this.isChartSidebarOpened,
+            hidden: this.chartSideBarState.value === SideBarState.CLOSED,
           })}"
         >
           <slot name="col-3"></slot>

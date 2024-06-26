@@ -251,11 +251,13 @@
     </script>
   </head>
   <body class="products_page">
+  <searchalicious-app>
+
     <div id="page">
       <div id="main_container" style="position: relative" class="block_latte">
         <div
-          class="topbarsticky"
-          style="position: static; left: auto; width: 1496px"
+                class="topbarsticky"
+                style="position: static; left: auto; width: 1496px"
         >
           <div class="contain-to-grid" id="offNav">
             <nav class="top-bar" data-topbar="" role="navigation">
@@ -264,10 +266,10 @@
                   <div style="position: relative; max-width: 292px">
                     <a href="/">
                       <img
-                        id="logo"
-                        src="https://static.openfoodfacts.org/images/logos/off-logo-horizontal-light.svg"
-                        alt="Open Food Facts logo"
-                        style="margin: 8px; height: 48px; width: auto"
+                              alt="Open Food Facts logo"
+                              id="logo"
+                              src="https://static.openfoodfacts.org/images/logos/off-logo-horizontal-light.svg"
+                              style="margin: 8px; height: 48px; width: auto"
                       />
                     </a>
                   </div>
@@ -300,18 +302,25 @@
                         <div>
                           <searchalicious-sort search-name="off" auto-refresh>
                             <span slot="label">Sort by ▿</span>
-                            <searchalicious-sort-field field="-unique_scans_n">Most scanned products</searchalicious-sort-field>
-                            <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score</searchalicious-sort-field>
-                            <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score</searchalicious-sort-field>
-                            <searchalicious-sort-field field="-created_t">Recently added products</searchalicious-sort-field>
-                            <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
-                            <searchalicious-sort-script script="-personal_score" parameters="local:off_preferences">Personal preferences</searchalicious-sort-script>
+                            <searchalicious-sort-field field="-unique_scans_n">Most scanned products
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-field field="-created_t">Recently added products
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-field field="-last_modified_t">Recently modified products
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-script parameters="local:off_preferences" script="-personal_score">
+                              Personal preferences
+                            </searchalicious-sort-script>
                           </searchalicious-sort>
                         </div>
 
                         <div class="end-block">
                           <toggle-charts></toggle-charts>
-                       </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -344,14 +353,14 @@
                           <option value="1">important</option>
                           <option value="2">very important</option>
                         </select>
-                        <button type="submit" >Configure</button>
+                        <button type="submit">Configure</button>
                       </form>
                     </div>
                     <searchalicious-facets search-name="off">
                       <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="categories_tags" show-other="true"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="nutrition_grades"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="ecoscore_grade"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms name="categories_tags" show-other="true"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms name="nutrition_grades"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms name="ecoscore_grade"></searchalicious-facet-terms>
                     </searchalicious-facets>
                   </div>
                   <div slot="col-2">
@@ -363,20 +372,20 @@
                             <template slot="result" style="display: none">
                               <li data-code="${result.code}" part="li">
                                 <a
-                                  href="https://world.openfoodfacts.org/product/${result.code}"
-                                  part="outer_anchor"
+                                        href="https://world.openfoodfacts.org/product/${result.code}"
+                                        part="outer_anchor"
                                 >
                                   <div
-                                    part="score good"
+                                          part="score good"
                                   >
                                     ${result.score ?? ""}
                                   </div>
                                   <div part="infos">
                                     <div part="image-div">
                                       <img
-                                        src="${result.image_small_url}"
-                                        loading="lazy"
-                                        part="image"
+                                              loading="lazy"
+                                              part="image"
+                                              src="${result.image_small_url}"
                                       />
                                     </div>
                                     <div part="product-name">
@@ -384,14 +393,14 @@
                                     </div>
                                     <div part="scores">
                                       <img
-                                        src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-${result.ecoscore_grade}.svg"
-                                        loading="lazy"
-                                        part="scores logo ecoscore"
+                                              loading="lazy"
+                                              part="scores logo ecoscore"
+                                              src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-${result.ecoscore_grade}.svg"
                                       />
                                       <img
-                                        src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-${result.nutriscore_grade ? result.nutriscore_grade : 'unknown'}.svg"
-                                        loading="lazy"
-                                        part="scores logo nutriscore"
+                                              loading="lazy"
+                                              part="scores logo nutriscore"
+                                              src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-${result.nutriscore_grade ? result.nutriscore_grade : 'unknown'}.svg"
                                       />
                                     </div>
                                   </div>
@@ -409,19 +418,22 @@
                   </div>
                   <div slot="col-3">
                     <!-- Graphs inside -->
-                    <searchalicious-chart search-name="off" name="nutrition_grades"'></searchalicious-chart>
+                    <searchalicious-chart name="nutrition_grades" search-name="off"
+                    '></searchalicious-chart>
                     <searchalicious-chart search-name="off" name="ecoscore_grade"></searchalicious-chart>
                     <searchalicious-chart search-name="off" name="nova_groups"></searchalicious-chart>
                   </div>
                 </layout-page>
-                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <script src="https://static.openfoodfacts.org/js/dist/modernizr.js"></script>
+    </div>
+  </searchalicious-app>
+
+  <script src="https://static.openfoodfacts.org/js/dist/modernizr.js"></script>
     <script src="https://static.openfoodfacts.org/js/dist/jquery.js"></script>
     <script src="https://static.openfoodfacts.org/js/dist/jquery-ui.js"></script>
     <script src="https://static.openfoodfacts.org/js/dist/hc-sticky.js"></script>
@@ -449,6 +461,7 @@
         },
       });
     </script>
+
   </body>
   <style type="text/css">
     /*

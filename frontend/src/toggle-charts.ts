@@ -1,7 +1,9 @@
-import {LitElement, html, css} from 'lit';
+import {css, html, LitElement} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {SearchaliciousEvents} from './utils/enums';
+import {ContextConsumer} from '@lit/context';
 import {localized, msg} from '@lit/localize';
+import {chartSideBarStateContext} from './context';
+import {SearchaliciousEvents, SideBarState} from './utils/enums';
 
 @customElement('toggle-charts')
 @localized()
@@ -18,11 +20,25 @@ export class ToggleCharts extends LitElement {
       gap: 0.5rem;
     }
   `;
+
+  private chartSideBarState = new ContextConsumer(this, {
+    context: chartSideBarStateContext,
+    subscribe: true,
+  });
+
   private toggleChartsSidebar() {
+    const newState =
+      this.chartSideBarState.value === SideBarState.CLOSED
+        ? SideBarState.OPENED
+        : SideBarState.CLOSED;
+
     this.dispatchEvent(
-      new CustomEvent(SearchaliciousEvents.OPEN_CLOSE_CHART_SIDEBAR, {
+      new CustomEvent(SearchaliciousEvents.CHANGE_CHART_SIDEBAR_STATE, {
         bubbles: true,
         composed: true,
+        detail: {
+          state: newState,
+        },
       })
     );
   }
@@ -30,7 +46,11 @@ export class ToggleCharts extends LitElement {
   override render() {
     return html`
       <button part="button" @click="${this.toggleChartsSidebar}">
-        <span class="text">${msg('Show charts')}</span>
+        <span class="text">
+          ${this.chartSideBarState.value === SideBarState.CLOSED
+            ? msg('Show charts')
+            : msg('Hide charts')}
+        </span>
         <searchalicious-icon-chart size="12"></searchalicious-icon-chart>
       </button>
     `;

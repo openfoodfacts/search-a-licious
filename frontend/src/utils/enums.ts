@@ -13,9 +13,7 @@ export enum SearchaliciousEvents {
   // askin for first search launch is a specific event
   LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
   // event for opening or closing chart sidebar
-  OPEN_CLOSE_CHART_SIDEBAR = 'searchalicious-open-close-chart-sidebar',
-  // event for reducing or expanding the chart sidebar
-  REDUCE_EXPAND_CHART_SIDEBAR = 'searchalicious-reduce-expand-chart-sidebar',
+  CHANGE_CHART_SIDEBAR_STATE = 'searchalicious-change-chart-sidebar-state',
 }
 
 /**
@@ -32,4 +30,10 @@ export enum BasicEvents {
 export enum QueryOperator {
   AND = ' AND ',
   OR = ' OR ',
+}
+
+export enum SideBarState {
+  OPENED = 'opened',
+  CLOSED = 'closed',
+  EXPANDED = 'expanded',
 }
