@@ -14,7 +14,7 @@ export class SearchaliciousApp extends EventRegistrationMixin(LitElement) {
    */
   @provide({context: chartSideBarStateContext})
   @property({attribute: false})
-  chartSideBarState = SideBarState.CLOSED;
+  chartSideBarState = SideBarState.OPENED;
 
   override connectedCallback() {
     super.connectedCallback();
