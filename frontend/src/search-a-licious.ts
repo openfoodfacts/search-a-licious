@@ -16,4 +16,4 @@ export {SearchaliciousIconCross} from './icons/cross';
 export {SearchaliciousIconSearch} from './icons/search';
 export {SearchaliciousChart} from './search-chart';
 export {SearchaliciousSuggestionEntry} from './search-suggestion-entry';
-export {setLocale, getLocale} from './localization';
+export {setLocale, getLocale} from './localization/main';
