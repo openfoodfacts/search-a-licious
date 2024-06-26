@@ -33,6 +33,8 @@ The project is currently composed of several widgets.
     * and a params= which is a either a json encoded object, 
       or a key in localStorage prefixed with "local:"
   * you can add element to slot `label` to change the label
+* searchalicious-app is a component below body to wrap all lit components
+  * it allows to have a global variable to store with @lit/context
 
 **IMPORTANT:**
 You can give a specific `name` attribute to your search bar.
@@ -72,6 +74,8 @@ This enables supporting multiple searches in the same page
     * it can be used to delete actions
 * searchalicious-suggestion-entry is a suggestion entry
     * it can be used to display a suggestion in searchalicious-bar
+* searchalicious-chart-icon is a chart icon
+    * it can be used to display a chart icon in toggle-charts
 
 
 ## Explanation on code structure

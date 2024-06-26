@@ -11,8 +11,8 @@ import {chartSideBarStateContext} from './context';
  * Component for the layout of the page
  * Three columns layout with display flex
  */
-@customElement('layout-page')
-export class LayoutPage extends EventRegistrationMixin(LitElement) {
+@customElement('searchalicious-layout-page')
+export class SearchLayoutPage extends EventRegistrationMixin(LitElement) {
   static override styles = [
     HIDE_STYLE,
     css`
@@ -121,6 +121,6 @@ export class LayoutPage extends EventRegistrationMixin(LitElement) {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'layout-page': LayoutPage;
+    'searchalicious--layout-page': SearchLayoutPage;
   }
 }

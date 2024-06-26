@@ -1,5 +1,5 @@
 export {SearchaliciousApp} from './search-app';
-export {LayoutPage} from './layout-page';
+export {SearchLayoutPage} from './search-layout-page';
 export {SearchaliciousCheckbox} from './search-checkbox';
 export {SearchaliciousRadio} from './search-radio';
 export {SearchaliciousToggle} from './search-toggle';
@@ -19,5 +19,5 @@ export {SearchaliciousIconSearch} from './icons/search';
 export {SearchaliciousIconChart} from './icons/chart';
 export {SearchaliciousChart} from './search-chart';
 export {SearchaliciousSuggestionEntry} from './search-suggestion-entry';
-export {ToggleCharts} from './toggle-charts';
+export {SearchaliciousToggleCharts} from './search-toggle-charts';
 export {setLocale, getLocale} from './localization';

@@ -5,9 +5,9 @@ import {localized, msg} from '@lit/localize';
 import {chartSideBarStateContext} from './context';
 import {SearchaliciousEvents, SideBarState} from './utils/enums';
 
-@customElement('toggle-charts')
+@customElement('searchalicious-toggle-charts')
 @localized()
-export class ToggleCharts extends LitElement {
+export class SearchaliciousToggleCharts extends LitElement {
   static override styles = css`
     button {
       display: flex;
@@ -60,6 +60,6 @@ export class ToggleCharts extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'toggle-charts': ToggleCharts;
+    'searchalicious-toggle-charts': SearchaliciousToggleCharts;
   }
 }
