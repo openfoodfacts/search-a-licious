@@ -35,6 +35,8 @@ The project is currently composed of several widgets.
   * you can add element to slot `label` to change the label
 * searchalicious-app is a component below body to wrap all lit components
   * it allows to have a global variable to store with @lit/context
+* searchalicious-layout-page is a component to layout the page
+  * it allows to handle sidebars
 
 **IMPORTANT:**
 You can give a specific `name` attribute to your search bar.
