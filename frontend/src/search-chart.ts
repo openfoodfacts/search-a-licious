@@ -52,7 +52,7 @@ export class SearchaliciousScatterChart extends SearchaliciousResultCtlMixin(
     }
     // @ts-ignore
     this.vegaRepresentation = event.detail.charts[this.getName()];
-    console.log(this.vegaRepresentation)
+    console.log(this.vegaRepresentation);
   }
 }
 

@@ -17,5 +17,6 @@ export {
   SearchaliciousDistributionChart,
   SearchaliciousScatterChart,
 } from './search-chart';
+export {SearchaliciousIconSearch} from './icons/search';
 export {SearchaliciousSuggestionEntry} from './search-suggestion-entry';
-export {setLocale, getLocale} from './localization';
+export {setLocale, getLocale} from './localization/main';
