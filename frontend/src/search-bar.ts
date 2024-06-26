@@ -120,20 +120,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   }
 
   /**
-   * Check if the query has changed since the last search
-   */
-  get isQueryChanged() {
-    return this.query !== this.lastQuery;
-  }
-
-  /**
-   * Check if the facets filters have changed since the last search
-   */
-  get isFacetsChanged() {
-    return this._facetsFilters() !== this.lastFacetsFilters;
-  }
-
-  /**
    * Check if the search button text should be displayed
    */
   get showSearchButtonText() {

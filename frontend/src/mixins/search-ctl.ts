@@ -45,6 +45,8 @@ export interface SearchaliciousSearchInterface
   pageSize: number;
   lastQuery?: string;
   lastFacetsFilters?: string;
+  isQueryChanged: boolean;
+  isFacetsChanged: boolean;
 
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
@@ -144,6 +146,20 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Last search facets filters
      */
     lastFacetsFilters = '';
+
+    /**
+     * Check if the query has changed since the last search
+     */
+    get isQueryChanged() {
+      return this.query !== this.lastQuery;
+    }
+
+    /**
+     * Check if the facets filters have changed since the last search
+     */
+    get isFacetsChanged() {
+      return this._facetsFilters() !== this.lastFacetsFilters;
+    }
 
     /** list of facets containers */
     _facetsParentNode() {
