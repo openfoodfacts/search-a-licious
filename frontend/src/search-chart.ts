@@ -52,11 +52,6 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     return html` <div class="white-panel">${this.renderChart()}</div>`;
   }
 
-  // Computes the vega representation for given results
-  // The logic will be partially moved in API in a following
-  // PR.
-  // Vega function assumes that rendered had been previously
-  // called.
   override handleResults(event: SearchResultEvent) {
     if (event.detail.results.length === 0 || !this.vegaInstalled) {
       this.vegaRepresentation = undefined;

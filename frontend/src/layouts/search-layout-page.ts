@@ -74,23 +74,14 @@ export class SearchLayoutPage extends EventRegistrationMixin(LitElement) {
   slotNodes!: Array<Node>;
 
   /**
-   * Get all the charts in slot 3
-   * @private
-   */
-  private _getAllCharts() {
-    return (
-      (this.slotNodes[0] as HTMLElement)?.querySelectorAll(
-        'searchalicious-chart'
-      ) ?? []
-    );
-  }
-
-  /**
-   * Refresh all the charts in slot 3
+   * Refresh vega charts by dispatching a resize event
+   * This is needed because vega charts are not displayed correctly because of the hidden sidebar
    * @private
    */
   private _refreshCharts() {
-    this._getAllCharts().forEach((chart) => chart.requestUpdate());
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 0);
   }
 
   override render() {
