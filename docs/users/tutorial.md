@@ -240,7 +240,7 @@ You can click on an index to view it's content and have a feeling of what we jus
 
 ## Using the search API
 
-
+### Starting the service
 
 We don't have an interface to search at the moment, but we can use the API.
 
@@ -253,6 +253,8 @@ Let's start our search-a-licious service:
 ```bash
 docker compose up  es01 es02 api frontend
 ```
+
+### Running our first query
 
 We start the `api` container, which is the search-a-licious backend,
 and the frontend as it is a nginx acting as a reverse proxy.
@@ -267,10 +269,154 @@ We can try a simple search of *fair trade* in the q parameter, we get 17 results
 
 Interesting fields in the JSON we receive includes:
 
-* `hits` where we have the detail of each result
+* `hits` where we have the detail of each result.
+  In each results we retrieve full information about an item, that's a lot of data.
+  We might optimize this using the `fields` query parameter.
 * `page`: the current returned page, `page_count` the number of pages, and `page_size` the number of results per page.
 * `count` is the total number of items returned.
   `is_count_exact`, when false indicate that for performance reason, we did not compute the total number of results,
   but there are at least `count` results.
 
+### Sorting results
+
+As you get the results you might want them according to a particular order.
+Say we search for *fair trade* and we want the results to be sorted by the nutriscore grade.
+
+We simply repeat the above query with `q` = `fair trade` and `sort_by` = `nutriscore_grade`.
+
+### Limiting fields
+
+In the previous example, we might only be interested in the name of the product and it's Nutri-Score.
+We can limit the fields return by using the `fields` parameter.
+Here it would be `product_name,nutriscore_grade`
+
+### Using filters
+
 We may want to be more precise on our request. Now let's ask products which really have "fair-trade" label.
+
+For this we will use our query field in a more advanced way.
+
+We can use this value for the "q" field: `labels_tags:"en:fair-trade"`.
+Using this we specify that we search for the key "en:fair-trade" in the value.[^using-quotes]
+
+We may then want to restrict our search to fair trade products that also have the "EU organic" label.
+For this we can use `labels_tags:("en:fair-trade" AND "en:eu-organic")`.
+
+If we wanted products having one or the other `labels_tags:("en:fair-trade" OR "en:eu-organic")` would do.
+
+We can also combine those filters with a search. Using `cocoa labels_tags:"en:fair-trade"`
+will help find some fair trade cocoa.
+
+[^using-quotes]: Note that we have to use "" around value here, because the value contains a ":" inside.`labels_tags:en:fair-trade`  would be interpreted as asking for a field named labels_tags.en 
+having the value fair-trade.
+
+### Getting facets
+
+Remember in our configuration we added a `bucket_agg: true` on some fields.
+This will enable us to get facets on those fields.
+
+Let's go back to our API, and use `cocoa labels_tags:"en:fair-trade"` in the request,
+and ask for facet `nutriscore_grade`.
+We get a result with same fields as for previous searches, but we have a new `facets` fields.
+
+It returns something like
+```json
+  "facets": {
+    "nutriscore_grade": {
+      "name": "nutriscore_grade",
+      "items": [
+        {
+          "key": "e",
+          "name": "e",
+          "count": 3,
+          "selected": false
+        },
+        {
+          "key": "d",
+          "name": "d",
+          "count": 2,
+          "selected": false
+        }
+      ],
+      "count_error_margin": 0
+    }
+  }
+```
+
+As you can see we have the "nutriscore_grade" facet with two value: "e" and "d", and we got the document count for each value.
+
+The `selected` field was deduced from an analysis of the request.
+If we were to ask for the `labels_tags` facets with the same request,
+the `en:fair-trade` label would be selected, as it is an active filter.
+(note that it only works if you write the query in a specific way).
+
+You can try and ask both facets by using `nutriscore_grade,labels_tags` as the facets parameter.
+
+## Creating a search Page using web components
+
+Now that we have played around with the API,
+we might want to create a search page to let users do their own search in a visual way.
+
+That's were Search-a-licious also got you covered.
+
+Search-a-licious provides web components that let you build your search page easily.
+
+Let's try it and create a static html page.
+We won't care much about the "look and feel" for now, for sake of simplicity.
+
+A simple way to serve the page, is to add a file in the `frontend/public` folder[^devmode]
+
+
+Let's create a `tutorial.html` file with a very basic initial content:
+```html
+<html>
+<head>
+    <title>Search-a-licious tutorial</title>
+    <!-- this makes the various searchalicious components available -->
+    <script type="module" src="./search-a-licious.bundled.js"></script>
+</head>
+<body>
+  <div id="search-bar">
+  <!-- the search bar where you can add text -->
+  <searchalicious-bar></searchalicious-bar>
+  <!-- the button to launch the search -->
+  <searchalicious-button></searchalicious-button>
+  <!-- sorting -->
+  <searchalicious-sort auto-refresh>
+    <searchalicious-sort-field field="nutriscore_grade">Best nutriscore</searchalicious-sort-field>
+    <searchalicious-sort-field field="-nutriscore_grade">Worst nutriscore</searchalicious-sort-field>
+  </searchalicious-sort>
+  </div>
+  <div id="results">
+  <!-- display of results -->
+  <searchalicious-results>
+    <!-- this define a template for results. We can use ${} expression with a result object containing result fields -->
+    <template slot="result">
+      <li>
+        <a href="https://world.openfoodfacts.org/${result.code}">${result.product_name}</a>
+        − Nutri-Score: ${result.nutriscore_grade}
+      </li>
+    </template>
+  </searchalicious-results>
+  <!-- a small display of the number of results -->
+  <searchalicious-count></searchalicious-count>
+  <!-- pagination -->
+  <searchalicious-pages></searchalicious-pages>
+  </div>
+</body>
+</html>
+```
+
+As you can see this is a big file but not so big for search page.
+
+If you know html you should be able to read this quite easily. Let's focus on some elements:
+
+* first of all we have to import the search-a-licious library to make it available.
+  This is done through the classical `script` element (in `head`),
+  but note the `type="module"` property.
+* next we have the `searchalicious-bar` component. This is the central component.
+  Not only will responsible for **TODO:** continue
+
+
+
+[^devmode]: this only works right away if you are using the service in developer mode, which should be the case if you followed this tutorial. Of course in production, this might be served by your own servers.

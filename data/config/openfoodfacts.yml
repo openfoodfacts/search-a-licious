@@ -139,6 +139,7 @@ indices:
         type: disabled
       nutriscore_grade:
         type: keyword
+        bucket_agg: true
       traces_tags:
         type: keyword
       unknown_ingredients_n:
