@@ -14,6 +14,8 @@ export enum SearchaliciousEvents {
   LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
   // event for opening or closing chart sidebar
   CHANGE_CHART_SIDEBAR_STATE = 'searchalicious-change-chart-sidebar-state',
+  // event for facet selection
+  FACET_SELECTED = 'searchalicious-facet-selected',
 }
 
 /**

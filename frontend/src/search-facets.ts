@@ -8,7 +8,7 @@ import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {getTaxonomyName, removeLangFromTermId} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
-import {QueryOperator} from './utils/enums';
+import {QueryOperator, SearchaliciousEvents} from './utils/enums';
 import {getPluralTranslation} from './localization/translations';
 import {msg, localized} from '@lit/localize';
 import {WHITE_PANEL_STYLE} from './styles';
@@ -137,11 +137,13 @@ export class SearchaliciousFacets extends SearchActionMixin(
     }
   }
 
-  reset = () => {
+  reset = (launchSearch = true) => {
     this._facetNodes().forEach((node) => {
       node.reset(false);
     });
-    this._launchSearch();
+    if (launchSearch) {
+      this._launchSearch();
+    }
   };
 
   override render() {
@@ -283,6 +285,12 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       ...this.selectedTerms,
       ...{[name]: checked},
     };
+    this.dispatchEvent(
+      new CustomEvent(SearchaliciousEvents.FACET_SELECTED, {
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   addTerm(event: CustomEvent) {
