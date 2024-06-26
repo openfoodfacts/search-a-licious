@@ -19,6 +19,7 @@ suite('searchalicious-button', () => {
       <button
         part="button"
         role="button"
+        class="search-button"
       >
         <slot>
         Search

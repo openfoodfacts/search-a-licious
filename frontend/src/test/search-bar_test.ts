@@ -15,13 +15,24 @@ suite('searchalicious-bar', () => {
       el,
       `
       <div class="search-bar" part="wrapper">
+      <div class="input-wrapper" part="input-wrapper">
         <input
+          class="search-input"
           autocomplete="off"
           name="q"
           part="input"
           placeholder="Search..."
           type="text"
         >
+        </div>
+         <div>
+          <searchalicious-button :search-name="searchalicious">
+            <div class="button-content">
+              <searchalicious-icon-search>
+              </searchalicious-icon-search>
+            </div>
+          </searchalicious-button>
+        </div>
       </div>
     `
     );
@@ -45,13 +56,25 @@ suite('searchalicious-bar', () => {
       el,
       `
        <div class="search-bar" part="wrapper">
-        <input
-          autocomplete="off"
-          name="q"
-          part="input"
-          placeholder="Try it !"
-          type="text"
-        >
+          <div class="input-wrapper" part="input-wrapper">
+            <input
+              autocomplete="off"
+              name="q"
+              class="search-input"
+              part="input"
+              placeholder="Try it !"
+              type="text"
+            >
+        </div>
+        <div>
+        
+        <searchalicious-button :search-name="searchalicious">
+         <div class="button-content">
+            <searchalicious-icon-search>
+              </searchalicious-icon-search>
+            </div>
+          </searchalicious-button>
+         </div>
       </div>
     `
     );
@@ -75,9 +98,12 @@ suite('searchalicious-bar', () => {
     );
     const input = el.shadowRoot!.querySelector('input');
     input!.value = 'test';
+    console.log(input);
+    console.log('input', input!.value);
     input!.dispatchEvent(new Event('input'));
     const bar = el as SearchaliciousBar;
     const searchParams = (bar as any)['_searchUrl']();
+    console.log('input', input);
     assert.equal(searchParams.searchUrl, '/search');
     assert.deepEqual(searchParams.params, {
       index_id: 'foo',

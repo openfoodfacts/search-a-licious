@@ -27,6 +27,15 @@
   <source>No results found</source>
   <target>Aucun résultat trouvé</target>
 </trans-unit>
+<trans-unit id="s5d929ff1619ac0c9">
+  <source>Search</source>
+  <target>Rechercher</target>
+  <note from="lit-localize">Search button</note>
+</trans-unit>
+<trans-unit id="s255857544a9d5ec0">
+  <source>Reset</source>
+  <target>Réinitialiser</target>
+</trans-unit>
 </body>
 </file>
 </xliff>
