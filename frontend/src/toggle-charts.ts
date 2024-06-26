@@ -15,6 +15,7 @@ export class ToggleCharts extends LitElement {
       padding: 0.4em 1em;
       border-style: solid;
       cursor: pointer;
+      gap: 0.5rem;
     }
   `;
   private toggleChartsSidebar() {
@@ -29,7 +30,8 @@ export class ToggleCharts extends LitElement {
   override render() {
     return html`
       <button part="button" @click="${this.toggleChartsSidebar}">
-        ${msg('Show charts')}
+        <span class="text">${msg('Show charts')}</span>
+        <searchalicious-icon-chart size="12"></searchalicious-icon-chart>
       </button>
     `;
   }

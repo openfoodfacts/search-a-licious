@@ -8,3 +8,9 @@ export const WHITE_PANEL_STYLE = css`
     border-radius: 5px;
   }
 `;
+
+export const HIDE_STYLE = css`
+  .hidden {
+    display: none;
+  }
+`;

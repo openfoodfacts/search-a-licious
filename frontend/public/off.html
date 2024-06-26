@@ -78,6 +78,7 @@
       }
       searchalicious-results::part(score good) {
         background-color: #219653;
+        height: 20px;
       }
       searchalicious-results::part(infos) {
         border-radius: 8px;
@@ -119,6 +120,23 @@
       }
       searchalicious-sort::part(options) {
         border: solid #cfac9e 1px;
+      }
+
+      .block_ristreto {
+        padding-left: 20%;
+        padding-right: 1rem;
+      }
+
+      .filterProducts, .filterProducts__buttons {
+        width: 100%;
+      }
+
+      .block_ristreto .end-block {
+        margin-left: auto;
+        /*position: absolute;*/
+        /*right: 1rem;*/
+        /*top: 50%;*/
+        /*transform: translateY(-50%);*/
       }
     </style>
     <script lang="javascript">
@@ -273,8 +291,8 @@
             <div class="main block_light">
               <div id="main_column">
                 <div class="block short block_ristreto">
-                  <div class="row">
-                    <div class="small-12 columns filterProducts">
+                  <div class="">
+                    <div class="small-12 filterProducts">
                       <div class="filterProducts__buttons">
                         <div>
                           <searchalicious-count search-name="off"></searchalicious-count>
@@ -290,12 +308,14 @@
                             <searchalicious-sort-script script="-personal_score" parameters="local:off_preferences">Personal preferences</searchalicious-sort-script>
                           </searchalicious-sort>
                         </div>
-                        <div>
+
+                        <div class="end-block">
                           <toggle-charts></toggle-charts>
-                        </div>
+                       </div>
                       </div>
-                    </div></a>
+                    </div>
                   </div>
+
                 </div>
                 <layout-page>
                   <div slot="col-1">
@@ -349,7 +369,7 @@
                                   <div
                                     part="score good"
                                   >
-                                    ${result.score || "unknown"}
+                                    ${result.score ?? ""}
                                   </div>
                                   <div part="infos">
                                     <div part="image-div">
@@ -606,5 +626,6 @@
       margin-top: 0;
       padding-top: 0;
     }
+
   </style>
 </html>
