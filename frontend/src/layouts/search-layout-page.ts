@@ -1,11 +1,11 @@
 import {css, html, LitElement} from 'lit';
 import {customElement, queryAssignedNodes} from 'lit/decorators.js';
 import {classMap} from 'lit/directives/class-map.js';
-import {SideBarState} from './utils/enums';
-import {EventRegistrationMixin} from './event-listener-setup';
-import {HIDE_STYLE} from './styles';
+import {SideBarState} from '../utils/enums';
+import {EventRegistrationMixin} from '../event-listener-setup';
+import {HIDE_STYLE} from '../styles';
 import {ContextConsumer} from '@lit/context';
-import {chartSideBarStateContext} from './context';
+import {chartSideBarStateContext} from '../context';
 
 /**
  * Component for the layout of the page
