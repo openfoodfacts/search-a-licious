@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Annotated, Any, Optional, Tuple, cast, get_type_hints
+from typing import Annotated, Any, Literal, Optional, Tuple, Union, cast, get_type_hints
 
 import elasticsearch_dsl.query
 import luqum.tree
@@ -13,6 +13,22 @@ from .validations import check_all_values_are_fields_agg, check_index_id_is_defi
 #: A precise expectation of what mappings looks like in json.
 #: (dict where keys are always of type `str`).
 JSONType = dict[str, Any]
+
+
+class DistributionChartType(BaseModel):
+    """Describes an entry for a distribution chart"""
+    chart_type: Literal['DistributionChartType']
+    field: str
+
+
+class ScatterChartType(BaseModel):
+    """Describes an entry for a scatter plot"""
+    chart_type: Literal['ScatterChartType']
+    x: str
+    y: str
+
+
+ChartType = Union[DistributionChartType, ScatterChartType]
 
 
 class FacetItem(BaseModel):
@@ -211,12 +227,10 @@ If not provided, `['en']` is used."""
         ),
     ] = None
     charts: Annotated[
-        list[str] | None,
+        list[ChartType] | None,
         Query(
             description="""Name of vega representations to return in the response.
-            Agg fields to return distribution chart.
-            xfield:yfield to return a scatter xfield, yfield chart
-            If None (default) no charts are returned."""
+            Can be distribution chart or scatter plot"""
         ),
     ] = None
     sort_params: Annotated[
@@ -325,8 +339,11 @@ If not provided, `['en']` is used."""
     @model_validator(mode="after")
     def check_charts_are_valid(self):
         """Check that the graph names are valid."""
-        # Ignore scatter charts
-        errors = check_all_values_are_fields_agg(self.index_id, [x for x in self.charts if ':' not in x])
+        print('cheeeeeeeek')
+        errors = check_all_values_are_fields_agg(self.index_id,
+                                                 [chart.field for chart in self.charts
+                                                    if chart.chart_type == 'DistributionChart'])
+        # TODO check for x and y fields?
         if errors:
             raise ValueError(errors)
         return self

@@ -32,7 +32,7 @@ export interface SearchParameters extends SortParameters {
   index_id?: string;
   facets?: string[];
   params?: string[];
-  charts?: string[];
+  charts?: object[];
 }
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface,
@@ -169,23 +169,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
-     * Return the list of searchalicious-distribution-chart nodes
-     */
-    _chartsNodes(): SearchaliciousChartInterface[] {
-      return Array.from(
-        document.querySelectorAll(
-          `searchalicious-distribution-chart[search-name=${this.name}]`
-        )
-      ).concat(
-        Array.from(
-          document.querySelectorAll(
-            `searchalicious-scatter-chart[search-name=${this.name}]`
-          )
-        )
-      );
-    }
-
-    /**
      * Select a term by taxonomy in all facets
      * It will update the selected terms in facets
      * @param taxonomy
@@ -279,9 +262,33 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * Get the list of charts we want to request
      */
-    _charts(): string[] {
-      const names = this._chartsNodes().map((chart) => chart.getName());
-      return [...new Set(names)];
+    _charts(): object[] | undefined {
+      const distributionCharts = Array.from(
+        document.querySelectorAll(
+          `searchalicious-distribution-chart[search-name=${this.name}]`
+        )
+      ).map((node) => ({
+        chart_type: 'DistributionChartType',
+        // @ts-ignore
+        field: node.name,
+      }));
+
+      const scatterCharts = Array.from(
+        document.querySelectorAll(
+          `searchalicious-scatter-chart[search-name=${this.name}]`
+        )
+      ).map((node) => ({
+        chart_type: 'ScatterChartType',
+        // @ts-ignore
+        x: node.x,
+        // @ts-ignore
+        y: node.y,
+      }));
+
+      if (distributionCharts.length === 0 && scatterCharts.length === 0)
+        return undefined;
+      // @ts-ignore
+      return distributionCharts.concat(scatterCharts);
     }
 
     /**

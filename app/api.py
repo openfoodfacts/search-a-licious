@@ -15,7 +15,10 @@ import app.search as app_search
 from app import config
 from app._types import (
     INDEX_ID_QUERY_PARAM,
+    ChartType,
+    DistributionChartType,
     GetSearchParamsTypes,
+    ScatterChartType,
     SearchParameters,
     SearchResponse,
     SuccessSearchResponse,
@@ -89,13 +92,23 @@ def get_document(
     return product
 
 
+def parse_charts(charts: str | None) -> list[ChartType]:
+    if charts is None:
+        return []
+    return [
+        (
+            DistributionChartType(field=chart)
+            if ":" in chart
+            else ScatterChartType(chart.split(":")[0], chart.split(":")[1])
+        )
+        for chart in charts
+    ]
+
+
 @app.post("/search")
 def search(search_parameters: Annotated[SearchParameters, Body()]):
+    print("search_parameters")
     return app_search.search(search_parameters)
-
-
-def parse_langs(langs: str | None) -> list[str]:
-    return langs.split(",") if langs else ["en"]
 
 
 @app.get("/search")
@@ -110,11 +123,23 @@ def search_get(
     charts: GetSearchParamsTypes.charts = None,
     index_id: GetSearchParamsTypes.index_id = None,
 ) -> SearchResponse:
+    print("Boom")
+    print("Boom")
+    print("Boom")
+    print("Boom")
+    print("Boom")
+    print("Boom")
+    print("Boom")
+    print("Boom")
+    print("Boom")
+    print("Boom")
+    print("Boom")
     # str to lists
     langs_list = langs.split(",") if langs else ["en"]
     fields_list = fields.split(",") if fields else None
     facets_list = facets.split(",") if facets else None
-    charts_list = charts.split(",") if charts else None
+    charts_list = parse_charts(charts.split(",")) if charts else []
+    print(charts_list)
     # create SearchParameters object
     try:
         search_parameters = SearchParameters(

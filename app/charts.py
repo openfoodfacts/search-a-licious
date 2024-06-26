@@ -1,5 +1,16 @@
-from ._types import ChartsInfos, SuccessSearchResponse
 from functools import reduce
+
+from ._types import (
+    ChartsInfos,
+    ChartType,
+    DistributionChartType,
+    ScatterChartType,
+    SuccessSearchResponse,
+)
+
+PRIMARY_COLOR = "#341100"
+ACCENT_COLOR = "#ff8714"
+
 
 def empty_chart(chart_name):
     return {
@@ -22,29 +33,26 @@ def empty_chart(chart_name):
     }
 
 
-def build_distribution_chart(chart_name, values):
-    chart = empty_chart(chart_name)
-    chart['data'] = [
+def build_distribution_chart(chart: DistributionChartType, values):
+    chart = empty_chart(chart.field)
+    chart["data"] = [
         {
             "name": "table",
             "values": values,
-            "transform": [
-                {
-                    "type": "filter",
-                    "expr": "datum['category'] != 'unknown'"
-                }
-            ]
+            "transform": [{"type": "filter", "expr": "datum['category'] != 'unknown'"}],
         },
     ]
-    chart['signals'].append({
-        "name": "tooltip",
-        "value": {},
-        "on": [
-            {"events": "rect:pointerover", "update": "datum"},
-            {"events": "rect:pointerout", "update": "{}"},
-        ],
-    })
-    chart['scales'] = [
+    chart["signals"].append(
+        {
+            "name": "tooltip",
+            "value": {},
+            "on": [
+                {"events": "rect:pointerover", "update": "datum"},
+                {"events": "rect:pointerout", "update": "{}"},
+            ],
+        }
+    )
+    chart["scales"] = [
         {
             "name": "xscale",
             "type": "band",
@@ -60,10 +68,10 @@ def build_distribution_chart(chart_name, values):
             "range": "height",
         },
     ]
-    chart['axes'] = [
+    chart["axes"] = [
         {"orient": "bottom", "scale": "xscale", "domain": False, "ticks": False}
     ]
-    chart['marks'] = [
+    chart["marks"] = [
         {
             "type": "rect",
             "from": {"data": "table"},
@@ -75,10 +83,10 @@ def build_distribution_chart(chart_name, values):
                     "y2": {"scale": "yscale", "value": 0},
                 },
                 "update": {
-                    "fill": {"value": "steelblue"},
+                    "fill": {"value": PRIMARY_COLOR},
                 },
                 "hover": {
-                    "fill": {"value": "red"},
+                    "fill": {"value": ACCENT_COLOR},
                 },
             },
         },
@@ -103,7 +111,6 @@ def build_distribution_chart(chart_name, values):
                     },
                     "text": {"signal": "tooltip.amount"},
                     "fillOpacity": [
-                        {"test": "datum === tooltip", "value": 0},
                         {"value": 1},
                     ],
                 },
@@ -113,41 +120,43 @@ def build_distribution_chart(chart_name, values):
     return chart
 
 
-def build_scatter_chart(chart_name, search_result):
+def build_scatter_chart(chart_option: ScatterChartType, search_result):
     def _get(v, path):
-        return reduce(lambda c, k: c.get(k, {}), path.split('.'), v)
+        return reduce(lambda c, k: c.get(k, {}), path.split("."), v)
 
-    chart = empty_chart(chart_name)
-    x, y = chart_name.split(':')
+    chart = empty_chart(f"{chart_option.x} x { chart_option.y }")
+
     # nutriments.xxx is broken in vega.
     # I think it searches for nutriments[xxx]
     # might be expected ^^
-    vega_x = x.replace('.', '__')
-    vega_y = y.replace('.', '__')
-    values = [{vega_x: _get(v, x), vega_y: _get(v, y)} for v in search_result.hits]
+    vega_x = chart_option.x.replace(".", "__")
+    vega_y = chart_option.y.replace(".", "__")
+    values = [
+        {vega_x: _get(v, chart_option.x), vega_y: _get(v, chart_option.y)}
+        for v in search_result.hits
+    ]
 
-    chart['data'] = [{
-        "name": 'source',
-        "values": values
-    }]
-    chart['scales'] = [{
-      "name": "x",
-      "type": "linear",
-      "round": True,
-      "nice": True,
-      "zero": True,
-      "domain": {"data": "source", "field": vega_x},
-      "range": "width"
-    },
-    {
-      "name": "y",
-      "type": "linear",
-      "round": True,
-      "nice": True,
-      "zero": True,
-      "domain": {"data": "source", "field": vega_y},
-      "range": "height"
-    }]
+    chart["data"] = [{"name": "source", "values": values}]
+    chart["scales"] = [
+        {
+            "name": "x",
+            "type": "linear",
+            "round": True,
+            "nice": True,
+            "zero": True,
+            "domain": {"data": "source", "field": vega_x},
+            "range": "width",
+        },
+        {
+            "name": "y",
+            "type": "linear",
+            "round": True,
+            "nice": True,
+            "zero": True,
+            "domain": {"data": "source", "field": vega_y},
+            "range": "height",
+        },
+    ]
     chart["axes"] = [
         {
             "scale": "x",
@@ -155,7 +164,7 @@ def build_scatter_chart(chart_name, search_result):
             "domain": False,
             "orient": "bottom",
             "tickCount": 5,
-            "title": x
+            "title": chart_option.x,
         },
         {
             "scale": "y",
@@ -163,8 +172,8 @@ def build_scatter_chart(chart_name, search_result):
             "domain": False,
             "orient": "left",
             "titlePadding": 5,
-            "title": y
-        }
+            "title": chart_option.y,
+        },
     ]
 
     chart["marks"] = [
@@ -179,10 +188,10 @@ def build_scatter_chart(chart_name, search_result):
                     "shape": {"value": "circle"},
                     "strokeWidth": {"value": 2},
                     "opacity": {"value": 0.5},
-                    "stroke": {"value": "#4682b4"},
-                    "fill": {"value": "transparent"}
+                    "stroke": {"value": PRIMARY_COLOR},
+                    "fill": {"value": "transparent"},
                 }
-            }
+            },
         }
     ]
 
@@ -191,29 +200,31 @@ def build_scatter_chart(chart_name, search_result):
 
 def build_charts(
     search_result: SuccessSearchResponse,
-    charts_names: list[str] | None,
+    requested_charts: list[ChartType] | None,
 ) -> ChartsInfos:
     charts: ChartsInfos = {}
     aggregations = search_result.aggregations
 
-    if charts_names is None or aggregations is None:
-        return charts
-
-    for chart_name in charts_names:
-        if ':' in chart_name:
-            charts[chart_name] = build_scatter_chart(chart_name, search_result)
+    for requested_chart in requested_charts:
+        if requested_chart.chart_type == "ScatterChartType":
+            charts[f"{requested_chart.x}:{requested_chart.y}"] = build_scatter_chart(
+                requested_chart, search_result
+            )
         else:
-            agg_data = aggregations.get(chart_name, {})
+            if aggregations is not None:
+                agg_data = aggregations.get(requested_chart.field, {})
 
-            buckets = agg_data.get("buckets", []) if agg_data else []
+                buckets = agg_data.get("buckets", []) if agg_data else []
 
-            # Filter unknown values
-            values = [
-                {"category": bucket["key"], "amount": bucket["doc_count"]}
-                for bucket in buckets
-            ]
-            values.sort(key=lambda x: x["category"])
+                # Filter unknown values
+                values = [
+                    {"category": bucket["key"], "amount": bucket["doc_count"]}
+                    for bucket in buckets
+                ]
+                values.sort(key=lambda x: x["category"])
 
-            charts[chart_name] = build_distribution_chart(chart_name, values)
+                charts[requested_chart.field] = build_distribution_chart(
+                    requested_chart, values
+                )
 
     return charts
