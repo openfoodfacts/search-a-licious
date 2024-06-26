@@ -45,8 +45,8 @@ function stringGuard(s: string | undefined): s is string {
  *
  * It must contains a SearchaliciousFacet component for each facet we want to display.
  */
-@localized()
 @customElement('searchalicious-facets')
+@localized()
 export class SearchaliciousFacets extends SearchActionMixin(
   SearchaliciousResultCtlMixin(LitElement)
 ) {
