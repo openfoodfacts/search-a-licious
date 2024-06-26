@@ -12,6 +12,8 @@ export enum SearchaliciousEvents {
   SORT_OPTION_SELECTED = 'searchalicious-sort-option-selected',
   // askin for first search launch is a specific event
   LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
+  // event for facet selection
+  FACET_SELECTED = 'searchalicious-facet-selected',
 }
 
 /**
