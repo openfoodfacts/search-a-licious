@@ -60,6 +60,7 @@ COPY --chown=node:node rollup.config.js /opt/search-a-licious/rollup.config.js
 # build for production
 # no need of a public url, we are at the root
 RUN rm -rf public/dist/* && npm run build && npm run bundle
+COPY --chown=node:node public/dist/localization/generated /opt/search-a-licious/public/dist/generated
 CMD ["npm", "run", "serve"]
 
 # nginx
