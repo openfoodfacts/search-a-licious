@@ -43,6 +43,7 @@
   "author": "Open Food Facts",
   "license": "BSD-3-Clause",
   "dependencies": {
+    "@lit-labs/preact-signals": "^1.0.2",
     "@lit/context": "^1.1.2",
     "@lit/localize": "^0.12.1",
     "lit": "^3.0.0"

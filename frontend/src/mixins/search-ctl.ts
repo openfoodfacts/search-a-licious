@@ -23,6 +23,8 @@ import {
   SearchaliciousHistoryMixin,
 } from './history';
 import {SearchaliciousChart} from '../search-chart';
+import {canResetSearch} from '../signals';
+import {SignalWatcher} from '@lit-labs/preact-signals';
 
 export interface SearchParameters extends SortParameters {
   q: string;
@@ -47,7 +49,10 @@ export interface SearchaliciousSearchInterface
   lastFacetsFilters?: string;
   isQueryChanged: boolean;
   isFacetsChanged: boolean;
+  isSearchChanged: boolean;
+  canReset: boolean;
 
+  updateSearchSignals(): void;
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
   _facetsFilters(): string;
@@ -75,8 +80,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   /**
    * The search mixin, encapsulate the logic of dialog with server
    */
-  class SearchaliciousSearchMixinClass extends SearchaliciousHistoryMixin(
-    EventRegistrationMixin(superClass)
+  class SearchaliciousSearchMixinClass extends SignalWatcher(
+    SearchaliciousHistoryMixin(EventRegistrationMixin(superClass))
   ) {
     /**
      * Query that will be sent to searchalicious
@@ -159,6 +164,27 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     get isFacetsChanged() {
       return this._facetsFilters() !== this.lastFacetsFilters;
+    }
+
+    /**
+     * Check if the search button text should be displayed
+     */
+    get isSearchChanged() {
+      return this.isQueryChanged || this.isFacetsChanged;
+    }
+
+    /**
+     * Check if the filters can be reset
+     * Filters is facets filters and query
+     */
+    get canReset() {
+      const isQueryChanged = this.query || this.isQueryChanged;
+      const facetsChanged = this._facetsFilters() || this.isFacetsChanged;
+      return Boolean(isQueryChanged || facetsChanged);
+    }
+
+    updateSearchSignals() {
+      canResetSearch.value = this.canReset;
     }
 
     /** list of facets containers */
@@ -350,6 +376,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, (event) =>
         this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
+      this.addEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
+        this.updateSearchSignals();
+      });
     }
     // connect to our specific events
     override disconnectedCallback() {
@@ -361,11 +390,14 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.removeEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
       );
-      this.removeEventHandler(
-        SearchaliciousEvents.LAUNCH_FIRST_SEARCH,
-        (event) =>
-          this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
-      );
+      // this.removeEventHandler(
+      //   SearchaliciousEvents.LAUNCH_FIRST_SEARCH,
+      //   (event) =>
+      //     this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
+      // );
+      this.removeEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
+        this.updateSearchSignals();
+      });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -470,6 +502,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.pageSize = data.page_size;
       this._currentPage = data.page;
       this._pageCount = data.page_count;
+
+      this.updateSearchSignals();
+
       // dispatch an event with the results
       const detail: SearchResultDetail = {
         searchName: this.name,

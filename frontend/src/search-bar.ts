@@ -132,16 +132,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   }
 
   /**
-   * Check if the filters can be reset
-   * Filters is facets filters and query
-   */
-  get canReset() {
-    const isQueryChanged = this.query || this.isQueryChanged;
-    const facetsChanged = this._facetsFilters() || this.isFacetsChanged;
-    return isQueryChanged || facetsChanged;
-  }
-
-  /**
    * It parses the string suggestions attribute and returns an array
    */
   get parsedSuggestions() {
@@ -164,6 +154,8 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   override handleInput(value: string) {
     this.value = value;
     this.query = value;
+
+    this.updateSearchSignals();
     this.debounce(() => {
       this.getTaxonomiesTerms(value, this.parsedSuggestions).then(() => {
         this.options = this.terms.map((term) => ({
@@ -245,16 +237,16 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   override connectedCallback() {
     super.connectedCallback();
 
-    this.addEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
-      this.requestUpdate();
+    this.addEventHandler(SearchaliciousEvents.RESET_SEARCH, () => {
+      this.onReset();
     });
   }
 
   override disconnectedCallback() {
     super.disconnectedCallback();
 
-    this.removeEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
-      this.requestUpdate();
+    this.removeEventHandler(SearchaliciousEvents.RESET_SEARCH, () => {
+      this.onReset();
     });
   }
   override render() {
