@@ -341,6 +341,9 @@ If not provided, `['en']` is used."""
     @model_validator(mode="after")
     def check_charts_are_valid(self):
         """Check that the graph names are valid."""
+        if self.charts is None:
+            return self
+
         errors = check_all_values_are_fields_agg(
             self.index_id,
             [
