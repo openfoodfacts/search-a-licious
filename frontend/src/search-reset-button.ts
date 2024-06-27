@@ -7,7 +7,7 @@ import {SearchaliciousEvents} from './utils/enums';
 
 /**
  * It is a transparent button that is used to reset the search.
- * It just exists to have translated text "Reset" in it.
+ * It use the signal canResetSearch to know if it should be displayed.
  */
 @customElement('searchalicious-reset-button')
 @localized()
