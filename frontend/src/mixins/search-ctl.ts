@@ -391,11 +391,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.removeEventHandler(SearchaliciousEvents.CHANGE_PAGE, (event) =>
         this._handleChangePage(event)
       );
-      // this.removeEventHandler(
-      //   SearchaliciousEvents.LAUNCH_FIRST_SEARCH,
-      //   (event) =>
-      //     this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
-      // );
+      this.removeEventHandler(
+        SearchaliciousEvents.LAUNCH_FIRST_SEARCH,
+        (event) =>
+          this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
+      );
       this.removeEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
         this.updateSearchSignals();
       });
