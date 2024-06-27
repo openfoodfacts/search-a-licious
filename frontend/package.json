@@ -9,10 +9,10 @@
   "type": "module",
   "scripts": {
     "//build": "echo 'compile typescript files'",
-    "build": "npm run translations:build && tsc && npm run copy:translations",
+    "build": "npm run translations:build && tsc && npm run translations:copy",
     "build:watch": "npm run translations:build && tsc --watch",
     "translations:build": "lit-localize build",
-    "copy:translations": "cp -r public/dist/localization/generated public/generated",
+    "translations:copy": "cp -r public/dist/localization/generated public/generated",
     "translations:extract": "lit-localize extract",
     "clean": "rimraf search-a-licious.{d.ts,d.ts.map,js,js.map} test/search-a-licious.{d.ts,d.ts.map,js,js.map} test/search-a-licious_test.{d.ts,d.ts.map,js,js.map}",
     "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
