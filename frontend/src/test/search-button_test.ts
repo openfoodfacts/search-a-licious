@@ -22,7 +22,9 @@ suite('searchalicious-button', () => {
         class="search-button"
       >
         <slot>
-        Search
+            <div class="button-content">
+                <searchalicious-icon-search></searchalicious-icon-search>
+            </div>
         </slot>
       </button>
     `

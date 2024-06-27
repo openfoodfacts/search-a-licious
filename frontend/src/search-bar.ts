@@ -232,7 +232,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   }
   override render() {
     return html`
-      <div class="search-bar" part="search-bar">
+      <div class="search-bar" part="wrapper">
         <input
           class="search-input"
           type="text"
