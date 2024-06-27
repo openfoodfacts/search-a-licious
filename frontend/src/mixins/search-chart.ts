@@ -8,6 +8,8 @@ declare const vega: any;
 
 export interface SearchaliciousChartInterface extends LitElement {
   vegaInstalled: Boolean;
+
+  // eslint-disable-next-line
   vegaRepresentation: any;
 
   testVegaInstalled(): void;
@@ -25,6 +27,7 @@ export const SearchaliciousChartMixin = <T extends Constructor<LitElement>>(
     @property({attribute: false})
     vegaInstalled: boolean;
 
+    // eslint-disable-next-line
     constructor(...args: any[]) {
       super(args);
       this.vegaInstalled = this.testVegaInstalled();

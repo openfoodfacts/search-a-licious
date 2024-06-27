@@ -381,9 +381,9 @@ If not provided, `['en']` is used."""
         return self.langs[0] if self.langs else "en"
 
 
-# def _annotation_new_type(type_, annotation):
-#     """Use a new type for a given annotation"""
-#     return Annotated[type_, *annotation.__metadata__]
+def _annotation_new_type(type_, annotation):
+    """Use a new type for a given annotation"""
+    return Annotated[type_, *annotation.__metadata__]
 
 
 # types for search parameters for GET
