@@ -36,7 +36,7 @@ The project is currently composed of several widgets.
 
 ### Layout widgets
 Layout widgets are used to layout the page, they are not mandatory but can be useful.
-It have to not create dependencies with other components.
+It must not create dependencies with other components.
 
 * searchalicious-panel-manager is a component below body to wrap all lit components
   * it allows to have a global variable to store with @lit/context
