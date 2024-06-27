@@ -203,6 +203,10 @@ def build_charts(
     requested_charts: list[ChartType] | None,
 ) -> ChartsInfos:
     charts: ChartsInfos = {}
+
+    if requested_charts is None:
+        return charts
+
     aggregations = search_result.aggregations
 
     for requested_chart in requested_charts:

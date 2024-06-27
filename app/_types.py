@@ -17,13 +17,15 @@ JSONType = dict[str, Any]
 
 class DistributionChartType(BaseModel):
     """Describes an entry for a distribution chart"""
-    chart_type: Literal['DistributionChartType']
+
+    chart_type: Literal["DistributionChartType"]
     field: str
 
 
 class ScatterChartType(BaseModel):
     """Describes an entry for a scatter plot"""
-    chart_type: Literal['ScatterChartType']
+
+    chart_type: Literal["ScatterChartType"]
     x: str
     y: str
 
@@ -339,10 +341,14 @@ If not provided, `['en']` is used."""
     @model_validator(mode="after")
     def check_charts_are_valid(self):
         """Check that the graph names are valid."""
-        print('cheeeeeeeek')
-        errors = check_all_values_are_fields_agg(self.index_id,
-                                                 [chart.field for chart in self.charts
-                                                    if chart.chart_type == 'DistributionChart'])
+        errors = check_all_values_are_fields_agg(
+            self.index_id,
+            [
+                chart.field
+                for chart in self.charts
+                if chart.chart_type == "DistributionChart"
+            ],
+        )
         # TODO check for x and y fields?
         if errors:
             raise ValueError(errors)
@@ -375,9 +381,9 @@ If not provided, `['en']` is used."""
         return self.langs[0] if self.langs else "en"
 
 
-def _annotation_new_type(type_, annotation):
-    """Use a new type for a given annotation"""
-    return Annotated[type_, *annotation.__metadata__]
+# def _annotation_new_type(type_, annotation):
+#     """Use a new type for a given annotation"""
+#     return Annotated[type_, *annotation.__metadata__]
 
 
 # types for search parameters for GET
