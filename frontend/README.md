@@ -116,9 +116,9 @@ The translations are stored in `xliff` files in the `frontend/xliff` directory.
 
 To add a new translation you need to :
 - add `msg` in your code like this https://lit.dev/docs/localization/overview/#message-types
-- run `npm run extract:translations` to extract the new translations
+- run `npm run translations:extract` to extract the new translations
 - add your translation with 'target' tag in the `xliff/<your_language>.xlf` files
-- run `npm run build:translations` to update the translations in the `src/generated/locales/<your_language>.js` file
+- run `npm run translations:build` to update the translations in the `src/generated/locales/<your_language>.js` file
 
 To add a language, you have to add the language code to `targetLocales` in `lit-localize.json`
 
