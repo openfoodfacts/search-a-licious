@@ -29,6 +29,17 @@ from app.validations import check_index_id_is_defined
 logger = get_logger()
 
 
+API_DESCRIPTION = """
+The Search-a-licious API helps you quickly build applications with search capabilities.
+
+You can find the API documentation here.
+
+See also the available [web-components](../static/web-components.html) to build your search interface.
+
+See the [project](https://github.com/openfoodfacts/search-a-licious/) for more information.
+"""
+
+
 app = FastAPI(
     title="search-a-licious API",
     contact={
@@ -40,6 +51,7 @@ app = FastAPI(
         "name": " AGPL-3.0",
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
+    description=API_DESCRIPTION,
 )
 ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS", "http://localhost,http://127.0.0.1"
