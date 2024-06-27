@@ -23,7 +23,7 @@ import {
   SearchaliciousHistoryMixin,
 } from './history';
 import {SearchaliciousChart} from '../search-chart';
-import {canResetSearch} from '../signals';
+import {canResetSearch, isSearchChanged} from '../signals';
 import {SignalWatcher} from '@lit-labs/preact-signals';
 
 export interface SearchParameters extends SortParameters {
@@ -185,6 +185,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
 
     updateSearchSignals() {
       canResetSearch.value = this.canReset;
+      isSearchChanged.value = this.isSearchChanged;
     }
 
     /** list of facets containers */

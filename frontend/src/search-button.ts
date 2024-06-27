@@ -1,7 +1,10 @@
-import {LitElement, html, css} from 'lit';
+import {css, html, LitElement, nothing} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import {searchBarInputAndButtonStyle} from './css/header';
-import {BasicEvents} from './utils/enums';
+import {isSearchChanged} from './signals';
+import {localized, msg} from '@lit/localize';
+import {SignalWatcher} from '@lit-labs/preact-signals';
+import {SearchActionMixin} from './mixins/search-action';
 
 /**
  * An optional search button element that launch the search.
@@ -9,7 +12,10 @@ import {BasicEvents} from './utils/enums';
  * @slot - goes in button contents, default to "Search" string
  */
 @customElement('searchalicious-button')
-export class SearchaliciousButton extends LitElement {
+@localized()
+export class SearchaliciousButton extends SignalWatcher(
+  SearchActionMixin(LitElement)
+) {
   static override styles = [
     searchBarInputAndButtonStyle,
     css`
@@ -22,6 +28,18 @@ export class SearchaliciousButton extends LitElement {
         z-index: 2;
         cursor: pointer;
       }
+
+      .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--searchalicious-button-text-color, white);
+      }
+
+      .button-content span {
+        margin-right: 0.5rem;
+        margin-left: 0.3rem;
+      }
     `,
   ];
 
@@ -33,28 +51,28 @@ export class SearchaliciousButton extends LitElement {
   override render() {
     return html`
       <button
-        @click=${this.dispatchClickEvent}
+        @click=${this._launchSearch}
         @keyup=${this._onKeyUp}
         part="button"
         role="button"
         class="search-button"
       >
-        <slot> Search </slot>
+        <slot>
+          <div class="button-content">
+            <searchalicious-icon-search></searchalicious-icon-search>
+            ${isSearchChanged.value
+              ? html`<span>${msg('Search', {desc: 'Search button'})}</span>`
+              : nothing}
+          </div>
+        </slot>
       </button>
     `;
-  }
-
-  /**
-   * Launch search by emitting the click event.
-   */
-  dispatchClickEvent() {
-    this.dispatchEvent(new CustomEvent(BasicEvents.CLICK));
   }
 
   private _onKeyUp(event: Event) {
     const kbd_event = event as KeyboardEvent;
     if (kbd_event.key === 'Enter') {
-      this.dispatchClickEvent();
+      this._launchSearch();
     }
   }
 }

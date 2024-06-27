@@ -1,4 +1,4 @@
-import {LitElement, html, css, nothing} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
@@ -39,6 +39,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
       .search-bar ul {
         --left-offset: 8px;
         position: absolute;
+        top: 100%;
         left: var(--left-offset);
         background-color: LightYellow;
         border: 1px solid #ccc;
@@ -60,22 +61,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
           --searchalicious-autocomplete-selected-background-color,
           #cfac9e
         );
-      }
-
-      .button-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: var(--searchalicious-button-text-color, white);
-      }
-
-      .button-content span {
-        margin-right: 0.5rem;
-        margin-left: 0.3rem;
-      }
-
-      .input-wrapper {
-        position: relative;
       }
 
       searchalicious-icon-cross {
@@ -230,10 +215,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     this.search();
   }
 
-  onClickSearch() {
-    this.search();
-  }
-
   override connectedCallback() {
     super.connectedCallback();
 
@@ -251,39 +232,21 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   }
   override render() {
     return html`
-      <div class="search-bar" part="wrapper">
-        <div class="input-wrapper" part="input-wrapper">
-          <input
-            class="search-input"
-            type="text"
-            name="q"
-            @input=${this.onInput}
-            @keydown=${this.onKeyDown}
-            @focus="${this.onFocus}"
-            @blur="${this.onBlur}"
-            .value=${this.query}
-            placeholder=${this.placeholder}
-            part="input"
-            autocomplete="off"
-          />
-          ${this.renderSuggestions()}
-        </div>
-        <div>
-          <searchalicious-button
-            :search-name="${this.name}"
-            @click=${this.onClickSearch}
-          >
-            <div class="button-content">
-              <searchalicious-icon-search></searchalicious-icon-search>
-              ${this.showSearchButtonText
-                ? html`<span>${msg('Search', {desc: 'Search button'})}</span>`
-                : nothing}
-            </div>
-          </searchalicious-button>
-        </div>
-        ${this.canReset
-          ? html`<slot name="reset-button" @click=${this.onReset}></slot>`
-          : nothing}
+      <div class="search-bar" part="search-bar">
+        <input
+          class="search-input"
+          type="text"
+          name="q"
+          @input=${this.onInput}
+          @keydown=${this.onKeyDown}
+          @focus="${this.onFocus}"
+          @blur="${this.onBlur}"
+          .value=${this.query}
+          placeholder=${this.placeholder}
+          part="input"
+          autocomplete="off"
+        />
+        ${this.renderSuggestions()}
       </div>
     `;
   }
