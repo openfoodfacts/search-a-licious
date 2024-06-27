@@ -45,7 +45,7 @@ export const SearchaliciousChartMixin = <T extends Constructor<LitElement>>(
         >`;
       }
 
-      return html`<div id="vega-container"></div>`;
+      return html`<div class="white-panel" id="vega-container"></div>`;
     }
 
     testVegaInstalled() {
