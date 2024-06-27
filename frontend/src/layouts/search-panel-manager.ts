@@ -5,6 +5,11 @@ import {SearchaliciousEvents, SideBarState} from '../utils/enums';
 import {provide} from '@lit/context';
 import {EventRegistrationMixin} from '../event-listener-setup';
 
+/**
+ * This component enable sharing state about panels in a central place
+ * 
+ * It must be used if you want to use the searchalicious-layout-page component
+ */
 @customElement('searchalicious-panel-manager')
 export class SearchaliciousPanelManager extends EventRegistrationMixin(
   LitElement
