@@ -20,4 +20,5 @@ export {SearchaliciousIconChart} from './icons/chart';
 export {SearchaliciousChart} from './search-chart';
 export {SearchaliciousSuggestionEntry} from './search-suggestion-entry';
 export {SearchaliciousToggleCharts} from './search-toggle-charts';
+export {SearchaliciousResetButton} from './search-reset-button';
 export {setLocale, getLocale} from './localization/main';

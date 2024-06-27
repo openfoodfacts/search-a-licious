@@ -290,9 +290,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
           </searchalicious-button>
         </div>
         ${this.canReset
-          ? html`<searchalicious-button-transparent @click=${this.onReset}
-              >${msg('Reset')}</searchalicious-button-transparent
-            >`
+          ? html`<slot name="reset-button" @click=${this.onReset}></slot>`
           : nothing}
       </div>
     `;
