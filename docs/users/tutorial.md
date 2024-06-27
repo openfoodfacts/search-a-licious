@@ -361,14 +361,17 @@ That's were Search-a-licious also got you covered.
 
 Search-a-licious provides web components that let you build your search page easily.
 
+### Building a search interface
+
 Let's try it and create a static html page.
 We won't care much about the "look and feel" for now, for sake of simplicity.
 
 A simple way to serve the page, is to add a file in the `frontend/public` folder[^devmode]
 
-
 Let's create a `tutorial.html` file with a very basic initial content:
+
 ```html
+<!DOCTYPE html>
 <html>
 <head>
     <title>Search-a-licious tutorial</title>
@@ -415,8 +418,43 @@ If you know html you should be able to read this quite easily. Let's focus on so
   This is done through the classical `script` element (in `head`),
   but note the `type="module"` property.
 * next we have the `searchalicious-bar` component. This is the central component.
-  Not only will responsible for **TODO:** continue
-
+  Not only will responsible for the input in the search bar,
+  but it also centralize the search options.
+* then we have the `searchalicious-button`, which, as you guessed, is just responsible to launch the search
+  (hitting enter in the search bar also works, but it might be more evident for some users with a button)
+* Sorting is a bit more complex, we have the `searchalicious-sort` component,
+  and inside we added the options we want to offer for sorting.
+  The `field` property takes the same value as you would put in the `sort_by` parameter of the search API,
+  and the inner text will be displayed to the user.
+* To display our results, we need the `serachalicious-results` component.
+  Inside it we need to define a template, with the property `slot` set to `result`.
+  In this template we can use simple variable interpolation
+  as in a [javascript template literal](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals),
+  with the `result` variable containing one search result, as returned by the API.
+  This will be used to display each results.
+  As the results use a `<ul>` element, it's better to enclose your result in a `<li>`.
+* The `searchalicious-count` component will simply display the number of results.
+* Finally the `searchalicious-pages` component is there to display a list of pages.
 
 
 [^devmode]: this only works right away if you are using the service in developer mode, which should be the case if you followed this tutorial. Of course in production, this might be served by your own servers.
+
+### Trying our interface
+
+Let's try to use it !
+
+We can go to `http://localhost:8000/static/tutorial.html` and see our interface.
+
+**FIXME** screen capture
+
+We can type `fair trade` in the search bar, hit the search buttons and see results displayed.
+
+**FIXME** screen capture
+
+We can use the pages navigation to browse all results.
+
+We can also type a more advanced search like `cocoa labels_tags:"en:fair-trade"`
+
+You can also test that sorting by best or worst nutriscore is working just fine !
+
+If you are curious, you can open the dev toolbar (F12),  go in the network tab, select to only view XHR requests (requests sent by javascript), and see how each search is using the search API.
