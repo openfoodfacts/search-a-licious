@@ -12,6 +12,8 @@ export enum SearchaliciousEvents {
   SORT_OPTION_SELECTED = 'searchalicious-sort-option-selected',
   // askin for first search launch is a specific event
   LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
+  // event for opening or closing chart sidebar
+  CHANGE_CHART_SIDEBAR_STATE = 'searchalicious-change-chart-sidebar-state',
   // event for facet selection
   FACET_SELECTED = 'searchalicious-facet-selected',
 }
@@ -30,4 +32,10 @@ export enum BasicEvents {
 export enum QueryOperator {
   AND = ' AND ',
   OR = ' OR ',
+}
+
+export enum SideBarState {
+  OPENED = 'opened',
+  CLOSED = 'closed',
+  EXPANDED = 'expanded',
 }

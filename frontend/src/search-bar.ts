@@ -89,6 +89,11 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
       searchalicious-button-transparent {
         margin-left: 0.5rem;
       }
+
+      .search-input {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
     `,
   ];
 

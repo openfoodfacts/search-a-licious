@@ -1,3 +1,5 @@
+export {SearchaliciousPanelManager} from './layouts/search-panel-manager';
+export {SearchLayoutPage} from './layouts/search-layout-page';
 export {SearchaliciousCheckbox} from './search-checkbox';
 export {SearchaliciousRadio} from './search-radio';
 export {SearchaliciousToggle} from './search-toggle';
@@ -14,6 +16,8 @@ export {SearchaliciousSecondaryButton} from './secondary-button';
 export {SearchaliciousButtonTransparent} from './button-transparent';
 export {SearchaliciousIconCross} from './icons/cross';
 export {SearchaliciousIconSearch} from './icons/search';
+export {SearchaliciousIconChart} from './icons/chart';
 export {SearchaliciousChart} from './search-chart';
 export {SearchaliciousSuggestionEntry} from './search-suggestion-entry';
+export {SearchaliciousToggleCharts} from './search-toggle-charts';
 export {setLocale, getLocale} from './localization/main';

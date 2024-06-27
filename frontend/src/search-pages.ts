@@ -1,4 +1,4 @@
-import {LitElement, html, css} from 'lit';
+import {LitElement, html, css, nothing} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
@@ -24,10 +24,21 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   static override styles = css`
     ul {
       list-style-type: none;
+      padding-left: 0;
+      display: flex;
+      justify-content: center;
     }
     li {
       display: inline-block;
       margin: 0 0.5rem;
+      width: 30px;
+      text-align: center;
+    }
+    li button {
+      width: 100%;
+    }
+    li button:not(:disabled) {
+      cursor: pointer;
     }
     .current button {
       font-weight: bold;
@@ -180,10 +191,10 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
             >
           </li>
           ${this._hasStartEllipsis()
-            ? html` <li part="start-ellipsis">
+            ? html`<li part="start-ellipsis">
                 <slot name="start-ellipsis">…</slot>
               </li>`
-            : ''}
+            : html`<li></li>`}
           ${repeat(
             this._displayPages(),
             (page, _) => html` <li
@@ -194,10 +205,11 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
             </li>`
           )}
           ${this._hasEndEllipsis()
-            ? html` <li part="end-ellipsis">
+            ? html`<li part="end-ellipsis">
                 <slot name="end-ellipsis">…</slot>
               </li>`
-            : ''}
+            : html`<li></li>`}
+
           <li @click=${this._nextPage} part="next">
             <slot name="next"
               ><button ?disabled=${this._isLastPage()}>&gt;</button></slot
@@ -209,7 +221,7 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
                   ><button ?disabled=${this._isLastPage()}>&gt;|</button></slot
                 >
               </li>`
-            : ''}
+            : nothing}
         </ul>
       </nav>
     `;
