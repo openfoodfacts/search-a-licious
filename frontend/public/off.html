@@ -45,14 +45,13 @@
       /* search results styling */
       searchalicious-results::part(results) {
         list-style: none;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
+        display: grid;
+        gap: 5px;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         margin: 0;
         padding: 0;
       }
       searchalicious-results::part(li) {
-        width: calc((100% - 60px)/6);
         margin-bottom: 12px;
         height: auto;
       }
@@ -79,6 +78,7 @@
       }
       searchalicious-results::part(score good) {
         background-color: #219653;
+        height: 20px;
       }
       searchalicious-results::part(infos) {
         border-radius: 8px;
@@ -120,6 +120,23 @@
       }
       searchalicious-sort::part(options) {
         border: solid #cfac9e 1px;
+      }
+
+      .block_ristreto {
+        padding-left: 20%;
+        padding-right: 1rem;
+      }
+
+      .filterProducts, .filterProducts__buttons {
+        width: 100%;
+      }
+
+      .block_ristreto .end-block {
+        margin-left: auto;
+        /*position: absolute;*/
+        /*right: 1rem;*/
+        /*top: 50%;*/
+        /*transform: translateY(-50%);*/
       }
     </style>
     <script lang="javascript">
@@ -234,11 +251,13 @@
     </script>
   </head>
   <body class="products_page">
+  <searchalicious-panel-manager>
+
     <div id="page">
       <div id="main_container" style="position: relative" class="block_latte">
         <div
-          class="topbarsticky"
-          style="position: static; left: auto; width: 1496px"
+                class="topbarsticky"
+                style="position: static; left: auto; width: 1496px"
         >
           <div class="contain-to-grid" id="offNav">
             <nav class="top-bar" data-topbar="" role="navigation">
@@ -247,17 +266,17 @@
                   <div style="position: relative; max-width: 292px">
                     <a href="/">
                       <img
-                        id="logo"
-                        src="https://static.openfoodfacts.org/images/logos/off-logo-horizontal-light.svg"
-                        alt="Open Food Facts logo"
-                        style="margin: 8px; height: 48px; width: auto"
+                              alt="Open Food Facts logo"
+                              id="logo"
+                              src="https://static.openfoodfacts.org/images/logos/off-logo-horizontal-light.svg"
+                              style="margin: 8px; height: 48px; width: auto"
                       />
                     </a>
                   </div>
                 </li>
               </ul>
               <section class="top-bar-section">
-                <ul class="left small-4" style="margin-right: 2rem">
+                <ul class="left" style="margin-right: 2rem">
                   <li class="search-li">
                     <searchalicious-bar name="off" page-size="24" suggestions="brand,category"></searchalicious-bar>
                   </li>
@@ -274,8 +293,8 @@
             <div class="main block_light">
               <div id="main_column">
                 <div class="block short block_ristreto">
-                  <div class="row">
-                    <div class="small-12 columns filterProducts">
+                  <div class="">
+                    <div class="small-12 filterProducts">
                       <div class="filterProducts__buttons">
                         <div>
                           <searchalicious-count search-name="off"></searchalicious-count>
@@ -283,20 +302,32 @@
                         <div>
                           <searchalicious-sort search-name="off" auto-refresh>
                             <span slot="label">Sort by ▿</span>
-                            <searchalicious-sort-field field="-unique_scans_n">Most scanned products</searchalicious-sort-field>
-                            <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score</searchalicious-sort-field>
-                            <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score</searchalicious-sort-field>
-                            <searchalicious-sort-field field="-created_t">Recently added products</searchalicious-sort-field>
-                            <searchalicious-sort-field field="-last_modified_t">Recently modified products</searchalicious-sort-field>
-                            <searchalicious-sort-script script="-personal_score" parameters="local:off_preferences">Personal preferences</searchalicious-sort-script>
-                          </searchalicious-sort>  
+                            <searchalicious-sort-field field="-unique_scans_n">Most scanned products
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-field field="-created_t">Recently added products
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-field field="-last_modified_t">Recently modified products
+                            </searchalicious-sort-field>
+                            <searchalicious-sort-script parameters="local:off_preferences" script="-personal_score">
+                              Personal preferences
+                            </searchalicious-sort-script>
+                          </searchalicious-sort>
+                        </div>
+
+                        <div class="end-block">
+                          <searchalicious-toggle-charts></searchalicious-toggle-charts>
                         </div>
                       </div>
-                    </div></a>
+                    </div>
                   </div>
+
                 </div>
-                <div class="row" style="padding-top: 1rem">
-                  <div class="large-2 columns">
+                <searchalicious-layout-page>
+                  <div slot="col-1">
                     <!-- A form to input user preferences, to showcase personal sort -->
                     <div id="preferences_config_toggle">
                       <a onclick="return togglePreferences(true)">Define my preferences</a>
@@ -322,39 +353,39 @@
                           <option value="1">important</option>
                           <option value="2">very important</option>
                         </select>
-                        <button type="submit" >Configure</button>
+                        <button type="submit">Configure</button>
                       </form>
                     </div>
                     <searchalicious-facets search-name="off">
                       <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="categories_tags" show-other="true"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="nutrition_grades"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms  name="ecoscore_grade"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms name="categories_tags" show-other="true"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms name="nutrition_grades"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms name="ecoscore_grade"></searchalicious-facet-terms>
                     </searchalicious-facets>
                   </div>
-                  <div class="large-8 columns">
+                  <div slot="col-2">
                     <div id="search_results" style="clear: left">
                       <div id="products_tabs_content" class="tabs-content">
-                        <div class="tabs content active" id="products_all">
+                        <div class="tabs content active" id="products_all" style="padding-top: 0">
                           <searchalicious-results class="off-search-results" search-name="off" search-id="code">
                             <!-- template for each result -->
                             <template slot="result" style="display: none">
                               <li data-code="${result.code}" part="li">
                                 <a
-                                  href="https://world.openfoodfacts.org/product/${result.code}"
-                                  part="outer_anchor"
+                                        href="https://world.openfoodfacts.org/product/${result.code}"
+                                        part="outer_anchor"
                                 >
                                   <div
-                                    part="score good"
+                                          part="score good"
                                   >
-                                    ${result.score || "unknown"}
+                                    ${result.score ?? ""}
                                   </div>
                                   <div part="infos">
                                     <div part="image-div">
                                       <img
-                                        src="${result.image_small_url}"
-                                        loading="lazy"
-                                        part="image"
+                                              loading="lazy"
+                                              part="image"
+                                              src="${result.image_small_url}"
                                       />
                                     </div>
                                     <div part="product-name">
@@ -362,14 +393,14 @@
                                     </div>
                                     <div part="scores">
                                       <img
-                                        src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-${result.ecoscore_grade}.svg"
-                                        loading="lazy"
-                                        part="scores logo ecoscore"
+                                              loading="lazy"
+                                              part="scores logo ecoscore"
+                                              src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-${result.ecoscore_grade}.svg"
                                       />
                                       <img
-                                        src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-${result.nutriscore_grade ? result.nutriscore_grade : 'unknown'}.svg"
-                                        loading="lazy"
-                                        part="scores logo nutriscore"
+                                              loading="lazy"
+                                              part="scores logo nutriscore"
+                                              src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-${result.nutriscore_grade ? result.nutriscore_grade : 'unknown'}.svg"
                                       />
                                     </div>
                                   </div>
@@ -385,20 +416,24 @@
                       </searchalicious-pages>
                     </div>
                   </div>
-                  <div class="large-2 columns">
+                  <div slot="col-3">
+                    <!-- Graphs inside -->
                     <searchalicious-distribution-chart search-name="off" name="nutrition_grades"'></searchalicious-distribution-chart>
                     <searchalicious-distribution-chart search-name="off" name="ecoscore_grade"></searchalicious-distribution-chart>
                     <searchalicious-distribution-chart search-name="off" name="nova_groups"></searchalicious-distribution-chart>
                     <searchalicious-scatter-chart search-name="off" x="nutriscore_score" y="nutriments.fiber_100g"></searchalicious-scatter-chart>
                   </div>
-                </div>
+                </searchalicious-layout-page>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <script src="https://static.openfoodfacts.org/js/dist/modernizr.js"></script>
+    </div>
+  </searchalicious-panel-manager>
+
+  <script src="https://static.openfoodfacts.org/js/dist/modernizr.js"></script>
     <script src="https://static.openfoodfacts.org/js/dist/jquery.js"></script>
     <script src="https://static.openfoodfacts.org/js/dist/jquery-ui.js"></script>
     <script src="https://static.openfoodfacts.org/js/dist/hc-sticky.js"></script>
@@ -426,6 +461,7 @@
         },
       });
     </script>
+
   </body>
   <style type="text/css">
     /*
@@ -542,6 +578,10 @@
       border-bottom: 1px solid lightgrey;
     }
 
+    #main_column {
+      padding-bottom: 0;
+    }
+
     /* Special background color for all input fieds */
     textarea,
     .tagify,
@@ -599,5 +639,6 @@
       margin-top: 0;
       padding-top: 0;
     }
+
   </style>
 </html>

@@ -40,7 +40,9 @@ export const SearchaliciousChartMixin = <T extends Constructor<LitElement>>(
       }
 
       if (this.vegaRepresentation === undefined) {
-        return html`<slot name="no-data"><p>no data</p></slot>`;
+        return html`<slot class="white-panel" name="no-data"
+          ><p>no data</p></slot
+        >`;
       }
 
       return html`<div id="vega-container"></div>`;

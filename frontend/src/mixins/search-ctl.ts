@@ -22,7 +22,7 @@ import {
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
-import {SearchaliciousChartInterface} from './search-chart';
+// import {SearchaliciousChartInterface} from './search-chart';
 
 export interface SearchParameters extends SortParameters {
   q: string;

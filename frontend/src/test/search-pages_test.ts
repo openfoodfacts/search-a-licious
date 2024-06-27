@@ -69,6 +69,7 @@ suite('searchalicious-pages', () => {
               </button>
             </slot>
           </li>
+          <li></li>
           <li
             class="current"
             part="current-page"

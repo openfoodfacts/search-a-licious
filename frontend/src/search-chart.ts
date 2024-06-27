@@ -6,10 +6,16 @@ import {SearchaliciousChartMixin} from './mixins/search-chart';
 
 import {SearchResultEvent} from './events';
 
+import {WHITE_PANEL_STYLE} from './styles';
+
 @customElement('searchalicious-distribution-chart')
 export class SearchaliciousDistributionChart extends SearchaliciousResultCtlMixin(
   SearchaliciousChartMixin(LitElement)
 ) {
+  static override styles = [WHITE_PANEL_STYLE];
+
+  // All these properties will change when vega logic
+  // will be moved in API.
   @property()
   name = '';
 
@@ -33,6 +39,8 @@ export class SearchaliciousDistributionChart extends SearchaliciousResultCtlMixi
 export class SearchaliciousScatterChart extends SearchaliciousResultCtlMixin(
   SearchaliciousChartMixin(LitElement)
 ) {
+  static override styles = [WHITE_PANEL_STYLE];
+
   @property()
   x = '';
 
