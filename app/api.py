@@ -4,10 +4,11 @@ from pathlib import Path
 from typing import Annotated, Any, cast
 
 import elasticsearch
+import starlette.status as status
 from elasticsearch_dsl import Search
 from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
@@ -199,6 +200,11 @@ def taxonomy_autocomplete(
 
 
 @app.get("/", response_class=HTMLResponse)
+def off_demo():
+    return RedirectResponse(url="/static/off.html", status_code=status.HTTP_302_FOUND)
+
+
+@app.get("/off-test", response_class=HTMLResponse)
 def html_search(
     request: Request,
     q: str | None = None,
