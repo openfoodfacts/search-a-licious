@@ -3,8 +3,8 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
 import {SearchaliciousEvents} from './utils/enums';
-import {SearchResultEvent} from './events';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
+import {SearchResultDetail} from './signals';
 
 // small utility to have a range
 // inspired from https://stackoverflow.com/a/44957114/2886726
@@ -64,18 +64,6 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   displayedPages = 5;
 
   /**
-   * Number of pages in current search
-   */
-  @state()
-  _pageCount?: number;
-
-  /**
-   * Current displayed page number
-   */
-  @state()
-  _currentPage?: number;
-
-  /**
    * the first page to be displayed as a number
    */
   @state()
@@ -101,19 +89,23 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
    */
   beforeSearch = html``;
 
+  override connectedCallback() {
+    super.connectedCallback();
+
+    this.searchResultDetailSignal.subscribe((searchResultDetail) => {
+      this.handleResults(searchResultDetail);
+    });
+  }
+
   /**
    * Update state on search received
    */
-  override handleResults(event: SearchResultEvent) {
-    const detail = event.detail;
-    this.searchLaunched = true;
-    this._pageCount = detail.pageCount;
-    this._currentPage = detail.currentPage;
+  handleResults(searchResultDetail: SearchResultDetail) {
     [this._startRange, this._endRange] = this._computeRange(
-      this._currentPage,
-      this._pageCount
+      searchResultDetail.currentPage,
+      searchResultDetail.pageCount
     );
-    this.requestUpdate();
+    // this.requestUpdate();
   }
 
   /**
@@ -134,27 +126,30 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
     return [start, end];
   }
 
-  _isFirstPage() {
-    return !!(this._currentPage && this._currentPage === 1);
-  }
-  _isLastPage() {
-    return !!(
-      this._currentPage &&
-      this._pageCount &&
-      this._currentPage >= this._pageCount
+  get _isFirstPage() {
+    return Boolean(
+      this.searchResultDetail.currentPage &&
+        this.searchResultDetail.currentPage === 1
     );
   }
-  _hasStartEllipsis() {
+  get _isLastPage() {
+    return Boolean(
+      this.searchResultDetail.currentPage &&
+        this.searchResultDetail.pageCount &&
+        this.searchResultDetail.currentPage >= this.searchResultDetail.pageCount
+    );
+  }
+  get _hasStartEllipsis() {
     return !!(this._startRange && this._startRange > 1);
   }
-  _hasEndEllipsis() {
+  get _hasEndEllipsis() {
     return !!(
       this._endRange &&
-      this._pageCount &&
-      this._endRange < this._pageCount
+      this.searchResultDetail.pageCount &&
+      this._endRange < this.searchResultDetail.pageCount
     );
   }
-  _displayPages() {
+  get _displayPages() {
     if (!this._startRange || !this._endRange) {
       return [];
     }
@@ -162,9 +157,9 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   }
 
   override render() {
-    if (this._pageCount) {
+    if (this.searchResultDetail.pageCount) {
       return this.renderPagination();
-    } else if (this.searchLaunched) {
+    } else if (this.searchResultDetail.isSearchLaunch) {
       return html`<slot name="no-results">${this.noResults}</slot>`;
     } else {
       return html`<slot name="before-search">${this.beforeSearch}</slot>`;
@@ -181,30 +176,34 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
           ${this.displayFirst
             ? html` <li @click=${this._firstPage} part="first">
                 <slot name="first"
-                  ><button ?disabled=${this._isFirstPage()}>|&lt;</button></slot
+                  ><button ?disabled=${this._isFirstPage}>|&lt;</button></slot
                 >
               </li>`
             : ''}
           <li @click=${this._prevPage} part="previous">
             <slot name="previous"
-              ><button ?disabled=${this._isFirstPage()}>&lt;</button></slot
+              ><button ?disabled=${this._isFirstPage}>&lt;</button></slot
             >
           </li>
-          ${this._hasStartEllipsis()
+          ${this._hasStartEllipsis
             ? html`<li part="start-ellipsis">
                 <slot name="start-ellipsis">…</slot>
               </li>`
             : html`<li></li>`}
           ${repeat(
-            this._displayPages(),
+            this._displayPages,
             (page, _) => html` <li
-              class="${page === this._currentPage! ? 'current' : ''}"
-              part="${page === this._currentPage! ? 'current-' : ''}page"
+              class="${page === this.searchResultDetail.currentPage!
+                ? 'current'
+                : ''}"
+              part="${page === this.searchResultDetail.currentPage!
+                ? 'current-'
+                : ''}page"
             >
               <button @click=${() => this._askPageChange(page)}>${page}</button>
             </li>`
           )}
-          ${this._hasEndEllipsis()
+          ${this._hasEndEllipsis
             ? html`<li part="end-ellipsis">
                 <slot name="end-ellipsis">…</slot>
               </li>`
@@ -212,13 +211,13 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
 
           <li @click=${this._nextPage} part="next">
             <slot name="next"
-              ><button ?disabled=${this._isLastPage()}>&gt;</button></slot
+              ><button ?disabled=${this._isLastPage}>&gt;</button></slot
             >
           </li>
           ${this.displayLast
             ? html` <li @click=${this._lastPage} part="last">
                 <slot name="last"
-                  ><button ?disabled=${this._isLastPage()}>&gt;|</button></slot
+                  ><button ?disabled=${this._isLastPage}>&gt;|</button></slot
                 >
               </li>`
             : nothing}
@@ -232,22 +231,27 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   }
 
   _lastPage() {
-    this._askPageChange(this._pageCount!);
+    this._askPageChange(this.searchResultDetail.pageCount!);
   }
 
   _prevPage() {
-    this._askPageChange(Math.max(1, this._currentPage! - 1));
+    this._askPageChange(Math.max(1, this.searchResultDetail.currentPage! - 1));
   }
 
   _nextPage() {
-    this._askPageChange(Math.min(this._currentPage! + 1, this._pageCount!));
+    this._askPageChange(
+      Math.min(
+        this.searchResultDetail.currentPage! + 1,
+        this.searchResultDetail.pageCount!
+      )
+    );
   }
 
   /**
    * Request a page change
    */
   _askPageChange(page: number) {
-    if (page !== this._currentPage) {
+    if (page !== this.searchResultDetail.currentPage) {
       this.dispatchEvent(
         new CustomEvent(SearchaliciousEvents.CHANGE_PAGE, {
           detail: {

@@ -1,9 +1,8 @@
 import {SearchaliciousPages} from '../search-pages';
-import {SearchaliciousEvents} from '../utils/enums';
-import {SearchResultDetail, SearchResultEvent} from '../events';
 
 import {fixture, assert} from '@open-wc/testing';
 import {html} from 'lit/static-html.js';
+import {getDefaultSearchResultDetail, searchResultDetail} from '../signals';
 import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 
 suite('searchalicious-pages', () => {
@@ -13,8 +12,7 @@ suite('searchalicious-pages', () => {
     currentPage: number,
     pageCount: number
   ) => {
-    const detail: SearchResultDetail = {
-      searchName: DEFAULT_SEARCH_NAME,
+    el.searchResultDetailSignal.value = {
       results: [], // we don't really care
       count: Math.ceil(pageCount / 10),
       pageCount: pageCount,
@@ -22,15 +20,18 @@ suite('searchalicious-pages', () => {
       pageSize: 10,
       facets: {},
       charts: {},
+      displayTime: 0,
+      isCountExact: true,
+      isSearchLaunch: true,
     };
-    el._handleResults(
-      new CustomEvent(SearchaliciousEvents.NEW_RESULT, {
-        bubbles: true,
-        composed: true,
-        detail: detail,
-      }) as SearchResultEvent
-    );
   };
+
+  beforeEach(() => {
+    // reset signal to default value
+    searchResultDetail(DEFAULT_SEARCH_NAME).value =
+      getDefaultSearchResultDetail();
+  });
+
   // render pagination as txt
   const asTxt = (el: SearchaliciousPages) =>
     el.shadowRoot!.textContent!.replace(/\s+/g, ' ').trim();
@@ -45,12 +46,12 @@ suite('searchalicious-pages', () => {
       html`<searchalicious-pages></searchalicious-pages>`
     )) as SearchaliciousPages;
     // empty at first
-    assert.equal(el.searchLaunched, false);
+    assert.equal(el.searchResultDetail.isSearchLaunch, false);
     assert.shadowDom.equal(el, '<slot name="before-search"></slot>');
     // emit search result
     emitSearchResult(el, 1, 100);
     await el.updateComplete;
-    assert.equal(el.searchLaunched, true);
+    assert.equal(el.searchResultDetail.isSearchLaunch, true);
     assert.shadowDom.equal(
       el,
       `
@@ -124,14 +125,19 @@ suite('searchalicious-pages', () => {
     // emit an empty search result
     emitSearchResult(el, 1, 0);
     await el.updateComplete;
-    assert.equal(el.searchLaunched, true);
-    assert.deepEqual(el._pageCount, 0);
+    assert.equal(el.searchResultDetail.isSearchLaunch, true);
+    assert.deepEqual(el.searchResultDetail.pageCount, 0);
     assert.shadowDom.equal(el, '<slot name="no-results"></slot>');
   });
   test('render with specific before search', async () => {
     const el = (await fixture(html`<searchalicious-pages>
       <p slot="before-search">No pages yet !</p>
     </searchalicious-pages>`)) as SearchaliciousPages;
+    console.log(
+      'el.searchResultDetail.isSearchLaunch :',
+      el.searchResultDetail.isSearchLaunch
+    );
+    console.log('blah blah');
     assert.shadowDom.equal(el, `<slot name="before-search"></slot>`);
   });
   test('render with specific no results', async () => {
@@ -148,33 +154,33 @@ suite('searchalicious-pages', () => {
     </searchalicious-pages>`)) as SearchaliciousPages;
     emitSearchResult(el, 1, 100);
     await el.updateComplete;
-    assert.isOk(el._isFirstPage());
-    assert.isNotOk(el._isLastPage());
+    assert.isOk(el._isFirstPage);
+    assert.isNotOk(el._isLastPage);
     assert.equal(asTxt(el), '|< < 1 2 3 4 5 … > >|');
     emitSearchResult(el, 2, 100);
     await el.updateComplete;
-    assert.isNotOk(el._isFirstPage());
-    assert.isNotOk(el._isLastPage());
+    assert.isNotOk(el._isFirstPage);
+    assert.isNotOk(el._isLastPage);
     assert.equal(asTxt(el), '|< < 1 2 3 4 5 … > >|');
     emitSearchResult(el, 3, 100);
     await el.updateComplete;
-    assert.isNotOk(el._isFirstPage());
-    assert.isNotOk(el._isLastPage());
+    assert.isNotOk(el._isFirstPage);
+    assert.isNotOk(el._isLastPage);
     assert.equal(asTxt(el), '|< < … 2 3 4 5 6 … > >|');
     emitSearchResult(el, 25, 100);
     await el.updateComplete;
-    assert.isNotOk(el._isFirstPage());
-    assert.isNotOk(el._isLastPage());
+    assert.isNotOk(el._isFirstPage);
+    assert.isNotOk(el._isLastPage);
     assert.equal(asTxt(el), '|< < … 24 25 26 27 28 … > >|');
     emitSearchResult(el, 98, 100);
     await el.updateComplete;
-    assert.isNotOk(el._isFirstPage());
-    assert.isNotOk(el._isLastPage());
+    assert.isNotOk(el._isFirstPage);
+    assert.isNotOk(el._isLastPage);
     assert.equal(asTxt(el), '|< < … 96 97 98 99 100 > >|');
     emitSearchResult(el, 100, 100);
     await el.updateComplete;
-    assert.isNotOk(el._isFirstPage());
-    assert.isOk(el._isLastPage());
+    assert.isNotOk(el._isFirstPage);
+    assert.isOk(el._isLastPage);
     assert.equal(asTxt(el), '|< < … 96 97 98 99 100 > >|');
   });
   test('test render pages different displayedPages is 1', async () => {
