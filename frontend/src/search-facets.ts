@@ -11,6 +11,7 @@ import {FACET_TERM_OTHER} from './utils/constants';
 import {QueryOperator, SearchaliciousEvents} from './utils/enums';
 import {getPluralTranslation} from './localization/translations';
 import {msg, localized} from '@lit/localize';
+import {WHITE_PANEL_STYLE} from './styles';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -44,8 +45,8 @@ function stringGuard(s: string | undefined): s is string {
  *
  * It must contains a SearchaliciousFacet component for each facet we want to display.
  */
-@localized()
 @customElement('searchalicious-facets')
+@localized()
 export class SearchaliciousFacets extends SearchActionMixin(
   SearchaliciousResultCtlMixin(LitElement)
 ) {
@@ -228,25 +229,33 @@ export class SearchaliciousFacet extends LitElement {
 export class SearchaliciousTermsFacet extends SearchActionMixin(
   SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
 ) {
-  static override styles = css`
-    fieldset {
-      margin-top: 1rem;
-    }
-    .button {
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .legend-wrapper {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      max-width: 100%;
-    }
-    [part='button-transparent'] {
-      --button-transparent-padding: 0.5rem 1rem;
-    }
-  `;
+  static override styles = [
+    WHITE_PANEL_STYLE,
+    css`
+      fieldset {
+        margin-top: 1rem;
+        border: none;
+      }
+      .button {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .legend-wrapper {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        max-width: 100%;
+      }
+      [part='button-transparent'] {
+        --button-transparent-padding: 0.5rem 1rem;
+      }
+      .add-term {
+        display: flex;
+        flex-direction: column;
+      }
+    `,
+  ];
 
   @property({
     attribute: false,
@@ -437,7 +446,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     ) as FacetTerm[];
 
     return html`
-      <fieldset name=${this.name}>
+      <fieldset name=${this.name} class="white-panel">
         <!-- FIXME: translate -->
         <div class="legend-wrapper">
           <!-- Allow to customize the legend -->

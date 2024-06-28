@@ -37,6 +37,15 @@ The project is currently composed of several widgets.
   * it will influence the search adding filters
 * **searchalicious-chart** renders vega chart, currently only for distribution. Requires [vega](https://vega.github.io/).
 
+### Layout widgets
+Layout widgets are used to layout the page, they are not mandatory but can be useful.
+It must not create dependencies with other components.
+
+* searchalicious-panel-manager is a component below body to wrap all lit components
+  * it allows to have a global variable to store with @lit/context
+* searchalicious-layout-page is a component to layout the page
+  * it allows to handle sidebars
+
 **IMPORTANT:**
 You can give a specific `name` attribute to your search bar.
 Then all other component that needs to connect with this search must use the same value in `search-name` attribute.
@@ -74,6 +83,8 @@ This enables supporting multiple searches in the same page
     * it can be used to delete actions
 * **searchalicious-suggestion-entry** is a suggestion entry
     * it can be used to display a suggestion in searchalicious-bar
+* searchalicious-chart-icon is a chart icon
+    * it can be used to display a chart icon in toggle-charts
 
 
 ## Explanation on code structure

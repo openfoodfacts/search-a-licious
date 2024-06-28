@@ -9,9 +9,10 @@
   "type": "module",
   "scripts": {
     "//build": "echo 'compile typescript files'",
-    "build": "npm run translations:build && tsc && npm run analyze",
+    "build": "npm run translations:build && tsc && npm run analyze && npm run translations:copy",
     "build:watch": "npm run translations:build && tsc --watch",
     "translations:build": "lit-localize build",
+    "translations:copy": "cp -r public/dist/localization/generated public/generated",
     "translations:extract": "lit-localize extract",
     "clean": "rimraf search-a-licious.{d.ts,d.ts.map,js,js.map} test/search-a-licious.{d.ts,d.ts.map,js,js.map} test/search-a-licious_test.{d.ts,d.ts.map,js,js.map}",
     "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
@@ -43,6 +44,7 @@
   "author": "Open Food Facts",
   "license": "BSD-3-Clause",
   "dependencies": {
+    "@lit/context": "^1.1.2",
     "@lit/localize": "^0.12.1",
     "lit": "^3.0.0"
   },
@@ -63,13 +65,13 @@
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "eslint": "^8.15.0",
     "lit-analyzer": "^2.0.3",
+    "minimist": "^1.2.8",
     "prettier": "^2.6.2",
     "rimraf": "^3.0.2",
     "rollup": "^2.73.0",
     "rollup-plugin-summary": "^1.4.3",
     "rollup-plugin-terser": "^7.0.2",
-    "typescript": "~5.3.3",
-    "minimist": "^1.2.8"
+    "typescript": "~5.3.3"
   },
   "customElements": "custom-elements.json"
 }

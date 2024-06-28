@@ -4,6 +4,7 @@ import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 
 import {SearchResultEvent} from './events';
+import {WHITE_PANEL_STYLE} from './styles';
 
 // eslint-disable-next-line
 declare const vega: any;
@@ -12,6 +13,8 @@ declare const vega: any;
 export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
+  static override styles = [WHITE_PANEL_STYLE];
+
   // All these properties will change when vega logic
   // will be moved in API.
   @property()
@@ -33,7 +36,7 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     return this.name;
   }
 
-  override render() {
+  renderChart() {
     if (!this.vegaInstalled) {
       return html`<p>Please install vega to use searchalicious-chart</p>`;
     }
@@ -45,11 +48,10 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     return html`<div id="${this.name!}"></div>`;
   }
 
-  // Computes the vega representation for given results
-  // The logic will be partially moved in API in a following
-  // PR.
-  // Vega function assumes that rendered had been previously
-  // called.
+  override render() {
+    return html` <div class="white-panel">${this.renderChart()}</div>`;
+  }
+
   override handleResults(event: SearchResultEvent) {
     if (event.detail.results.length === 0 || !this.vegaInstalled) {
       this.vegaRepresentation = undefined;
