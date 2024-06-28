@@ -22,6 +22,8 @@ import {
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
+import { SearchaliciousDistributionChart, SearchaliciousScatterChart } from '../search-chart';
+import { ChartSearchParam } from './search-chart';
 // import {SearchaliciousChartInterface} from './search-chart';
 
 export interface SearchParameters extends SortParameters {
@@ -32,7 +34,7 @@ export interface SearchParameters extends SortParameters {
   index_id?: string;
   facets?: string[];
   params?: string[];
-  charts?: object[];
+  charts?: string | ChartSearchParam[]
 }
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface,
@@ -55,19 +57,6 @@ export interface SearchaliciousSearchInterface
   selectTermByTaxonomy(taxonomy: string, term: string): void;
 }
 
-// We should not use GET if other params than those are present in the search request
-const supportedGETParams = new Set([
-  'q',
-  'langs',
-  'page_size',
-  'page',
-  'fields',
-  'sort_by',
-  'facets',
-  'index_id',
-]);
-
-// name of search params as an array (to ease iteration)
 
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
@@ -260,35 +249,31 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
-     * Get the list of charts we want to request
+     * Get the list of charts params we want to request
      */
-    _charts(): object[] | undefined {
-      const distributionCharts = Array.from(
-        document.querySelectorAll(
+    _chartParams(isGetRequest: boolean): ChartSearchParam[] | string | undefined {
+      const chartsParams: ChartSearchParam[] = []
+
+      document.querySelectorAll(
           `searchalicious-distribution-chart[search-name=${this.name}]`
-        )
-      ).map((node) => ({
-        chart_type: 'DistributionChartType',
-        // @ts-ignore
-        field: node.name,
-      }));
+      ).forEach(item => {
+        const chartItem = item as SearchaliciousDistributionChart;
+        chartsParams.push(chartItem.getSearchParam(isGetRequest));
+      });
 
-      const scatterCharts = Array.from(
-        document.querySelectorAll(
-          `searchalicious-scatter-chart[search-name=${this.name}]`
-        )
-      ).map((node) => ({
-        chart_type: 'ScatterChartType',
-        // @ts-ignore
-        x: node.x,
-        // @ts-ignore
-        y: node.y,
-      }));
+      document.querySelectorAll(
+        `searchalicious-scatter-chart[search-name=${this.name}]`
+      ).forEach(item => {
+        const chartItem = item as SearchaliciousScatterChart;
+        chartsParams.push(chartItem.getSearchParam(isGetRequest));
+      });
 
-      if (distributionCharts.length === 0 && scatterCharts.length === 0)
+      if (chartsParams.length === 0)
         return undefined;
-      // @ts-ignore
-      return distributionCharts.concat(scatterCharts);
+
+      if (isGetRequest) return chartsParams.join(',')
+
+      return chartsParams;
     }
 
     /**
@@ -314,11 +299,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
-      const params = this.buildParams(page);
+      const { params, needsPOST } = this.buildParams(page);
       // we needs a POST if a parameter is not supported by GET
-      const needsPOST =
-        Object.keys(params).filter((key) => !supportedGETParams.has(key))
-          .length > 0;
       const history = this.buildHistoryParams(params);
       // remove empty values from params
       // (do this after buildHistoryParams to be sure to have all parameters)
@@ -417,7 +399,10 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Build the params to send to the search API
      * @param page
      */
-    buildParams = (page?: number): SearchParameters => {
+    buildParams = (page?: number)  => {
+
+      let needsPOST = false;
+
       const queryParts = [];
       this.lastQuery = this.query;
       if (this.query) {
@@ -440,7 +425,12 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       // sorting parameters
       const sortElement = this._sortElement();
       if (sortElement) {
-        Object.assign(params, sortElement.getSortParameters());
+        const sortParameters = sortElement.getSortParameters();
+        if (sortParameters) {
+          console.log('sort parameters', sortParameters)
+          needsPOST = true;
+          Object.assign(params, sortParameters);
+        }
       }
       // page
       if (page) {
@@ -450,8 +440,12 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (this._facets().length > 0) {
         params.facets = this._facets();
       }
-      params.charts = this._charts();
-      return params;
+
+      const charts = this._chartParams(!needsPOST);
+      if (charts) {
+        params.charts = charts;
+      }
+      return { params, needsPOST };
     };
 
     /**

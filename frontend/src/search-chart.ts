@@ -17,10 +17,19 @@ export class SearchaliciousDistributionChart extends SearchaliciousResultCtlMixi
   // All these properties will change when vega logic
   // will be moved in API.
   @property()
-  name = '';
+  field = '';
 
   override getName() {
-    return this.name;
+    return this.field;
+  }
+
+  getSearchParam(isGetRequest: boolean) {
+    if (isGetRequest) return this.field;
+    else
+      return {
+        chart_type: 'DistributionChartType',
+        field: this.field
+      };
   }
 
   // Vega function assumes that rendered had been previously
@@ -49,6 +58,17 @@ export class SearchaliciousScatterChart extends SearchaliciousResultCtlMixin(
 
   override getName() {
     return `${this.x}:${this.y}`;
+  }
+
+  getSearchParam(isGetRequest: boolean) {
+      if (isGetRequest)
+        return `${this.x}:${this.y}`;
+      else
+        return {
+          chart_type: 'ScatterChartType',
+          x: this.x,
+          y: this.y
+        };
   }
 
   // Vega function assumes that rendered had been previously

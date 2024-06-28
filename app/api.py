@@ -19,6 +19,8 @@ from app._types import (
     SearchParameters,
     SearchResponse,
     SuccessSearchResponse,
+    ScatterChartType,
+    DistributionChartType,
 )
 from app.config import check_config_is_defined, settings
 from app.postprocessing import process_taxonomy_completion_response
@@ -94,6 +96,23 @@ def search(search_parameters: Annotated[SearchParameters, Body()]):
     return app_search.search(search_parameters)
 
 
+def parse_charts_get(charts_params: str):
+    """
+    Parse for get params are 'field' or 'xfield:yfield'
+    separated by ',' for Distribution and Scatter charts.
+
+    Directly the dictionnaries in POST request
+    """
+    charts = []
+    for c in charts_params.split(','):
+        if ':' in c:
+            [x, y] = c.split(':')
+            charts.append(ScatterChartType(x=x, y=y))
+        else:
+            charts.append(DistributionChartType(field=c))
+    return charts
+
+
 @app.get("/search")
 def search_get(
     q: GetSearchParamsTypes.q = None,
@@ -103,13 +122,15 @@ def search_get(
     fields: GetSearchParamsTypes.fields = None,
     sort_by: GetSearchParamsTypes.sort_by = None,
     facets: GetSearchParamsTypes.facets = None,
+    charts: GetSearchParamsTypes.facets = None,
     index_id: GetSearchParamsTypes.index_id = None,
 ) -> SearchResponse:
     # str to lists
     langs_list = langs.split(",") if langs else ["en"]
     fields_list = fields.split(",") if fields else None
     facets_list = facets.split(",") if facets else None
-
+    charts = parse_charts_get(charts) if charts else None
+    print(charts)
     # create SearchParameters object
     try:
         search_parameters = SearchParameters(
@@ -121,6 +142,7 @@ def search_get(
             sort_by=sort_by,
             facets=facets_list,
             index_id=index_id,
+            charts=charts
         )
         return app_search.search(search_parameters)
     except ValidationError as e:

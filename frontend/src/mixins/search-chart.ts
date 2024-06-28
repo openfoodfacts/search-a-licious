@@ -6,6 +6,16 @@ import {Constructor} from './utils';
 // eslint-disable-next-line
 declare const vega: any;
 
+interface ChartSearchParamPOST {
+  chart_type: string,
+  field?: string,
+  x?: string,
+  y?: string
+}
+
+export type ChartSearchParam = ChartSearchParamPOST | string;
+
+
 export interface SearchaliciousChartInterface extends LitElement {
   vegaInstalled: Boolean;
 
@@ -33,8 +43,19 @@ export const SearchaliciousChartMixin = <T extends Constructor<LitElement>>(
       this.vegaInstalled = this.testVegaInstalled();
     }
 
-    getName() {
-      return '';
+    /**
+     * Return the GET or POST param used for the API
+     */
+    getSearchParam(_isGetRequest: boolean): ChartSearchParam {
+      throw new Error('Not implemented')
+    }
+
+    /**
+     * The name is used to get the right vega chart from
+     * API search Result
+     */
+    getName(): string {
+      throw new Error('Not implemented')
     }
 
     override render() {

@@ -18,14 +18,14 @@ JSONType = dict[str, Any]
 class DistributionChartType(BaseModel):
     """Describes an entry for a distribution chart"""
 
-    chart_type: Literal["DistributionChartType"]
+    chart_type: Literal["DistributionChartType"] = "DistributionChartType"
     field: str
 
 
 class ScatterChartType(BaseModel):
     """Describes an entry for a scatter plot"""
 
-    chart_type: Literal["ScatterChartType"]
+    chart_type: Literal["ScatterChartType"] = "ScatterChartType"
     x: str
     y: str
 
