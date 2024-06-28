@@ -1,3 +1,5 @@
 nav:
     - README.md
-    - "Install": install.md
+    - users
+    - devs
+    - ... 

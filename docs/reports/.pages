@@ -1,0 +1,2 @@
+# hide this directory from Mkdocs navigation
+hide: true
