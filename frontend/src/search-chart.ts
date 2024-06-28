@@ -1,15 +1,17 @@
 import {LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-import {SearchaliciousChartMixin} from './mixins/search-chart';
+import {
+  SearchaliciousChartMixin,
+  SearchaliciousChartResultCtlMixin,
+} from './mixins/search-chart';
 
 import {SearchResultEvent} from './events';
 
 import {WHITE_PANEL_STYLE} from './styles';
 
 @customElement('searchalicious-distribution-chart')
-export class SearchaliciousDistributionChart extends SearchaliciousResultCtlMixin(
+export class SearchaliciousDistributionChart extends SearchaliciousChartResultCtlMixin(
   SearchaliciousChartMixin(LitElement)
 ) {
   static override styles = [WHITE_PANEL_STYLE];
@@ -28,24 +30,12 @@ export class SearchaliciousDistributionChart extends SearchaliciousResultCtlMixi
     else
       return {
         chart_type: 'DistributionChartType',
-        field: this.field
+        field: this.field,
       };
-  }
-
-  // Vega function assumes that rendered had been previously
-  // called.
-  override handleResults(event: SearchResultEvent) {
-    if (event.detail.results.length === 0 || !this.vegaInstalled) {
-      this.vegaRepresentation = undefined;
-      return;
-    }
-
-    // @ts-ignore
-    this.vegaRepresentation = event.detail.charts[this.getName()];
   }
 }
 @customElement('searchalicious-scatter-chart')
-export class SearchaliciousScatterChart extends SearchaliciousResultCtlMixin(
+export class SearchaliciousScatterChart extends SearchaliciousChartResultCtlMixin(
   SearchaliciousChartMixin(LitElement)
 ) {
   static override styles = [WHITE_PANEL_STYLE];
@@ -70,17 +60,6 @@ export class SearchaliciousScatterChart extends SearchaliciousResultCtlMixin(
           y: this.y
         };
   }
-
-  // Vega function assumes that rendered had been previously
-  // called.
-  override handleResults(event: SearchResultEvent) {
-    if (event.detail.results.length === 0 || !this.vegaInstalled) {
-      this.vegaRepresentation = undefined;
-      return;
-    }
-    // @ts-ignore
-    this.vegaRepresentation = event.detail.charts[this.getName()];
-    console.log(this.vegaRepresentation);
   }
 }
 

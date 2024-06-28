@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from . import config
 from .utils import str_utils
-from .validations import check_all_values_are_fields_agg, check_index_id_is_defined
+from .validations import check_all_values_are_fields_agg, check_index_id_is_defined, check_fields_are_numeric
 
 #: A precise expectation of what mappings looks like in json.
 #: (dict where keys are always of type `str`).
@@ -338,6 +338,11 @@ If not provided, `['en']` is used."""
             raise ValueError(errors)
         return self
 
+    def check_field_is_numeric(field):
+        """
+        return error if field is non
+        """
+
     @model_validator(mode="after")
     def check_charts_are_valid(self):
         """Check that the graph names are valid."""
@@ -349,10 +354,23 @@ If not provided, `['en']` is used."""
             [
                 chart.field
                 for chart in self.charts
-                if chart.chart_type == "DistributionChart"
-            ],
+                if chart.chart_type == "DistributionChartType"
+            ]
         )
-        # TODO check for x and y fields?
+
+        errors.extend(check_fields_are_numeric(
+            self.index_id,
+            [
+                chart.x
+                for chart in self.charts
+                if chart.chart_type == "ScatterChartType"
+            ] + [
+                chart.y
+                for chart in self.charts
+                if chart.chart_type == "ScatterChartType"
+            ],
+        ))
+
         if errors:
             raise ValueError(errors)
         return self
