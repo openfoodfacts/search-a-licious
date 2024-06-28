@@ -1,10 +1,9 @@
 import {LitElement, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-
-import {SearchResultEvent} from './events';
 import {WHITE_PANEL_STYLE} from './styles';
+import {SearchResultDetail} from './signals';
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 
 // eslint-disable-next-line
 declare const vega: any;
@@ -32,6 +31,14 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     this.vegaInstalled = this.testVegaInstalled();
   }
 
+  override connectedCallback() {
+    super.connectedCallback();
+
+    this.searchResultDetailSignal.subscribe((searchResultDetail) => {
+      this.updateCharts(searchResultDetail);
+    });
+  }
+
   getName() {
     return this.name;
   }
@@ -52,14 +59,14 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     return html` <div class="white-panel">${this.renderChart()}</div>`;
   }
 
-  override handleResults(event: SearchResultEvent) {
-    if (event.detail.results.length === 0 || !this.vegaInstalled) {
+  updateCharts(searchResultDetail: SearchResultDetail) {
+    if (searchResultDetail.results.length === 0 || !this.vegaInstalled) {
       this.vegaRepresentation = undefined;
       return;
     }
 
     // @ts-ignore
-    this.vegaRepresentation = event.detail.charts[this.name!];
+    this.vegaRepresentation = searchResultDetail.charts[this.name!];
   }
 
   testVegaInstalled() {

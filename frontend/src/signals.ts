@@ -18,6 +18,37 @@ const _isSearchChanged: Record<string, Signal> = {} as Record<
   Signal<boolean>
 >;
 
+export type SearchResultDetail = {
+  charts: Object; // FIXME: we could be more precise
+  count: number;
+  currentPage: number;
+  displayTime: number;
+  facets: Object; // FIXME: we could be more precise
+  isCountExact: boolean;
+  isSearchLaunch: boolean;
+  pageCount: number;
+  pageSize: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  results: Record<string, any>[];
+};
+
+const _searchResultDetail: Record<
+  string,
+  Signal<SearchResultDetail>
+> = {} as Record<string, Signal<SearchResultDetail>>;
+
+export const getDefaultSearchResultDetail = () => ({
+  charts: {},
+  count: 0,
+  currentPage: 0,
+  displayTime: 0,
+  facets: {},
+  isCountExact: true,
+  isSearchLaunch: false,
+  pageCount: 0,
+  pageSize: 0,
+  results: [],
+});
 /**
  * Signals to indicate if the search is loading.
  */
@@ -32,12 +63,13 @@ const _isSearchLoading: Record<string, Signal> = {} as Record<
  * @param signalsObject
  * @param searchName
  */
-const _getOrCreateSignal = (
-  signalsObject: Record<string, Signal>,
-  searchName: string
+const _getOrCreateSignal = <T>(
+  signalsObject: Record<string, Signal<T>>,
+  searchName: string,
+  defaultValue: T
 ) => {
   if (!(searchName in signalsObject)) {
-    signalsObject[searchName] = signal(false);
+    signalsObject[searchName] = signal(defaultValue);
   }
   return signalsObject[searchName];
 };
@@ -48,7 +80,7 @@ const _getOrCreateSignal = (
  * @param searchName
  */
 export const canResetSearch = (searchName: string) => {
-  return _getOrCreateSignal(_canResetSearch, searchName);
+  return _getOrCreateSignal<boolean>(_canResetSearch, searchName, false);
 };
 
 /**
@@ -57,7 +89,15 @@ export const canResetSearch = (searchName: string) => {
  * @param searchName
  */
 export const isSearchChanged = (searchName: string) => {
-  return _getOrCreateSignal(_isSearchChanged, searchName);
+  return _getOrCreateSignal<boolean>(_isSearchChanged, searchName, false);
+};
+
+export const searchResultDetail = (searchName: string) => {
+  return _getOrCreateSignal<SearchResultDetail>(
+    _searchResultDetail,
+    searchName,
+    getDefaultSearchResultDetail()
+  );
 };
 
 /**

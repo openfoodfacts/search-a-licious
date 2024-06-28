@@ -3,7 +3,6 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-import {SearchResultEvent} from './events';
 import {
   MissingResultTemplateError,
   MultipleResultTemplateError,
@@ -163,12 +162,12 @@ export class SearchaliciousResults extends SignalWatcher(
   }
 
   override render() {
-    if (this.results.length) {
+    if (this.searchResultDetail.results.length) {
       return this.renderResults();
       // if we are loading, we display the loading cards
     } else if (isSearchLoading(this.searchName).value) {
       return this.renderLoading();
-    } else if (this.searchLaunched) {
+    } else if (this.searchResultDetail.isSearchLaunch) {
       return html`<slot name="no-results">${this.noResults}</slot>`;
     } else {
       return html`<slot name="before-search">${this.beforeSearch}</slot>`;
@@ -186,15 +185,12 @@ export class SearchaliciousResults extends SignalWatcher(
     const KeyFnOrTemplate = keyFn ? keyFn : renderResult;
     const templateOrUndef = keyFn ? renderResult : undefined;
     return html` <ul part="results">
-      ${repeat(this.results, KeyFnOrTemplate, templateOrUndef)}
+      ${repeat(
+        this.searchResultDetail.results,
+        KeyFnOrTemplate,
+        templateOrUndef
+      )}
     </ul>`;
-  }
-
-  /**
-   * event handler for NEW_RESULT events
-   */
-  override handleResults(event: SearchResultEvent) {
-    this.results = event.detail.results; // it's reactive, should trigger rendering
   }
 
   /**
