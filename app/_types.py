@@ -8,7 +8,11 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from . import config
 from .utils import str_utils
-from .validations import check_all_values_are_fields_agg, check_index_id_is_defined, check_fields_are_numeric
+from .validations import (
+    check_all_values_are_fields_agg,
+    check_fields_are_numeric,
+    check_index_id_is_defined,
+)
 
 #: A precise expectation of what mappings looks like in json.
 #: (dict where keys are always of type `str`).

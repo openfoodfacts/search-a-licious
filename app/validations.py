@@ -44,7 +44,7 @@ def check_all_values_are_fields_agg(
 
 
 def check_fields_are_numeric(
-        index_id: str | None, values: list[str] | None
+    index_id: str | None, values: list[str] | None
 ) -> list[str]:
     """
     * If field exists in global_config, check that it's numeric.
@@ -60,15 +60,25 @@ def check_fields_are_numeric(
     if index_config is None:
         raise ValueError(f"Cannot get index config for index_id {index_id}")
     for field_path in values:
-        field_path_list = field_path.split('.')
+        field_path_list = field_path.split(".")
         field_name = field_path_list[0]
         print(len(field_path_list))
         if field_name not in index_config.fields:
             errors.append(f"Unknown field name: {field_name}")
-        elif len(field_path_list) == 1 and index_config.fields[field_name].type not in ('integer', 'float', 'long', 'bool'):
+        elif len(field_path_list) == 1 and index_config.fields[field_name].type not in (
+            "integer",
+            "float",
+            "long",
+            "bool",
+        ):
             errors.append(f"Non numeric field name: {field_name}")
-        elif len(field_path_list) == 2 and index_config.fields[field_name].type != 'object':
+        elif (
+            len(field_path_list) == 2
+            and index_config.fields[field_name].type != "object"
+        ):
             errors.append(f"Non object field name: {field_name}")
         elif len(field_path_list) >= 3:
-            errors.append(f'Only recursive fields with depth <= 2 are allowed, not: { field_name } (depth={len(field_path_list)})')
+            errors.append(
+                f"Only recursive fields with depth <= 2 are allowed, not: { field_name } (depth={len(field_path_list)})"
+            )
     return errors
