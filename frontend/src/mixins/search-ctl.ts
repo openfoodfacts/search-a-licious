@@ -7,22 +7,28 @@ import {
 import {QueryOperator, SearchaliciousEvents} from '../utils/enums';
 import {
   ChangePageEvent,
-  LaunchSearchEvent,
-  SearchResultEvent,
   SearchResultDetail,
+  SearchResultEvent,
 } from '../events';
 import {Constructor} from './utils';
 import {SearchaliciousSort, SortParameters} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {setCurrentURLHistory} from '../utils/url';
 import {isNullOrUndefined} from '../utils';
-import {API_LIST_DIVIDER, PROPERTY_LIST_DIVIDER} from '../utils/constants';
+import {
+  API_LIST_DIVIDER,
+  DEFAULT_SEARCH_NAME,
+  PROPERTY_LIST_DIVIDER,
+} from '../utils/constants';
 import {
   HistorySearchParams,
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
 import {SearchaliciousChart} from '../search-chart';
+import {canResetSearch, isSearchChanged} from '../signals';
+import {SignalWatcher} from '@lit-labs/preact-signals';
+import {isTheSameSearchName} from '../utils/search';
 
 export interface SearchParameters extends SortParameters {
   q: string;
@@ -47,7 +53,10 @@ export interface SearchaliciousSearchInterface
   lastFacetsFilters?: string;
   isQueryChanged: boolean;
   isFacetsChanged: boolean;
+  isSearchChanged: boolean;
+  canReset: boolean;
 
+  updateSearchSignals(): void;
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
   _facetsFilters(): string;
@@ -75,8 +84,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   /**
    * The search mixin, encapsulate the logic of dialog with server
    */
-  class SearchaliciousSearchMixinClass extends SearchaliciousHistoryMixin(
-    EventRegistrationMixin(superClass)
+  class SearchaliciousSearchMixinClass extends SignalWatcher(
+    SearchaliciousHistoryMixin(EventRegistrationMixin(superClass))
   ) {
     /**
      * Query that will be sent to searchalicious
@@ -88,7 +97,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * The name of this search
      */
     @property()
-    override name = 'searchalicious';
+    override name = DEFAULT_SEARCH_NAME;
 
     /**
      * The base api url
@@ -159,6 +168,28 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     get isFacetsChanged() {
       return this._facetsFilters() !== this.lastFacetsFilters;
+    }
+
+    /**
+     * Check if the search button text should be displayed
+     */
+    get isSearchChanged() {
+      return this.isQueryChanged || this.isFacetsChanged;
+    }
+
+    /**
+     * Check if the filters can be reset
+     * Filters is facets filters and query
+     */
+    get canReset() {
+      const isQueryChanged = this.query || this.isQueryChanged;
+      const facetsChanged = this._facetsFilters() || this.isFacetsChanged;
+      return Boolean(isQueryChanged || facetsChanged);
+    }
+
+    updateSearchSignals() {
+      canResetSearch(this.name).value = this.canReset;
+      isSearchChanged(this.name).value = this.isSearchChanged;
     }
 
     /** list of facets containers */
@@ -350,6 +381,14 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, (event) =>
         this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
+      this.addEventHandler(
+        SearchaliciousEvents.FACET_SELECTED,
+        (event: Event) => {
+          if (isTheSameSearchName(this.name, event)) {
+            this.updateSearchSignals();
+          }
+        }
+      );
     }
     // connect to our specific events
     override disconnectedCallback() {
@@ -366,6 +405,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         (event) =>
           this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
+      this.removeEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
+        this.updateSearchSignals();
+      });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -381,8 +423,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * It must have the search name in it's data.
      */
     _handleSearch(event: Event) {
-      const detail = (event as LaunchSearchEvent).detail;
-      if (detail.searchName === this.name) {
+      if (isTheSameSearchName(this.name, event)) {
         this.search();
       }
     }
@@ -395,7 +436,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     _handleChangePage(event: Event) {
       const detail = (event as ChangePageEvent).detail;
-      if (detail.searchName === this.name) {
+      if (isTheSameSearchName(this.name, event)) {
         this.search(detail.page);
       }
     }
@@ -470,6 +511,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.pageSize = data.page_size;
       this._currentPage = data.page;
       this._pageCount = data.page_count;
+
+      this.updateSearchSignals();
+
       // dispatch an event with the results
       const detail: SearchResultDetail = {
         searchName: this.name,

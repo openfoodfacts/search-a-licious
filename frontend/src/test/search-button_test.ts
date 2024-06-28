@@ -19,11 +19,11 @@ suite('searchalicious-button', () => {
       <button
         part="button"
         role="button"
-        class="search-button"
-      >
-        <slot>
-        Search
-        </slot>
+        class="search-button">
+          <div class="button-content">
+            <slot name="icon"><searchalicious-icon-search></searchalicious-icon-search></slot>
+            <slot></slot>
+          </div>
       </button>
     `
     );

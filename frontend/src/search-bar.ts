@@ -1,4 +1,4 @@
-import {LitElement, html, css, nothing} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
@@ -9,6 +9,7 @@ import {classMap} from 'lit/directives/class-map.js';
 import {removeLangFromTermId} from './utils/taxonomies';
 import {searchBarInputAndButtonStyle} from './css/header';
 import {SearchaliciousEvents} from './utils/enums';
+import {isTheSameSearchName} from './utils/search';
 
 /**
  * The search bar element
@@ -39,6 +40,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
       .search-bar ul {
         --left-offset: 8px;
         position: absolute;
+        top: 100%;
         left: var(--left-offset);
         background-color: LightYellow;
         border: 1px solid #ccc;
@@ -60,22 +62,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
           --searchalicious-autocomplete-selected-background-color,
           #cfac9e
         );
-      }
-
-      .button-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: var(--searchalicious-button-text-color, white);
-      }
-
-      .button-content span {
-        margin-right: 0.5rem;
-        margin-left: 0.3rem;
-      }
-
-      .input-wrapper {
-        position: relative;
       }
 
       searchalicious-icon-cross {
@@ -132,16 +118,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   }
 
   /**
-   * Check if the filters can be reset
-   * Filters is facets filters and query
-   */
-  get canReset() {
-    const isQueryChanged = this.query || this.isQueryChanged;
-    const facetsChanged = this._facetsFilters() || this.isFacetsChanged;
-    return isQueryChanged || facetsChanged;
-  }
-
-  /**
    * It parses the string suggestions attribute and returns an array
    */
   get parsedSuggestions() {
@@ -164,6 +140,8 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   override handleInput(value: string) {
     this.value = value;
     this.query = value;
+
+    this.updateSearchSignals();
     this.debounce(() => {
       this.getTaxonomiesTerms(value, this.parsedSuggestions).then(() => {
         this.options = this.terms.map((term) => ({
@@ -238,62 +216,45 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     this.search();
   }
 
-  onClickSearch() {
-    this.search();
-  }
-
   override connectedCallback() {
     super.connectedCallback();
 
-    this.addEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
-      this.requestUpdate();
+    this.addEventHandler(SearchaliciousEvents.RESET_SEARCH, (event: Event) => {
+      if (isTheSameSearchName(this.name, event)) {
+        this.onReset();
+      }
     });
   }
 
   override disconnectedCallback() {
     super.disconnectedCallback();
 
-    this.removeEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
-      this.requestUpdate();
-    });
+    this.removeEventHandler(
+      SearchaliciousEvents.RESET_SEARCH,
+      (event: Event) => {
+        if (isTheSameSearchName(this.name, event)) {
+          this.onReset();
+        }
+      }
+    );
   }
   override render() {
     return html`
       <div class="search-bar" part="wrapper">
-        <div class="input-wrapper" part="input-wrapper">
-          <input
-            class="search-input"
-            type="text"
-            name="q"
-            @input=${this.onInput}
-            @keydown=${this.onKeyDown}
-            @focus="${this.onFocus}"
-            @blur="${this.onBlur}"
-            .value=${this.query}
-            placeholder=${this.placeholder}
-            part="input"
-            autocomplete="off"
-          />
-          ${this.renderSuggestions()}
-        </div>
-        <div>
-          <searchalicious-button
-            :search-name="${this.name}"
-            @click=${this.onClickSearch}
-          >
-            <div class="button-content">
-              <searchalicious-icon-search></searchalicious-icon-search>
-              ${this.showSearchButtonText
-                ? html`<span>${msg('Search', {desc: 'Search button'})}</span>`
-                : nothing}
-            </div>
-          </searchalicious-button>
-        </div>
-        ${this.canReset
-          ? html`<searchalicious-button-transparent @click=${this.onReset}
-              >${msg('Reset')}</searchalicious-button-transparent
-            >`
-          : nothing}
+        <input
+          class="search-input"
+          type="text"
+          name="q"
+          @input=${this.onInput}
+          @keydown=${this.onKeyDown}
+          @focus="${this.onFocus}"
+          @blur="${this.onBlur}"
+          .value=${this.query}
+          placeholder=${this.placeholder}
+          part="input"
+          autocomplete="off"
+        />
+        ${this.renderSuggestions()}
       </div>
     `;
   }

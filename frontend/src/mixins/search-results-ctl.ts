@@ -8,6 +8,8 @@ import {
 import {SearchaliciousEvents} from '../utils/enums';
 import {SearchResultEvent} from '../events';
 import {Constructor} from './utils';
+import {isTheSameSearchName} from '../utils/search';
+import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 
 export interface SearchaliciousResultsCtlInterface
   extends EventRegistrationInterface {
@@ -38,7 +40,7 @@ export const SearchaliciousResultCtlMixin = <T extends Constructor<LitElement>>(
      * this corresponds to `name` attribute of corresponding search-bar
      */
     @property({attribute: 'search-name'})
-    searchName = 'searchalicious';
+    searchName = DEFAULT_SEARCH_NAME;
 
     /**
      * this will be true if we already launched a search
@@ -58,8 +60,7 @@ export const SearchaliciousResultCtlMixin = <T extends Constructor<LitElement>>(
     _handleResults(event: Event) {
       // check if event is for our search
       const resultEvent = event as SearchResultEvent;
-      const detail = resultEvent.detail;
-      if (detail.searchName === this.searchName) {
+      if (isTheSameSearchName(this.searchName, event)) {
         this.searchLaunched = true;
         // call the real method
         this.handleResults(resultEvent);

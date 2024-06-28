@@ -15,7 +15,6 @@ suite('searchalicious-bar', () => {
       el,
       `
       <div class="search-bar" part="wrapper">
-      <div class="input-wrapper" part="input-wrapper">
         <input
           class="search-input"
           autocomplete="off"
@@ -24,14 +23,6 @@ suite('searchalicious-bar', () => {
           placeholder="Search..."
           type="text"
         >
-        </div>
-         <div>
-          <searchalicious-button :search-name="searchalicious">
-            <div class="button-content">
-              <searchalicious-icon-search>
-              </searchalicious-icon-search>
-            </div>
-          </searchalicious-button>
         </div>
       </div>
     `
@@ -56,26 +47,15 @@ suite('searchalicious-bar', () => {
       el,
       `
        <div class="search-bar" part="wrapper">
-          <div class="input-wrapper" part="input-wrapper">
-            <input
-              autocomplete="off"
-              name="q"
-              class="search-input"
-              part="input"
-              placeholder="Try it !"
-              type="text"
-            >
+          <input
+            autocomplete="off"
+            name="q"
+            class="search-input"
+            part="input"
+            placeholder="Try it !"
+            type="text"
+          >
         </div>
-        <div>
-        
-        <searchalicious-button :search-name="searchalicious">
-         <div class="button-content">
-            <searchalicious-icon-search>
-              </searchalicious-icon-search>
-            </div>
-          </searchalicious-button>
-         </div>
-      </div>
     `
     );
     const bar = el as SearchaliciousBar;

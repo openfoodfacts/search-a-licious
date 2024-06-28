@@ -267,9 +267,6 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   @property({attribute: false, type: Array})
   autocompleteTerms: string[] = [];
 
-  @property({attribute: 'search-name'})
-  override searchName = 'off';
-
   @property({attribute: 'show-other', type: Boolean})
   showOther = false;
 
@@ -289,6 +286,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       new CustomEvent(SearchaliciousEvents.FACET_SELECTED, {
         bubbles: true,
         composed: true,
+        detail: {
+          searchName: this.searchName,
+        },
       })
     );
   }
