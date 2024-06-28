@@ -121,6 +121,12 @@ def build_distribution_chart(chart: DistributionChartType, values):
 
 
 def build_scatter_chart(chart_option: ScatterChartType, search_result):
+    """
+    Build a scatter plot only for values from search_results
+    (only values in the current page)
+    TODO: use values from the whole search?
+    """
+
     def _get(v, path):
         return reduce(lambda c, k: c.get(k, {}), path.split("."), v)
 
@@ -189,7 +195,7 @@ def build_scatter_chart(chart_option: ScatterChartType, search_result):
                     "strokeWidth": {"value": 2},
                     "opacity": {"value": 0.5},
                     "stroke": {"value": PRIMARY_COLOR},
-                    "fill": {"value": "transparent"},
+                    "fill": {"value": PRIMARY_COLOR},
                 }
             },
         }
@@ -215,12 +221,12 @@ def build_charts(
                 requested_chart, search_result
             )
         else:
+            # distribution charts are created from aggregations
             if aggregations is not None:
                 agg_data = aggregations.get(requested_chart.field, {})
 
                 buckets = agg_data.get("buckets", []) if agg_data else []
 
-                # Filter unknown values
                 values = [
                     {"category": bucket["key"], "amount": bucket["doc_count"]}
                     for bucket in buckets
