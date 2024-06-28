@@ -218,17 +218,24 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   override connectedCallback() {
     super.connectedCallback();
 
-    this.addEventHandler(SearchaliciousEvents.RESET_SEARCH, () => {
-      this.onReset();
+    this.addEventHandler(SearchaliciousEvents.RESET_SEARCH, (event: Event) => {
+      if (this.name === (event as CustomEvent).detail.searchName) {
+        this.onReset();
+      }
     });
   }
 
   override disconnectedCallback() {
     super.disconnectedCallback();
 
-    this.removeEventHandler(SearchaliciousEvents.RESET_SEARCH, () => {
-      this.onReset();
-    });
+    this.removeEventHandler(
+      SearchaliciousEvents.RESET_SEARCH,
+      (event: Event) => {
+        if (this.name === (event as CustomEvent).detail.searchName) {
+          this.onReset();
+        }
+      }
+    );
   }
   override render() {
     return html`

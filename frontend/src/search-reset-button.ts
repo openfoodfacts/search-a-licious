@@ -1,4 +1,4 @@
-import {customElement} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 import {localized, msg} from '@lit/localize';
 import {html, LitElement, nothing} from 'lit';
 import {SignalWatcher} from '@lit-labs/preact-signals';
@@ -12,11 +12,15 @@ import {SearchaliciousEvents} from './utils/enums';
 @customElement('searchalicious-reset-button')
 @localized()
 export class SearchaliciousResetButton extends SignalWatcher(LitElement) {
+  @property({type: String, attribute: 'search-name'})
+  searchName = 'searchalicious';
+
   dispatchResetSearchEvent() {
     this.dispatchEvent(
       new CustomEvent(SearchaliciousEvents.RESET_SEARCH, {
         bubbles: true,
         composed: true,
+        detail: {searchName: this.searchName},
       })
     );
   }
@@ -26,7 +30,8 @@ export class SearchaliciousResetButton extends SignalWatcher(LitElement) {
         ? html`
             <searchalicious-button-transparent
               @click=${this.dispatchResetSearchEvent}
-              >${msg('Reset')}
+            >
+              <slot>${msg('Reset')}</slot>
             </searchalicious-button-transparent>
           `
         : nothing}

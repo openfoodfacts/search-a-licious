@@ -57,14 +57,16 @@ export class SearchaliciousButton extends SignalWatcher(
         role="button"
         class="search-button"
       >
-        <slot>
-          <div class="button-content">
+        <div class="button-content">
+          <slot name="icon">
             <searchalicious-icon-search></searchalicious-icon-search>
+          </slot>
+          <slot>
             ${isSearchChanged.value
               ? html`<span>${msg('Search', {desc: 'Search button'})}</span>`
               : nothing}
-          </div>
-        </slot>
+          </slot>
+        </div>
       </button>
     `;
   }
