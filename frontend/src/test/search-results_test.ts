@@ -8,6 +8,7 @@ import {
   MissingResultTemplateError,
   MultipleResultTemplateError,
 } from '../errors';
+import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 
 suite('searchalicious-results', () => {
   // helper to simulate a search result
@@ -16,7 +17,7 @@ suite('searchalicious-results', () => {
     results: Array<Record<string, unknown>>
   ) => {
     const detail: SearchResultDetail = {
-      searchName: 'searchalicious',
+      searchName: DEFAULT_SEARCH_NAME,
       results: results,
       count: 3,
       pageCount: 1,

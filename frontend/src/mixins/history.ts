@@ -11,6 +11,7 @@ import {QueryOperator} from '../utils/enums';
 import {SearchaliciousSort} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {Constructor} from './utils';
+import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 
 export type SearchaliciousHistoryInterface = {
   query: string;
@@ -117,7 +118,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
     @property({attribute: false})
     query = '';
     @property()
-    name = 'searchalicious';
+    name = DEFAULT_SEARCH_NAME;
 
     // stub methods defined in search-ctl
     _sortElement = (): SearchaliciousSort | null => {

@@ -4,11 +4,7 @@ import {
   EventRegistrationInterface,
   EventRegistrationMixin,
 } from '../event-listener-setup';
-import {
-  QueryOperator,
-  SearchaliciousEvents,
-  SearchNameProperty,
-} from '../utils/enums';
+import {QueryOperator, SearchaliciousEvents} from '../utils/enums';
 import {
   ChangePageEvent,
   SearchResultDetail,
@@ -19,7 +15,11 @@ import {SearchaliciousSort, SortParameters} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {setCurrentURLHistory} from '../utils/url';
 import {isNullOrUndefined} from '../utils';
-import {API_LIST_DIVIDER, PROPERTY_LIST_DIVIDER} from '../utils/constants';
+import {
+  API_LIST_DIVIDER,
+  DEFAULT_SEARCH_NAME,
+  PROPERTY_LIST_DIVIDER,
+} from '../utils/constants';
 import {
   HistorySearchParams,
   SearchaliciousHistoryInterface,
@@ -97,7 +97,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * The name of this search
      */
     @property()
-    override name: SearchNameProperty = SearchNameProperty.SEARCHALICIOUS;
+    override name = DEFAULT_SEARCH_NAME;
 
     /**
      * The base api url

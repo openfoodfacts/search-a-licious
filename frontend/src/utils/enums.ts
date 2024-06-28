@@ -43,11 +43,3 @@ export enum SideBarState {
   CLOSED = 'closed',
   EXPANDED = 'expanded',
 }
-
-/**
- * This enum defines the possible values for the search name property
- */
-export enum SearchNameProperty {
-  OFF = 'off',
-  SEARCHALICIOUS = 'searchalicious',
-}

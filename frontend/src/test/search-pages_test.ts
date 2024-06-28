@@ -4,6 +4,7 @@ import {SearchResultDetail, SearchResultEvent} from '../events';
 
 import {fixture, assert} from '@open-wc/testing';
 import {html} from 'lit/static-html.js';
+import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 
 suite('searchalicious-pages', () => {
   // helper to simulate a search result
@@ -13,7 +14,7 @@ suite('searchalicious-pages', () => {
     pageCount: number
   ) => {
     const detail: SearchResultDetail = {
-      searchName: 'searchalicious',
+      searchName: DEFAULT_SEARCH_NAME,
       results: [], // we don't really care
       count: Math.ceil(pageCount / 10),
       pageCount: pageCount,
