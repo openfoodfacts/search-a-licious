@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="module" src="https://jspm.dev/api-viewer-element"></script>
+  </head>
+
+  <body>
+    <!-- see https://api-viewer.open-wc.org/ for more details on api-viewer element -->
+    <h1>Search-a-licious Web components</h1>
+    <p>This page documents components provided by Search-a-licious</p>
+    <h2>Main widgets</h2>
+    <api-viewer
+      src="./dist/custom-elements.json"
+      only="searchalicious-bar,searchalicious-results,searchalicious-pages,searchalicious-sort,searchalicious-facets,searchalicious-sort,searchalicious-sort-field,searchalicious-sort-script,searchalicious-chart"
+    >
+    </api-viewer>
+    <h2>Secondary widgets</h2>
+    <api-viewer
+      src="./dist/custom-elements.json"
+      only="searchalicious-button,searchalicious-count"
+    >
+    </api-viewer>
+    <h2>Internal components</h2>
+    <p>You should normally not have to use them</p>
+    <api-viewer
+      src="./dist/custom-elements.json"
+      only="searchalicious-radio,searchalicious-checkbox,searchalicious-facet-terms,searchalicious-toggle,searchalicious-secondary-button,searchalicious-button-transparent,searchalicious-icon-cross,searchalicious-suggestion-entry"
+    >
+    </api-viewer>
+  </body>
+</html>

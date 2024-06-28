@@ -7,10 +7,12 @@ These are built using [lit](https://lit.dev) and [typescript](https://www.typesc
 
 The project is currently composed of several widgets.
 
+<!--Please also update web-components.html -->
+
 ### Main widgets
 
-* searchalicious-bar is at the core, it represent the search bar, but also handle the search logic (see searchalicious-ctl.ts)
-* searchalicious-results is the component that displays the search results
+* **searchalicious-bar** is at the core, it represent the search bar, but also handle the search logic (see searchalicious-ctl.ts)
+* **searchalicious-results** is the component that displays the search results
   * you must provide an element with attribute `slot="result"` that contains a template to display a single search result.
     It's a good idea to use a `template` as enclosing element with `style="display: none"`,
     to avoid displaying weird content while the page loads,
@@ -18,21 +20,22 @@ The project is currently composed of several widgets.
     the browser does not try to fetch urls with non resolved expressions in them.
   * a `before-search` slot is also available to display something before first search launch
   * as well as a `no-results` slot to display something when no results are found
-* searchalicious-pages is the component that displays the pagination
+* **searchalicious-pages** is the component that displays the pagination
   * you can specify the number of displayed pages with `displayed-pages` attribute
   * there are `before-search` and `no-results` slots
-* searchalicious-facets is a container for facets (helpers to filter search results)
-  * it must contains some actual facets
-  * it will influence the search adding filters
-* searchalicious-sort is a button to choose a sort order
-  * you must add searchalicious-sort-field elements inside to add sort options
+* **searchalicious-sort** is a button to choose a sort order
+  * you must add **searchalicious-sort-field** elements inside to add sort options
     * with a field= to indicate the field
     * the label is the text inside the element
-  * or a searchalicious-sort-script
+  * or a **searchalicious-sort-script**
     * with a script= to indicate a script
     * and a params= which is a either a json encoded object, 
       or a key in localStorage prefixed with "local:"
   * you can add element to slot `label` to change the label
+* **searchalicious-facets** is a container for facets (helpers to filter search results)
+  * it must contains some actual facets
+  * it will influence the search adding filters
+* **searchalicious-chart** renders vega chart, currently only for distribution. Requires [vega](https://vega.github.io/).
 
 ### Layout widgets
 Layout widgets are used to layout the page, they are not mandatory but can be useful.
@@ -51,35 +54,34 @@ This enables supporting multiple searches in the same page
 
 ### Secondary widgets
 
-* searchalicious-button is a simple button to launch the search
-* searchalicious-count is a simple counter of the  number of search results
+* **searchalicious-button** is a simple button to launch the search
+* **searchalicious-count** is a simple counter of the  number of search results
 
 
 ### Internal widgets
-* searchalicious-facet-terms renders the facet for terms (list of entries, with number of docs).
+* **searchalicious-facet-terms** renders the facet for terms (list of entries, with number of docs).
   * it must be in a `searchalicious-facets`
   * the user can select facets to filter the search
-* searchalicious-autocomplete is a component that displays a list of suggestions
+* **searchalicious-checkbox** is a component that displays a list of suggestions
   * it must be in a `searchalicious-facet`
   * it will influence the search adding terms to the search
-* searchalicious-checkbox is a simple checkbox
+* **searchalicious-checkbox** is a simple checkbox
   * it can be used to replace the default checkbox
   * it allows to keep the state of the checkbox when you change the property
-* searchalicious-radio is a simple radio button
+* **searchalicious-radio** is a simple radio button
   * it can be used to replace the default radio button
   * it allows to keep the state of the radio button when you change the property
   * You can unchecked the radio button by clicking on it
-* searchalicious-toggle is a simple toggle button
+* **searchalicious-toggle** is a simple toggle button
   * it can be used to replace the checkbox
   * it allows to keep the state of the toggle button when you change the property
-* searchalicious-secondary-button is a button with defined style
+* **searchalicious-secondary-button** is a button with defined style
   * it can be used to replace the default button
-* searchalicious-button-transparent is a transparent button with defined style
+* **searchalicious-button-transparent** is a transparent button with defined style
   * it can be used to replace the default button
-* searchalicious-chart renders vega chart, currently only for distribution. Requires [vega](https://vega.github.io/).
-* searchalicious-icon-cross is a cross icon
+* **searchalicious-icon-cross** is a cross icon
     * it can be used to delete actions
-* searchalicious-suggestion-entry is a suggestion entry
+* **searchalicious-suggestion-entry** is a suggestion entry
     * it can be used to display a suggestion in searchalicious-bar
 * searchalicious-chart-icon is a chart icon
     * it can be used to display a chart icon in toggle-charts
@@ -109,6 +111,11 @@ Thanks to Makefile in root folder,
 
 While coding, you might want to run: `make tsc_watch` to have your code compile every time you save a `.ts` file.
 
+We generate a [custom-elements.json manifest](https://github.com/webcomponents/custom-elements-manifest) using [custom elements manifest analyzer](https://custom-elements-manifest.open-wc.org/analyzer).
+Please use supported [JSDoc markers](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/#supported-jsdoc) in your code to document components.
+
+The components documentation is rendered in `web-components.html`, using the [api-viewer component](https://api-viewer.open-wc.org/)
+
 ## Tests
 
 `make test_front` run js tests.
@@ -127,9 +134,9 @@ The translations are stored in `xliff` files in the `frontend/xliff` directory.
 
 To add a new translation you need to :
 - add `msg` in your code like this https://lit.dev/docs/localization/overview/#message-types
-- run `npm run extract:translations` to extract the new translations
+- run `npm run translations:extract` to extract the new translations
 - add your translation with 'target' tag in the `xliff/<your_language>.xlf` files
-- run `npm run build:translations` to update the translations in the `src/generated/locales/<your_language>.js` file
+- run `npm run translations:build` to update the translations in the `src/generated/locales/<your_language>.js` file
 
 To add a language, you have to add the language code to `targetLocales` in `lit-localize.json`
 

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search-a-licious tutorial</title>
+    <script type="module" src="./search-a-licious.bundled.js"></script>
+</head>
+<body>
+    <div id="search-bar">
+    <!-- the search bar where you can add text -->
+    <searchalicious-bar></searchalicious-bar>
+    <!-- the button to launch the search -->
+    <searchalicious-button></searchalicious-button>
+    <!-- sorting -->
+    <searchalicious-sort auto-refresh>
+        <searchalicious-sort-field field="nutriscore_grade">Best nutriscore</searchalicious-sort-field>
+        <searchalicious-sort-field field="-nutriscore_grade">Worst nutriscore</searchalicious-sort-field>
+    </searchalicious-sort>
+    </div>
+    <div id="results">
+    <!-- display of results -->
+    <searchalicious-results>
+        <!-- this define a template for results. We can use ${} expression with a result object containing result fields -->
+        <template slot="result">
+        <li><a href="https://world.openfoodfacts.org/${result.code}">${result.product_name}</a> − Nutri-Score: ${result.nutriscore_grade}</li>
+        </template>
+    </searchalicious-results>
+    <!-- a small display of the number of results -->
+    <searchalicious-count></searchalicious-count>
+    <!-- pagination -->
+    <searchalicious-pages></searchalicious-pages>
+    </div>
+</html>
