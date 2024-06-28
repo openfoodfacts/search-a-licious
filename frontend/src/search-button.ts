@@ -62,7 +62,7 @@ export class SearchaliciousButton extends SignalWatcher(
             <searchalicious-icon-search></searchalicious-icon-search>
           </slot>
           <slot>
-            ${isSearchChanged.value
+            ${isSearchChanged(this.searchName).value
               ? html`<span>${msg('Search', {desc: 'Search button'})}</span>`
               : nothing}
           </slot>

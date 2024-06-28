@@ -1,11 +1,11 @@
 import {LitElement} from 'lit';
 import {Constructor} from './utils';
 import {BaseSearchDetail, LaunchSearchEvent} from '../events';
-import {SearchaliciousEvents} from '../utils/enums';
+import {SearchaliciousEvents, SearchNameProperty} from '../utils/enums';
 import {property} from 'lit/decorators.js';
 
 export interface SearchActionMixinInterface {
-  searchName: string;
+  searchName: SearchNameProperty;
   _launchSearch(): Promise<void>;
 }
 
@@ -21,7 +21,7 @@ export const SearchActionMixin = <T extends Constructor<LitElement>>(
 ): Constructor<SearchActionMixinInterface> & T => {
   class SearchActionMixinClass extends superClass {
     @property({attribute: 'search-name'})
-    searchName = 'searchalicious';
+    searchName: SearchNameProperty = SearchNameProperty.SEARCHALICIOUS;
 
     /**
      * Launches a search event.

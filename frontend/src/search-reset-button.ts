@@ -3,7 +3,7 @@ import {localized, msg} from '@lit/localize';
 import {html, LitElement, nothing} from 'lit';
 import {SignalWatcher} from '@lit-labs/preact-signals';
 import {canResetSearch} from './signals';
-import {SearchaliciousEvents} from './utils/enums';
+import {SearchaliciousEvents, SearchNameProperty} from './utils/enums';
 
 /**
  * It is a transparent button that is used to reset the search.
@@ -13,7 +13,7 @@ import {SearchaliciousEvents} from './utils/enums';
 @localized()
 export class SearchaliciousResetButton extends SignalWatcher(LitElement) {
   @property({type: String, attribute: 'search-name'})
-  searchName = 'searchalicious';
+  searchName: SearchNameProperty = SearchNameProperty.SEARCHALICIOUS;
 
   dispatchResetSearchEvent() {
     this.dispatchEvent(
@@ -26,7 +26,7 @@ export class SearchaliciousResetButton extends SignalWatcher(LitElement) {
   }
   override render() {
     return html`
-      ${canResetSearch.value
+      ${canResetSearch(this.searchName).value
         ? html`
             <searchalicious-button-transparent
               @click=${this.dispatchResetSearchEvent}

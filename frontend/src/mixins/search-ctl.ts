@@ -4,12 +4,15 @@ import {
   EventRegistrationInterface,
   EventRegistrationMixin,
 } from '../event-listener-setup';
-import {QueryOperator, SearchaliciousEvents} from '../utils/enums';
+import {
+  QueryOperator,
+  SearchaliciousEvents,
+  SearchNameProperty,
+} from '../utils/enums';
 import {
   ChangePageEvent,
-  LaunchSearchEvent,
-  SearchResultEvent,
   SearchResultDetail,
+  SearchResultEvent,
 } from '../events';
 import {Constructor} from './utils';
 import {SearchaliciousSort, SortParameters} from '../search-sort';
@@ -25,6 +28,7 @@ import {
 import {SearchaliciousChart} from '../search-chart';
 import {canResetSearch, isSearchChanged} from '../signals';
 import {SignalWatcher} from '@lit-labs/preact-signals';
+import {isTheSameSearchName} from '../utils/search';
 
 export interface SearchParameters extends SortParameters {
   q: string;
@@ -93,7 +97,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * The name of this search
      */
     @property()
-    override name = 'searchalicious';
+    override name: SearchNameProperty = SearchNameProperty.SEARCHALICIOUS;
 
     /**
      * The base api url
@@ -184,8 +188,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     }
 
     updateSearchSignals() {
-      canResetSearch.value = this.canReset;
-      isSearchChanged.value = this.isSearchChanged;
+      canResetSearch(this.name).value = this.canReset;
+      isSearchChanged(this.name).value = this.isSearchChanged;
     }
 
     /** list of facets containers */
@@ -377,9 +381,14 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, (event) =>
         this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
-      this.addEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
-        this.updateSearchSignals();
-      });
+      this.addEventHandler(
+        SearchaliciousEvents.FACET_SELECTED,
+        (event: Event) => {
+          if (isTheSameSearchName(this.name, event)) {
+            this.updateSearchSignals();
+          }
+        }
+      );
     }
     // connect to our specific events
     override disconnectedCallback() {
@@ -414,8 +423,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * It must have the search name in it's data.
      */
     _handleSearch(event: Event) {
-      const detail = (event as LaunchSearchEvent).detail;
-      if (detail.searchName === this.name) {
+      if (isTheSameSearchName(this.name, event)) {
         this.search();
       }
     }
@@ -428,7 +436,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     _handleChangePage(event: Event) {
       const detail = (event as ChangePageEvent).detail;
-      if (detail.searchName === this.name) {
+      if (isTheSameSearchName(this.name, event)) {
         this.search(detail.page);
       }
     }

@@ -9,6 +9,7 @@ import {classMap} from 'lit/directives/class-map.js';
 import {removeLangFromTermId} from './utils/taxonomies';
 import {searchBarInputAndButtonStyle} from './css/header';
 import {SearchaliciousEvents} from './utils/enums';
+import {isTheSameSearchName} from './utils/search';
 
 /**
  * The search bar element
@@ -219,7 +220,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     super.connectedCallback();
 
     this.addEventHandler(SearchaliciousEvents.RESET_SEARCH, (event: Event) => {
-      if (this.name === (event as CustomEvent).detail.searchName) {
+      if (isTheSameSearchName(this.name, event)) {
         this.onReset();
       }
     });
@@ -231,7 +232,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     this.removeEventHandler(
       SearchaliciousEvents.RESET_SEARCH,
       (event: Event) => {
-        if (this.name === (event as CustomEvent).detail.searchName) {
+        if (isTheSameSearchName(this.name, event)) {
           this.onReset();
         }
       }
