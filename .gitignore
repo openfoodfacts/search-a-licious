@@ -121,3 +121,4 @@ dmypy.json
 /frontend/test/
 /frontend/public/dist/
 /frontend/src/localization/generated/
+/frontend/public/generated/

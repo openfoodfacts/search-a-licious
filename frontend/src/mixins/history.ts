@@ -35,6 +35,7 @@ export type HistoryOutput = {
   page?: number;
   sortOptionId?: string;
   selectedTermsByFacet?: Record<string, string[]>;
+  history: HistoryParams;
 };
 /**
  * Parameters we need to put in URL to be able to deep link the search
@@ -137,7 +138,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
      * @param params
      */
     convertHistoryParamsToValues = (params: URLSearchParams): HistoryOutput => {
-      const values: HistoryOutput = {};
+      const values: HistoryOutput = {history: {}};
       const history = removeParamPrefixes(
         Object.fromEntries(params),
         this.name
@@ -146,6 +147,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
       for (const key of SEARCH_PARAMS) {
         Object.assign(values, HISTORY_VALUES[key](history));
       }
+      values.history = history;
       return values;
     };
 
@@ -196,7 +198,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
 
       this.setValuesFromHistory(values);
 
-      const launchSearch = !!Object.keys(values).length;
+      const launchSearch = !!Object.entries(values.history).length;
       return {
         launchSearch,
         values,
