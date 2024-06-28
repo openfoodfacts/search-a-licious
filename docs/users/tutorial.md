@@ -21,6 +21,7 @@ cd search-a-licious
 We need to create a configuration file to indicate which fields we care about in our index.
 
 For this we can create a conf/data/openfoodfacts-tutorial.yml file. It uses the [YAML format](https://yaml.org/).
+#### Default Index and Indices
 
 At the top we have:
 
@@ -36,6 +37,8 @@ indices:  # see 1
 
 2. We must give a name to our unique index. Let's call it `off` as Open Food Facts.
   We also indicate that this is the default index for the API.
+
+#### Index Configuration
 
 Now comes important indications for the index:
 ```yaml
@@ -56,6 +59,8 @@ indices:
       In Open Food Facts dataset, it's `last_modified_t`
 3. We have to give a sensible name to the index, which should be unique for our ElasticSearch instance.
    So we simply put "openfoodfacts".
+
+#### Configuring Searchable Fields
 
 Let's continue with configuration of fields we want to be able to search.
 
@@ -114,6 +119,7 @@ indices:
   as for code, a perfect case for a `keyword` field
 7. last_modified_t, corresponding to last modification time, is an example of a date field.
 
+#### Configuring Taxonomies
 Let's continue with configuration of taxonomies.
 
 Taxonomies will be used in multiple ways by *search-a-licious*:
@@ -143,6 +149,8 @@ indices:
 2. We must also defined which languages we want to use for this taxonomy.
    There is some trade-off between having a manageable size for the index and supporting more languages.
 3. finally we have to give a name to the Elasticsearch index that will contain the taxonomies.
+
+#### Configuring Supported Languages
 
 We continue with languages configurations:
 
