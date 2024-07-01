@@ -20,6 +20,8 @@ interface ChartInfos {
 
 export type ChartSearchParam = ChartSearchParamPOST | string;
 
+// eslint raises error due to :any
+// eslint-disable-next-line
 declare const vega: any;
 
 export class SearchaliciousChart extends SearchaliciousResultCtlMixin(

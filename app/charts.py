@@ -84,7 +84,8 @@ def build_distribution_chart(
             "range": "height",
         },
     ]
-    # How to hide vertical axis: do not add { scale: yscale, ...} in axes section
+    # How to hide vertical axis: do not add { scale: yscale, ...}
+    # in axes section
     chart["axes"] = [
         {"orient": "bottom", "scale": "xscale", "domain": False, "ticks": False}
     ]
@@ -243,7 +244,7 @@ def build_charts(
     for requested_chart in requested_charts:
         if requested_chart.chart_type == "ScatterChartType":
             charts[f"{requested_chart.x}:{requested_chart.y}"] = build_scatter_chart(
-                requested_chart, index_config, search_result
+                requested_chart, search_result, index_config
             )
         else:
             # distribution charts are created from aggregations
@@ -259,7 +260,7 @@ def build_charts(
                 values.sort(key=lambda x: x["category"])
 
                 charts[requested_chart.field] = build_distribution_chart(
-                    requested_chart, index_config, values
+                    requested_chart, values, index_config
                 )
 
     return charts
