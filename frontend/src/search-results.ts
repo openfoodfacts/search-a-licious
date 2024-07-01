@@ -62,6 +62,9 @@ export class SearchaliciousResults extends SignalWatcher(
   @property({attribute: 'loadind-card-size', type: Number})
   loadingCardSize = 200;
 
+  /**
+   * The parent width, used to compute the number of loading cards to display
+   */
   get parentWidth() {
     return this.parentElement?.offsetWidth || 1200;
   }
@@ -140,7 +143,12 @@ export class SearchaliciousResults extends SignalWatcher(
     return slots[0].innerHTML;
   }
 
+  /**
+   * Render the loading cards
+   * We display 2 columns of loading cards
+   */
   renderLoading() {
+    // we take the row width and display 2 columns of loading cards
     const numCols = Math.floor(this.parentWidth / this.loadingCardSize) * 2;
 
     return html`
@@ -157,6 +165,7 @@ export class SearchaliciousResults extends SignalWatcher(
   override render() {
     if (this.results.length) {
       return this.renderResults();
+      // if we are loading, we display the loading cards
     } else if (isSearchLoading(this.searchName).value) {
       return this.renderLoading();
     } else if (this.searchLaunched) {
