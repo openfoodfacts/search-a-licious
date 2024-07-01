@@ -71,7 +71,7 @@ def search(
         search_result.facets = build_facets(
             search_result, query, params.main_lang, index_config, params.facets
         )
-        search_result.charts = build_charts(search_result, params.charts)
+        search_result.charts = build_charts(search_result, index_config, params.charts)
         # remove aggregations to avoid sending too much information
         search_result.aggregations = None
     return search_result

@@ -16,7 +16,9 @@ import app.search as app_search
 from app import config
 from app._types import (
     INDEX_ID_QUERY_PARAM,
+    DistributionChartType,
     GetSearchParamsTypes,
+    ScatterChartType,
     SearchParameters,
     SearchResponse,
     SuccessSearchResponse,
@@ -107,8 +109,21 @@ def search(search_parameters: Annotated[SearchParameters, Body()]):
     return app_search.search(search_parameters)
 
 
-def parse_langs(langs: str | None) -> list[str]:
-    return langs.split(",") if langs else ["en"]
+def parse_charts_get(charts_params: str):
+    """
+    Parse for get params are 'field' or 'xfield:yfield'
+    separated by ',' for Distribution and Scatter charts.
+
+    Directly the dictionnaries in POST request
+    """
+    charts = []
+    for c in charts_params.split(","):
+        if ":" in c:
+            [x, y] = c.split(":")
+            charts.append(ScatterChartType(x=x, y=y))
+        else:
+            charts.append(DistributionChartType(field=c))
+    return charts
 
 
 @app.get("/search")
@@ -120,14 +135,15 @@ def search_get(
     fields: GetSearchParamsTypes.fields = None,
     sort_by: GetSearchParamsTypes.sort_by = None,
     facets: GetSearchParamsTypes.facets = None,
-    charts: GetSearchParamsTypes.charts = None,
+    charts: GetSearchParamsTypes.facets = None,
     index_id: GetSearchParamsTypes.index_id = None,
 ) -> SearchResponse:
     # str to lists
     langs_list = langs.split(",") if langs else ["en"]
     fields_list = fields.split(",") if fields else None
     facets_list = facets.split(",") if facets else None
-    charts_list = charts.split(",") if charts else None
+    charts = parse_charts_get(charts) if charts else None
+    print(charts)
     # create SearchParameters object
     try:
         search_parameters = SearchParameters(
@@ -138,8 +154,8 @@ def search_get(
             fields=fields_list,
             sort_by=sort_by,
             facets=facets_list,
-            charts=charts_list,
             index_id=index_id,
+            charts=charts,
         )
         return app_search.search(search_parameters)
     except ValidationError as e:
