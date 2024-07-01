@@ -26,7 +26,7 @@ import {
   SearchaliciousHistoryMixin,
 } from './history';
 import {SearchaliciousChart} from '../search-chart';
-import {canResetSearch, isSearchChanged} from '../signals';
+import {canResetSearch, isSearchChanged, isSearchLoading} from '../signals';
 import {SignalWatcher} from '@lit-labs/preact-signals';
 import {isTheSameSearchName} from '../utils/search';
 
@@ -490,6 +490,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     async search(page = 1) {
       const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
+
+      isSearchLoading(this.name).value = true;
+
       let response;
       if (method === 'GET') {
         response = await fetch(
@@ -512,6 +515,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this._currentPage = data.page;
       this._pageCount = data.page_count;
 
+      isSearchLoading(this.name).value = false;
       this.updateSearchSignals();
 
       // dispatch an event with the results

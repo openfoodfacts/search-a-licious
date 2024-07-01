@@ -19,6 +19,14 @@ const _isSearchChanged: Record<string, Signal> = {} as Record<
 >;
 
 /**
+ * Signals to indicate if the search is loading.
+ */
+const _isSearchLoading: Record<string, Signal> = {} as Record<
+  string,
+  Signal<boolean>
+>;
+
+/**
  * Function to get or create a signal by search name.
  * If the signal does not exist, it creates it.
  * @param signalsObject
@@ -37,6 +45,7 @@ const _getOrCreateSignal = (
 /**
  * Function to get the signal to indicate if the search has changed.
  * It is use by reset-button to know if it should be displayed.
+ * @param searchName
  */
 export const canResetSearch = (searchName: string) => {
   return _getOrCreateSignal(_canResetSearch, searchName);
@@ -45,7 +54,17 @@ export const canResetSearch = (searchName: string) => {
 /**
  * Function to get the signal to indicate if the search has changed.
  * it is used by the search button to know if it should be displayed.
+ * @param searchName
  */
 export const isSearchChanged = (searchName: string) => {
   return _getOrCreateSignal(_isSearchChanged, searchName);
+};
+
+/**
+ * Function to get the signal to indicate if the search is loading.
+ * The search-results utilize this to determine whether the loading card should be displayed.
+ * @param searchName
+ */
+export const isSearchLoading = (searchName: string) => {
+  return _getOrCreateSignal(_isSearchLoading, searchName);
 };
