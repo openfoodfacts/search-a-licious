@@ -12,7 +12,7 @@ export class SearchCount extends SearchaliciousResultCtlMixin(LitElement) {
     }
   `;
 
-  @property({attribute: 'display-time'})
+  @property({attribute: 'display-time', type: Boolean})
   displayTime = true;
 
   // HTML to display before the search is launched
