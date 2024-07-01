@@ -157,7 +157,13 @@ class FieldConfig(BaseModel):
     ] = None
     #
     split: Annotated[
-        bool, Field(description="do we split the input field with `split_separator`")
+        bool,
+        Field(
+            description="do we split the input field with `split_separator` ?\n\n"
+            "This is useful if you have some text fields that contains list of values, "
+            "(for example a comma separated list of values, like apple,banana,carrot).\n\n"
+            "You must set split_separator to the character that separates the values in the dataset."
+        ),
     ] = False
     full_text_search: Annotated[
         bool,
@@ -213,14 +219,20 @@ class FieldConfig(BaseModel):
 class ESIndexConfig(BaseModel):
     name: Annotated[str, Field(description="name of the index alias to use")]
     id_field_name: Annotated[
-        str, Field(description="name of the field to use for `_id`")
+        str,
+        Field(
+            description="name of the field to use for `_id`."
+            "it is mandatory to provide one.\n\n "
+            "If your dataset does not have an identifier field, "
+            "you should use a document preprocessor to compute one."
+        ),
     ]
     last_modified_field_name: Annotated[
         str,
         Field(
             description="name of the field containing the date of last modification, "
-            "used for incremental updates using Redis queues. The field value must be an "
-            "int/float representing the timestamp."
+            "used for incremental updates using Redis queues. "
+            "The field value must be an int/float representing the timestamp.\n\n"
         ),
     ]
     number_of_shards: Annotated[

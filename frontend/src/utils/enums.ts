@@ -2,7 +2,12 @@
  * This file defines constants as Enums to be used in the library
  */
 export enum SearchaliciousEvents {
+  // askin for first search launch is a specific event
+  LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
   LAUNCH_SEARCH = 'searchalicious-search',
+  // event for reseting the search
+  RESET_SEARCH = 'searchalicious-reset-search',
+
   NEW_RESULT = 'searchalicious-result',
   CHANGE_PAGE = 'searchalicious-change-page',
   // events for autocomplete selection
@@ -10,8 +15,7 @@ export enum SearchaliciousEvents {
   AUTOCOMPLETE_INPUT = 'searchalicious-autocomplete-input',
   // events for sort option selection
   SORT_OPTION_SELECTED = 'searchalicious-sort-option-selected',
-  // askin for first search launch is a specific event
-  LAUNCH_FIRST_SEARCH = 'searchalicious-launch-first-search',
+
   // event for opening or closing chart sidebar
   CHANGE_CHART_SIDEBAR_STATE = 'searchalicious-change-chart-sidebar-state',
   // event for facet selection

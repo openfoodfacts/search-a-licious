@@ -4,10 +4,11 @@ from pathlib import Path
 from typing import Annotated, Any, cast
 
 import elasticsearch
+import starlette.status as status
 from elasticsearch_dsl import Search
 from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
@@ -31,6 +32,17 @@ from app.validations import check_index_id_is_defined
 logger = get_logger()
 
 
+API_DESCRIPTION = """
+The Search-a-licious API helps you quickly build applications with search capabilities.
+
+You can find the API documentation here.
+
+See also the available [web-components](../static/web-components.html) to build your search interface.
+
+See the [project](https://github.com/openfoodfacts/search-a-licious/) for more information.
+"""
+
+
 app = FastAPI(
     title="search-a-licious API",
     contact={
@@ -42,6 +54,7 @@ app = FastAPI(
         "name": " AGPL-3.0",
         "url": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     },
+    description=API_DESCRIPTION,
 )
 ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS", "http://localhost,http://127.0.0.1"
@@ -203,6 +216,11 @@ def taxonomy_autocomplete(
 
 
 @app.get("/", response_class=HTMLResponse)
+def off_demo():
+    return RedirectResponse(url="/static/off.html", status_code=status.HTTP_302_FOUND)
+
+
+@app.get("/off-test", response_class=HTMLResponse)
 def html_search(
     request: Request,
     q: str | None = None,

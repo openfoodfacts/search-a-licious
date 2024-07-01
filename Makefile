@@ -146,7 +146,9 @@ import-taxonomies:
 	@echo "🔎 Importing taxonomies …"
 	${DOCKER_COMPOSE} run --rm api python3 -m app import-taxonomies ${args}
 
-
+build-translations:
+	@echo "🔎 Building translations …"
+	${DOCKER_COMPOSE} run --rm search_nodejs npm run translations:build
 
 #-------#
 # Tests #

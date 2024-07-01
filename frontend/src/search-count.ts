@@ -16,7 +16,7 @@ export class SearchCount
     :host {
       display: block;
       padding: 5px;
-      color: white;
+      color: var(--searchalicious-count-color, inherit);
     }
   `;
 

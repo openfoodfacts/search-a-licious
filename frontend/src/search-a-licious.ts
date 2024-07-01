@@ -23,4 +23,5 @@ export {SearchaliciousIconSearch} from './icons/search';
 export {SearchaliciousIconChart} from './icons/chart';
 export {SearchaliciousSuggestionEntry} from './search-suggestion-entry';
 export {SearchaliciousToggleCharts} from './search-toggle-charts';
+export {SearchaliciousResetButton} from './search-reset-button';
 export {setLocale, getLocale} from './localization/main';
