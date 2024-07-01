@@ -1,9 +1,8 @@
 import {LitElement, html} from 'lit';
-import {customElement, property, state} from 'lit/decorators.js';
+import {customElement, property} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-import {SearchResultEvent} from './events';
 import {
   MissingResultTemplateError,
   MultipleResultTemplateError,
@@ -26,11 +25,6 @@ type htmlType = typeof html;
 export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
-  // the last search results
-  @state()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  results: Record<string, any>[] = [];
-
   // attribute giving id to seek in search results, might be undefined
   @property({attribute: 'result-id'})
   resultId = '';
@@ -110,9 +104,9 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
   }
 
   override render() {
-    if (this.results.length) {
+    if (this.searchResultDetail.results.length) {
       return this.renderResults();
-    } else if (this.searchLaunched) {
+    } else if (this.searchResultDetail.isSearchLaunch) {
       return html`<slot name="no-results">${this.noResults}</slot>`;
     } else {
       return html`<slot name="before-search">${this.beforeSearch}</slot>`;
@@ -130,15 +124,12 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
     const KeyFnOrTemplate = keyFn ? keyFn : renderResult;
     const templateOrUndef = keyFn ? renderResult : undefined;
     return html` <ul part="results">
-      ${repeat(this.results, KeyFnOrTemplate, templateOrUndef)}
+      ${repeat(
+        this.searchResultDetail.results,
+        KeyFnOrTemplate,
+        templateOrUndef
+      )}
     </ul>`;
-  }
-
-  /**
-   * event handler for NEW_RESULT events
-   */
-  override handleResults(event: SearchResultEvent) {
-    this.results = event.detail.results; // it's reactive, should trigger rendering
   }
 
   /**

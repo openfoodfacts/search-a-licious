@@ -1,25 +1,20 @@
-import {LitElement} from 'lit';
-import {property, state} from 'lit/decorators.js';
+import {LitElement, ReactiveElement} from 'lit';
+import {property} from 'lit/decorators.js';
 
+import {Constructor} from './utils';
+import {DEFAULT_SEARCH_NAME} from '../utils/constants';
+import {SearchResultDetail, searchResultDetail} from '../signals';
+import {Signal, SignalWatcher} from '@lit-labs/preact-signals';
 import {
   EventRegistrationInterface,
   EventRegistrationMixin,
 } from '../event-listener-setup';
-import {SearchaliciousEvents} from '../utils/enums';
-import {SearchResultEvent} from '../events';
-import {Constructor} from './utils';
-import {isTheSameSearchName} from '../utils/search';
-import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 
 export interface SearchaliciousResultsCtlInterface
   extends EventRegistrationInterface {
   searchName: string;
-  searchLaunched: Boolean;
-
-  // sub class must override this one to display results
-  handleResults(event: SearchResultEvent): void;
-  // this is the registered handler
-  _handleResults(event: Event): void;
+  searchResultDetailSignal: Signal<SearchResultDetail>;
+  searchResultDetail: SearchResultDetail;
 }
 
 /**
@@ -32,8 +27,8 @@ export const SearchaliciousResultCtlMixin = <T extends Constructor<LitElement>>(
   /**
    * The search mixin, encapsulate the logic of dialog with server
    */
-  class SearchaliciousResultCtlMixinClass extends EventRegistrationMixin(
-    superClass
+  class SearchaliciousResultCtlMixinClass extends SignalWatcher(
+    EventRegistrationMixin(superClass)
   ) {
     /**
      * the search we display result for,
@@ -42,49 +37,17 @@ export const SearchaliciousResultCtlMixin = <T extends Constructor<LitElement>>(
     @property({attribute: 'search-name'})
     searchName = DEFAULT_SEARCH_NAME;
 
-    /**
-     * this will be true if we already launched a search
-     */
-    @state()
-    searchLaunched = false;
-
-    handleResults(_: SearchResultEvent) {
-      throw Error(
-        'You must provide a handleResults function in you implementation'
-      );
+    get searchResultDetailSignal() {
+      return searchResultDetail(this.searchName);
     }
 
-    /**
-     * event handler for NEW_RESULT events
-     */
-    _handleResults(event: Event) {
-      // check if event is for our search
-      const resultEvent = event as SearchResultEvent;
-      if (isTheSameSearchName(this.searchName, event)) {
-        this.searchLaunched = true;
-        // call the real method
-        this.handleResults(resultEvent);
-      }
-    }
-
-    /**
-     * Connect search event handlers.
-     */
-    override connectedCallback() {
-      super.connectedCallback();
-      this.addEventHandler(SearchaliciousEvents.NEW_RESULT, (event) =>
-        this._handleResults(event)
-      );
-    }
-    // connect to our specific events
-    override disconnectedCallback() {
-      super.disconnectedCallback();
-      this.removeEventHandler(SearchaliciousEvents.NEW_RESULT, (event) =>
-        this._handleResults(event)
-      );
+    get searchResultDetail() {
+      return this.searchResultDetailSignal.value;
     }
   }
 
-  return SearchaliciousResultCtlMixinClass as Constructor<SearchaliciousResultsCtlInterface> &
+  return SearchaliciousResultCtlMixinClass as Constructor<
+    SearchaliciousResultsCtlInterface & ReactiveElement
+  > &
     T;
 };

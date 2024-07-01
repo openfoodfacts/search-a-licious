@@ -44,6 +44,14 @@
   <note from="lit-localize">Search button</note>
   <target>Rechercher</target>
 </trans-unit>
+<trans-unit id="sb074d20f9b64aa31">
+  <source>results found</source>
+  <target>résultats trouvés</target>
+</trans-unit>
+<trans-unit id="h4a560de48c98b38f">
+  <source>More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</source>
+  <target>Plus de <x id="0" equiv-text="${this.searchResultDetail.count}"/> résultats trouvés</target>
+</trans-unit>
 </body>
 </file>
 </xliff>

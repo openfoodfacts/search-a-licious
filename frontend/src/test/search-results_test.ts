@@ -1,6 +1,4 @@
 import {SearchaliciousResults} from '../search-results';
-import {SearchaliciousEvents} from '../utils/enums';
-import {SearchResultDetail} from '../events';
 
 import {fixture, assert, expect} from '@open-wc/testing';
 import {html} from 'lit/static-html.js';
@@ -8,32 +6,29 @@ import {
   MissingResultTemplateError,
   MultipleResultTemplateError,
 } from '../errors';
-import {DEFAULT_SEARCH_NAME} from '../utils/constants';
+import {resetSignalToDefault} from './utils';
 
 suite('searchalicious-results', () => {
   // helper to simulate a search result
-  const emitSearchResult = (
-    el: SearchaliciousResults,
-    results: Array<Record<string, unknown>>
-  ) => {
-    const detail: SearchResultDetail = {
-      searchName: DEFAULT_SEARCH_NAME,
-      results: results,
+  const emitSearchResult = (el: SearchaliciousResults, results: any[]) => {
+    el.searchResultDetailSignal.value = {
+      results, // we don't really care
       count: 3,
       pageCount: 1,
       currentPage: 1,
       pageSize: 10,
       facets: {},
       charts: {},
+      displayTime: 0,
+      isCountExact: true,
+      isSearchLaunch: true,
     };
-    el._handleResults(
-      new CustomEvent(SearchaliciousEvents.NEW_RESULT, {
-        bubbles: true,
-        composed: true,
-        detail: detail,
-      })
-    );
   };
+
+  setup(() => {
+    // reset the signal to its default value because it keeps its value between tests
+    resetSignalToDefault();
+  });
 
   test('is defined', () => {
     const el = document.createElement('searchalicious-results');
@@ -49,8 +44,8 @@ suite('searchalicious-results', () => {
       </div>
     </searchalicious-results>`)) as SearchaliciousResults;
     // empty at first
-    assert.equal(el.searchLaunched, false);
-    assert.deepEqual(el.results, []);
+    assert.equal(el.searchResultDetail.isSearchLaunch, false);
+    assert.deepEqual(el.searchResultDetail.results, []);
     assert.shadowDom.equal(el, '<slot name="before-search"></slot>');
     // emit search result
     const searchResults = [
@@ -60,8 +55,8 @@ suite('searchalicious-results', () => {
     ];
     emitSearchResult(el, searchResults);
     await el.updateComplete;
-    assert.equal(el.searchLaunched, true);
-    assert.deepEqual(el.results, searchResults);
+    assert.equal(el.searchResultDetail.isSearchLaunch, true);
+    assert.deepEqual(el.searchResultDetail.results, searchResults);
     assert.shadowDom.equal(
       el,
       `
@@ -74,8 +69,8 @@ suite('searchalicious-results', () => {
     // emit an empty search result
     emitSearchResult(el, []);
     await el.updateComplete;
-    assert.equal(el.searchLaunched, true);
-    assert.deepEqual(el.results, []);
+    assert.equal(el.searchResultDetail.isSearchLaunch, true);
+    assert.deepEqual(el.searchResultDetail.results, []);
     assert.shadowDom.equal(
       el,
       '<slot name="no-results"><div> No results found </div></slot>'
@@ -122,8 +117,8 @@ suite('searchalicious-results', () => {
       <p slot="before-search">Try to search <span>something</span></p>
     </searchalicious-results>`)) as SearchaliciousResults;
     // empty at first
-    assert.equal(el.searchLaunched, false);
-    assert.deepEqual(el.results, []);
+    assert.equal(el.searchResultDetail.isSearchLaunch, false);
+    assert.deepEqual(el.searchResultDetail.results, []);
     assert.shadowDom.equal(el, `<slot name="before-search"></slot>`);
   });
 
@@ -135,8 +130,8 @@ suite('searchalicious-results', () => {
     // emit an empty search result
     emitSearchResult(el, []);
     await el.updateComplete;
-    assert.equal(el.searchLaunched, true);
-    assert.deepEqual(el.results, []);
+    assert.equal(el.searchResultDetail.isSearchLaunch, true);
+    assert.deepEqual(el.searchResultDetail.results, []);
     assert.shadowDom.equal(
       el,
       `<slot name="no-results"><div> No results found </div></slot>`

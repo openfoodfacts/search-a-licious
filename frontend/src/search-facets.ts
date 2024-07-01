@@ -1,8 +1,6 @@
 import {LitElement, html, nothing, css} from 'lit';
 import {customElement, property, queryAssignedNodes} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
-import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-import {SearchResultEvent} from './events';
 import {DebounceMixin} from './mixins/debounce';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {getTaxonomyName, removeLangFromTermId} from './utils/taxonomies';
@@ -12,6 +10,7 @@ import {QueryOperator, SearchaliciousEvents} from './utils/enums';
 import {getPluralTranslation} from './localization/translations';
 import {msg, localized} from '@lit/localize';
 import {WHITE_PANEL_STYLE} from './styles';
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -47,8 +46,8 @@ function stringGuard(s: string | undefined): s is string {
  */
 @customElement('searchalicious-facets')
 @localized()
-export class SearchaliciousFacets extends SearchActionMixin(
-  SearchaliciousResultCtlMixin(LitElement)
+export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
+  SearchActionMixin(LitElement)
 ) {
   static override styles = css`
     .reset-button-wrapper {
@@ -57,6 +56,7 @@ export class SearchaliciousFacets extends SearchActionMixin(
       justify-content: center;
     }
   `;
+
   // the last search facets
   @property({attribute: false})
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,6 +64,13 @@ export class SearchaliciousFacets extends SearchActionMixin(
 
   @queryAssignedNodes({flatten: true})
   slotNodes!: Array<Node>;
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this.searchResultDetailSignal.subscribe((searchResultDetail) => {
+      this.updateFacets(searchResultDetail.facets as FacetsInfos);
+    });
+  }
 
   _facetNodes(): SearchaliciousFacet[] {
     return this.slotNodes.filter(
@@ -124,17 +131,17 @@ export class SearchaliciousFacets extends SearchActionMixin(
   }
 
   /**
-   * As a result is received, we dispatch facets values to facetNodes
-   * @param event search result event
+   * Update facets
+   * @param newFacets
    */
-  override handleResults(event: SearchResultEvent) {
-    this.facets = event.detail.facets as FacetsInfos;
-    if (this.facets) {
-      // dispatch to children
-      this._facetNodes().forEach((node) => {
-        node.infos = this.facets![node.name];
-      });
+  updateFacets(newFacets: FacetsInfos) {
+    this.facets = newFacets;
+    if (!this.facets) {
+      return;
     }
+    this._facetNodes().forEach((node) => {
+      node.infos = newFacets[node.name];
+    });
   }
 
   reset = (launchSearch = true) => {
@@ -150,14 +157,16 @@ export class SearchaliciousFacets extends SearchActionMixin(
     // we always want to render slot, baceauso we use queryAssignedNodes
     // but we may not want to display them
     const display = this.facets ? '' : 'display: none';
-    return html`<div part="facets" style="${display}">
-      <slot></slot>
-      <div class="reset-button-wrapper">
-        <searchalicious-secondary-button @click=${this.reset}
-          >${msg('Reset filters')}</searchalicious-secondary-button
-        >
+    return html`
+      <div part="facets" style="${display}">
+        <slot></slot>
+        <div class="reset-button-wrapper">
+          <searchalicious-secondary-button @click=${this.reset}
+            >${msg('Reset filters')}</searchalicious-secondary-button
+          >
+        </div>
       </div>
-    </div> `;
+    `;
   }
 }
 
