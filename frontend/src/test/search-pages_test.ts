@@ -2,8 +2,7 @@ import {SearchaliciousPages} from '../search-pages';
 
 import {fixture, assert} from '@open-wc/testing';
 import {html} from 'lit/static-html.js';
-import {getDefaultSearchResultDetail, searchResultDetail} from '../signals';
-import {DEFAULT_SEARCH_NAME} from '../utils/constants';
+import {resetSignalToDefault} from './utils';
 
 suite('searchalicious-pages', () => {
   // helper to simulate a search result
@@ -26,10 +25,9 @@ suite('searchalicious-pages', () => {
     };
   };
 
-  beforeEach(() => {
-    // reset signal to default value
-    searchResultDetail(DEFAULT_SEARCH_NAME).value =
-      getDefaultSearchResultDetail();
+  setup(() => {
+    // reset the signal to its default value because it keeps its value between tests
+    resetSignalToDefault();
   });
 
   // render pagination as txt
@@ -137,7 +135,6 @@ suite('searchalicious-pages', () => {
       'el.searchResultDetail.isSearchLaunch :',
       el.searchResultDetail.isSearchLaunch
     );
-    console.log('blah blah');
     assert.shadowDom.equal(el, `<slot name="before-search"></slot>`);
   });
   test('render with specific no results', async () => {

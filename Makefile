@@ -125,7 +125,9 @@ test_front:
 	@echo "🔎 Running front-end tests..."
 	${DOCKER_COMPOSE_TEST} run --rm search_nodejs npm run test
 
-
+test_front_watch:
+	@echo "🔎 Running front-end tests..."
+	${DOCKER_COMPOSE_TEST} run --rm search_nodejs npm run test:watch
 
 #-----------#
 # Utilities #
