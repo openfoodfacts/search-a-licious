@@ -1,5 +1,6 @@
 from functools import reduce
 
+from . import config
 from ._types import (
     ChartsInfos,
     ChartType,
@@ -8,11 +9,20 @@ from ._types import (
     SuccessSearchResponse,
 )
 
-PRIMARY_COLOR = "#341100"
-ACCENT_COLOR = "#ff8714"
-
 
 def empty_chart(chart_name):
+    """
+    Return a responsive vega chart
+    using signals and auto-size
+    https://gist.github.com/donghaoren/023b2246569e8f0615017507b473e55e
+
+    Vega is used as a JSON visualization grammar
+    Doc: https://vega.github.io/vega/docs/
+    It would have been possible to use higher lever vega-lite API,
+    which is able to write vega specifications but it's probably too
+    much for our usage
+    Inspired by: https://vega.github.io/vega/examples/bar-chart/
+    """
     return {
         "$schema": "https://vega.github.io/schema/vega/v5.json",
         "title": chart_name,
@@ -33,7 +43,13 @@ def empty_chart(chart_name):
     }
 
 
-def build_distribution_chart(chart: DistributionChartType, values):
+def build_distribution_chart(
+    chart: DistributionChartType, values, index_config: config.IndexConfig
+):
+    """
+    Return the vega structure for a Bar Chart
+    Inspiration: https://vega.github.io/vega/examples/bar-chart/
+    """
     chart = empty_chart(chart.field)
     chart["data"] = [
         {
@@ -68,6 +84,7 @@ def build_distribution_chart(chart: DistributionChartType, values):
             "range": "height",
         },
     ]
+    # How to hide vertical axis: do not add { scale: yscale, ...} in axes section
     chart["axes"] = [
         {"orient": "bottom", "scale": "xscale", "domain": False, "ticks": False}
     ]
@@ -83,10 +100,10 @@ def build_distribution_chart(chart: DistributionChartType, values):
                     "y2": {"scale": "yscale", "value": 0},
                 },
                 "update": {
-                    "fill": {"value": PRIMARY_COLOR},
+                    "fill": {"value": index_config.primary_color},
                 },
                 "hover": {
-                    "fill": {"value": ACCENT_COLOR},
+                    "fill": {"value": index_config.accent_color},
                 },
             },
         },
@@ -120,11 +137,14 @@ def build_distribution_chart(chart: DistributionChartType, values):
     return chart
 
 
-def build_scatter_chart(chart_option: ScatterChartType, search_result):
+def build_scatter_chart(
+    chart_option: ScatterChartType, search_result, index_config: config.IndexConfig
+):
     """
     Build a scatter plot only for values from search_results
     (only values in the current page)
     TODO: use values from the whole search?
+    Inspiration: https://vega.github.io/vega/examples/scatter-plot/
     """
 
     def _get(v, path):
@@ -194,8 +214,8 @@ def build_scatter_chart(chart_option: ScatterChartType, search_result):
                     "shape": {"value": "circle"},
                     "strokeWidth": {"value": 2},
                     "opacity": {"value": 0.5},
-                    "stroke": {"value": PRIMARY_COLOR},
-                    "fill": {"value": PRIMARY_COLOR},
+                    "stroke": {"value": index_config.primary_color},
+                    "fill": {"value": index_config.primary_color},
                 }
             },
         }
@@ -206,8 +226,13 @@ def build_scatter_chart(chart_option: ScatterChartType, search_result):
 
 def build_charts(
     search_result: SuccessSearchResponse,
+    index_config: config.IndexConfig,
     requested_charts: list[ChartType] | None,
 ) -> ChartsInfos:
+    """
+    Build and return vega charts representations for the given
+    requested charts
+    """
     charts: ChartsInfos = {}
 
     if requested_charts is None:
@@ -218,7 +243,7 @@ def build_charts(
     for requested_chart in requested_charts:
         if requested_chart.chart_type == "ScatterChartType":
             charts[f"{requested_chart.x}:{requested_chart.y}"] = build_scatter_chart(
-                requested_chart, search_result
+                requested_chart, index_config, search_result
             )
         else:
             # distribution charts are created from aggregations
@@ -234,7 +259,7 @@ def build_charts(
                 values.sort(key=lambda x: x["category"])
 
                 charts[requested_chart.field] = build_distribution_chart(
-                    requested_chart, values
+                    requested_chart, index_config, values
                 )
 
     return charts

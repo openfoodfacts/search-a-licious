@@ -1,19 +1,118 @@
-import {LitElement} from 'lit';
+import {LitElement, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-
-import {
-  SearchaliciousChartMixin,
-  SearchaliciousChartResultCtlMixin,
-} from './mixins/search-chart';
-
-import {SearchResultEvent} from './events';
 
 import {WHITE_PANEL_STYLE} from './styles';
 
-@customElement('searchalicious-distribution-chart')
-export class SearchaliciousDistributionChart extends SearchaliciousChartResultCtlMixin(
-  SearchaliciousChartMixin(LitElement)
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
+import {SearchResultEvent} from './events';
+
+interface ChartSearchParamPOST {
+  chart_type: string;
+  field?: string;
+  x?: string;
+  y?: string;
+}
+
+type ChartInfo = object;
+interface ChartInfos {
+  [key: string]: ChartInfo;
+}
+
+export type ChartSearchParam = ChartSearchParamPOST | string;
+
+declare const vega: any;
+
+export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
+  LitElement
 ) {
+  @property({attribute: false})
+  vegaRepresentation: object | undefined = undefined;
+
+  @property({attribute: false})
+  vegaInstalled: boolean;
+
+  static override styles = [WHITE_PANEL_STYLE];
+
+  constructor() {
+    super();
+    this.vegaInstalled = this.testVegaInstalled();
+  }
+
+  /**
+   * The name is used to get the right vega chart from
+   * API search Result
+   */
+  getName(): string {
+    throw new Error('Not implemented');
+  }
+
+  /**
+   * Return the GET or POST param used for the API
+   */
+  getSearchParam(_isGetRequest: boolean): ChartSearchParam {
+    throw new Error('Not implemented');
+  }
+
+  override render() {
+    if (!this.vegaInstalled) {
+      return html`<p>Please install vega to use searchalicious-chart</p>`;
+    }
+
+    if (this.vegaRepresentation === undefined) {
+      return html`<slot class="white-panel" name="no-data"
+        ><p>no data</p></slot
+      >`;
+    }
+
+    return html`<div class="white-panel" id="vega-container"></div>`;
+  }
+
+  testVegaInstalled() {
+    try {
+      vega;
+      return true;
+    } catch (e) {
+      if (e instanceof ReferenceError) {
+        console.error(
+          'Vega is required to use searchalicious-chart, you can import it using \
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>'
+        );
+        return false;
+      }
+      throw e;
+    }
+  }
+
+  // vega rendering requires an html component with id == this.name
+  // and consequently must be called AFTER render
+  // Method updated is perfect for that
+  // See lit.dev components lifecycle: https://lit.dev/docs/components/lifecycle/
+  override updated() {
+    if (this.vegaRepresentation === undefined) return;
+
+    const container = this.renderRoot.querySelector(`#vega-container`);
+
+    // How to display a vega chart: https://vega.github.io/vega/usage/#view
+    const view = new vega.View(vega.parse(this.vegaRepresentation), {
+      renderer: 'svg',
+      container: container,
+      hover: true,
+    });
+    view.runAsync();
+  }
+
+  override handleResults(event: SearchResultEvent) {
+    if (event.detail.results.length === 0 || !this.vegaInstalled) {
+      this.vegaRepresentation = undefined;
+      return;
+    }
+    const charts = event.detail.charts as ChartInfos;
+    this.vegaRepresentation = charts[this.getName()];
+  }
+}
+
+@customElement('searchalicious-distribution-chart')
+export class SearchaliciousDistributionChart extends SearchaliciousChart {
   static override styles = [WHITE_PANEL_STYLE];
 
   // All these properties will change when vega logic
@@ -25,7 +124,7 @@ export class SearchaliciousDistributionChart extends SearchaliciousChartResultCt
     return this.field;
   }
 
-  getSearchParam(isGetRequest: boolean) {
+  override getSearchParam(isGetRequest: boolean) {
     if (isGetRequest) return this.field;
     else
       return {
@@ -35,9 +134,7 @@ export class SearchaliciousDistributionChart extends SearchaliciousChartResultCt
   }
 }
 @customElement('searchalicious-scatter-chart')
-export class SearchaliciousScatterChart extends SearchaliciousChartResultCtlMixin(
-  SearchaliciousChartMixin(LitElement)
-) {
+export class SearchaliciousScatterChart extends SearchaliciousChart {
   static override styles = [WHITE_PANEL_STYLE];
 
   @property()
@@ -50,16 +147,14 @@ export class SearchaliciousScatterChart extends SearchaliciousChartResultCtlMixi
     return `${this.x}:${this.y}`;
   }
 
-  getSearchParam(isGetRequest: boolean) {
-      if (isGetRequest)
-        return `${this.x}:${this.y}`;
-      else
-        return {
-          chart_type: 'ScatterChartType',
-          x: this.x,
-          y: this.y
-        };
-  }
+  override getSearchParam(isGetRequest: boolean) {
+    if (isGetRequest) return `${this.x}:${this.y}`;
+    else
+      return {
+        chart_type: 'ScatterChartType',
+        x: this.x,
+        y: this.y,
+      };
   }
 }
 

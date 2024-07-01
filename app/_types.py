@@ -359,21 +359,24 @@ If not provided, `['en']` is used."""
                 chart.field
                 for chart in self.charts
                 if chart.chart_type == "DistributionChartType"
-            ]
+            ],
         )
 
-        errors.extend(check_fields_are_numeric(
-            self.index_id,
-            [
-                chart.x
-                for chart in self.charts
-                if chart.chart_type == "ScatterChartType"
-            ] + [
-                chart.y
-                for chart in self.charts
-                if chart.chart_type == "ScatterChartType"
-            ],
-        ))
+        errors.extend(
+            check_fields_are_numeric(
+                self.index_id,
+                [
+                    chart.x
+                    for chart in self.charts
+                    if chart.chart_type == "ScatterChartType"
+                ]
+                + [
+                    chart.y
+                    for chart in self.charts
+                    if chart.chart_type == "ScatterChartType"
+                ],
+            )
+        )
 
         if errors:
             raise ValueError(errors)

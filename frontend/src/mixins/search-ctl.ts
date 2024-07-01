@@ -22,8 +22,11 @@ import {
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
-import { SearchaliciousDistributionChart, SearchaliciousScatterChart } from '../search-chart';
-import { ChartSearchParam } from './search-chart';
+import {
+  SearchaliciousDistributionChart,
+  SearchaliciousScatterChart,
+  ChartSearchParam,
+} from '../search-chart';
 // import {SearchaliciousChartInterface} from './search-chart';
 
 export interface SearchParameters extends SortParameters {
@@ -34,7 +37,7 @@ export interface SearchParameters extends SortParameters {
   index_id?: string;
   facets?: string[];
   params?: string[];
-  charts?: string | ChartSearchParam[]
+  charts?: string | ChartSearchParam[];
 }
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface,
@@ -56,7 +59,6 @@ export interface SearchaliciousSearchInterface
   resetFacets(launchSearch?: boolean): void;
   selectTermByTaxonomy(taxonomy: string, term: string): void;
 }
-
 
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
@@ -251,27 +253,32 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * Get the list of charts params we want to request
      */
-    _chartParams(isGetRequest: boolean): ChartSearchParam[] | string | undefined {
-      const chartsParams: ChartSearchParam[] = []
+    _chartParams(
+      isGetRequest: boolean
+    ): ChartSearchParam[] | string | undefined {
+      const chartsParams: ChartSearchParam[] = [];
 
-      document.querySelectorAll(
+      document
+        .querySelectorAll(
           `searchalicious-distribution-chart[search-name=${this.name}]`
-      ).forEach(item => {
-        const chartItem = item as SearchaliciousDistributionChart;
-        chartsParams.push(chartItem.getSearchParam(isGetRequest));
-      });
+        )
+        .forEach((item) => {
+          const chartItem = item as SearchaliciousDistributionChart;
+          chartsParams.push(chartItem.getSearchParam(isGetRequest));
+        });
 
-      document.querySelectorAll(
-        `searchalicious-scatter-chart[search-name=${this.name}]`
-      ).forEach(item => {
-        const chartItem = item as SearchaliciousScatterChart;
-        chartsParams.push(chartItem.getSearchParam(isGetRequest));
-      });
+      document
+        .querySelectorAll(
+          `searchalicious-scatter-chart[search-name=${this.name}]`
+        )
+        .forEach((item) => {
+          const chartItem = item as SearchaliciousScatterChart;
+          chartsParams.push(chartItem.getSearchParam(isGetRequest));
+        });
 
-      if (chartsParams.length === 0)
-        return undefined;
+      if (chartsParams.length === 0) return undefined;
 
-      if (isGetRequest) return chartsParams.join(',')
+      if (isGetRequest) return chartsParams.join(',');
 
       return chartsParams;
     }
@@ -299,7 +306,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
-      const { params, needsPOST } = this.buildParams(page);
+      const {params, needsPOST} = this.buildParams(page);
       // we needs a POST if a parameter is not supported by GET
       const history = this.buildHistoryParams(params);
       // remove empty values from params
@@ -399,8 +406,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Build the params to send to the search API
      * @param page
      */
-    buildParams = (page?: number)  => {
-
+    buildParams = (page?: number) => {
       let needsPOST = false;
 
       const queryParts = [];
@@ -427,7 +433,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (sortElement) {
         const sortParameters = sortElement.getSortParameters();
         if (sortParameters) {
-          console.log('sort parameters', sortParameters)
+          console.log('sort parameters', sortParameters);
           needsPOST = true;
           Object.assign(params, sortParameters);
         }
@@ -445,7 +451,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (charts) {
         params.charts = charts;
       }
-      return { params, needsPOST };
+      return {params, needsPOST};
     };
 
     /**

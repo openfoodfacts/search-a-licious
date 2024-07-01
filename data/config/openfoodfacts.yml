@@ -158,6 +158,8 @@ indices:
     result_processor: app.openfoodfacts.ResultProcessor
     split_separator: ','
     redis_stream_name: product_updates_off
+    primary_color: "#341100"
+    accent_color: "#ff8714"
     taxonomy:
       sources:
       - name: category
