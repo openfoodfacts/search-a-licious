@@ -40,7 +40,7 @@ export class SearchCount extends SearchaliciousResultCtlMixin(LitElement) {
         >`;
     }
 
-    return html`<span part="result-found">${result}</span>`;
+    return result;
   }
 
   /**
@@ -48,7 +48,7 @@ export class SearchCount extends SearchaliciousResultCtlMixin(LitElement) {
    */
   override render() {
     if (this.searchResultDetail.count > 0) {
-      return html`<div>${this.renderResultsFound()}</div>`;
+      return html`<div part="result-found">${this.renderResultsFound()}</div>`;
     } else if (this.searchResultDetail.isSearchLaunch) {
       return html`<slot name="no-results">${this.noResults}</slot>`;
     } else {
