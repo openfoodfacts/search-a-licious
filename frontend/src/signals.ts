@@ -117,5 +117,5 @@ export const searchResultDetail = (searchName: string) => {
  * @param searchName
  */
 export const isSearchLoading = (searchName: string) => {
-  return _getOrCreateSignal(_isSearchLoading, searchName);
+  return _getOrCreateSignal(_isSearchLoading, searchName, true);
 };
