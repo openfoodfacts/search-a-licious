@@ -37,6 +37,11 @@ const _searchResultDetail: Record<
   Signal<SearchResultDetail>
 > = {} as Record<string, Signal<SearchResultDetail>>;
 
+/**
+ * Payload for searchResult signal, before we launch any search
+ *
+ * isSearchLaunch is false
+ */
 export const getDefaultSearchResultDetail = () => ({
   charts: {},
   count: 0,
@@ -59,9 +64,10 @@ const _isSearchLoading: Record<string, Signal> = {} as Record<
 
 /**
  * Function to get or create a signal by search name.
- * If the signal does not exist, it creates it.
+ * If the signal does not exist, it creates it using the default value.
  * @param signalsObject
  * @param searchName
+ * @param defaultValue - default value in case it does not yet exists
  */
 const _getOrCreateSignal = <T>(
   signalsObject: Record<string, Signal<T>>,
@@ -92,6 +98,11 @@ export const isSearchChanged = (searchName: string) => {
   return _getOrCreateSignal<boolean>(_isSearchChanged, searchName, false);
 };
 
+/**
+ * Get the SearcResultDetail signal based on search name.
+ *
+ * If the no search was yet launch, return a detail corresponding to no search
+ */
 export const searchResultDetail = (searchName: string) => {
   return _getOrCreateSignal<SearchResultDetail>(
     _searchResultDetail,
