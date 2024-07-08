@@ -176,5 +176,33 @@ def run_update_daemon(
     run_update_daemon(global_config)
 
 
+@cli.command()
+def export_openapi(
+    target_path: Path = typer.Argument(
+        exists=None,
+        file_okay=True,
+        dir_okay=False,
+        help="Path of target_path the YAML data file",
+    )
+):
+    import json
+
+    import yaml
+
+    from app.api import app as app_api
+
+    openapi = app_api.openapi()
+    version = openapi.get("openapi", "unknown version")
+
+    print(f"writing openapi spec v{version}")
+    with open(target_path, "w") as f:
+        if str(target_path).endswith(".json"):
+            json.dump(openapi, f, indent=2)
+        else:
+            yaml.dump(openapi, f, sort_keys=False)
+
+    print(f"spec written to {target_path}")
+
+
 def main() -> None:
     cli()
