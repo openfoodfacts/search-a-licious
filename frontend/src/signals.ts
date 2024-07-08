@@ -18,6 +18,9 @@ const _isSearchChanged: Record<string, Signal> = {} as Record<
   Signal<boolean>
 >;
 
+/**
+ * Search result as returned by a search request, payload of searchResult signal
+ */
 export type SearchResultDetail = {
   charts: Object; // FIXME: we could be more precise
   count: number;
