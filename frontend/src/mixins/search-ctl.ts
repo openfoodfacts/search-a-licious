@@ -474,7 +474,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (sortElement) {
         const sortParameters = sortElement.getSortParameters();
         if (sortParameters) {
-          console.log('sort parameters', sortParameters);
           needsPOST = true;
           Object.assign(params, sortParameters);
         }
