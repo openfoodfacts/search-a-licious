@@ -19,6 +19,45 @@ const _isSearchChanged: Record<string, Signal> = {} as Record<
 >;
 
 /**
+ * Search result as returned by a search request, payload of searchResult signal
+ */
+export type SearchResultDetail = {
+  charts: Object; // FIXME: we could be more precise
+  count: number;
+  currentPage: number;
+  displayTime: number;
+  facets: Object; // FIXME: we could be more precise
+  isCountExact: boolean;
+  isSearchLaunch: boolean;
+  pageCount: number;
+  pageSize: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  results: Record<string, any>[];
+};
+
+const _searchResultDetail: Record<
+  string,
+  Signal<SearchResultDetail>
+> = {} as Record<string, Signal<SearchResultDetail>>;
+
+/**
+ * Payload for searchResult signal, before we launch any search
+ *
+ * isSearchLaunch is false
+ */
+export const getDefaultSearchResultDetail = () => ({
+  charts: {},
+  count: 0,
+  currentPage: 0,
+  displayTime: 0,
+  facets: {},
+  isCountExact: true,
+  isSearchLaunch: false,
+  pageCount: 0,
+  pageSize: 0,
+  results: [],
+});
+/**
  * Signals to indicate if the search is loading.
  */
 const _isSearchLoading: Record<string, Signal> = {} as Record<
@@ -28,16 +67,18 @@ const _isSearchLoading: Record<string, Signal> = {} as Record<
 
 /**
  * Function to get or create a signal by search name.
- * If the signal does not exist, it creates it.
+ * If the signal does not exist, it creates it using the default value.
  * @param signalsObject
  * @param searchName
+ * @param defaultValue - default value in case it does not yet exists
  */
-const _getOrCreateSignal = (
-  signalsObject: Record<string, Signal>,
-  searchName: string
+const _getOrCreateSignal = <T>(
+  signalsObject: Record<string, Signal<T>>,
+  searchName: string,
+  defaultValue: T
 ) => {
   if (!(searchName in signalsObject)) {
-    signalsObject[searchName] = signal(false);
+    signalsObject[searchName] = signal(defaultValue);
   }
   return signalsObject[searchName];
 };
@@ -48,7 +89,7 @@ const _getOrCreateSignal = (
  * @param searchName
  */
 export const canResetSearch = (searchName: string) => {
-  return _getOrCreateSignal(_canResetSearch, searchName);
+  return _getOrCreateSignal<boolean>(_canResetSearch, searchName, false);
 };
 
 /**
@@ -57,7 +98,20 @@ export const canResetSearch = (searchName: string) => {
  * @param searchName
  */
 export const isSearchChanged = (searchName: string) => {
-  return _getOrCreateSignal(_isSearchChanged, searchName);
+  return _getOrCreateSignal<boolean>(_isSearchChanged, searchName, false);
+};
+
+/**
+ * Get the SearcResultDetail signal based on search name.
+ *
+ * If the no search was yet launch, return a detail corresponding to no search
+ */
+export const searchResultDetail = (searchName: string) => {
+  return _getOrCreateSignal<SearchResultDetail>(
+    _searchResultDetail,
+    searchName,
+    getDefaultSearchResultDetail()
+  );
 };
 
 /**
@@ -66,5 +120,5 @@ export const isSearchChanged = (searchName: string) => {
  * @param searchName
  */
 export const isSearchLoading = (searchName: string) => {
-  return _getOrCreateSignal(_isSearchLoading, searchName);
+  return _getOrCreateSignal(_isSearchLoading, searchName, false);
 };
