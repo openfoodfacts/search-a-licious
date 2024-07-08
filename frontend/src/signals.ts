@@ -22,7 +22,7 @@ const _isSearchChanged: Record<string, Signal> = {} as Record<
  * Search result as returned by a search request, payload of searchResult signal
  */
 export type SearchResultDetail = {
-  charts: Object; // FIXME: we could be more precise
+  charts: Record<string, object>;
   count: number;
   currentPage: number;
   displayTime: number;
