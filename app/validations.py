@@ -49,7 +49,7 @@ def check_fields_are_numeric(
     """
     * If field exists in global_config, check that it's numeric.
     * If field looks like x.y and x.y does not exist in global config,
-    check that x is a n object field
+    check that x is an object field
     """
     errors: list[str] = []
     if values is None:
@@ -62,7 +62,6 @@ def check_fields_are_numeric(
     for field_path in values:
         field_path_list = field_path.split(".")
         field_name = field_path_list[0]
-        print(len(field_path_list))
         if field_name not in index_config.fields:
             errors.append(f"Unknown field name: {field_name}")
         elif len(field_path_list) == 1 and index_config.fields[field_name].type not in (
@@ -73,12 +72,8 @@ def check_fields_are_numeric(
         ):
             errors.append(f"Non numeric field name: {field_name}")
         elif (
-            len(field_path_list) == 2
+            len(field_path_list) >= 2
             and index_config.fields[field_name].type != "object"
         ):
             errors.append(f"Non object field name: {field_name}")
-        elif len(field_path_list) >= 3:
-            errors.append(
-                f"Only recursive fields with depth <= 2 are allowed, not: { field_name } (depth={len(field_path_list)})"
-            )
     return errors

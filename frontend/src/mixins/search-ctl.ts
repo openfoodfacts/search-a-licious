@@ -21,22 +21,17 @@ import {
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
-<<<<<<< HEAD
 import {
   SearchaliciousDistributionChart,
   SearchaliciousScatterChart,
   ChartSearchParam,
 } from '../search-chart';
-import {canResetSearch, isSearchChanged} from '../signals';
-=======
-import {SearchaliciousChart} from '../search-chart';
 import {
   canResetSearch,
   isSearchChanged,
   isSearchLoading,
   searchResultDetail,
 } from '../signals';
->>>>>>> 9fbec21b81a0c92185b29582556edfcb8461d897
 import {SignalWatcher} from '@lit-labs/preact-signals';
 import {isTheSameSearchName} from '../utils/search';
 

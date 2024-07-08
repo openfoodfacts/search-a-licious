@@ -123,8 +123,6 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
 export class SearchaliciousDistributionChart extends SearchaliciousChart {
   static override styles = [WHITE_PANEL_STYLE];
 
-  // All these properties will change when vega logic
-  // will be moved in API.
   @property()
   field = '';
 

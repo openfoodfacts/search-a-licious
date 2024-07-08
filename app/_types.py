@@ -342,11 +342,6 @@ If not provided, `['en']` is used."""
             raise ValueError(errors)
         return self
 
-    def check_field_is_numeric(field):
-        """
-        return error if field is non
-        """
-
     @model_validator(mode="after")
     def check_charts_are_valid(self):
         """Check that the graph names are valid."""
