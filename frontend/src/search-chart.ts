@@ -2,20 +2,15 @@ import {LitElement, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
 import {WHITE_PANEL_STYLE} from './styles';
+import {SearchResultDetail} from './signals';
 
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-import {SearchResultEvent} from './events';
 
 interface ChartSearchParamPOST {
   chart_type: string;
   field?: string;
   x?: string;
   y?: string;
-}
-
-type ChartInfo = object;
-interface ChartInfos {
-  [key: string]: ChartInfo;
 }
 
 export type ChartSearchParam = ChartSearchParamPOST | string;
@@ -40,6 +35,14 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     this.vegaInstalled = this.testVegaInstalled();
   }
 
+  override connectedCallback() {
+    super.connectedCallback();
+
+    this.searchResultDetailSignal.subscribe((searchResultDetail) => {
+      this.updateCharts(searchResultDetail);
+    });
+  }
+
   /**
    * The name is used to get the right vega chart from
    * API search Result
@@ -55,7 +58,7 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
     throw new Error('Not implemented');
   }
 
-  override render() {
+  renderChart() {
     if (!this.vegaInstalled) {
       return html`<p>Please install vega to use searchalicious-chart</p>`;
     }
@@ -66,7 +69,19 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
       >`;
     }
 
-    return html`<div class="white-panel" id="vega-container"></div>`;
+    return html`<div id="vega-container"></div>`;
+  }
+
+  override render() {
+    return html` <div class="white-panel">${this.renderChart()}</div>`;
+  }
+
+  updateCharts(searchResultDetail: SearchResultDetail) {
+    if (searchResultDetail.results.length === 0 || !this.vegaInstalled) {
+      this.vegaRepresentation = undefined;
+      return;
+    }
+    this.vegaRepresentation = searchResultDetail.charts[this.getName()];
   }
 
   testVegaInstalled() {
@@ -101,15 +116,6 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
       hover: true,
     });
     view.runAsync();
-  }
-
-  override handleResults(event: SearchResultEvent) {
-    if (event.detail.results.length === 0 || !this.vegaInstalled) {
-      this.vegaRepresentation = undefined;
-      return;
-    }
-    const charts = event.detail.charts as ChartInfos;
-    this.vegaRepresentation = charts[this.getName()];
   }
 }
 

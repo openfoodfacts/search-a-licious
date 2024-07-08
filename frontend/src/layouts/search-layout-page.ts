@@ -6,13 +6,16 @@ import {EventRegistrationMixin} from '../event-listener-setup';
 import {HIDE_STYLE} from '../styles';
 import {ContextConsumer} from '@lit/context';
 import {chartSideBarStateContext} from '../context';
+import {SearchaliciousResultCtlMixin} from '../mixins/search-results-ctl';
 
 /**
  * Component for the layout of the page
  * Three columns layout with display flex
  */
 @customElement('searchalicious-layout-page')
-export class SearchLayoutPage extends EventRegistrationMixin(LitElement) {
+export class SearchLayoutPage extends SearchaliciousResultCtlMixin(
+  EventRegistrationMixin(LitElement)
+) {
   static override styles = [
     HIDE_STYLE,
     css`

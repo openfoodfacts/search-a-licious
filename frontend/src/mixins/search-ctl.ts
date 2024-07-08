@@ -5,11 +5,7 @@ import {
   EventRegistrationMixin,
 } from '../event-listener-setup';
 import {QueryOperator, SearchaliciousEvents} from '../utils/enums';
-import {
-  ChangePageEvent,
-  SearchResultDetail,
-  SearchResultEvent,
-} from '../events';
+import {ChangePageEvent} from '../events';
 import {Constructor} from './utils';
 import {SearchaliciousSort, SortParameters} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
@@ -25,12 +21,22 @@ import {
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
+<<<<<<< HEAD
 import {
   SearchaliciousDistributionChart,
   SearchaliciousScatterChart,
   ChartSearchParam,
 } from '../search-chart';
 import {canResetSearch, isSearchChanged} from '../signals';
+=======
+import {SearchaliciousChart} from '../search-chart';
+import {
+  canResetSearch,
+  isSearchChanged,
+  isSearchLoading,
+  searchResultDetail,
+} from '../signals';
+>>>>>>> 9fbec21b81a0c92185b29582556edfcb8461d897
 import {SignalWatcher} from '@lit-labs/preact-signals';
 import {isTheSameSearchName} from '../utils/search';
 
@@ -498,8 +504,12 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Launching search
      */
     async search(page = 1) {
+      // use to get the time of the search
       const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
+
+      isSearchLoading(this.name).value = true;
+
       let response;
       if (method === 'GET') {
         response = await fetch(
@@ -522,35 +532,26 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this._currentPage = data.page;
       this._pageCount = data.page_count;
 
+      isSearchLoading(this.name).value = false;
       this.updateSearchSignals();
 
-      // dispatch an event with the results
-      const detail: SearchResultDetail = {
-        searchName: this.name,
-        results: this._results!,
-        count: this._count!,
-        pageCount: this._pageCount!,
-        currentPage: this._currentPage!,
-        pageSize: this.pageSize,
-        facets: data.facets,
+      searchResultDetail(this.name).value = {
         charts: data.charts,
+        count: data.count,
+        currentPage: this._currentPage!,
+        displayTime: data.took,
+        facets: data.facets,
+        isCountExact: data.is_count_exact,
+        isSearchLaunch: true,
+        pageCount: this._pageCount!,
+        pageSize: this.pageSize,
+        results: this._results!,
       };
-      this.dispatchEvent(
-        new CustomEvent(SearchaliciousEvents.NEW_RESULT, {
-          bubbles: true,
-          composed: true,
-          detail: detail,
-        })
-      );
+
+      this.updateSearchSignals();
     }
   }
 
   return SearchaliciousSearchMixinClass as Constructor<SearchaliciousSearchInterface> &
     T;
 };
-
-declare global {
-  interface GlobalEventHandlersEventMap {
-    'searchalicious-result': SearchResultEvent;
-  }
-}
