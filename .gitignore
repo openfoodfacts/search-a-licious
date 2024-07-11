@@ -1,6 +1,7 @@
 # Project-specific
 data/taxonomies
 data/**/*.jsonl
+products*.jsonl.gz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -97,7 +98,7 @@ venv.bak/
 
 
 # mkdocs documentation
-/site
+/gh_pages
 
 # github pages
 gh_pages/

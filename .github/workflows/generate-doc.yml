@@ -1,0 +1,82 @@
+name: 📖 Documentation
+
+on:
+  pull_request:
+    # on pull request we just want to build
+    paths:
+    - "docs/**"
+    - ".github/workflows/generate-doc.yml"
+    - "mkdocs.yml"
+  push:
+    # on merge to main, build and publish
+    # FIXME: remove ci-generate-docs before merging !
+    branches: [ "main", "ci-generate-docs" ]
+
+jobs:
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      # generating project documentation
+      - name: Build documentation with MkDocs
+        run: |
+          build/generate_doc.sh
+
+      # wait frontend image, because we want to get web-components specs
+      - name: Wait for search front image container build workflow
+        uses: tomchv/wait-my-workflow@v1.1.0
+        id: wait-build-front-image
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: build (search_front_image)
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          intervalSeconds: 10
+          timeoutSeconds: 600 # 10m
+
+      - name: Do something if build isn't launch
+        if: steps.wait-build-front-image.outputs.conclusion == 'does not exist'
+        run: echo job does not exist && true
+
+      - name: Do something if build fail
+        if: steps.wait-build-front-image.outputs.conclusion == 'failure'
+        run: echo fail && false # fail if build fail
+
+      - name: Do something if build timeout
+        if: steps.wait-build-front-image.outputs.conclusion == 'timed_out'
+        run: echo Timeout && false # fail if build time out
+
+      # Getting web-components docs: extract json and add html to expose them
+      - name: Getting web-components docs from frontend image
+        run: |
+          # download docker image corresponding to the tag
+          image_name=ghcr.io/${{ github.repository }}/search_front_image:${{ env.TAG_NAME }}
+          # pull image, eventually waiting for it to be available in ghcr.io
+          waited=0
+          while ! (docker pull $image_name); do
+            sleep 30
+            waited=$((waited+30))
+            # timeout after 6 minutes
+            if [[ $waited -gt 360 ]]; then
+              echo "Timeout waiting for image $image_name"
+              # Abort the job
+              exit 1
+            fi
+          done
+          # extract the needed files, we create a temporary docker container and use docker cp
+          id=$(docker create $image_name)
+          docker cp $id:public/dist/custom-elements.json frontend/public/dist/custom-elements.json
+          ./build/generate_doc_webcomponents.sh
+
+      - name: Deploy documentation to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        # we only deploy on push to main
+        if: |
+          github.event_name == 'push' && github.event.ref == 'refs/heads/main'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "gh-pages"
+          folder: gh_pages

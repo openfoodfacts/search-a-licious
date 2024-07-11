@@ -7,9 +7,9 @@ docs_dir: docs
 repo_url: https://github.com/openfoodfacts/search-a-licious
 edit_uri: blob/main/docs/
 # add canonical url
-site_url: https://openfoodfacts.github.io/search-a-licious/
+site_url: https://openfoodfacts.github.io/search-a-licious
 
-site_name: Search-a-licious
+site_name: Search-a-licious documentation
 site_dir: gh_pages
 
 # Note see https://hub.docker.com/r/minidocks/mkdocs
@@ -36,4 +36,5 @@ plugins:
   - search
   - exclude:
       glob:
+        - reports/
         - "*_TODO.md"

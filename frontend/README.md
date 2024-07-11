@@ -101,6 +101,11 @@ Events always contains the search name, so we could have more than one search on
 We tend to factor code when it make sense using mixins,
 for example as there are lots of component that needs the search results, there is a mixin than contains the logic to register to such events (see `search-results-ctl.ts`).
 
+## Writing documentation
+
+We render the reference on web components using [`api-viewer`](https://api-viewer.open-wc.org/docs) web component.
+
+Please comply with JSDoc and [document every property / slots](https://api-viewer.open-wc.org/docs/guide/writing-jsdoc/) etc. on each web components.
 
 ## Tools
 
