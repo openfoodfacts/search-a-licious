@@ -19,7 +19,10 @@ jobs:
 
       - name: ensure we have a config file
         run: |
-          sed -i -e 's!CONFIG_PATH=!CONFIG_PATH=data/config/openfoodfacts.yml!' .env
+          echo "" > .envrc
+          echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
+          echo USER_IID=$(id -u) >>.envrc
+          echo USER_GID=$(id -g) >>.envrc
 
       # generating project documentation
       - name: Build documentation with MkDocs
