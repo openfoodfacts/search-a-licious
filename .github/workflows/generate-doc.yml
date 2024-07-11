@@ -17,6 +17,10 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: ensure we have a config file
+        run: |
+          sed -i -e 's!CONFIG_PATH=!CONFIG_PATH=data/config/openfoodfacts.yml!' .env
+
       # generating project documentation
       - name: Build documentation with MkDocs
         run: |
