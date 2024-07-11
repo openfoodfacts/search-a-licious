@@ -160,6 +160,10 @@ generate-openapi: _ensure_network
 	@echo "🔎 Generating OpenAPI spec …"
 	${DOCKER_COMPOSE} run --rm api python3 -m app export-openapi /opt/search/data/searchalicious-openapi.yml
 
+generate-custom-elements: _ensure_network
+	@echo "🔎 Generating custome-elements.json …"
+	${DOCKER_COMPOSE} run --rm search_nodejs npm run analyze
+
 #-------#
 # Tests #
 #-------#
