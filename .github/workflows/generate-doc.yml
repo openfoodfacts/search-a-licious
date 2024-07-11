@@ -20,6 +20,8 @@ jobs:
       # generating project documentation
       - name: Build documentation with MkDocs
         run: |
+          echo $PWD
+          ls build -l
           ./build/generate_doc.sh
 
       # wait frontend image, because we want to get web-components specs
