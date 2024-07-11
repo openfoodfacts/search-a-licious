@@ -62,7 +62,7 @@ This enables supporting multiple searches in the same page
 * **searchalicious-facet-terms** renders the facet for terms (list of entries, with number of docs).
   * it must be in a `searchalicious-facets`
   * the user can select facets to filter the search
-* **searchalicious-checkbox** is a component that displays a list of suggestions
+* **searchalicious-suggestion-entry** is a component that displays a list of suggestions
   * it must be in a `searchalicious-facet`
   * it will influence the search adding terms to the search
 * **searchalicious-checkbox** is a simple checkbox

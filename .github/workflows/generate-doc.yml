@@ -49,8 +49,8 @@ jobs:
         if: steps.wait-build-front-image.outputs.conclusion == 'timed_out'
         run: echo Timeout && false # fail if build time out
 
-      # Getting web-components docs: extract json and add html to expose them
-      - name: Getting web-components docs from frontend image
+      # Getting web-components docs: extract json to expose them
+      - name: Getting web-components json from frontend image
         run: |
           # download docker image corresponding to the tag
           image_name=ghcr.io/${{ github.repository }}/search_front_image:${{ env.TAG_NAME }}
