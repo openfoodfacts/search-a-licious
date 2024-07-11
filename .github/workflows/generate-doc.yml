@@ -3,14 +3,10 @@ name: 📖 Documentation
 on:
   pull_request:
     # on pull request we just want to build
-    paths:
-    - "docs/**"
-    - ".github/workflows/generate-doc.yml"
-    - "mkdocs.yml"
   push:
     # on merge to main, build and publish
     # FIXME: remove ci-generate-docs before merging !
-    branches: [ "main", "ci-generate-docs" ]
+    branches: [ "main" ]
 
 jobs:
   documentation:
@@ -24,7 +20,7 @@ jobs:
       # generating project documentation
       - name: Build documentation with MkDocs
         run: |
-          build/generate_doc.sh
+          ./build/generate_doc.sh
 
       # wait frontend image, because we want to get web-components specs
       - name: Wait for search front image container build workflow
