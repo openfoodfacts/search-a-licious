@@ -355,6 +355,17 @@ class IndexConfig(BaseModel):
             'and the language code, ex: product_name_it if lang_separator="_"'
         ),
     ] = "_"
+    primary_color: Annotated[
+        str,
+        Field(description="Used for vega charts. Should be html code."),
+    ] = "#aaa"
+    accent_color: Annotated[
+        str,
+        Field(
+            description="Used for vega. Should be html code."
+            'and the language code, ex: product_name_it if lang_separator="_"'
+        ),
+    ] = "#222"
     taxonomy: Annotated[
         TaxonomyConfig, Field(description="configuration of the taxonomies used")
     ]

@@ -181,6 +181,20 @@ jobs:
           cd ${{ matrix.env }}
           make create_external_volumes
 
+    - name: Sync scripts
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ env.SSH_HOST }}
+        username: ${{ env.SSH_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        proxy_host: ${{ env.SSH_PROXY_HOST }}
+        proxy_username: ${{ env.SSH_USERNAME }}
+        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script_stop: false
+        script: |
+          cd ${{ matrix.env }}
+          make sync-scripts
+
     - name: Start services
       uses: appleboy/ssh-action@master
       with:

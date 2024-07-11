@@ -5,24 +5,35 @@ import {
   EventRegistrationMixin,
 } from '../event-listener-setup';
 import {QueryOperator, SearchaliciousEvents} from '../utils/enums';
-import {
-  ChangePageEvent,
-  LaunchSearchEvent,
-  SearchResultEvent,
-  SearchResultDetail,
-} from '../events';
+import {ChangePageEvent} from '../events';
 import {Constructor} from './utils';
 import {SearchaliciousSort, SortParameters} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {setCurrentURLHistory} from '../utils/url';
 import {isNullOrUndefined} from '../utils';
-import {API_LIST_DIVIDER, PROPERTY_LIST_DIVIDER} from '../utils/constants';
+import {
+  API_LIST_DIVIDER,
+  DEFAULT_SEARCH_NAME,
+  PROPERTY_LIST_DIVIDER,
+} from '../utils/constants';
 import {
   HistorySearchParams,
   SearchaliciousHistoryInterface,
   SearchaliciousHistoryMixin,
 } from './history';
-import {SearchaliciousChart} from '../search-chart';
+import {
+  SearchaliciousDistributionChart,
+  SearchaliciousScatterChart,
+  ChartSearchParam,
+} from '../search-chart';
+import {
+  canResetSearch,
+  isSearchChanged,
+  isSearchLoading,
+  searchResultDetail,
+} from '../signals';
+import {SignalWatcher} from '@lit-labs/preact-signals';
+import {isTheSameSearchName} from '../utils/search';
 
 export interface SearchParameters extends SortParameters {
   q: string;
@@ -32,7 +43,7 @@ export interface SearchParameters extends SortParameters {
   index_id?: string;
   facets?: string[];
   params?: string[];
-  charts?: string[];
+  charts?: string | ChartSearchParam[];
 }
 export interface SearchaliciousSearchInterface
   extends EventRegistrationInterface,
@@ -47,7 +58,10 @@ export interface SearchaliciousSearchInterface
   lastFacetsFilters?: string;
   isQueryChanged: boolean;
   isFacetsChanged: boolean;
+  isSearchChanged: boolean;
+  canReset: boolean;
 
+  updateSearchSignals(): void;
   search(): Promise<void>;
   _facetsNodes(): SearchaliciousFacets[];
   _facetsFilters(): string;
@@ -55,28 +69,14 @@ export interface SearchaliciousSearchInterface
   selectTermByTaxonomy(taxonomy: string, term: string): void;
 }
 
-// We should not use GET if other params than those are present in the search request
-const supportedGETParams = new Set([
-  'q',
-  'langs',
-  'page_size',
-  'page',
-  'fields',
-  'sort_by',
-  'facets',
-  'index_id',
-]);
-
-// name of search params as an array (to ease iteration)
-
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
 ) => {
   /**
    * The search mixin, encapsulate the logic of dialog with server
    */
-  class SearchaliciousSearchMixinClass extends SearchaliciousHistoryMixin(
-    EventRegistrationMixin(superClass)
+  class SearchaliciousSearchMixinClass extends SignalWatcher(
+    SearchaliciousHistoryMixin(EventRegistrationMixin(superClass))
   ) {
     /**
      * Query that will be sent to searchalicious
@@ -88,7 +88,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * The name of this search
      */
     @property()
-    override name = 'searchalicious';
+    override name = DEFAULT_SEARCH_NAME;
 
     /**
      * The base api url
@@ -161,21 +161,32 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       return this._facetsFilters() !== this.lastFacetsFilters;
     }
 
+    /**
+     * Check if the search button text should be displayed
+     */
+    get isSearchChanged() {
+      return this.isQueryChanged || this.isFacetsChanged;
+    }
+
+    /**
+     * Check if the filters can be reset
+     * Filters is facets filters and query
+     */
+    get canReset() {
+      const isQueryChanged = this.query || this.isQueryChanged;
+      const facetsChanged = this._facetsFilters() || this.isFacetsChanged;
+      return Boolean(isQueryChanged || facetsChanged);
+    }
+
+    updateSearchSignals() {
+      canResetSearch(this.name).value = this.canReset;
+      isSearchChanged(this.name).value = this.isSearchChanged;
+    }
+
     /** list of facets containers */
     _facetsParentNode() {
       return document.querySelectorAll(
         `searchalicious-facets[search-name=${this.name}]`
-      );
-    }
-
-    /**
-     * Return the list of searchalicious-chart nodes
-     */
-    _chartsNodes(): SearchaliciousChart[] {
-      return Array.from(
-        document.querySelectorAll(
-          `searchalicious-chart[search-name=${this.name}`
-        )
       );
     }
 
@@ -271,11 +282,36 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     }
 
     /**
-     * Get the list of charts we want to request
+     * Get the list of charts params we want to request
      */
-    _charts(): string[] {
-      const names = this._chartsNodes().map((chart) => chart.getName());
-      return [...new Set(names)];
+    _chartParams(
+      isGetRequest: boolean
+    ): ChartSearchParam[] | string | undefined {
+      const chartsParams: ChartSearchParam[] = [];
+
+      document
+        .querySelectorAll(
+          `searchalicious-distribution-chart[search-name=${this.name}]`
+        )
+        .forEach((item) => {
+          const chartItem = item as SearchaliciousDistributionChart;
+          chartsParams.push(chartItem.getSearchParam(isGetRequest));
+        });
+
+      document
+        .querySelectorAll(
+          `searchalicious-scatter-chart[search-name=${this.name}]`
+        )
+        .forEach((item) => {
+          const chartItem = item as SearchaliciousScatterChart;
+          chartsParams.push(chartItem.getSearchParam(isGetRequest));
+        });
+
+      if (chartsParams.length === 0) return undefined;
+
+      if (isGetRequest) return chartsParams.join(',');
+
+      return chartsParams;
     }
 
     /**
@@ -301,11 +337,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _searchUrl(page?: number) {
       // remove trailing slash
       const baseUrl = this.baseUrl.replace(/\/+$/, '');
-      const params = this.buildParams(page);
+      const {params, needsPOST} = this.buildParams(page);
       // we needs a POST if a parameter is not supported by GET
-      const needsPOST =
-        Object.keys(params).filter((key) => !supportedGETParams.has(key))
-          .length > 0;
       const history = this.buildHistoryParams(params);
       // remove empty values from params
       // (do this after buildHistoryParams to be sure to have all parameters)
@@ -350,6 +383,14 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.addEventHandler(SearchaliciousEvents.LAUNCH_FIRST_SEARCH, (event) =>
         this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
+      this.addEventHandler(
+        SearchaliciousEvents.FACET_SELECTED,
+        (event: Event) => {
+          if (isTheSameSearchName(this.name, event)) {
+            this.updateSearchSignals();
+          }
+        }
+      );
     }
     // connect to our specific events
     override disconnectedCallback() {
@@ -366,6 +407,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         (event) =>
           this.search((event as CustomEvent)?.detail[HistorySearchParams.PAGE])
       );
+      this.removeEventHandler(SearchaliciousEvents.FACET_SELECTED, () => {
+        this.updateSearchSignals();
+      });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -381,8 +425,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * It must have the search name in it's data.
      */
     _handleSearch(event: Event) {
-      const detail = (event as LaunchSearchEvent).detail;
-      if (detail.searchName === this.name) {
+      if (isTheSameSearchName(this.name, event)) {
         this.search();
       }
     }
@@ -395,7 +438,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      */
     _handleChangePage(event: Event) {
       const detail = (event as ChangePageEvent).detail;
-      if (detail.searchName === this.name) {
+      if (isTheSameSearchName(this.name, event)) {
         this.search(detail.page);
       }
     }
@@ -404,7 +447,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * Build the params to send to the search API
      * @param page
      */
-    buildParams = (page?: number): SearchParameters => {
+    buildParams = (page?: number) => {
+      let needsPOST = false;
+
       const queryParts = [];
       this.lastQuery = this.query;
       if (this.query) {
@@ -427,7 +472,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       // sorting parameters
       const sortElement = this._sortElement();
       if (sortElement) {
-        Object.assign(params, sortElement.getSortParameters());
+        const sortParameters = sortElement.getSortParameters();
+        if (sortParameters) {
+          needsPOST = true;
+          Object.assign(params, sortParameters);
+        }
       }
       // page
       if (page) {
@@ -437,18 +486,24 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       if (this._facets().length > 0) {
         params.facets = this._facets();
       }
-      if (this._charts().length > 0) {
-        params.charts = this._charts();
+
+      const charts = this._chartParams(!needsPOST);
+      if (charts) {
+        params.charts = charts;
       }
-      return params;
+      return {params, needsPOST};
     };
 
     /**
      * Launching search
      */
     async search(page = 1) {
+      // use to get the time of the search
       const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
+
+      isSearchLoading(this.name).value = true;
+
       let response;
       if (method === 'GET') {
         response = await fetch(
@@ -470,33 +525,27 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       this.pageSize = data.page_size;
       this._currentPage = data.page;
       this._pageCount = data.page_count;
-      // dispatch an event with the results
-      const detail: SearchResultDetail = {
-        searchName: this.name,
-        results: this._results!,
-        count: this._count!,
-        pageCount: this._pageCount!,
-        currentPage: this._currentPage!,
-        pageSize: this.pageSize,
-        facets: data.facets,
+
+      isSearchLoading(this.name).value = false;
+      this.updateSearchSignals();
+
+      searchResultDetail(this.name).value = {
         charts: data.charts,
+        count: data.count,
+        currentPage: this._currentPage!,
+        displayTime: data.took,
+        facets: data.facets,
+        isCountExact: data.is_count_exact,
+        isSearchLaunch: true,
+        pageCount: this._pageCount!,
+        pageSize: this.pageSize,
+        results: this._results!,
       };
-      this.dispatchEvent(
-        new CustomEvent(SearchaliciousEvents.NEW_RESULT, {
-          bubbles: true,
-          composed: true,
-          detail: detail,
-        })
-      );
+
+      this.updateSearchSignals();
     }
   }
 
   return SearchaliciousSearchMixinClass as Constructor<SearchaliciousSearchInterface> &
     T;
 };
-
-declare global {
-  interface GlobalEventHandlersEventMap {
-    'searchalicious-result': SearchResultEvent;
-  }
-}

@@ -1,5 +1,46 @@
 # Changelog
 
+## [1.3.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.2.0...v1.3.0) (2024-06-28)
+
+
+### Features
+
+* add autocomplete in search bar ([#165](https://github.com/openfoodfacts/search-a-licious/issues/165)) ([263834a](https://github.com/openfoodfacts/search-a-licious/commit/263834ab681cad5e5cb064ab2f69ffdaa93a71e7))
+* add checkbox, radio, toggle components ([#175](https://github.com/openfoodfacts/search-a-licious/issues/175)) ([608e68a](https://github.com/openfoodfacts/search-a-licious/commit/608e68aa75176c1d57a9a133183f223618827aa2))
+* Add i18n ([#171](https://github.com/openfoodfacts/search-a-licious/issues/171)) ([ffed458](https://github.com/openfoodfacts/search-a-licious/commit/ffed4589f4bbaf3134a2dbd71d55a7071894a2c5))
+* add search params in url ([#142](https://github.com/openfoodfacts/search-a-licious/issues/142)) ([17fabbb](https://github.com/openfoodfacts/search-a-licious/commit/17fabbbfc67166b74692a2c775e15d8f24d31714))
+* Change CORS headers to allow JS queries ([#131](https://github.com/openfoodfacts/search-a-licious/issues/131)) ([5d1da6e](https://github.com/openfoodfacts/search-a-licious/commit/5d1da6e46566c17adc1d654fb2bfc8617d04e993))
+* Count result ([#151](https://github.com/openfoodfacts/search-a-licious/issues/151)) ([cc4e4b6](https://github.com/openfoodfacts/search-a-licious/commit/cc4e4b6057e0499c304207730b30ddec27d5334d))
+* create healthchecks api  ([#133](https://github.com/openfoodfacts/search-a-licious/issues/133)) ([b351338](https://github.com/openfoodfacts/search-a-licious/commit/b351338f37feeb7c37ca7f145ccc7b3d2a40b3a5))
+* handle multiple concurrent request ([#164](https://github.com/openfoodfacts/search-a-licious/issues/164)) ([2c34b06](https://github.com/openfoodfacts/search-a-licious/commit/2c34b06dcfd5df64fa235675e3c6dca1b0a751a3))
+* implement scores distributions charts using vega  ([837a658](https://github.com/openfoodfacts/search-a-licious/commit/837a6588212238456b3418d4e816f69c1218f03f)), closes [#157](https://github.com/openfoodfacts/search-a-licious/issues/157)
+* implement vega charts serverside ([8be0a9f](https://github.com/openfoodfacts/search-a-licious/commit/8be0a9f148f72d24a12ff93d72162ef07cac7b06)), closes [#185](https://github.com/openfoodfacts/search-a-licious/issues/185)
+* move buttons outside the search-bar ([#197](https://github.com/openfoodfacts/search-a-licious/issues/197)) ([3c9052c](https://github.com/openfoodfacts/search-a-licious/commit/3c9052c42216c2ecf4be6f217d39ff57d0930b7e))
+* personal sort with demo ([#174](https://github.com/openfoodfacts/search-a-licious/issues/174)) ([4484d51](https://github.com/openfoodfacts/search-a-licious/commit/4484d51bc520e57d42265a95ef9db19356161353))
+* return selected facets in search API ([#118](https://github.com/openfoodfacts/search-a-licious/issues/118)) ([9c3cdb2](https://github.com/openfoodfacts/search-a-licious/commit/9c3cdb2d4080a767a97efcc229da460924e28b0c)), closes [#115](https://github.com/openfoodfacts/search-a-licious/issues/115)
+* Search facets ([#103](https://github.com/openfoodfacts/search-a-licious/issues/103)) ([4bbada5](https://github.com/openfoodfacts/search-a-licious/commit/4bbada56c8f3df7c6752e120d5d4b8ccea702ecf))
+* showcase new demo on home ([#201](https://github.com/openfoodfacts/search-a-licious/issues/201)) ([1cb9cdd](https://github.com/openfoodfacts/search-a-licious/commit/1cb9cdd6e78ffb5a03c380a4df34da5110a82d29))
+* sorting component ([#166](https://github.com/openfoodfacts/search-a-licious/issues/166)) ([3717e3a](https://github.com/openfoodfacts/search-a-licious/commit/3717e3a52beb5f74ca8eebb6a31dadadb3cd58be))
+* sorting with scripts API ([#137](https://github.com/openfoodfacts/search-a-licious/issues/137)) ([6276477](https://github.com/openfoodfacts/search-a-licious/commit/6276477b64ff3276d10a0e1816ee82c8fdb69c09))
+* translating facets values using taxonomies ([#121](https://github.com/openfoodfacts/search-a-licious/issues/121)) ([d1162e0](https://github.com/openfoodfacts/search-a-licious/commit/d1162e0ebd5668f55d5e1263ee2187efbed1cd31)), closes [#120](https://github.com/openfoodfacts/search-a-licious/issues/120)
+* update search bar to add "Search" text ([#188](https://github.com/openfoodfacts/search-a-licious/issues/188)) ([93d1ff2](https://github.com/openfoodfacts/search-a-licious/commit/93d1ff21ca867b1de151229271af990252e8e2e4))
+* update search-bar ([#194](https://github.com/openfoodfacts/search-a-licious/issues/194)) ([72ae1fd](https://github.com/openfoodfacts/search-a-licious/commit/72ae1fd5f6fcff820fb06973a80caae731be035b))
+* user can select a facet value eg category which is not yet displayed - fixes [#125](https://github.com/openfoodfacts/search-a-licious/issues/125) ([#134](https://github.com/openfoodfacts/search-a-licious/issues/134)) ([10bc65d](https://github.com/openfoodfacts/search-a-licious/commit/10bc65d310c6c90dd63da62e00c9159ca2797497))
+
+
+### Bug Fixes
+
+* add ensure_network to make up command ([#149](https://github.com/openfoodfacts/search-a-licious/issues/149)) ([f6c587a](https://github.com/openfoodfacts/search-a-licious/commit/f6c587af5757744ef65b5eeac6591cb172ec9299))
+* add some frontend fixes ([#183](https://github.com/openfoodfacts/search-a-licious/issues/183)) ([7479c9e](https://github.com/openfoodfacts/search-a-licious/commit/7479c9e14f1b955e25a5b4876d7361dcbdfd0f8d))
+* catch more luqum exceptions when parsing queries ([616c657](https://github.com/openfoodfacts/search-a-licious/commit/616c6579dc5ce597cdedb6f66d05c93c1cb2880b))
+* default preferences to avoid failure on first use ([#187](https://github.com/openfoodfacts/search-a-licious/issues/187)) ([843c503](https://github.com/openfoodfacts/search-a-licious/commit/843c503dc08cc6ae8fb68bc80d4d16dfc31af02f))
+* fix logo markdown in README.md ([d5c660b](https://github.com/openfoodfacts/search-a-licious/commit/d5c660be1bdbbdcbbdcc95e16a8d53524b12782a))
+* fix typing in app.query module ([2ef3c7e](https://github.com/openfoodfacts/search-a-licious/commit/2ef3c7efd54e893d535449c4d9d0cd6fd56748e5))
+* i18n are not loaded because is dynamically import ([#199](https://github.com/openfoodfacts/search-a-licious/issues/199)) ([0bcac0e](https://github.com/openfoodfacts/search-a-licious/commit/0bcac0ed427cec2a10b53b2007cacada73268875))
+* improve "npx playwright install-deps" in frontend/dockerfile ([#130](https://github.com/openfoodfacts/search-a-licious/issues/130)) ([b50e422](https://github.com/openfoodfacts/search-a-licious/commit/b50e4222005dc555be6be694b01402602c3e6b42))
+* lint ([#196](https://github.com/openfoodfacts/search-a-licious/issues/196)) ([bb5541b](https://github.com/openfoodfacts/search-a-licious/commit/bb5541bee6140c320739e7afdc117d8759d2fab5))
+* translations ([#195](https://github.com/openfoodfacts/search-a-licious/issues/195)) ([8b84289](https://github.com/openfoodfacts/search-a-licious/commit/8b842897958595820cb49491c8ac521e2cb92c52))
+
 ## [1.2.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.1.2...v1.2.0) (2024-04-29)
 
 

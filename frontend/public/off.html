@@ -43,10 +43,10 @@
         color: rgba(0,0,0,.75);
       }
       /* search results styling */
-      searchalicious-results::part(results) {
+      searchalicious-results::part(results), searchalicious-results::part(results-loading) {
         list-style: none;
         display: grid;
-        gap: 5px;
+        gap: 10px;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         margin: 0;
         padding: 0;
@@ -140,6 +140,10 @@
         /*right: 1rem;*/
         /*top: 50%;*/
         /*transform: translateY(-50%);*/
+      }
+
+      searchalicious-reset-button {
+        margin-left: 1rem;
       }
     </style>
     <script lang="javascript">
@@ -282,6 +286,8 @@
                 <ul class="left" style="margin-right: 2rem">
                   <li class="search-li">
                     <searchalicious-bar name="off" page-size="24" suggestions="brand,category"></searchalicious-bar>
+                    <searchalicious-button search-name="off"></searchalicious-button>
+                    <searchalicious-reset-button search-name="off"></searchalicious-reset-button>
                   </li>
                 </ul>
               </section>
@@ -329,7 +335,7 @@
                   </div>
 
                 </div>
-                <searchalicious-layout-page>
+                <searchalicious-layout-page search-name="off">
                   <div slot="col-1">
                     <!-- A form to input user preferences, to showcase personal sort -->
                     <div id="preferences_config_toggle">
@@ -360,10 +366,10 @@
                       </form>
                     </div>
                     <searchalicious-facets search-name="off">
-                      <searchalicious-facet-terms name="brands_tags" show-other="true"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms name="categories_tags" show-other="true"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms name="nutrition_grades"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms name="ecoscore_grade"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms search-name="off" name="brands_tags" show-other="true"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms search-name="off" name="categories_tags" show-other="true"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms search-name="off" name="nutrition_grades"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms search-name="off" name="ecoscore_grade"></searchalicious-facet-terms>
                     </searchalicious-facets>
                   </div>
                   <div slot="col-2">
@@ -421,9 +427,10 @@
                   </div>
                   <div slot="col-3">
                     <!-- Graphs inside -->
-                    <searchalicious-chart name="nutrition_grades" search-name="off"></searchalicious-chart>
-                    <searchalicious-chart search-name="off" name="ecoscore_grade"></searchalicious-chart>
-                    <searchalicious-chart search-name="off" name="nova_groups"></searchalicious-chart>
+                    <searchalicious-distribution-chart search-name="off" field="nutrition_grades"'></searchalicious-distribution-chart>
+                    <searchalicious-distribution-chart search-name="off" field="ecoscore_grade"></searchalicious-distribution-chart>
+                    <searchalicious-distribution-chart search-name="off" field="nova_groups"></searchalicious-distribution-chart>
+                    <searchalicious-scatter-chart search-name="off" x="nutriscore_score" y="nutriments.fiber_100g"></searchalicious-scatter-chart>
                   </div>
                 </searchalicious-layout-page>
               </div>

@@ -125,7 +125,9 @@ test_front:
 	@echo "🔎 Running front-end tests..."
 	${DOCKER_COMPOSE_TEST} run --rm search_nodejs npm run test
 
-
+test_front_watch:
+	@echo "🔎 Running front-end tests..."
+	${DOCKER_COMPOSE_TEST} run --rm search_nodejs npm run test:watch
 
 #-----------#
 # Utilities #
@@ -145,6 +147,10 @@ import-dataset: guard-filepath
 import-taxonomies:
 	@echo "🔎 Importing taxonomies …"
 	${DOCKER_COMPOSE} run --rm api python3 -m app import-taxonomies ${args}
+
+sync-scripts:
+	@echo "🔎 Syncing scripts …"
+	${DOCKER_COMPOSE} run --rm api python3 -m app sync-scripts
 
 build-translations:
 	@echo "🔎 Building translations …"

@@ -1,17 +1,9 @@
 import {LitElement, html, css} from 'lit';
-import {customElement, state} from 'lit/decorators.js';
-import {SearchResultEvent} from './events';
-import {
-  SearchaliciousResultCtlMixin,
-  SearchaliciousResultsCtlInterface,
-} from './mixins/search-results-ctl';
+import {customElement, property} from 'lit/decorators.js';
 import {msg} from '@lit/localize';
-
+import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 @customElement('searchalicious-count')
-export class SearchCount
-  extends SearchaliciousResultCtlMixin(LitElement)
-  implements SearchaliciousResultsCtlInterface
-{
+export class SearchCount extends SearchaliciousResultCtlMixin(LitElement) {
   static override styles = css`
     :host {
       display: block;
@@ -20,9 +12,8 @@ export class SearchCount
     }
   `;
 
-  // the last number of results found
-  @state()
-  nbResults = 0;
+  @property({attribute: 'display-time', type: Boolean})
+  displayTime = false;
 
   // HTML to display before the search is launched
   beforeSearch = html``;
@@ -32,24 +23,37 @@ export class SearchCount
     return html`<div>${msg('No results found')}</div>`;
   }
 
+  renderResultsFound() {
+    let result;
+    if (this.searchResultDetail.isCountExact) {
+      result = `${this.searchResultDetail.count} ${msg('results found')}`;
+    } else {
+      result = msg(
+        html`More than ${this.searchResultDetail.count} results found`
+      );
+    }
+
+    if (this.displayTime) {
+      result = html`${result}
+        <span part="result-display-time">
+          (${this.searchResultDetail.displayTime}ms)</span
+        >`;
+    }
+
+    return result;
+  }
+
   /**
    * Render the component
    */
   override render() {
-    if (this.nbResults > 0) {
-      return this.nbResults + ' results found';
-    } else if (this.searchLaunched) {
+    if (this.searchResultDetail.count > 0) {
+      return html`<div part="result-found">${this.renderResultsFound()}</div>`;
+    } else if (this.searchResultDetail.isSearchLaunch) {
       return html`<slot name="no-results">${this.noResults}</slot>`;
     } else {
       return html`<slot name="before-search">${this.beforeSearch}</slot>`;
     }
-  }
-
-  /**
-   * Handle the search result event
-   */
-  override handleResults(event: SearchResultEvent) {
-    this.nbResults = event.detail.count; // it's reactive so it will trigger a render
   }
 }
 

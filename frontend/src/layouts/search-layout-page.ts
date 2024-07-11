@@ -6,13 +6,17 @@ import {EventRegistrationMixin} from '../event-listener-setup';
 import {HIDE_STYLE} from '../styles';
 import {ContextConsumer} from '@lit/context';
 import {chartSideBarStateContext} from '../context';
+import {SearchaliciousResultCtlMixin} from '../mixins/search-results-ctl';
+import {refreshCharts} from '../utils/charts';
 
 /**
  * Component for the layout of the page
  * Three columns layout with display flex
  */
 @customElement('searchalicious-layout-page')
-export class SearchLayoutPage extends EventRegistrationMixin(LitElement) {
+export class SearchLayoutPage extends SearchaliciousResultCtlMixin(
+  EventRegistrationMixin(LitElement)
+) {
   static override styles = [
     HIDE_STYLE,
     css`
@@ -62,27 +66,24 @@ export class SearchLayoutPage extends EventRegistrationMixin(LitElement) {
       if (state !== SideBarState.CLOSED) {
         // Refresh the charts when the sidebar is opened
         // if we don't do this, the charts will not be displayed correctly
-        this._refreshCharts();
+        refreshCharts();
       }
     },
   });
+
+  override connectedCallback() {
+    super.connectedCallback();
+    // Refresh the charts when the search result detail is updated
+    this.searchResultDetailSignal.subscribe(() => {
+      refreshCharts();
+    });
+  }
 
   /**
    * Slot nodes
    */
   @queryAssignedNodes({slot: 'col-3', flatten: true})
   slotNodes!: Array<Node>;
-
-  /**
-   * Refresh vega charts by dispatching a resize event
-   * This is needed because vega charts are not displayed correctly because of the hidden sidebar
-   * @private
-   */
-  private _refreshCharts() {
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 0);
-  }
 
   override render() {
     const rowClass = {
@@ -103,7 +104,13 @@ export class SearchLayoutPage extends EventRegistrationMixin(LitElement) {
             hidden: this.chartSideBarState.value === SideBarState.CLOSED,
           })}"
         >
-          <slot name="col-3"></slot>
+          <div
+            class="${classMap({
+              hidden: !this.searchResultDetail.isSearchLaunch,
+            })}"
+          >
+            <slot name="col-3"></slot>
+          </div>
         </div>
       </div>
     `;

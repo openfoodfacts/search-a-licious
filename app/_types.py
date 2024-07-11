@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Annotated, Any, Optional, Tuple, cast, get_type_hints
+from typing import Annotated, Any, Literal, Optional, Tuple, Union, cast, get_type_hints
 
 import elasticsearch_dsl.query
 import luqum.tree
@@ -8,11 +8,33 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from . import config
 from .utils import str_utils
-from .validations import check_all_values_are_fields_agg, check_index_id_is_defined
+from .validations import (
+    check_all_values_are_fields_agg,
+    check_fields_are_numeric,
+    check_index_id_is_defined,
+)
 
 #: A precise expectation of what mappings looks like in json.
 #: (dict where keys are always of type `str`).
 JSONType = dict[str, Any]
+
+
+class DistributionChartType(BaseModel):
+    """Describes an entry for a distribution chart"""
+
+    chart_type: Literal["DistributionChartType"] = "DistributionChartType"
+    field: str
+
+
+class ScatterChartType(BaseModel):
+    """Describes an entry for a scatter plot"""
+
+    chart_type: Literal["ScatterChartType"] = "ScatterChartType"
+    x: str
+    y: str
+
+
+ChartType = Union[DistributionChartType, ScatterChartType]
 
 
 class FacetItem(BaseModel):
@@ -211,10 +233,10 @@ If not provided, `['en']` is used."""
         ),
     ] = None
     charts: Annotated[
-        list[str] | None,
+        list[ChartType] | None,
         Query(
             description="""Name of vega representations to return in the response.
-            If None (default) no charts are returned."""
+            Can be distribution chart or scatter plot"""
         ),
     ] = None
     sort_params: Annotated[
@@ -323,7 +345,34 @@ If not provided, `['en']` is used."""
     @model_validator(mode="after")
     def check_charts_are_valid(self):
         """Check that the graph names are valid."""
-        errors = check_all_values_are_fields_agg(self.index_id, self.charts)
+        if self.charts is None:
+            return self
+
+        errors = check_all_values_are_fields_agg(
+            self.index_id,
+            [
+                chart.field
+                for chart in self.charts
+                if chart.chart_type == "DistributionChartType"
+            ],
+        )
+
+        errors.extend(
+            check_fields_are_numeric(
+                self.index_id,
+                [
+                    chart.x
+                    for chart in self.charts
+                    if chart.chart_type == "ScatterChartType"
+                ]
+                + [
+                    chart.y
+                    for chart in self.charts
+                    if chart.chart_type == "ScatterChartType"
+                ],
+            )
+        )
+
         if errors:
             raise ValueError(errors)
         return self

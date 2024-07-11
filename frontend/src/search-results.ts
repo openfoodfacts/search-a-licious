@@ -1,14 +1,15 @@
-import {LitElement, html} from 'lit';
+import {LitElement, html, css} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-import {SearchResultEvent} from './events';
 import {
   MissingResultTemplateError,
   MultipleResultTemplateError,
 } from './errors';
 import {localized, msg} from '@lit/localize';
+import {SignalWatcher} from '@lit-labs/preact-signals';
+import {isSearchLoading} from './signals';
 
 // we need it to declare functions
 type htmlType = typeof html;
@@ -23,9 +24,31 @@ type htmlType = typeof html;
  */
 @customElement('searchalicious-results')
 @localized()
-export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
-  LitElement
+export class SearchaliciousResults extends SignalWatcher(
+  SearchaliciousResultCtlMixin(LitElement)
 ) {
+  static override styles = css`
+    .loading {
+      height: 300px;
+      border-radius: 8px;
+      animation: loading 2.25s ease infinite;
+      box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+      background-color: var(--first-loading-color, #cacaca);
+    }
+
+    @keyframes loading {
+      0% {
+        background-color: var(--first-loading-color, #cacaca);
+      }
+      50% {
+        background-color: var(--second-loading-color, #bbbbbb);
+      }
+      100% {
+        background-color: var(--first-loading-color, #cacaca);
+      }
+    }
+  `;
+
   // the last search results
   @state()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,6 +57,16 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
   // attribute giving id to seek in search results, might be undefined
   @property({attribute: 'result-id'})
   resultId = '';
+
+  @property({attribute: 'loadind-card-size', type: Number})
+  loadingCardSize = 200;
+
+  /**
+   * The parent width, used to compute the number of loading cards to display
+   */
+  get parentWidth() {
+    return this.parentElement?.offsetWidth || 1200;
+  }
 
   /**
    * A function rendering a single result. We define this just to get it's prototype right.
@@ -109,10 +142,32 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
     return slots[0].innerHTML;
   }
 
+  /**
+   * Render the loading cards
+   * We display 2 columns of loading cards
+   */
+  renderLoading() {
+    // we take the row width and display 2 columns of loading cards
+    const numCols = Math.floor(this.parentWidth / this.loadingCardSize) * 2;
+
+    return html`
+      <slot name="loading">
+        <ul part="results-loading">
+          ${Array(numCols)
+            .fill(0)
+            .map(() => html`<li part="result-loading" class="loading"></li>`)}
+        </ul>
+      </slot>
+    `;
+  }
+
   override render() {
-    if (this.results.length) {
+    if (this.searchResultDetail.results.length) {
       return this.renderResults();
-    } else if (this.searchLaunched) {
+      // if we are loading, we display the loading cards
+    } else if (isSearchLoading(this.searchName).value) {
+      return this.renderLoading();
+    } else if (this.searchResultDetail.isSearchLaunch) {
       return html`<slot name="no-results">${this.noResults}</slot>`;
     } else {
       return html`<slot name="before-search">${this.beforeSearch}</slot>`;
@@ -130,15 +185,12 @@ export class SearchaliciousResults extends SearchaliciousResultCtlMixin(
     const KeyFnOrTemplate = keyFn ? keyFn : renderResult;
     const templateOrUndef = keyFn ? renderResult : undefined;
     return html` <ul part="results">
-      ${repeat(this.results, KeyFnOrTemplate, templateOrUndef)}
+      ${repeat(
+        this.searchResultDetail.results,
+        KeyFnOrTemplate,
+        templateOrUndef
+      )}
     </ul>`;
-  }
-
-  /**
-   * event handler for NEW_RESULT events
-   */
-  override handleResults(event: SearchResultEvent) {
-    this.results = event.detail.results; // it's reactive, should trigger rendering
   }
 
   /**

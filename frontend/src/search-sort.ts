@@ -102,9 +102,9 @@ export class SearchaliciousSort extends SearchActionMixin(
   /**
    * Get sort parameters of selected option or return an empty Object
    */
-  getSortParameters(): SortParameters {
+  getSortParameters(): SortParameters | null {
     const option = this.currentSortOption();
-    return option ? option.getSortParameters() : {};
+    return option ? option.getSortParameters() : null;
   }
 
   /**
