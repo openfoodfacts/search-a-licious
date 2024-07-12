@@ -1,0 +1,1441 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://openfoodfacts.github.io/search-a-licious/users/tutorial/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../how-to-install/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
+    
+    
+      
+        <title>Tutorial - Using search-a-licious in your project - Search-a-licious documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial-using-search-a-licious-in-your-project" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Search-a-licious documentation" class="md-header__button md-logo" aria-label="Search-a-licious documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Search-a-licious documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tutorial - Using search-a-licious in your project
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/openfoodfacts/search-a-licious" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Search-a-licious documentation" class="md-nav__button md-logo" aria-label="Search-a-licious documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Search-a-licious documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/openfoodfacts/search-a-licious" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Search-a-licious
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Users
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Users
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Tutorial - Using search-a-licious in your project
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Tutorial - Using search-a-licious in your project
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting up
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting up">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clone the repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a configuration file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Create a configuration file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-index-and-indices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default Index and Indices
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Index Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-searchable-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring Searchable Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-taxonomies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring Taxonomies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-supported-languages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring Supported Languages
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-the-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup the project
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initial import
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial import">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#import-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Import the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspecting-elasticsearch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inspecting Elasticsearch
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-search-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using the search API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the search API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      Starting the service
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-our-first-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running our first query
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sorting-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sorting results
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limiting-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limiting fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using filters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-facets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting facets
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-search-page-using-web-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a search Page using web components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating a search Page using web components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-a-search-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building a search interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trying-our-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trying our interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-install/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    How to install search-a-licious
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../explain-configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Explain configuration file
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../explain-query-language/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Explain query language
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../explain-scripts/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Explain scripts
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ref-openapi/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reference for Search-a-licious API
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ref-web-components/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reference for Search-a-licious Web Components
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setting up
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setting up">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clone the repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-configuration-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a configuration file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Create a configuration file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-index-and-indices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default Index and Indices
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#index-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Index Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-searchable-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring Searchable Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-taxonomies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring Taxonomies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-supported-languages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuring Supported Languages
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup-the-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup the project
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initial import
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial import">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#import-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Import the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspecting-elasticsearch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inspecting Elasticsearch
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-search-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using the search API
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Using the search API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      Starting the service
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-our-first-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running our first query
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sorting-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sorting results
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#limiting-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Limiting fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using filters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-facets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting facets
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-search-page-using-web-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a search Page using web components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating a search Page using web components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-a-search-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building a search interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trying-our-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trying our interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="tutorial-using-search-a-licious-in-your-project">Tutorial - Using search-a-licious in your project<a class="headerlink" href="#tutorial-using-search-a-licious-in-your-project" title="Permanent link">#</a></h1>
+<p>So you have a dataset, or a project, with a collection of data you want to make searchable.
+Search-a-licious can help you have it done in a matter of few hours, while retaining your choices.</p>
+<p>In this tutorial, we will see how we can use search-a-licious to search Open Food Facts data.</p>
+<h2 id="setting-up">Setting up<a class="headerlink" href="#setting-up" title="Permanent link">#</a></h2>
+<h3 id="clone-the-repository">Clone the repository<a class="headerlink" href="#clone-the-repository" title="Permanent link">#</a></h3>
+<p>As an easy way to setup the project we will clone the repository:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:openfoodfacts/search-a-licious.git
+<span class="nb">cd</span><span class="w"> </span>search-a-licious
+</code></pre></div>
+<h3 id="create-a-configuration-file">Create a configuration file<a class="headerlink" href="#create-a-configuration-file" title="Permanent link">#</a></h3>
+<p>We need to create a configuration file to indicate which fields we care about in our index.</p>
+<p>For this we can create a conf/data/openfoodfacts-tutorial.yml file. It uses the <a href="https://yaml.org/">YAML format</a>.</p>
+<h4 id="default-index-and-indices">Default Index and Indices<a class="headerlink" href="#default-index-and-indices" title="Permanent link">#</a></h4>
+<p>At the top we have:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">default_index</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;off&quot;</span><span class="w"> </span><span class="c1"># see 2</span>
+<span class="nt">indices</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 1</span>
+<span class="w">  </span><span class="nt">off</span><span class="p">:</span><span class="w">    </span><span class="c1"># see 2</span>
+</code></pre></div>
+<ol>
+<li>
+<p>Search-a-licious support serving more than one dataset at once,
+  each dataset as it's own indice with it's own definition.
+  So we start with the "indices" keyword.</p>
+</li>
+<li>
+<p>We must give a name to our unique index. Let's call it <code>off</code> as Open Food Facts.
+  We also indicate that this is the default index for the API.</p>
+</li>
+</ol>
+<h4 id="index-configuration">Index Configuration<a class="headerlink" href="#index-configuration" title="Permanent link">#</a></h4>
+<p>Now comes important indications for the index:
+<div class="highlight"><pre><span></span><code><span class="nn">...</span>
+<span class="nt">indices</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">off</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">index</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 1</span>
+<span class="w">      </span><span class="nt">id_field_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code</span><span class="w">  </span><span class="c1"># see 2</span>
+<span class="w">      </span><span class="nt">last_modified_field_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">last_modified_t</span><span class="w">  </span><span class="c1"># see 2</span>
+<span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openfoodfacts</span><span class="w">  </span><span class="c1"># see 3</span>
+</code></pre></div></p>
+<ol>
+<li>The index section mark settings that are specific to the index.</li>
+<li>We have to then indicate two important fields:<ul>
+<li>a field that contains a unique id for each item in the collection (the identifier).
+   In Open Food Facts dataset, it's simply the barcode, stored in <code>code</code><ul>
+<li>a field that contains the item modification date to enable incremental updates.
+  In Open Food Facts dataset, it's <code>last_modified_t</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>We have to give a sensible name to the index, which should be unique for our ElasticSearch instance.
+   So we simply put "openfoodfacts".</li>
+</ol>
+<h4 id="configuring-searchable-fields">Configuring Searchable Fields<a class="headerlink" href="#configuring-searchable-fields" title="Permanent link">#</a></h4>
+<p>Let's continue with configuration of fields we want to be able to search.</p>
+<div class="highlight"><pre><span></span><code><span class="nn">...</span>
+<span class="nt">indices</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">off</span><span class="p">:</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">fields</span><span class="p p-Indicator">:</span><span class="w">  </span><span class="c1"># see 1</span>
+<span class="w">      </span><span class="nt">code</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 2</span>
+<span class="w">        </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyword</span>
+<span class="w">      </span><span class="nt">product_name</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 3</span>
+<span class="w">        </span><span class="nt">full_text_search</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text_lang</span>
+<span class="w">      </span><span class="nt">labels_tags</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 4</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyword</span>
+<span class="w">        </span><span class="nt">taxonomy_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">label</span>
+<span class="w">        </span><span class="nt">bucket_agg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">labels</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 5</span>
+<span class="w">        </span><span class="nt">full_text_search</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">input_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">labels_tags</span>
+<span class="w">        </span><span class="nt">taxonomy_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">label</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">taxonomy</span>
+<span class="w">      </span><span class="nt">nutriscore_grade</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 6</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyword</span>
+<span class="w">        </span><span class="nt">bucket_agg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">last_modified_t</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 7</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">date</span>
+</code></pre></div>
+<ol>
+<li>now we are in the field section</li>
+<li>code is our identifier, it contains the barcode<ul>
+<li>we mark it required for we should reject elements without it (it's certainly a bug)</li>
+<li>Each field must have a type which indicates how to handle it.</li>
+<li>For the code we choose the type <code>keyword</code> which means it's a fixed token.</li>
+</ul>
+</li>
+<li>product_name is also an important field.<ul>
+<li>this time we want to be able to search part of it,
+  also it's a field that comes with different values for different languages,
+  that's why we mark it as <code>type: textlang</code></li>
+<li>We also include this field in free text search,
+  that's the <code>full_text_search: true</code> part.</li>
+</ul>
+</li>
+<li><code>labels_tags</code> is a field that contains labels of the product in a canonical form.<ul>
+<li>This is a field supported by a taxonomy.
+  Taxonomies gives translations and synonyms for terms of a specific field of interest.
+  In this case this is the <code>label</code> taxonomy. We will see later on the configuration of taxonomies.
+  This field will be useful to find all items matching a particular label in a precise way,
+  using the label canonical form.</li>
+<li>Also we plan to use the field for facets so we put the <code>bucket_agg: true</code> part.</li>
+</ul>
+</li>
+<li>The labels repeat information from <code>labels_tags</code>
+   (hence the <code>input_field: labels_tags</code>)
+   but is there to enrich the information of full text searches
+   (<code>type: taxonomy</code>).
+   With that, the full text search will take into account the translations and synonyms of labels.</li>
+<li>Nutri-Score is a field with very basic values: "a", "b", ..., "e", "unknown" and "not-applicable",
+  as for code, a perfect case for a <code>keyword</code> field</li>
+<li>last_modified_t, corresponding to last modification time, is an example of a date field.</li>
+</ol>
+<h4 id="configuring-taxonomies">Configuring Taxonomies<a class="headerlink" href="#configuring-taxonomies" title="Permanent link">#</a></h4>
+<p>Let's continue with configuration of taxonomies.</p>
+<p>Taxonomies will be used in multiple ways by <em>search-a-licious</em>:</p>
+<ul>
+<li>to add synonyms for taxonomized values on full text search.
+  For example you might search for <em>"European Organic"</em>,
+  to find items with the <em>"EU Organic"</em> label.</li>
+<li>to suggest values to search for in autocomplete (this can also be used in edit forms)</li>
+<li>to translate values from the results, for example as we display facets</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="nn">...</span>
+<span class="nt">indices</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">off</span><span class="p">:</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">taxonomy</span><span class="p p-Indicator">:</span>
+<span class="w">      </span><span class="nt">sources</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 1</span>
+
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">label</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://static.openfoodfacts.org/data/taxonomies/labels.full.json</span>
+<span class="w">      </span><span class="nt">exported_langs</span><span class="p">:</span><span class="w">   </span><span class="c1"># see 2</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">en</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fr</span>
+<span class="w">      </span><span class="nt">index</span><span class="p">:</span><span class="w">   </span><span class="c1"># see 3</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">off_taxonomy</span>
+</code></pre></div>
+<ol>
+<li>We cited one taxonomy above: <code>label</code>, here we define how to get it.</li>
+<li>We must also defined which languages we want to use for this taxonomy.
+   There is some trade-off between having a manageable size for the index and supporting more languages.</li>
+<li>finally we have to give a name to the Elasticsearch index that will contain the taxonomies.</li>
+</ol>
+<h4 id="configuring-supported-languages">Configuring Supported Languages<a class="headerlink" href="#configuring-supported-languages" title="Permanent link">#</a></h4>
+<p>We continue with languages configurations:</p>
+<div class="highlight"><pre><span></span><code><span class="nn">...</span>
+<span class="nn">...</span>
+<span class="nt">indices</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">off</span><span class="p">:</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">supported_langs</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;en&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;fr&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">lang_separator</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;_&quot;</span>
+</code></pre></div>
+<ol>
+<li>the list of supported languages tells which languages will be retained in our index</li>
+<li>the "lang separator" helps us tells that, the fields are suffixed by the language using this separator.
+  In our case it means, for example, that <code>product_name_fr</code> contains the french version of <code>product_name</code>.</li>
+</ol>
+<p>We have our configuration ready. That was a bit though, but this was the hardest part !</p>
+<h3 id="setup-the-project">Setup the project<a class="headerlink" href="#setup-the-project" title="Permanent link">#</a></h3>
+<p>In the project you can modify the <code>.env</code> file and change variables you need to change,
+but for now, the only mandatory variable to change
+is the one that will point to our configuration file.</p>
+<div class="highlight"><pre><span></span><code><span class="na">...</span>
+<span class="c1"># Path to the yaml configuration file</span>
+<span class="c1"># This envvar is **required**</span>
+<span class="na">CONFIG_PATH</span><span class="o">=</span><span class="s">`data/config/openfoodfacts.yml`</span>
+</code></pre></div>
+<h2 id="initial-import">Initial import<a class="headerlink" href="#initial-import" title="Permanent link">#</a></h2>
+<h3 id="getting-the-data">Getting the data<a class="headerlink" href="#getting-the-data" title="Permanent link">#</a></h3>
+<p>Now that it's all done, we are ready to start to import the data.</p>
+<p>First we start the Elasticsearch index,
+we will also start the ElasticVue service to be able to look at what happens:
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>es01<span class="w"> </span>es02<span class="w"> </span>elasticvue
+</code></pre></div></p>
+<p>There is an export of all the openfoodfacts data in JSONL available on at 
+https://static.openfoodfacts.org/data . But it's a very big file ! 
+For this tutorial we will prefer to use a sample of products
+at https://static.openfoodfacts.org/data/products.random-modulo-10000.jsonl.gz</p>
+<p>Put this file in the data/ directory which is bind mounted in the container.
+On linux we can do it with:
+<div class="highlight"><pre><span></span><code>wget<span class="w"> </span>https://static.openfoodfacts.org/data/products.random-modulo-10000.jsonl.gz<span class="w"> </span>-O<span class="w"> </span>data/products.random-modulo-10000.jsonl.gz
+</code></pre></div></p>
+<h3 id="import-the-data">Import the data<a class="headerlink" href="#import-the-data" title="Permanent link">#</a></h3>
+<p>We will then import this file in our index, we have a specific command for that:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>api<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>app<span class="w"> </span>import<span class="w"> </span>/opt/search/data/products.random-modulo-10000.jsonl<span class="s1">&#39; args=&#39;</span>--skip-updates
+</code></pre></div>
+<p>The first part is simply to run a command using our docker container.
+The <code>python3 -m app import</code> part is to run the <code>import</code> command provided by our <code>app</code> module.</p>
+<p>We use the <code>--skip-updates</code> flag because we don't have a redis stream to connect to, to look for updates.</p>
+<p>We also need our taxonomy, and there is a command <code>import-taxonomies</code> to get it.</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>api<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>app<span class="w"> </span>import-taxonomies
+</code></pre></div>
+<h3 id="inspecting-elasticsearch">Inspecting Elasticsearch<a class="headerlink" href="#inspecting-elasticsearch" title="Permanent link">#</a></h3>
+<p>We can take a look at what just happened by using ElasticVue, a simple but handy tool to inspect Elasticsearch.</p>
+<p>Open http://127.0.0.1:8080 in your browser.</p>
+<p>If it's the fist time, click "ADD ELASTICSEARCH CLUSTER" and use "No authorization",
+cluster name: docker-cluster, uri: http://localhost:9200</p>
+<p>Click on the button which says there are 3 indices.</p>
+<p>You shall see two indices:</p>
+<ul>
+<li>one named <code>openfoodfacts-&lt;date of initial import&gt;</code> with alias <code>openfoodfacts</code></li>
+<li>one named <code>off_taxonomy-&lt;date of initial import&gt;</code> with alias <code>off_taxonomy</code>
+As you already guessed, the first contains our food products, and the second our taxonomies.</li>
+</ul>
+<p><img alt="Our two indices in ElasticVue" src="../../assets/tutorial-elasticvue-indices-after-import.png" title="Our two indices in ElasticVue" /></p>
+<p>The "Lucene docs" column gives you an idea of the number of entries you have in each index.</p>
+<p>You can click on an index to view it's content and have a feeling of what we just imported.</p>
+<h2 id="using-the-search-api">Using the search API<a class="headerlink" href="#using-the-search-api" title="Permanent link">#</a></h2>
+<h3 id="starting-the-service">Starting the service<a class="headerlink" href="#starting-the-service" title="Permanent link">#</a></h3>
+<p>We don't have an interface to search at the moment, but we can use the API.</p>
+<p>It would be perfectly ok to only deploy the interface,
+maybe because you will call it from your own application either to provide search to your users,
+or to implement a very specific feature which is based upon a search request.</p>
+<p>Let's start our search-a-licious service:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w">  </span>es01<span class="w"> </span>es02<span class="w"> </span>api<span class="w"> </span>frontend
+</code></pre></div>
+<h3 id="running-our-first-query">Running our first query<a class="headerlink" href="#running-our-first-query" title="Permanent link">#</a></h3>
+<p>We start the <code>api</code> container, which is the search-a-licious backend,
+and the frontend as it is a nginx acting as a reverse proxy.</p>
+<p>Now let's open http://127.0.0.1:8000/docs</p>
+<p>You can see the documentation of the various API offered by search-a-licious service.</p>
+<p>Let's concentrate on the <em>GET</em> <code>/search</code> service. We can test it using the <em>Try it out</em> button.</p>
+<p>We can try a simple search of <em>fair trade</em> in the q parameter, we get 17 results.</p>
+<p>Interesting fields in the JSON we receive includes:</p>
+<ul>
+<li><code>hits</code> where we have the detail of each result.
+  In each results we retrieve full information about an item, that's a lot of data.
+  We might optimize this using the <code>fields</code> query parameter.</li>
+<li><code>page</code>: the current returned page, <code>page_count</code> the number of pages, and <code>page_size</code> the number of results per page.</li>
+<li><code>count</code> is the total number of items returned.
+  <code>is_count_exact</code>, when false indicate that for performance reason, we did not compute the total number of results,
+  but there are at least <code>count</code> results.</li>
+</ul>
+<h3 id="sorting-results">Sorting results<a class="headerlink" href="#sorting-results" title="Permanent link">#</a></h3>
+<p>As you get the results you might want them according to a particular order.
+Say we search for <em>fair trade</em> and we want the results to be sorted by the nutriscore grade.</p>
+<p>We simply repeat the above query with <code>q</code> = <code>fair trade</code> and <code>sort_by</code> = <code>nutriscore_grade</code>.</p>
+<h3 id="limiting-fields">Limiting fields<a class="headerlink" href="#limiting-fields" title="Permanent link">#</a></h3>
+<p>In the previous example, we might only be interested in the name of the product and it's Nutri-Score.
+We can limit the fields return by using the <code>fields</code> parameter.
+Here it would be <code>product_name,nutriscore_grade</code></p>
+<h3 id="using-filters">Using filters<a class="headerlink" href="#using-filters" title="Permanent link">#</a></h3>
+<p>We may want to be more precise on our request. Now let's ask products which really have "fair-trade" label.</p>
+<p>For this we will use our query field in a more advanced way.</p>
+<p>We can use this value for the "q" field: <code>labels_tags:"en:fair-trade"</code>.
+Using this we specify that we search for the key "en:fair-trade" in the value.<sup id="fnref:using-quotes"><a class="footnote-ref" href="#fn:using-quotes">1</a></sup></p>
+<p>We may then want to restrict our search to fair trade products that also have the "EU organic" label.
+For this we can use <code>labels_tags:("en:fair-trade" AND "en:eu-organic")</code>.</p>
+<p>If we wanted products having one or the other <code>labels_tags:("en:fair-trade" OR "en:eu-organic")</code> would do.</p>
+<p>We can also combine those filters with a search. Using <code>cocoa labels_tags:"en:fair-trade"</code>
+will help find some fair trade cocoa.</p>
+<h3 id="getting-facets">Getting facets<a class="headerlink" href="#getting-facets" title="Permanent link">#</a></h3>
+<p>Remember in our configuration we added a <code>bucket_agg: true</code> on some fields.
+This will enable us to get facets on those fields.</p>
+<p>Let's go back to our API, and use <code>cocoa labels_tags:"en:fair-trade"</code> in the request,
+and ask for facet <code>nutriscore_grade</code>.
+We get a result with same fields as for previous searches, but we have a new <code>facets</code> fields.</p>
+<p>It returns something like
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">&quot;facets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;nutriscore_grade&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nutriscore_grade&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;e&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;e&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;selected&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;selected&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;count_error_margin&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+</code></pre></div></p>
+<p>As you can see we have the "nutriscore_grade" facet with two value: "e" and "d", and we got the document count for each value.</p>
+<p>The <code>selected</code> field was deduced from an analysis of the request.
+If we were to ask for the <code>labels_tags</code> facets with the same request,
+the <code>en:fair-trade</code> label would be selected, as it is an active filter.
+(note that it only works if you write the query in a specific way).</p>
+<p>You can try and ask both facets by using <code>nutriscore_grade,labels_tags</code> as the facets parameter.</p>
+<h2 id="creating-a-search-page-using-web-components">Creating a search Page using web components<a class="headerlink" href="#creating-a-search-page-using-web-components" title="Permanent link">#</a></h2>
+<p>Now that we have played around with the API,
+we might want to create a search page to let users do their own search in a visual way.</p>
+<p>That's were Search-a-licious also got you covered.</p>
+<p>Search-a-licious provides web components that let you build your search page easily.</p>
+<h3 id="building-a-search-interface">Building a search interface<a class="headerlink" href="#building-a-search-interface" title="Permanent link">#</a></h3>
+<p>Let's try it and create a static html page.
+We won't care much about the "look and feel" for now, for sake of simplicity.</p>
+<p>A simple way to serve the page, is to add a file in the <code>frontend/public</code> folder<sup id="fnref:devmode"><a class="footnote-ref" href="#fn:devmode">2</a></sup></p>
+<p>Let's create a <code>tutorial.html</code> file with a very basic initial content:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>Search-a-licious tutorial<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+    <span class="cm">&lt;!-- this makes the various searchalicious components available --&gt;</span>
+    <span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;./search-a-licious.bundled.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+<span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;search-bar&quot;</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- the search bar where you can add text --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">searchalicious-bar</span><span class="p">&gt;&lt;/</span><span class="nt">searchalicious-bar</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- the button to launch the search --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">searchalicious-button</span><span class="p">&gt;&lt;/</span><span class="nt">searchalicious-button</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- sorting --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">searchalicious-sort</span> <span class="na">auto-refresh</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">searchalicious-sort-field</span> <span class="na">field</span><span class="o">=</span><span class="s">&quot;nutriscore_grade&quot;</span><span class="p">&gt;</span>Best nutriscore<span class="p">&lt;/</span><span class="nt">searchalicious-sort-field</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">searchalicious-sort-field</span> <span class="na">field</span><span class="o">=</span><span class="s">&quot;-nutriscore_grade&quot;</span><span class="p">&gt;</span>Worst nutriscore<span class="p">&lt;/</span><span class="nt">searchalicious-sort-field</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">searchalicious-sort</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;results&quot;</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- display of results --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">searchalicious-results</span><span class="p">&gt;</span>
+    <span class="cm">&lt;!-- this define a template for results. We can use ${} expression with a result object containing result fields --&gt;</span>
+    <span class="p">&lt;</span><span class="nt">template</span> <span class="na">slot</span><span class="o">=</span><span class="s">&quot;result&quot;</span><span class="p">&gt;</span>
+      <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;https://world.openfoodfacts.org/${result.code}&quot;</span><span class="p">&gt;</span>${result.product_name}<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+        − Nutri-Score: ${result.nutriscore_grade}
+      <span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">template</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">searchalicious-results</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- a small display of the number of results --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">searchalicious-count</span><span class="p">&gt;&lt;/</span><span class="nt">searchalicious-count</span><span class="p">&gt;</span>
+  <span class="cm">&lt;!-- pagination --&gt;</span>
+  <span class="p">&lt;</span><span class="nt">searchalicious-pages</span><span class="p">&gt;&lt;/</span><span class="nt">searchalicious-pages</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</code></pre></div>
+<p>As you can see this is a big file but not so big for search page.</p>
+<p>If you know html you should be able to read this quite easily. Let's focus on some elements:</p>
+<ul>
+<li>first of all we have to import the search-a-licious library to make it available.
+  This is done through the classical <code>script</code> element (in <code>head</code>),
+  but note the <code>type="module"</code> property.</li>
+<li>next we have the <code>searchalicious-bar</code> component. This is the central component.
+  Not only will responsible for the input in the search bar,
+  but it also centralize the search options.</li>
+<li>then we have the <code>searchalicious-button</code>, which, as you guessed, is just responsible to launch the search
+  (hitting enter in the search bar also works, but it might be more evident for some users with a button)</li>
+<li>Sorting is a bit more complex, we have the <code>searchalicious-sort</code> component,
+  and inside we added the options we want to offer for sorting.
+  The <code>field</code> property takes the same value as you would put in the <code>sort_by</code> parameter of the search API,
+  and the inner text will be displayed to the user.</li>
+<li>To display our results, we need the <code>serachalicious-results</code> component.
+  Inside it we need to define a template, with the property <code>slot</code> set to <code>result</code>.
+  In this template we can use simple variable interpolation
+  as in a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">javascript template literal</a>,
+  with the <code>result</code> variable containing one search result, as returned by the API.
+  This will be used to display each results.
+  As the results use a <code>&lt;ul&gt;</code> element, it's better to enclose your result in a <code>&lt;li&gt;</code>.</li>
+<li>The <code>searchalicious-count</code> component will simply display the number of results.</li>
+<li>Finally the <code>searchalicious-pages</code> component is there to display a list of pages.</li>
+</ul>
+<h3 id="trying-our-interface">Trying our interface<a class="headerlink" href="#trying-our-interface" title="Permanent link">#</a></h3>
+<p>Let's try to use it !</p>
+<p>We can go to <code>http://localhost:8000/static/tutorial.html</code> and see our interface.</p>
+<p><strong>FIXME</strong> screen capture</p>
+<p>We can type <code>fair trade</code> in the search bar, hit the search buttons and see results displayed.</p>
+<p><strong>FIXME</strong> screen capture</p>
+<p>We can use the pages navigation to browse all results.</p>
+<p>We can also type a more advanced search like <code>cocoa labels_tags:"en:fair-trade"</code></p>
+<p>You can also test that sorting by best or worst nutriscore is working just fine !</p>
+<p>If you are curious, you can open the dev toolbar (F12),  go in the network tab, select to only view XHR requests (requests sent by javascript), and see how each search is using the search API.</p>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:using-quotes">
+<p>Note that we have to use "" around value here, because the value contains a ":" inside.<code>labels_tags:en:fair-trade</code>  would be interpreted as asking for a field named labels_tags.en 
+having the value fair-trade.&#160;<a class="footnote-backref" href="#fnref:using-quotes" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:devmode">
+<p>this only works right away if you are using the service in developer mode, which should be the case if you followed this tutorial. Of course in production, this might be served by your own servers.&#160;<a class="footnote-backref" href="#fnref:devmode" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>
