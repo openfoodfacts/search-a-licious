@@ -1,7 +1,7 @@
 # base ES service definition
 x-base-es-service: &base-es-service
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
-    restart: ${RESTART_POLICY}
+    restart: ${RESTART_POLICY:-always}
     mem_limit: ${MEM_LIMIT}
     ulimits:
       memlock:
@@ -33,7 +33,7 @@ x-base-es-envs: &base-es-envs
 
 x-api-common: &api-common
   image: ghcr.io/openfoodfacts/search-a-licious/search_service_image:${TAG:-dev}
-  restart: ${RESTART_POLICY}
+  restart: ${RESTART_POLICY:-always}
   environment:
     - ELASTICSEARCH_URL=http://es01:9200
     - SENTRY_DNS
@@ -78,7 +78,7 @@ services:
   # elasticsearch browser
   elasticvue:
     image: cars10/elasticvue
-    restart: ${RESTART_POLICY}
+    restart: ${RESTART_POLICY:-always}
     environment:
       - NGINX_BASIC_AUTH_USER_PASSWD
     ports:
@@ -102,6 +102,7 @@ services:
   search_frontend:
     # this is the nginx frontend serving react static version or redirecting queries
     image: ghcr.io/openfoodfacts/search-a-licious/search_front_image:${TAG:-dev}
+    restart: ${RESTART_POLICY:-always}
     depends_on:
       - api
     environment:
