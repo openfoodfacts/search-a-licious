@@ -1,6 +1,8 @@
 # Project-specific
 data/taxonomies
 data/**/*.jsonl
+products*.jsonl.gz
+data/searchalicious-openapi.yml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -12,7 +14,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -97,7 +98,10 @@ venv.bak/
 
 
 # mkdocs documentation
-/site
+/gh_pages
+
+# github pages
+gh_pages/
 
 # mypy
 .mypy_cache/

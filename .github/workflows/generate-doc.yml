@@ -1,0 +1,40 @@
+name: 📖 Documentation
+
+on:
+  pull_request:
+    # on pull request we just want to build
+  push:
+    # on merge to main, build and publish
+    # FIXME: remove ci-generate-docs before merging !
+    branches: [ "main" ]
+
+jobs:
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: ensure we have a config file
+        run: |
+          echo "" > .envrc
+          echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
+          echo USER_IID=$(id -u) >>.envrc
+          echo USER_GID=$(id -g) >>.envrc
+
+      # generating project documentation
+      - name: Build documentation with MkDocs
+        run: |
+          ./scripts/generate_doc.sh
+
+      - name: Deploy documentation to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4.6.1
+        # we only deploy on push to main
+        if: |
+          github.event_name == 'push' && github.event.ref == 'refs/heads/main'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: "gh-pages"
+          folder: gh_pages

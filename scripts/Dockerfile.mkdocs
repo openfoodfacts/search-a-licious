@@ -1,0 +1,11 @@
+FROM minidocks/mkdocs
+
+ARG USER_UID=1000
+ARG USER_GID=1000
+USER root
+# change user uid / gid by replacing "user"
+RUN deluser user && addgroup -g $USER_GID user && adduser -u $USER_UID -G user -D user
+# give right uid / gid to "user"
+RUN mkdir -p /app && chown user:user /app
+# install some package we need
+RUN pip3 install mdx_truly_sane_lists mdx-breakless-lists

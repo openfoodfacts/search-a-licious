@@ -1,0 +1,6 @@
+nav:
+    - tutorial.md
+    - ... | how-*.md
+    - ... | explain-*.md
+    - ... | ref-*.md
+    - ...
