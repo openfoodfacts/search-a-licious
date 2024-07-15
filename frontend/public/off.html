@@ -89,9 +89,7 @@
         height: 144px;
         margin: 12px;
       }
-      .default-image {
-            filter: invert(.9) !important;
-        }
+     
       searchalicious-results::part(image) {
         object-fit: contain;
         width: 100%;
@@ -456,11 +454,11 @@
 
     <script src="vega5.js"></script>
     <script>
-      const defaultImageUrl = 'https://world.openfoodfacts.org/images/icons/dist/packaging.svg'; // Update this path to your default image location
+      const defaultImageUrl = 'https://world.openfoodfacts.org/images/icons/dist/packaging.svg';
 
       function handleImageError(event) {
           event.target.src = defaultImageUrl;
-          event.target.classList.add('default-image');
+      
       }
   </script>
     <script
