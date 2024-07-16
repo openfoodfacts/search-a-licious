@@ -1,3 +1,8 @@
+"""Various utilities for downloading files
+
+Used for example for downloading taxonomies
+"""
+
 import json
 import shutil
 import time

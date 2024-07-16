@@ -1,4 +1,7 @@
-"""Operations on taxonomies in ElasticSearch"""
+"""Operations on taxonomies in ElasticSearch
+
+See also :py:mod:`app.taxonomy`
+"""
 
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q

@@ -1,3 +1,8 @@
+"""Fetching taxonomies files and representing them
+
+See also :py:mod:`app.taxonomy_es`
+"""
+
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
@@ -212,7 +217,7 @@ class Taxonomy:
         :param item: The item to compare
         :param candidates: A list of candidates
         :param raises: if True, raises a ValueError if item is not in the
-        taxonomy, defaults to True.
+            taxonomy, defaults to True.
         """
         node: TaxonomyNode = self[item]
 

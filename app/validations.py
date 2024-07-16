@@ -49,7 +49,7 @@ def check_fields_are_numeric(
     """
     * If field exists in global_config, check that it's numeric.
     * If field looks like x.y and x.y does not exist in global config,
-    check that x is an object field
+      check that x is an object field
     """
     errors: list[str] = []
     if values is None:

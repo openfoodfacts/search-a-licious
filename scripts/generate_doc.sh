@@ -29,4 +29,7 @@ mkdir -p gh_pages/users/ref-web-components/dist
 cp frontend/public/dist/custom-elements.json gh_pages/users/ref-web-components/dist/custom-elements.json
 sudo chown $UID -R gh_pages/users/ref-web-components
 
+echo "Generate python code documentation using sphinx"
+scripts/build_sphinx.sh
+
 echo "To see your doc locally, run: python3 -m http.server -d gh_pages 8001"
