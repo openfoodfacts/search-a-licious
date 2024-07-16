@@ -1,3 +1,8 @@
+"""This module provides different commands to help
+setting up search-a-licious
+or doing maintenance operations.
+"""
+
 from pathlib import Path
 from typing import Optional
 
@@ -6,6 +11,13 @@ import typer
 import app
 
 cli = typer.Typer()
+
+
+INDEX_ID_HELP = (
+    "Each index has its own configuration in the configuration file, "
+    "and the ID is used to know which index to use. "
+    "If there is only one index, this option is not needed."
+)
 
 
 def _get_index_config(
@@ -57,12 +69,16 @@ def import_data(
     ),
     index_id: Optional[str] = typer.Option(
         default=None,
-        help="Each index has its own configuration in the configuration file, "
-        "and the ID is used to know which index to use. "
-        "If there is only one index, this option is not needed.",
+        help=INDEX_ID_HELP,
     ),
 ):
-    """Import data into Elasticsearch."""
+    """Import data into Elasticsearch.
+
+    This command is used to initialize or refresh your index with data.
+
+    File must contains one JSON document per line,
+    each document must have same format as a document returned by the API.
+    """
     import time
 
     from app._import import run_full_import
@@ -95,12 +111,13 @@ def import_taxonomies(
     ),
     index_id: Optional[str] = typer.Option(
         default=None,
-        help="Each index has its own configuration in the configuration file, "
-        "and the ID is used to know which index to use. "
-        "If there is only one index, this option is not needed.",
+        help=INDEX_ID_HELP,
     ),
 ):
-    """Import taxonomies into Elasticsearch."""
+    """Import taxonomies into Elasticsearch.
+
+    It get taxonomies json files as specified in the configuration file.
+    """
     import time
 
     from app._import import perform_taxonomy_import
@@ -127,11 +144,13 @@ def sync_scripts(
     ),
     index_id: Optional[str] = typer.Option(
         default=None,
-        help="Each index has its own configuration in the configuration file, "
-        "and the ID is used to know which index to use. "
-        "If there is only one index, this option is not needed.",
+        help=INDEX_ID_HELP,
     ),
 ):
+    """Synchronize scripts defined in configuration with Elasticsearch.
+
+    This command must be run after adding, modifying or removing scripts.
+    """
     from app import es_scripts
     from app.utils import connection, get_logger
 
@@ -155,7 +174,13 @@ def run_update_daemon(
     ),
 ):
     """Run the daemon responsible for listening to document updates from Redis
-    Stream and updating the Elasticsearch index."""
+    Stream and updating the Elasticsearch index.
+
+    This command must be run in a separate process to the api server.
+
+    It is optional but enables having an always up-to-date index,
+    for applications where data changes.
+    """
     from typing import cast
 
     from app import config
@@ -182,9 +207,10 @@ def export_openapi(
         exists=None,
         file_okay=True,
         dir_okay=False,
-        help="Path of target_path the YAML data file",
+        help="Path of target_path the YAML or JSON data file",
     )
 ):
+    """Export OpenAPI specification to a file."""
     import json
 
     import yaml

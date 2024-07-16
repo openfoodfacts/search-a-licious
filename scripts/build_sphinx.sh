@@ -19,7 +19,7 @@ docker run --rm --user user \
   -v $(pwd)/app:/docs/app \
   -v $(pwd)/gh_pages/sphinx:/docs/build \
   -e PYTHONPATH=/docs/ \
-  -e SPHINXOPTS="-W --keep-going" \
+  -e SPHINXOPTS="--fail-on-warning --keep-going --fresh-env" \
   sphinx-builder make html
 
 # move to the right place and cleanup

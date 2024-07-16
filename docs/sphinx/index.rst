@@ -15,6 +15,7 @@ Contents:
 
    api
    config
+   cli
    searching
    types
    misc

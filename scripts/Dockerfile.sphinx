@@ -17,8 +17,8 @@ RUN ( curl -sSL https://install.python-poetry.org | python3 - ) && \
     /root/.local/bin/poetry export --output requirements.txt
 # install those dependencies
 RUN pip install -r requirements.txt
-# install the autodoc-pydantic plugin for sphinx
-RUN pip install autodoc_pydantic
+# install some useful plugin for sphinx
+RUN pip install autodoc_pydantic sphinxcontrib-typer
 USER user
 
 

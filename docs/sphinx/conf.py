@@ -18,6 +18,7 @@ extensions = [
     "sphinx.ext.linkcode",
     "alabaster",
     "sphinxcontrib.autodoc_pydantic",
+    "sphinxcontrib.typer",
 ]
 
 templates_path = ["_templates"]
