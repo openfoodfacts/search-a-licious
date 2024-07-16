@@ -89,6 +89,7 @@
         height: 144px;
         margin: 12px;
       }
+     
       searchalicious-results::part(image) {
         object-fit: contain;
         width: 100%;
@@ -395,6 +396,7 @@
                                               loading="lazy"
                                               part="image"
                                               src="${result.image_small_url}"
+                                              onerror="handleImageError(event)"
                                       />
                                     </div>
                                     <div part="product-name">
@@ -451,7 +453,14 @@
     <script src="https://static.openfoodfacts.org/js/dist/scrollNav.js"></script>
 
     <script src="vega5.js"></script>
+    <script>
+      const defaultImageUrl = 'https://world.openfoodfacts.org/images/icons/dist/packaging.svg';
 
+      function handleImageError(event) {
+          event.target.src = defaultImageUrl;
+      
+      }
+  </script>
     <script
       src="https://static.openfoodfacts.org/js/dist/foundation.js"
       data-base-layout="true"
