@@ -8,6 +8,12 @@ Search-a-licious code documentation
 
 This documents the backend code of search-alicious.
 
+For `general documentation about search-a-licious Follow this link`__
+
+.. note: this only work on github pages
+.. __: /search-a-licious
+
+
 Contents:
 
 .. toctree::

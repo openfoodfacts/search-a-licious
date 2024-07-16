@@ -30,6 +30,14 @@ exclude_patterns: list[str] = []
 
 html_theme = "alabaster"
 html_static_path = ["_static"]
+html_theme_options = {
+    "github_user": "openfoodfacts",
+    "github_repo": "search-a-licious",
+    "github_banner": True,
+    "extra_nav_links": {
+        "Back to main doc": "/search-a-licious",
+    },
+}
 
 # -- Options for autodoc pydantic --------------------------------------------
 autodoc_pydantic_model_show_json = True
