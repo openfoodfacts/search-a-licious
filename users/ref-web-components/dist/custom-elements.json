@@ -2099,6 +2099,7 @@
               "kind": "field",
               "name": "searchName",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "attribute": "search-name",
               "inheritedFrom": {
                 "name": "SearchActionMixin",
@@ -2113,6 +2114,12 @@
                 "name": "SearchActionMixin",
                 "module": "src/mixins/search-action.ts"
               }
+            }
+          ],
+          "events": [
+            {
+              "description": "Fired when button is clicked.",
+              "name": "searchalicious-search"
             }
           ],
           "mixins": [
@@ -2135,6 +2142,7 @@
             {
               "name": "search-name",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "resolveInitializer": {
                 "module": "/src/utils/constants"
               },
@@ -3472,8 +3480,8 @@
               "kind": "field",
               "name": "searchName",
               "default": "DEFAULT_SEARCH_NAME",
-              "attribute": "search-name",
               "description": "the search we display result for,\nthis corresponds to `name` attribute of corresponding search-bar",
+              "attribute": "search-name",
               "inheritedFrom": {
                 "name": "SearchActionMixin",
                 "module": "src/mixins/search-action.ts"
@@ -3610,11 +3618,11 @@
             {
               "name": "search-name",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "the search we display result for,\nthis corresponds to `name` attribute of corresponding search-bar",
               "resolveInitializer": {
                 "module": "/src/utils/constants"
               },
               "fieldName": "searchName",
-              "description": "the search we display result for,\nthis corresponds to `name` attribute of corresponding search-bar",
               "inheritedFrom": {
                 "name": "SearchActionMixin",
                 "module": "src/mixins/search-action.ts"
@@ -3898,6 +3906,7 @@
               "kind": "field",
               "name": "searchName",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "attribute": "search-name",
               "inheritedFrom": {
                 "name": "SearchActionMixin",
@@ -4102,6 +4111,10 @@
               "type": {
                 "text": "CustomEvent"
               }
+            },
+            {
+              "description": "Fired automatically when the user use the autocomplete to select a term (see `autocomplete-terms` property).",
+              "name": "searchalicious-search"
             }
           ],
           "attributes": [
@@ -4116,6 +4129,7 @@
             {
               "name": "search-name",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "resolveInitializer": {
                 "module": "/src/utils/constants"
               },
@@ -5175,8 +5189,38 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "A component to add a specific sort option which is based upon a script",
+          "description": "A component to add a specific sort option which is based upon a script\n\nSee [How to use scripts](./how-to-use-scripts) for an introduction",
           "name": "SearchaliciousSortScript",
+          "cssProperties": [
+            {
+              "description": "--sort-options-color - The text color of the sort options.",
+              "name": ""
+            },
+            {
+              "description": "--sort-options-hover-background-color - The background color of the sort options when hovered.",
+              "name": ""
+            }
+          ],
+          "cssParts": [
+            {
+              "description": "the text before the selected option",
+              "name": "selected-marker"
+            },
+            {
+              "description": "the sort option itself, when not selected",
+              "name": "sort-option"
+            },
+            {
+              "description": "the sort option itself, when selected",
+              "name": "sort-option-selected"
+            }
+          ],
+          "slots": [
+            {
+              "description": "the content is rendered as is. This is the line displayed for the user to choose from sort options",
+              "name": ""
+            }
+          ],
           "members": [
             {
               "kind": "field",
@@ -5184,6 +5228,7 @@
               "type": {
                 "text": "string | undefined"
               },
+              "description": "Name of the script to use for the sorting.\n\nThis script must be registered in your backend configuration file.",
               "attribute": "script"
             },
             {
@@ -5193,7 +5238,7 @@
                 "text": "string"
               },
               "default": "'{}'",
-              "description": "The parameters source.\nIt can be either a JSON string or local storage key, with prefix local:",
+              "description": "The parameters to pass to the scripts.\n\nIf the script requires no parameters, this can be an empty Object `'{}'`\n\nIt can be either:\n- a JSON string containing parameters\n- a local storage key, with prefix `local:`.\n  In this case, the value of the key must be a JSON string.",
               "attribute": "parameters"
             },
             {
@@ -5235,6 +5280,11 @@
               }
             },
             {
+              "description": "by default the id is based upon the script name. If you have more than one element with the same value for the `script` attribute, you must provide an id.",
+              "name": "id",
+              "kind": "field"
+            },
+            {
               "kind": "field",
               "name": "selected",
               "type": {
@@ -5255,6 +5305,7 @@
                 "text": "string"
               },
               "default": "''",
+              "description": "A text or symbol to display in front of the currently selected option",
               "attribute": "selectedMarker",
               "inheritedFrom": {
                 "name": "SearchaliciousSortOption",
@@ -5278,12 +5329,32 @@
               }
             }
           ],
+          "events": [
+            {
+              "description": "Fired when the sort option is selected.",
+              "name": "searchalicious-sort-option-selected",
+              "inheritedFrom": {
+                "name": "SearchaliciousSortOption",
+                "module": "src/search-sort.ts"
+              }
+            },
+            {
+              "type": {
+                "text": "CustomEvent"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousSortOption",
+                "module": "src/search-sort.ts"
+              }
+            }
+          ],
           "attributes": [
             {
               "name": "script",
               "type": {
                 "text": "string | undefined"
               },
+              "description": "Name of the script to use for the sorting.\n\nThis script must be registered in your backend configuration file.",
               "fieldName": "script"
             },
             {
@@ -5292,7 +5363,7 @@
                 "text": "string"
               },
               "default": "'{}'",
-              "description": "The parameters source.\nIt can be either a JSON string or local storage key, with prefix local:",
+              "description": "The parameters to pass to the scripts.\n\nIf the script requires no parameters, this can be an empty Object `'{}'`\n\nIt can be either:\n- a JSON string containing parameters\n- a local storage key, with prefix `local:`.\n  In this case, the value of the key must be a JSON string.",
               "fieldName": "parameters"
             },
             {
@@ -5314,6 +5385,7 @@
                 "text": "string"
               },
               "default": "''",
+              "description": "A text or symbol to display in front of the currently selected option",
               "fieldName": "selectedMarker",
               "inheritedFrom": {
                 "name": "SearchaliciousSortOption",
@@ -5326,18 +5398,7 @@
             "module": "/src/search-sort"
           },
           "tagName": "searchalicious-sort-script",
-          "customElement": true,
-          "events": [
-            {
-              "type": {
-                "text": "CustomEvent"
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousSortOption",
-                "module": "src/search-sort.ts"
-              }
-            }
-          ]
+          "customElement": true
         }
       ],
       "exports": [
@@ -5365,8 +5426,14 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "A component to enable user to choose a search order\n\nIt must contains searchalicious-sort-options",
+          "description": "A component to enable user to choose a search order.\n\nIt must contains searchalicious-sort-options",
           "name": "SearchaliciousSort",
+          "cssProperties": [
+            {
+              "description": "The background color of the options.t",
+              "name": "--sort-options-background-color"
+            }
+          ],
           "slots": [
             {
               "description": "rendered on the button",
@@ -5484,6 +5551,7 @@
               "kind": "field",
               "name": "searchName",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "attribute": "search-name",
               "inheritedFrom": {
                 "name": "SearchActionMixin",
@@ -5585,6 +5653,12 @@
               }
             }
           ],
+          "events": [
+            {
+              "description": "Fired as soon as a new option is chosen by the user, to launch the search.",
+              "name": "searchalicious-search"
+            }
+          ],
           "attributes": [
             {
               "name": "auto-refresh",
@@ -5607,6 +5681,7 @@
             {
               "name": "search-name",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "resolveInitializer": {
                 "module": "/src/utils/constants"
               },
@@ -5638,6 +5713,30 @@
           "kind": "class",
           "description": "A sort option component, this is a base class",
           "name": "SearchaliciousSortOption",
+          "cssProperties": [
+            {
+              "description": "--sort-options-color - The text color of the sort options.",
+              "name": ""
+            },
+            {
+              "description": "--sort-options-hover-background-color - The background color of the sort options when hovered.",
+              "name": ""
+            }
+          ],
+          "cssParts": [
+            {
+              "description": "the text before the selected option",
+              "name": "selected-marker"
+            },
+            {
+              "description": "the sort option itself, when not selected",
+              "name": "sort-option"
+            },
+            {
+              "description": "the sort option itself, when selected",
+              "name": "sort-option-selected"
+            }
+          ],
           "slots": [
             {
               "description": "the content is rendered as is and is considered the content.",
@@ -5662,6 +5761,7 @@
                 "text": "string"
               },
               "default": "''",
+              "description": "A text or symbol to display in front of the currently selected option",
               "attribute": "selectedMarker"
             },
             {
@@ -5702,6 +5802,10 @@
               "type": {
                 "text": "CustomEvent"
               }
+            },
+            {
+              "description": "Fired when the sort option is selected.",
+              "name": "searchalicious-sort-option-selected"
             }
           ],
           "attributes": [
@@ -5720,6 +5824,7 @@
                 "text": "string"
               },
               "default": "''",
+              "description": "A text or symbol to display in front of the currently selected option",
               "fieldName": "selectedMarker"
             }
           ],
@@ -5731,8 +5836,38 @@
         },
         {
           "kind": "class",
-          "description": "",
+          "description": "`searchalicious-sort-field` is a sort option that sorts on a field.\n\nIt must be used inside a `searchalicious-sort` component.",
           "name": "SearchaliciousSortField",
+          "cssProperties": [
+            {
+              "description": "--sort-options-color - The text color of the sort options.",
+              "name": ""
+            },
+            {
+              "description": "--sort-options-hover-background-color - The background color of the sort options when hovered.",
+              "name": ""
+            }
+          ],
+          "cssParts": [
+            {
+              "description": "the text before the selected option",
+              "name": "selected-marker"
+            },
+            {
+              "description": "the sort option itself, when not selected",
+              "name": "sort-option"
+            },
+            {
+              "description": "the sort option itself, when selected",
+              "name": "sort-option-selected"
+            }
+          ],
+          "slots": [
+            {
+              "description": "the content is rendered as is. This is the line displayed for the user to choose from sort options",
+              "name": ""
+            }
+          ],
           "members": [
             {
               "kind": "field",
@@ -5741,7 +5876,7 @@
                 "text": "string"
               },
               "default": "''",
-              "description": "The field name we want to sort on",
+              "description": "The field name we want to sort on. It must be a sortable field.\n\nIf you want to sort on the field in reverse order, use a minus sign in front of the field name.",
               "attribute": "field"
             },
             {
@@ -5793,6 +5928,7 @@
                 "text": "string"
               },
               "default": "''",
+              "description": "A text or symbol to display in front of the currently selected option",
               "attribute": "selectedMarker",
               "inheritedFrom": {
                 "name": "SearchaliciousSortOption",
@@ -5816,6 +5952,25 @@
               }
             }
           ],
+          "events": [
+            {
+              "description": "Fired when the sort option is selected.",
+              "name": "searchalicious-sort-option-selected",
+              "inheritedFrom": {
+                "name": "SearchaliciousSortOption",
+                "module": "src/search-sort.ts"
+              }
+            },
+            {
+              "type": {
+                "text": "CustomEvent"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousSortOption",
+                "module": "src/search-sort.ts"
+              }
+            }
+          ],
           "attributes": [
             {
               "name": "field",
@@ -5823,7 +5978,7 @@
                 "text": "string"
               },
               "default": "''",
-              "description": "The field name we want to sort on",
+              "description": "The field name we want to sort on. It must be a sortable field.\n\nIf you want to sort on the field in reverse order, use a minus sign in front of the field name.",
               "fieldName": "field"
             },
             {
@@ -5845,6 +6000,7 @@
                 "text": "string"
               },
               "default": "''",
+              "description": "A text or symbol to display in front of the currently selected option",
               "fieldName": "selectedMarker",
               "inheritedFrom": {
                 "name": "SearchaliciousSortOption",
@@ -5857,18 +6013,7 @@
             "module": "src/search-sort.ts"
           },
           "tagName": "searchalicious-sort-field",
-          "customElement": true,
-          "events": [
-            {
-              "type": {
-                "text": "CustomEvent"
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousSortOption",
-                "module": "src/search-sort.ts"
-              }
-            }
-          ]
+          "customElement": true
         }
       ],
       "exports": [
@@ -7297,6 +7442,7 @@
               "kind": "field",
               "name": "searchName",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "attribute": "search-name"
             },
             {
@@ -7309,6 +7455,7 @@
             {
               "name": "search-name",
               "default": "DEFAULT_SEARCH_NAME",
+              "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "resolveInitializer": {
                 "module": "/src/utils/constants"
               },

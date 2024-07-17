@@ -525,7 +525,7 @@
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">],</span>
 <span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Field name to use to sort results, the field should exist\n            and be sortable. If it is not provided, results are sorted by descending relevance score.\n\n            If you put a minus before the name, the results will be sorted by descending order.\n\n            If the field name match a known script (defined in your configuration),\n            it will be use for sorting.\n\n            In this case you also need to provide additional parameters corresponding to your script parameters.\n            If a script needs parameters, you can only use the POST method.\n\n            Beware that this may have a big impact on performance.\n            &quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;\nField name to use to sort results, the field should exist\nand be sortable. If it is not provided, results are sorted by descending relevance score.\n\nIf you put a minus before the name, the results will be sorted by descending order.\n\nIf the field name match a known script (defined in your configuration),\nit will be use for sorting.\n\nIn this case you also need to provide additional parameters corresponding to your script parameters.\nIf a script needs parameters, you can only use the POST method.\n\nBeware that this may have a big [impact on performance][perf_link]\n\nAlso bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.\n\n[perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations\n[privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations\n&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sort By&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;facets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -859,7 +859,10 @@ and be sortable. If it is not provided, results are sorted by descending relevan
 it will be use for sorting.</p>
 <p>In this case you also need to provide additional parameters corresponding to your script parameters.
 If a script needs parameters, you can only use the POST method.</p>
-<p>Beware that this may have a big impact on performance.</p>
+<p>Beware that this may have a big [impact on performance][perf_link]</p>
+<p>Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.</p>
+<p>[perf_link]: <a class="reference external" href="https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations">https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations</a>
+[privacy_link]: <a class="reference external" href="https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations">https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
