@@ -11,10 +11,14 @@ export interface SortParameters {
   sort_params?: Record<string, any>;
 }
 /**
- * A component to enable user to choose a search order
+ * A component to enable user to choose a search order.
  *
  * It must contains searchalicious-sort-options
+ *
  * @slot label - rendered on the button
+ * @event searchalicious-search - Fired as soon as a new option is chosen by the user,
+ *   to launch the search.
+ * @cssproperty --sort-options-background-color - The background color of the options.t
  */
 @customElement('searchalicious-sort')
 export class SearchaliciousSort extends SearchActionMixin(
@@ -172,7 +176,13 @@ export class SearchaliciousSort extends SearchActionMixin(
 /**
  * A sort option component, this is a base class
  *
+ * @event searchalicious-sort-option-selected - Fired when the sort option is selected.
  * @slot - the content is rendered as is and is considered the content.
+ * @cssproperty - --sort-options-color - The text color of the sort options.
+ * @cssproperty - --sort-options-hover-background-color - The background color of the sort options when hovered.
+ * @csspart selected-marker - the text before the selected option
+ * @csspart sort-option - the sort option itself, when not selected
+ * @csspart sort-option-selected - the sort option itself, when selected
  */
 export class SearchaliciousSortOption extends LitElement {
   static override styles = css`
@@ -198,6 +208,9 @@ export class SearchaliciousSortOption extends LitElement {
   @property({type: Boolean})
   selected = false;
 
+  /**
+   * A text or symbol to display in front of the currently selected option
+   */
   @property()
   selectedMarker = '';
 
@@ -258,10 +271,26 @@ export class SearchaliciousSortOption extends LitElement {
   }
 }
 
+/**
+ * `searchalicious-sort-field` is a sort option that sorts on a field.
+ *
+ * It must be used inside a `searchalicious-sort` component.
+ *
+ * @event searchalicious-sort-option-selected - Fired when the sort option is selected.
+ * @slot - the content is rendered as is.
+ * This is the line displayed for the user to choose from sort options
+ * @cssproperty - --sort-options-color - The text color of the sort options.
+ * @cssproperty - --sort-options-hover-background-color - The background color of the sort options when hovered.
+ * @csspart selected-marker - the text before the selected option
+ * @csspart sort-option - the sort option itself, when not selected
+ * @csspart sort-option-selected - the sort option itself, when selected
+ */
 @customElement('searchalicious-sort-field')
 export class SearchaliciousSortField extends SearchaliciousSortOption {
   /**
-   * The field name we want to sort on
+   * The field name we want to sort on. It must be a sortable field.
+   *
+   * If you want to sort on the field in reverse order, use a minus sign in front of the field name.
    */
   @property()
   field = '';

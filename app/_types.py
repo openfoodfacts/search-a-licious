@@ -1,3 +1,4 @@
+import textwrap
 from functools import cached_property
 from typing import Annotated, Any, Literal, Optional, Tuple, Union, cast, get_type_hints
 
@@ -210,7 +211,9 @@ If not provided, `['en']` is used."""
     sort_by: Annotated[
         str | None,
         Query(
-            description="""Field name to use to sort results, the field should exist
+            description=textwrap.dedent(
+                """
+            Field name to use to sort results, the field should exist
             and be sortable. If it is not provided, results are sorted by descending relevance score.
 
             If you put a minus before the name, the results will be sorted by descending order.
@@ -221,8 +224,14 @@ If not provided, `['en']` is used."""
             In this case you also need to provide additional parameters corresponding to your script parameters.
             If a script needs parameters, you can only use the POST method.
 
-            Beware that this may have a big impact on performance.
+            Beware that this may have a big [impact on performance][perf_link]
+
+            Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
+
+            [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
+            [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
             """
+            )
         ),
     ] = None
     facets: Annotated[

@@ -10,6 +10,7 @@ import {SearchActionMixin} from './mixins/search-action';
  * An optional search button element that launch the search.
  *
  * @slot - goes in button contents, default to "Search" string
+ * @event searchalicious-search - Fired when button is clicked.
  */
 @customElement('searchalicious-button')
 @localized()

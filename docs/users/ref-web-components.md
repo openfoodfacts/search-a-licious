@@ -31,11 +31,11 @@ to quickly build your interfaces.
 
 ### searchalicious-sort-field
 
-<api-viewer src="./dist/custom-elements.json" only="searchalicious-field">
+<api-viewer src="./dist/custom-elements.json" only="searchalicious-sort-field">
 
 ### searchalicious-sort-script
 
-<api-viewer src="./dist/custom-elements.json" only="searchalicious-script">
+<api-viewer src="./dist/custom-elements.json" only="searchalicious-sort-script">
 
 ### searchalicious-button
 

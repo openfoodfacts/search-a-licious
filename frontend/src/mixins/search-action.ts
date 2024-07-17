@@ -15,12 +15,22 @@ export interface SearchActionMixinInterface {
  * It extends the LitElement class and adds search functionality.
  * It is used to launch a search event.
  * @param {Constructor<LitElement>} superClass - The superclass to extend from.
+ * @event searchalicious-search - Fired according to component needs.
  * @returns {Constructor<SearchActionMixinInterface> & T} - The extended class with search functionality.
  */
 export const SearchActionMixin = <T extends Constructor<LitElement>>(
   superClass: T
 ): Constructor<SearchActionMixinInterface> & T => {
   class SearchActionMixinClass extends superClass {
+    /**
+     * The name of the search bar this sort applies to.
+     *
+     * It must correspond to the `name` property of the corresponding `search-bar` component.
+     *
+     * It enable having multiple search bars on the same page.
+     *
+     * It defaults to `searchalicious`
+     */
     @property({attribute: 'search-name'})
     searchName = DEFAULT_SEARCH_NAME;
 

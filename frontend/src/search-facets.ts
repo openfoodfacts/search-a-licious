@@ -153,8 +153,9 @@ export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
     }
   };
 
+  /** Render component */
   override render() {
-    // we always want to render slot, baceauso we use queryAssignedNodes
+    // we always want to render slot, because we use queryAssignedNodes
     // but we may not want to display them
     const display = this.facets ? '' : 'display: none';
     return html`
@@ -232,6 +233,10 @@ export class SearchaliciousFacet extends LitElement {
 
 /**
  * This is a "terms" facet, this must be within a searchalicious-facets element
+ *
+ * @event searchalicious-search - Fired automatically
+ * when the user use the autocomplete to select a term
+ * (see `autocomplete-terms` property).
  */
 @customElement('searchalicious-facet-terms')
 @localized()
