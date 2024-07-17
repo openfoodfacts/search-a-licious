@@ -30,6 +30,7 @@ Build Scripts:
 🐳 docker:
 - changed-files:
   - any-glob-to-any-file: 'Dockerfile'
+  - any-glob-to-any-file: 'docker-compose.yml'
 
 Indexation:
 - changed-files:
