@@ -46,6 +46,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://openfoodfacts.github.io/search-a-licious/users/ref-python/</loc>
+         <lastmod>2024-07-17</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://openfoodfacts.github.io/search-a-licious/users/ref-web-components/</loc>
          <lastmod>2024-07-17</lastmod>
          <changefreq>daily</changefreq>

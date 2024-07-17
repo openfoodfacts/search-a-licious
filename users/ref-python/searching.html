@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Search Modules &#8212; Search-a-licious  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Types" href="types.html" />
+    <link rel="prev" title="Command Line Interface" href="cli.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="search-modules">
+<h1>Search Modules<a class="headerlink" href="#search-modules" title="Link to this heading">¶</a></h1>
+<section id="module-app.indexing">
+<span id="indexing"></span><h2>Indexing<a class="headerlink" href="#module-app.indexing" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="app.indexing.BaseDocumentPreprocessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.indexing.</span></span><span class="sig-name descname"><span class="pre">BaseDocumentPreprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.Config" title="app.config.Config"><span class="pre">Config</span></a></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/indexing.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.indexing.BaseDocumentPreprocessor" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="app.indexing.BaseDocumentPreprocessor.preprocess">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/indexing.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.indexing.BaseDocumentPreprocessor.preprocess" title="Link to this definition">¶</a></dt>
+<dd><p>Preprocess the document before data ingestion in Elasticsearch.</p>
+<p>This can be used to make document schema compatible with the project
+schema or to add custom fields.</p>
+<p>Is None is returned, the document is not indexed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="app.indexing.DocumentProcessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.indexing.</span></span><span class="sig-name descname"><span class="pre">DocumentProcessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/indexing.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.indexing.DocumentProcessor" title="Link to this definition">¶</a></dt>
+<dd><p><cite>DocumentProcessor</cite> is responsible of converting an item to index
+into a dict that is ready to be indexed by Elasticsearch.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="app.indexing.DocumentProcessor.from_dict">
+<span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/indexing.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.indexing.DocumentProcessor.from_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Generate an item ready to be indexed by elasticsearch-dsl
+from an item dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> – the input data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a dict ready to be indexed</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.indexing.generate_dsl_field">
+<span class="sig-prename descclassname"><span class="pre">app.indexing.</span></span><span class="sig-name descname"><span class="pre">generate_dsl_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.FieldConfig" title="app.config.FieldConfig"><span class="pre">FieldConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_langs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taxonomy_langs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Field</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/indexing.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.indexing.generate_dsl_field" title="Link to this definition">¶</a></dt>
+<dd><p>Generate Elasticsearch DSL field from a FieldConfig.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>field</strong> – the field to use as input</p></li>
+<li><p><strong>supported_langs</strong> – an iterable of languages (2-letter codes),
+used to know which sub-fields to create for <cite>text_lang</cite> field types</p></li>
+<li><p><strong>taxonomy_langs</strong> – an iterabl of languages (2-letter codes),
+used to know which sub-fields to create for <cite>taxonomy</cite> field types</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the elasticsearch_dsl field</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.indexing.process_taxonomy_field">
+<span class="sig-prename descclassname"><span class="pre">app.indexing.</span></span><span class="sig-name descname"><span class="pre">process_taxonomy_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.FieldConfig" title="app.config.FieldConfig"><span class="pre">FieldConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">taxonomy_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.TaxonomyConfig" title="app.config.TaxonomyConfig"><span class="pre">TaxonomyConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_separator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taxonomy_langs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/indexing.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.indexing.process_taxonomy_field" title="Link to this definition">¶</a></dt>
+<dd><p>Process data for a <cite>taxonomy</cite> field type.</p>
+<p>Generates a dict ready to be indexed by Elasticsearch, with a subfield for
+each language. Two other subfields are added:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><cite>original</cite>: the original value of the field. For example, if the field</dt><dd><p>name is <cite>categories</cite> and <cite>categories</cite> already exist in the document,
+we will save its value in the <cite>original</cite> subfield. This subfield is
+only added if the field is present in the input data.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><cite>other</cite>: the value of the field for languages that are not supported by</dt><dd><p>the project (no elasticsearch specific analyzers)</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – input data, as a dict</p></li>
+<li><p><strong>field</strong> – the field config</p></li>
+<li><p><strong>taxonomy_config</strong> – the taxonomy config</p></li>
+<li><p><strong>split_separator</strong> – the separator used to split the input field value,
+in case of multi-valued input (if <cite>field.split</cite> is True)</p></li>
+<li><p><strong>taxonomy_langs</strong> – a set of supported languages (2-letter codes), used
+to know which sub-fields to create.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the processed data, as a dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.indexing.process_text_lang_field">
+<span class="sig-prename descclassname"><span class="pre">app.indexing.</span></span><span class="sig-name descname"><span class="pre">process_text_lang_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lang_separator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_separator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_langs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/indexing.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.indexing.process_text_lang_field" title="Link to this definition">¶</a></dt>
+<dd><p>Process data for a <cite>text_lang</cite> field type.</p>
+<p>Generates a dict ready to be indexed by Elasticsearch, with a subfield for
+each language.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – input data, as a dict</p></li>
+<li><p><strong>input_field</strong> – the name of the field to use as input</p></li>
+<li><p><strong>split</strong> – whether to split the input field value, using
+<cite>split_separator</cite> as separator</p></li>
+<li><p><strong>lang_separator</strong> – the separator used to separate the language code
+from the field name</p></li>
+<li><p><strong>split_separator</strong> – the separator used to split the input field value,
+in case of multi-valued input (if <cite>split</cite> is True)</p></li>
+<li><p><strong>supported_langs</strong> – a set of supported languages (2-letter codes), used
+to know which sub-fields to create</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the processed data, as a dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-app.query">
+<span id="query"></span><h2>Query<a class="headerlink" href="#module-app.query" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.build_completion_query">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">build_completion_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taxonomy_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fuzziness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.build_completion_query" title="Link to this definition">¶</a></dt>
+<dd><p>Build an elasticsearch_dsl completion Query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – the user autocomplete query</p></li>
+<li><p><strong>taxonomy_names</strong> – a list of taxonomies we want to search in</p></li>
+<li><p><strong>lang</strong> – the language we want search in</p></li>
+<li><p><strong>size</strong> – number of results to return</p></li>
+<li><p><strong>config</strong> – the index configuration to use</p></li>
+<li><p><strong>fuzziness</strong> – fuzziness parameter for completion query</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the built Query</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.build_elasticsearch_query_builder">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">build_elasticsearch_query_builder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ElasticsearchQueryBuilder</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.build_elasticsearch_query_builder" title="Link to this definition">¶</a></dt>
+<dd><p>Create the ElasticsearchQueryBuilder object
+according to our configuration</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.build_search_query">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">build_search_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.SearchParameters" title="app._types.SearchParameters"><span class="pre">SearchParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_query_builder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ElasticsearchQueryBuilder</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.build_search_query" title="Link to this definition">¶</a></dt>
+<dd><p>Build an elasticsearch_dsl Query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – the user raw query</p></li>
+<li><p><strong>langs</strong> – the set of languages we want to support, it is used to
+select language subfields for some field types</p></li>
+<li><p><strong>size</strong> – number of results to return</p></li>
+<li><p><strong>page</strong> – requested page (starts at 1).</p></li>
+<li><p><strong>config</strong> – the index configuration to use</p></li>
+<li><p><strong>filter_query_builder</strong> – luqum elasticsearch query builder</p></li>
+<li><p><strong>sort_by</strong> – sorting key, defaults to None (=relevance-based sorting)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the built Search query</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.compute_facets_filters">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">compute_facets_filters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.compute_facets_filters" title="Link to this definition">¶</a></dt>
+<dd><p>Extract facets filters from the query</p>
+<p>For now it only handles SearchField under a top AND operation,
+which expression is a bare term or a OR operation of bare terms.</p>
+<p>We do not verify if the field is an aggregation field or not,
+that can be done at a later stage</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a new QueryAnalysis with facets_filters attribute
+as a dictionary of field names and list of values to filter on</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.create_aggregation_clauses">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">create_aggregation_clauses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Agg</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.create_aggregation_clauses" title="Link to this definition">¶</a></dt>
+<dd><p>Create term bucket aggregation clauses
+for all fields corresponding to facets,
+as defined in the config</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.decompose_query">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">decompose_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_query_builder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ElasticsearchQueryBuilder</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.decompose_query" title="Link to this definition">¶</a></dt>
+<dd><p>Decompose the query into two parts:</p>
+<ul class="simple">
+<li><p>a Lucene DSL query, which is used as a filter clause in the
+Elasticsearch query. Luqum library is used to transform the
+Lucene DSL into Elasticsearch DSL.</p></li>
+<li><p>remaining terms, used for full text search.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – the user query</p></li>
+<li><p><strong>filter_query_builder</strong> – Luqum query builder</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple containing the Elasticsearch filter clause and
+the remaining terms for full text search</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.parse_query">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">parse_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.parse_query" title="Link to this definition">¶</a></dt>
+<dd><p>Begin query analysis by parsing the query.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.parse_sort_by_field">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">parse_sort_by_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sort_by</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.parse_sort_by_field" title="Link to this definition">¶</a></dt>
+<dd><p>Parse <cite>sort_by</cite> parameter, special handling is performed for <cite>text_lang</cite>
+subfield.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sort_by</strong> – the raw <cite>sort_by</cite> value</p></li>
+<li><p><strong>config</strong> – the index configuration to use</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None if <cite>sort_by</cite> is not provided or the final value otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.query.parse_sort_by_script">
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">parse_sort_by_script</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sort_by</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.parse_sort_by_script" title="Link to this definition">¶</a></dt>
+<dd><p>Create the ES sort expression to sort by a script</p>
+</dd></dl>
+
+</section>
+<section id="module-app.search">
+<span id="search"></span><h2>Search<a class="headerlink" href="#module-app.search" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.search.search">
+<span class="sig-prename descclassname"><span class="pre">app.search.</span></span><span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.SearchParameters" title="app._types.SearchParameters"><span class="pre">SearchParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="types.html#app._types.ErrorSearchResponse" title="app._types.ErrorSearchResponse"><span class="pre">ErrorSearchResponse</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="types.html#app._types.SuccessSearchResponse" title="app._types.SuccessSearchResponse"><span class="pre">SuccessSearchResponse</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/search.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.search.search" title="Link to this definition">¶</a></dt>
+<dd><p>Run a search</p>
+</dd></dl>
+
+</section>
+<section id="module-app.facets">
+<span id="facets"></span><h2>Facets<a class="headerlink" href="#module-app.facets" title="Link to this heading">¶</a></h2>
+<p>A module to help building facets from aggregations</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.facets.build_facets">
+<span class="sig-prename descclassname"><span class="pre">app.facets.</span></span><span class="sig-name descname"><span class="pre">build_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.SuccessSearchResponse" title="app._types.SuccessSearchResponse"><span class="pre">SuccessSearchResponse</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_analysis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">facets_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="types.html#app._types.FacetInfo" title="app._types.FacetInfo"><span class="pre">FacetInfo</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/facets.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.facets.build_facets" title="Link to this definition">¶</a></dt>
+<dd><p>Given a search result with aggregations,
+build a list of facets for API response</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.facets.translate_facets_values">
+<span class="sig-prename descclassname"><span class="pre">app.facets.</span></span><span class="sig-name descname"><span class="pre">translate_facets_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="types.html#app._types.FacetInfo" title="app._types.FacetInfo"><span class="pre">FacetInfo</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/facets.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.facets.translate_facets_values" title="Link to this definition">¶</a></dt>
+<dd><p>Translate values of facets</p>
+</dd></dl>
+
+</section>
+<section id="module-app.charts">
+<span id="charts"></span><h2>Charts<a class="headerlink" href="#module-app.charts" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.charts.build_charts">
+<span class="sig-prename descclassname"><span class="pre">app.charts.</span></span><span class="sig-name descname"><span class="pre">build_charts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.SuccessSearchResponse" title="app._types.SuccessSearchResponse"><span class="pre">SuccessSearchResponse</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">requested_charts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="types.html#app._types.DistributionChartType" title="app._types.DistributionChartType"><span class="pre">DistributionChartType</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="types.html#app._types.ScatterChartType" title="app._types.ScatterChartType"><span class="pre">ScatterChartType</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/charts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.charts.build_charts" title="Link to this definition">¶</a></dt>
+<dd><p>Build and return vega charts representations for the given
+requested charts</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.charts.build_distribution_chart">
+<span class="sig-prename descclassname"><span class="pre">app.charts.</span></span><span class="sig-name descname"><span class="pre">build_distribution_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.DistributionChartType" title="app._types.DistributionChartType"><span class="pre">DistributionChartType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/charts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.charts.build_distribution_chart" title="Link to this definition">¶</a></dt>
+<dd><p>Return the vega structure for a Bar Chart
+Inspiration: <a class="reference external" href="https://vega.github.io/vega/examples/bar-chart/">https://vega.github.io/vega/examples/bar-chart/</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.charts.build_scatter_chart">
+<span class="sig-prename descclassname"><span class="pre">app.charts.</span></span><span class="sig-name descname"><span class="pre">build_scatter_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.ScatterChartType" title="app._types.ScatterChartType"><span class="pre">ScatterChartType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/charts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.charts.build_scatter_chart" title="Link to this definition">¶</a></dt>
+<dd><p>Build a scatter plot only for values from search_results
+(only values in the current page)
+TODO: use values from the whole search?
+Inspiration: <a class="reference external" href="https://vega.github.io/vega/examples/scatter-plot/">https://vega.github.io/vega/examples/scatter-plot/</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.charts.empty_chart">
+<span class="sig-prename descclassname"><span class="pre">app.charts.</span></span><span class="sig-name descname"><span class="pre">empty_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart_name</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/charts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.charts.empty_chart" title="Link to this definition">¶</a></dt>
+<dd><p>Return a responsive vega chart
+using signals and auto-size
+<a class="reference external" href="https://gist.github.com/donghaoren/023b2246569e8f0615017507b473e55e">https://gist.github.com/donghaoren/023b2246569e8f0615017507b473e55e</a></p>
+<p>Vega is used as a JSON visualization grammar
+Doc: <a class="reference external" href="https://vega.github.io/vega/docs/">https://vega.github.io/vega/docs/</a>
+It would have been possible to use higher lever vega-lite API,
+which is able to write vega specifications but it’s probably too
+much for our usage
+Inspired by: <a class="reference external" href="https://vega.github.io/vega/examples/bar-chart/">https://vega.github.io/vega/examples/bar-chart/</a></p>
+</dd></dl>
+
+</section>
+<section id="module-app.es_scripts">
+<span id="es-scripts"></span><h2>ES Scripts<a class="headerlink" href="#module-app.es_scripts" title="Link to this heading">¶</a></h2>
+<p>Module to manage ES scripts that can be used for personalized sorting</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.es_scripts.get_script_id">
+<span class="sig-prename descclassname"><span class="pre">app.es_scripts.</span></span><span class="sig-name descname"><span class="pre">get_script_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">script_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/es_scripts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.es_scripts.get_script_id" title="Link to this definition">¶</a></dt>
+<dd><p>We prefix scripts specific to an index with the index_id.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.es_scripts.get_script_prefix">
+<span class="sig-prename descclassname"><span class="pre">app.es_scripts.</span></span><span class="sig-name descname"><span class="pre">get_script_prefix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/es_scripts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.es_scripts.get_script_prefix" title="Link to this definition">¶</a></dt>
+<dd><p>We prefix scripts specific to an index with the index_id.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.es_scripts.sync_scripts">
+<span class="sig-prename descclassname"><span class="pre">app.es_scripts.</span></span><span class="sig-name descname"><span class="pre">sync_scripts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/es_scripts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.es_scripts.sync_scripts" title="Link to this definition">¶</a></dt>
+<dd><p>Resync the scripts between configuration and elasticsearch.</p>
+</dd></dl>
+
+</section>
+<section id="module-app.taxonomy_es">
+<span id="taxonomy-es"></span><h2>Taxonomy ES<a class="headerlink" href="#module-app.taxonomy_es" title="Link to this heading">¶</a></h2>
+<p>Operations on taxonomies in ElasticSearch</p>
+<p>See also <a class="reference internal" href="misc.html#module-app.taxonomy" title="app.taxonomy"><code class="xref py py-mod docutils literal notranslate"><span class="pre">app.taxonomy</span></code></a></p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.taxonomy_es.get_taxonomy_names">
+<span class="sig-prename descclassname"><span class="pre">app.taxonomy_es.</span></span><span class="sig-name descname"><span class="pre">get_taxonomy_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy_es.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy_es.get_taxonomy_names" title="Link to this definition">¶</a></dt>
+<dd><p>Given a set of terms in different taxonomies, return their names</p>
+</dd></dl>
+
+</section>
+<section id="module-app.utils.analyzers">
+<span id="analyzers-utils"></span><h2>Analyzers (Utils)<a class="headerlink" href="#module-app.utils.analyzers" title="Link to this heading">¶</a></h2>
+<p>Defines some analyzers for the elesaticsearch fields.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="app.utils.analyzers.AUTOCOMPLETE_ANALYZERS">
+<span class="sig-prename descclassname"><span class="pre">app.utils.analyzers.</span></span><span class="sig-name descname"><span class="pre">AUTOCOMPLETE_ANALYZERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'de':</span> <span class="pre">CustomAnalyzer(filter=[BuiltinTokenFilter(),</span> <span class="pre">BuiltinTokenFilter()],</span> <span class="pre">tokenizer=BuiltinTokenizer()),</span> <span class="pre">'fr':</span> <span class="pre">CustomAnalyzer(filter=[BuiltinTokenFilter(),</span> <span class="pre">BuiltinTokenFilter()],</span> <span class="pre">tokenizer=BuiltinTokenizer())}</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/utils/analyzers.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.utils.analyzers.AUTOCOMPLETE_ANALYZERS" title="Link to this definition">¶</a></dt>
+<dd><p>An analyzer for the autocomplete field</p>
+</dd></dl>
+
+</section>
+<section id="module-app.utils.connection">
+<span id="connection-utils"></span><h2>Connection (Utils)<a class="headerlink" href="#module-app.utils.connection" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.utils.connection.current_es_client">
+<span class="sig-prename descclassname"><span class="pre">app.utils.connection.</span></span><span class="sig-name descname"><span class="pre">current_es_client</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/utils/connection.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.utils.connection.current_es_client" title="Link to this definition">¶</a></dt>
+<dd><p>Return ElasticSearch default connection</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Search-a-licious</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=openfoodfacts&repo=search-a-licious&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Search Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.indexing">Indexing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.query">Query</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.search">Search</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.facets">Facets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.charts">Charts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.es_scripts">ES Scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.taxonomy_es">Taxonomy ES</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.utils.analyzers">Analyzers (Utils)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.utils.connection">Connection (Utils)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="types.html">Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Misc</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="/search-a-licious">Back to main doc</a></li>
+    
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="cli.html" title="previous chapter">Command Line Interface</a></li>
+      <li>Next: <a href="types.html" title="next chapter">Types</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2024, Open Food Facts.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.5</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/searching.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/openfoodfacts/search-a-licious" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
