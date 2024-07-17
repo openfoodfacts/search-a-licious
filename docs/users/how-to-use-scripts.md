@@ -81,7 +81,7 @@ In your [`searchalicious-sort`](./ref-web-components/#searchalicious-sort) compo
 While [`searchalicious-sort-field`](./ref-web-components/#searchalicious-sort-field) component add sorting on a field,
 you can use [`searchalicious-sort-script`](./ref-web-components/#searchalicious-sort-script) to add sorting on a script.
 
-This component have:
+This component has:
 - an attribute to set the script name, corresponding to the name you have declared in the configuration.
 - an attribute to set the parameters for this sort option.
   This in turn can:
