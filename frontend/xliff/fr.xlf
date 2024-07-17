@@ -14,13 +14,17 @@
   <source>Others</source>
   <target>Autres</target>
 </trans-unit>
-<trans-unit id="s255857544a9d5ec0">
-  <source>Reset</source>
-  <target>Réinitialiser</target>
-</trans-unit>
 <trans-unit id="s9094c0cde8fb5058">
   <source>No results found</source>
   <target>Aucun résultat trouvé</target>
+</trans-unit>
+<trans-unit id="sb074d20f9b64aa31">
+  <source>results found</source>
+  <target>résultats trouvés</target>
+</trans-unit>
+<trans-unit id="h4a560de48c98b38f">
+  <source>More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</source>
+  <target>Plus de <x id="0" equiv-text="${this.searchResultDetail.count}"/> résultats trouvés</target>
 </trans-unit>
 <trans-unit id="s49730f3d5751a433">
   <source>Loading...</source>
@@ -34,23 +38,19 @@
   <source>Hide charts</source>
   <target>Masquer les graphiques</target>
 </trans-unit>
+<trans-unit id="s255857544a9d5ec0">
+  <source>Reset</source>
+  <target>Réinitialiser</target>
+</trans-unit>
 <trans-unit id="sffa721bb6aa3128d">
   <source>Search...</source>
-  <note from="lit-localize">Search bar placeholder</note>
   <target>Rechercher...</target>
+  <note from="lit-localize">Search bar placeholder</note>
 </trans-unit>
 <trans-unit id="s5d929ff1619ac0c9">
   <source>Search</source>
-  <note from="lit-localize">Search button</note>
   <target>Rechercher</target>
-</trans-unit>
-<trans-unit id="sb074d20f9b64aa31">
-  <source>results found</source>
-  <target>résultats trouvés</target>
-</trans-unit>
-<trans-unit id="h4a560de48c98b38f">
-  <source>More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</source>
-  <target>Plus de <x id="0" equiv-text="${this.searchResultDetail.count}"/> résultats trouvés</target>
+  <note from="lit-localize">Search button</note>
 </trans-unit>
 </body>
 </file>
