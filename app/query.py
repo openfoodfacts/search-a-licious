@@ -185,7 +185,7 @@ def compute_facets_filters(q: QueryAnalysis) -> QueryAnalysis:
     that can be done at a later stage
 
     :return: a new QueryAnalysis with facets_filters attribute
-    as a dictionary of field names and list of values to filter on
+       as a dictionary of field names and list of values to filter on
     """
     if q.luqum_tree is None:
         return q

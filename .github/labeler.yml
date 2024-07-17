@@ -1,8 +1,57 @@
-
-
 # Add labels to any any pull request with changes to the specified paths
 
 # Pull requests that update GitHub Actions code. If you navigate to the folder, you will have a README of what it does
 📚 Documentation:
 - changed-files:
   - any-glob-to-any-file: 'docs/how-to-install.md'
+  - any-glob-to-any-file: 'docs/sphinx/_static/.empty'
+  - any-glob-to-any-file: 'docs/sphinx/_templates/.empty'
+  - any-glob-to-any-file: 'docs/sphinx/api.rst'
+  - any-glob-to-any-file: 'docs/sphinx/cli.rst'
+  - any-glob-to-any-file: 'docs/sphinx/conf.py'
+  - any-glob-to-any-file: 'docs/sphinx/config.rst'
+  - any-glob-to-any-file: 'docs/sphinx/index.rst'
+  - any-glob-to-any-file: 'docs/sphinx/misc.rst'
+  - any-glob-to-any-file: 'docs/sphinx/searching.rst'
+  - any-glob-to-any-file: 'docs/sphinx/types.rst'
+  - any-glob-to-any-file: 'docs/users/ref-python.md'
+
+API:
+- changed-files:
+  - any-glob-to-any-file: 'docs/sphinx/api.rst'
+
+Build Scripts:
+- changed-files:
+  - any-glob-to-any-file: 'scripts/Dockerfile.sphinx'
+  - any-glob-to-any-file: 'scripts/build_sphinx.sh'
+  - any-glob-to-any-file: 'scripts/generate_doc.sh'
+  - any-glob-to-any-file: 'scripts/sphinx/Makefile'
+
+🐳 docker:
+- changed-files:
+  - any-glob-to-any-file: 'Dockerfile'
+  - any-glob-to-any-file: 'docker-compose.yml'
+
+Indexation:
+- changed-files:
+  - any-glob-to-any-file: 'app/indexing.py'
+  - any-glob-to-any-file: 'docs/sphinx/index.rst'
+  
+Taxonomies:
+- changed-files:
+  - any-glob-to-any-file: 'app/taxonomy.py'
+  - any-glob-to-any-file: 'app/taxonomy_es.py'
+  
+CLI:
+- changed-files:
+  - any-glob-to-any-file: 'app/cli/main.py'
+  - any-glob-to-any-file: 'docs/sphinx/cli.rst'
+  
+Config:
+- changed-files:
+  - any-glob-to-any-file: 'docs/sphinx/config.rst'
+
+#  - any-glob-to-any-file: 'app/query.py'
+#  - any-glob-to-any-file: 'app/utils/analyzers.py'
+#  - any-glob-to-any-file: 'app/utils/download.py'
+#  - any-glob-to-any-file: 'app/validations.py'

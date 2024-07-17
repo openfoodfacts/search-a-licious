@@ -189,12 +189,14 @@ def process_taxonomy_field(
 
     Generates a dict ready to be indexed by Elasticsearch, with a subfield for
     each language. Two other subfields are added:
+
     - `original`: the original value of the field. For example, if the field
-        name is `categories` and `categories` already exist in the document,
-        we will save its value in the `original` subfield. This subfield is
-        only added if the field is present in the input data.
+       name is `categories` and `categories` already exist in the document,
+       we will save its value in the `original` subfield. This subfield is
+       only added if the field is present in the input data.
+
     - `other`: the value of the field for languages that are not supported by
-        the project (no elasticsearch specific analyzers)
+       the project (no elasticsearch specific analyzers)
 
     :param data: input data, as a dict
     :param field: the field config
@@ -260,7 +262,7 @@ def process_taxonomy_field(
 
 
 class DocumentProcessor:
-    """`DocumentProcessor`s are responsible of converting an item to index
+    """`DocumentProcessor` is responsible of converting an item to index
     into a dict that is ready to be indexed by Elasticsearch.
     """
 
