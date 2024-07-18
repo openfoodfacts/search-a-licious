@@ -1,4 +1,3 @@
-import json
 import logging
 from enum import StrEnum, auto
 from pathlib import Path
@@ -559,16 +558,6 @@ class Config(BaseModel):
         with path.open("r") as f:
             data = yaml.safe_load(f)
         return cls(**data)
-
-    @classmethod
-    def export_json_schema(cls):
-        """Export JSON schema."""
-        (Path(__file__).parent.parent / "config_schema.json").write_text(
-            json.dumps(
-                cls.model_json_schema(schema_generator=ConfigGenerateJsonSchema),
-                indent=4,
-            )
-        )
 
 
 # CONFIG is a global variable that contains the search-a-licious configuration

@@ -164,6 +164,10 @@ generate-custom-elements: _ensure_network
 	@echo "🔎 Generating custome-elements.json …"
 	${DOCKER_COMPOSE} run --rm search_nodejs npm run analyze
 
+generate-config-schema: _ensure_network
+	@echo "🔎 Generating config-schema.json …"
+	${DOCKER_COMPOSE} run --rm api python3 -m app export-config-schema /opt/search/data/searchalicious-config-schema.yml
+
 #-------#
 # Tests #
 #-------#

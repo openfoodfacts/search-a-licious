@@ -1,3 +1,87 @@
+
+
+# JSON schema for search-a-licious configuration file
+
+<p>This is the global config object that reflects
+the yaml configuration file.
+
+Validations will be performed while we load it.</p>
+
+<table>
+<tbody>
+
+<tr><th>$schema</th><td>https://json-schema.org/draft/2019-09/schema</td></tr>
+</tbody>
+</table>
+
+## Properties
+
+<table class="jssd-properties-table"><thead><tr><th colspan="2">Name</th><th>Type</th></tr></thead><tbody><tr><td colspan="2"><a href="#indices">indices</a></td><td>Object</td></tr><tr><td colspan="2"><a href="#default_index">default_index</a></td><td>String</td></tr></tbody></table>
+
+
+
+<hr />
+
+
+## indices
+
+
+<table class="jssd-property-table">
+  <tbody>
+    <tr>
+      <th>Title</th>
+      <td colspan="2">Indices</td>
+    </tr>
+    <tr>
+      <th>Description</th>
+      <td colspan="2">configuration of indices. The key is the ID of the index that can be referenced at query time. One index corresponds to a specific set of documents and can be queried independently.</td>
+    </tr>
+    <tr><th>Type</th><td colspan="2">Object</td></tr>
+    <tr>
+      <th>Required</th>
+      <td colspan="2">Yes</td>
+    </tr>
+    
+  </tbody>
+</table>
+
+
+
+
+## default_index
+
+
+<table class="jssd-property-table">
+  <tbody>
+    <tr>
+      <th>Title</th>
+      <td colspan="2">Default Index</td>
+    </tr>
+    <tr>
+      <th>Description</th>
+      <td colspan="2">the default index to use when no index is specified in the query</td>
+    </tr>
+    <tr><th>Type</th><td colspan="2">String</td></tr>
+    <tr>
+      <th>Required</th>
+      <td colspan="2">Yes</td>
+    </tr>
+    
+  </tbody>
+</table>
+
+
+
+
+
+
+
+
+
+<hr />
+
+## Schema
+```
 {
     "$defs": {
         "ESIndexConfig": {
@@ -8,12 +92,12 @@
                     "type": "string"
                 },
                 "id_field_name": {
-                    "description": "name of the field to use for `_id`",
+                    "description": "name of the field to use for `_id`.it is mandatory to provide one.\n\n If your dataset does not have an identifier field, you should use a document preprocessor to compute one.",
                     "title": "Id Field Name",
                     "type": "string"
                 },
                 "last_modified_field_name": {
-                    "description": "name of the field containing the date of last modification, used for incremental updates using Redis queues. The field value must be an int/float representing the timestamp.",
+                    "description": "name of the field containing the date of last modification, used for incremental updates using Redis queues. The field value must be an int/float representing the timestamp.\n\n",
                     "title": "Last Modified Field Name",
                     "type": "string"
                 },
@@ -75,7 +159,7 @@
                 },
                 "split": {
                     "default": false,
-                    "description": "do we split the input field with `split_separator`",
+                    "description": "do we split the input field with `split_separator` ?\n\nThis is useful if you have some text fields that contains list of values, (for example a comma separated list of values, like apple,banana,carrot).\n\nYou must set split_separator to the character that separates the values in the dataset.",
                     "title": "Split",
                     "type": "boolean"
                 },
@@ -140,6 +224,7 @@
             "type": "string"
         },
         "IndexConfig": {
+            "description": "Inside the config file we can have several indexes defined.\n\nThis object gives configuration for one index.",
             "properties": {
                 "index": {
                     "allOf": [
@@ -167,6 +252,18 @@
                     "default": "_",
                     "description": "for `text_lang` FieldType, the separator between the name of the field and the language code, ex: product_name_it if lang_separator=\"_\"",
                     "title": "Lang Separator",
+                    "type": "string"
+                },
+                "primary_color": {
+                    "default": "#aaa",
+                    "description": "Used for vega charts. Should be html code.",
+                    "title": "Primary Color",
+                    "type": "string"
+                },
+                "accent_color": {
+                    "default": "#222",
+                    "description": "Used for vega. Should be html code.and the language code, ex: product_name_it if lang_separator=\"_\"",
+                    "title": "Accent Color",
                     "type": "string"
                 },
                 "taxonomy": {
@@ -225,8 +322,24 @@
                     "default": null,
                     "title": "Result Processor"
                 },
+                "scripts": {
+                    "anyOf": [
+                        {
+                            "additionalProperties": {
+                                "$ref": "#/$defs/ScriptConfig"
+                            },
+                            "description": "You can add scripts that can be used for sorting results",
+                            "type": "object"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Scripts"
+                },
                 "match_phrase_boost": {
-                    "default": 2.0,
+                    "default": 2,
                     "description": "How much we boost exact matches on individual fields",
                     "title": "Match Phrase Boost",
                     "type": "number"
@@ -264,7 +377,66 @@
             "title": "IndexConfig",
             "type": "object"
         },
+        "ScriptConfig": {
+            "description": "Scripts can be used to sort results of a search.\n\nThis use ElasticSearch internal capabilities",
+            "properties": {
+                "lang": {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/ScriptType"
+                        }
+                    ],
+                    "default": "expression",
+                    "description": "The script language, as supported by Elasticsearch"
+                },
+                "source": {
+                    "description": "The source of the script",
+                    "title": "Source",
+                    "type": "string"
+                },
+                "params": {
+                    "anyOf": [
+                        {
+                            "description": "Params for the scripts. We need this to retrieve and validate parameters",
+                            "type": "object"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "title": "Params"
+                },
+                "static_params": {
+                    "anyOf": [
+                        {
+                            "description": "Additional params for the scripts that can't be supplied by the API (constants)",
+                            "type": "object"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "title": "Static Params"
+                }
+            },
+            "required": [
+                "source",
+                "params",
+                "static_params"
+            ],
+            "title": "ScriptConfig",
+            "type": "object"
+        },
+        "ScriptType": {
+            "enum": [
+                "expression",
+                "painless"
+            ],
+            "title": "ScriptType",
+            "type": "string"
+        },
         "TaxonomyConfig": {
+            "description": "Configuration of taxonomies,\nthat is collections of entries with synonyms in multiple languages\n\nField may be linked to taxonomies.",
             "properties": {
                 "sources": {
                     "description": "configurations of used taxonomies",
@@ -300,6 +472,7 @@
             "type": "object"
         },
         "TaxonomyIndexConfig": {
+            "description": "We have an index storing multiple taxonomies\n\nIt enables functions like auto-completion, or field suggestions\nas well as enrichment of requests with synonyms",
             "properties": {
                 "name": {
                     "description": "name of the taxonomy index alias to use",
@@ -349,6 +522,7 @@
             "type": "object"
         }
     },
+    "description": "This is the global config object that reflects\nthe yaml configuration file.\n\nValidations will be performed while we load it.",
     "properties": {
         "indices": {
             "additionalProperties": {
@@ -370,5 +544,8 @@
     ],
     "title": "JSON schema for search-a-licious configuration file",
     "type": "object",
-    "$schema": "https://json-schema.org/draft/2020-12/schema"
+    "$schema": "https://json-schema.org/draft/2019-09/schema"
 }
+```
+
+

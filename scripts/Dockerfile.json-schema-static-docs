@@ -1,0 +1,15 @@
+# Docker image to use json-schema-static-docs
+FROM node:lts-bullseye as json-schema-static-docs
+ARG USER_UID=1000
+ARG USER_GID=1000
+RUN usermod --uid $USER_UID node && \
+  groupmod --gid $USER_GID node && \
+  mkdir -p /docs && \
+  mkdir -p /scripts && \
+  chown node:node -R /docs /scripts
+ENV NODE_PATH=/usr/local/lib/node_modules/
+RUN npm install -g json-schema-static-docs
+COPY scripts/generate-config-docs.sh /scripts/generate-config-docs.sh
+WORKDIR /docs
+USER node
+CMD ["npm", "run", "/scripts/generate-config-docs.sh"]
