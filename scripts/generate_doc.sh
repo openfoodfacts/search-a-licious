@@ -7,18 +7,12 @@ set -e
 
 mkdir -p gh_pages
 
-# generate config reference documentation
-scripts/generate-config-docs.sh
-
 # script to generate documentation
 echo "Build documentation with MkDocs"
 scripts/build_mkdocs.sh
 
-# cleanup config generation and copy config schema
-mv docs/users/ref-config.md{.orig,}
-cp data/searchalicious-config-schema.yml gh_pages/users/ref-config/
-
-# TODO: generating python and documentation with sphinx
+echo "Generate documentation for configuration file"
+scripts/build_schema.sh
 
 echo "Generate OpenAPI documentation"
 make generate-openapi

@@ -1,0 +1,14 @@
+FROM python:3-slim
+
+ARG USER_UID=1000
+ARG USER_GID=1000
+USER root
+# add user with right id
+RUN addgroup --gid $USER_GID user && adduser --uid $USER_UID --ingroup user --no-create-home --disabled-password --quiet user
+# create folders
+RUN mkdir -p /docs/in /docs/out && chown user:user /docs
+# install some packages we need
+RUN pip3 install -U pip && pip3 install json-schema-for-humans
+CMD ["generate-schema-doc", "/docs/in/", "/docs/out/"]
+WORKDIR /docs
+USER user
