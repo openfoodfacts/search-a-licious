@@ -10,6 +10,8 @@ from pydantic_settings import BaseSettings
 
 log = logging.getLogger(__name__)
 
+ES_DOCS_URL = "https://www.elastic.co/guide/en/elasticsearch/reference/current"
+
 
 class LoggingLevel(StrEnum):
     NOTSET = "NOTSET"
@@ -216,29 +218,37 @@ class FieldConfig(BaseModel):
 
 
 class ESIndexConfig(BaseModel):
-    name: Annotated[str, Field(description="name of the index alias to use")]
+    name: Annotated[str, Field(description="Name of the index alias to use")]
     id_field_name: Annotated[
         str,
         Field(
-            description="name of the field to use for `_id`."
+            description="Name of the field to use for `_id`."
             "it is mandatory to provide one.\n\n "
             "If your dataset does not have an identifier field, "
-            "you should use a document preprocessor to compute one."
+            "you should use a document preprocessor to compute one (see `preprocessor`)."
         ),
     ]
     last_modified_field_name: Annotated[
         str,
         Field(
-            description="name of the field containing the date of last modification, "
-            "used for incremental updates using Redis queues. "
-            "The field value must be an int/float representing the timestamp.\n\n"
+            description="Name of the field containing the date of last modification, "
+            "used for incremental updates using Redis queues.\n\n"
+            "The field value must be an int/float representing the timestamp."
         ),
     ]
     number_of_shards: Annotated[
-        int, Field(description="number of shards to use for the index")
+        int,
+        Field(
+            description="Number of shards to use for the index.\n\n"
+            f"(see [index settings]({ES_DOCS_URL}/index-modules.html#_static_index_settings))"
+        ),
     ] = 4
     number_of_replicas: Annotated[
-        int, Field(description="number of replicas to use for the index")
+        int,
+        Field(
+            description="Number of replicas to use for the index\n\n"
+            f"(see [index settings]({ES_DOCS_URL}/index-modules.html#_static_index_settings))"
+        ),
     ] = 1
 
 
@@ -325,14 +335,19 @@ class ScriptConfig(BaseModel):
     # Or some type checking/transformation ?
 
 
-class IndexConfig(BaseModel):
-    """Inside the config file we can have several indexes defined.
+INDEX_CONFIG_INDEX_DESCRIPTION = """
+Through this settings, you can tweak some of the index settings.
+"""
 
-    This object gives configuration for one index.
+
+class IndexConfig(BaseModel):
+    """This object gives configuration for one index.
+
+    One index usually correspond to one dataset.
     """
 
     index: Annotated[
-        ESIndexConfig, Field(description="configuration of the Elasticsearch index")
+        ESIndexConfig, Field(description="Configuration of the Elasticsearch index\n\n")
     ]
     fields: Annotated[
         dict[str, FieldConfig],
@@ -371,7 +386,8 @@ class IndexConfig(BaseModel):
     supported_langs: Annotated[
         list[str],
         Field(
-            description="A list of all supported languages, it is used to build index mapping"
+            description="A list of all supported languages, it is used to build index mapping",
+            examples=[["en", "fr", "it"]],
         ),
     ]
     document_fetcher: Annotated[
@@ -502,17 +518,31 @@ class IndexConfig(BaseModel):
         ]
 
 
+CONFIG_DESCRIPTION_INDICES = """
+A Search-a-licious instance only have one configuration file,
+but is capable of serving multiple datasets
+
+It provides a section for each index you want to create (corresponding to a dataset).
+
+The key is the ID of the index that can be referenced at query time.
+One index corresponds to a specific set of documents and can be queried independently.
+
+If you have multiple indexes, one of those index must be designed as the default one,
+see `default_index`.
+"""
+
+
 class Config(BaseModel):
-    """This is the global config object that reflects
-    the yaml configuration file.
+    """Search-a-licious server configuration.
+
+    The configuration is loaded from a YAML file,
+    that must satisfy this schema.
 
     Validations will be performed while we load it.
     """
 
     indices: dict[str, IndexConfig] = Field(
-        description="configuration of indices. "
-        "The key is the ID of the index that can be referenced at query time. "
-        "One index corresponds to a specific set of documents and can be queried independently."
+        description="configuration of indices.\n\n" + CONFIG_DESCRIPTION_INDICES
     )
     default_index: Annotated[
         str,
