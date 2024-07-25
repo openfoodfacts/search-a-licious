@@ -22,7 +22,7 @@
     
     
       
-        <title>Explain query language - Search-a-licious documentation</title>
+        <title>Explain Query Language - Search-a-licious documentation</title>
       
     
     
@@ -63,6 +63,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#explain-query-language" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -95,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Explain query language
+              Explain Query Language
             
           </span>
         </div>
@@ -359,16 +364,75 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Explain Query Language
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    Explain query language
+    Explain Query Language
   </span>
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#query-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query syntax
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#different-type-of-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Different type of fields
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-text-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Full text queries
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -483,6 +547,43 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#query-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query syntax
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#different-type-of-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Different type of fields
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-text-queries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Full text queries
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -500,9 +601,70 @@
   
 
 
-  <h1>Explain query language</h1>
-
-
+<h1 id="explain-query-language">Explain Query Language<a class="headerlink" href="#explain-query-language" title="Permanent link">#</a></h1>
+<p>The idea of Search-a-licious is to provide a powerfull yet easy to use API,
+through the use of a well proven language: Lucene Query Language.</p>
+<p>While Elasticsearch provides a way to use this language in the queries,
+it has some important limitations like the lack of support for nested and object fields.</p>
+<p>Thanks to the <a href="https://github.com/jurismarches/luqum">luqum library</a>,
+Search-a-licious is able to use Lucene Query Language in a broader way.</p>
+<p>Search-a-licious also use luqum to introspect the query
+and transform it to add features corresponding to your configuration
+and leverage taxonomies and other peculiarities.</p>
+<p>It enables for example taking into account synonyms,
+or adding the languages to query about on the fly
+without the need to complexify the query to much at API level.</p>
+<h2 id="query-syntax">Query syntax<a class="headerlink" href="#query-syntax" title="Permanent link">#</a></h2>
+<p>The query syntax is quite simple, you can either:</p>
+<ul>
+<li>query for simple word in the default texts fields (those having <code>full_text_search</code> property in your configuration)
+  by simply having the word in your query:
+  <div class="highlight"><pre><span></span><code>chocolate
+</code></pre></div>
+  Entries with text <code>chocolate</code></li>
+<li>or match exactly a full sentences by using quotes:
+  <div class="highlight"><pre><span></span><code>&quot;dark chocolate&quot;
+</code></pre></div>
+  Entries with text <code>dark chocolate</code></li>
+<li>you can also match a word or phrase in a specific field by using the field name, followed by a colon:
+  <div class="highlight"><pre><span></span><code>labels:organic
+</code></pre></div>
+  Entries with labels containing <code>organic</code></li>
+<li>you can have more than one term, the query will try to match all terms:
+  <div class="highlight"><pre><span></span><code>&quot;dark chocolate&quot; labels:organic
+</code></pre></div>
+  Entries with text <code>dark chocolate</code> and labels containing <code>organic</code></li>
+<li>you can combine queries with <code>AND</code>, <code>OR</code> and <code>NOT</code> operators, and use parenthesis to group them:
+  <div class="highlight"><pre><span></span><code>&quot;dark chocolate AND (labels:organic OR labels:vegan) AND NOT nutriscore:(e OR d)&quot;
+</code></pre></div>
+  Entries with text <code>dark chocolate</code>, labels containing <code>organic</code> or <code>vegan</code>, and Nutri-Score not <code>e</code> or <code>d</code></li>
+<li>you can query a sub field by using "." or ":":
+  <div class="highlight"><pre><span></span><code>nutrients.sugar_100g:[10 TO 15]
+</code></pre></div>
+  equivalent to:
+  <div class="highlight"><pre><span></span><code>nutrients:sugar_100g:[10 TO 15]
+</code></pre></div>
+  Entries with sugar between 10 and 15 grams per 100g</li>
+<li>in range you can use * for unbounded values:
+  <div class="highlight"><pre><span></span><code>nutrients.sugar_100g:[* TO 20] AND nutrients.proteins_100g:[2 TO *]
+</code></pre></div>
+  Entries with sugar below 20 g and proteins above 2g for 100g</li>
+<li>match field existence with <code>*</code>:
+  <div class="highlight"><pre><span></span><code>nutriscore:*
+</code></pre></div>
+  Entries with Nutri-Score computed</li>
+</ul>
+<h2 id="different-type-of-fields">Different type of fields<a class="headerlink" href="#different-type-of-fields" title="Permanent link">#</a></h2>
+<p>When you created you configuration, you defined different fields types.
+It's important because the matching possibilities are not the same.</p>
+<p>In particular for text entries, there are two types of fields:</p>
+<ul>
+<li>keyword fields, that are used for exact matching</li>
+<li>full text fields, where part of the text can be matched, with complex matching possibilities</li>
+</ul>
+<p>There are also numeric and date fields, that can be used for range matching, or to make computations.</p>
+<h2 id="full-text-queries">Full text queries<a class="headerlink" href="#full-text-queries" title="Permanent link">#</a></h2>
+<p><strong>FIXME</strong> add more on how we transform queries</p>
 
 
 
