@@ -25,8 +25,24 @@ For each indexe the main sections are:
 * preprocessor and result_processor are two fields enabling to handle specificities of your dataset.
 * scripts: to use sort by script (see [How to use scripts](./how-to-use-scripts.md))
 
+
 ## Index configuration
 
-You must provide the 
+The most important configurations you have to provide are:
+* index_name - the name of the index alias in your Elasticsearch instance
+* 
 
 ## Fields
+
+This is one of the most important section.
+
+You have to plan in advance how you configure this.
+
+Think well about:
+* fields you want to search and how you want to search them
+* which informations you need to display in search results
+* what you need to sort on
+* which facets you want to display
+* which charts you need to build
+
+Read more in the [reference documentation]().

@@ -1,5 +1,6 @@
 import logging
 from enum import StrEnum, auto
+from inspect import cleandoc as cd_
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -106,12 +107,19 @@ class ConfigGenerateJsonSchema(GenerateJsonSchema):
 
 
 class TaxonomySourceConfig(BaseModel):
-    name: Annotated[str, Field(description="name of the taxonomy")]
+    """Configuration on how to fetch a particular taxonomy."""
+
+    name: Annotated[str, Field(description="Name of the taxonomy")]
     url: Annotated[
         HttpUrl,
         Field(
-            description="URL of the taxonomy, must be in JSON format and follows Open Food Facts "
-            "taxonomy format."
+            description=cd_(
+                """URL of the taxonomy.
+
+                The target file must be in JSON format
+                and follows Open Food Facts JSON taxonomy format.
+                """
+            )
         ),
     ]
 
@@ -217,86 +225,133 @@ class FieldConfig(BaseModel):
         return self.type in (FieldType.taxonomy, FieldType.text_lang)
 
 
-class ESIndexConfig(BaseModel):
-    name: Annotated[str, Field(description="Name of the index alias to use")]
+class BaseESIndexConfig(BaseModel):
+    """Base class for configuring ElasticSearch indexes"""
+
+    name: Annotated[
+        str,
+        Field(
+            description=cd_(
+                """Name of the index alias to use.
+
+                Search-a-licious will create an index using this name and an import date,
+                but alias will always point to the latest index.
+
+                The alias must not already exists in your ElasticSearch instance.
+                """
+            )
+        ),
+    ]
+    number_of_shards: Annotated[
+        int,
+        Field(
+            description=cd_(
+                f"""Number of shards to use for the index.
+
+                Shards are useful to distribute the load on your cluster.
+                (see [index settings]({ES_DOCS_URL}/index-modules.html#_static_index_settings))
+                """
+            )
+        ),
+    ] = 4
+    number_of_replicas: Annotated[
+        int,
+        Field(
+            description=cd_(
+                f"""Number of replicas to use for the index.
+
+                More replica means more resiliency but also more disk space and memory.
+
+                (see [index settings]({ES_DOCS_URL}/index-modules.html#_static_index_settings))
+                """
+            )
+        ),
+    ] = 1
+
+
+class ESIndexConfig(BaseESIndexConfig):
+    """This is the configuration for the main index containing the data.
+
+    It's used to create the index in ElasticSearch, and configure its mappings
+    (along with the *fields* config)
+    """
+
     id_field_name: Annotated[
         str,
         Field(
-            description="Name of the field to use for `_id`."
-            "it is mandatory to provide one.\n\n "
-            "If your dataset does not have an identifier field, "
-            "you should use a document preprocessor to compute one (see `preprocessor`)."
+            description=cd_(
+                """Name of the field to use for `_id`.
+                it is mandatory to provide one.
+
+                If your dataset does not have an identifier field,
+                you should use a document preprocessor to compute one (see `preprocessor`).
+                """
+            )
         ),
     ]
     last_modified_field_name: Annotated[
         str,
         Field(
-            description="Name of the field containing the date of last modification, "
-            "used for incremental updates using Redis queues.\n\n"
-            "The field value must be an int/float representing the timestamp."
+            description=cd_(
+                """Name of the field containing the date of last modification,
+                in your indexed objects.
+
+                This is used for incremental updates using Redis queues.
+
+                The field value must be an int/float representing the timestamp.
+                """
+            )
         ),
     ]
-    number_of_shards: Annotated[
-        int,
-        Field(
-            description="Number of shards to use for the index.\n\n"
-            f"(see [index settings]({ES_DOCS_URL}/index-modules.html#_static_index_settings))"
-        ),
-    ] = 4
-    number_of_replicas: Annotated[
-        int,
-        Field(
-            description="Number of replicas to use for the index\n\n"
-            f"(see [index settings]({ES_DOCS_URL}/index-modules.html#_static_index_settings))"
-        ),
-    ] = 1
 
 
-class TaxonomyIndexConfig(BaseModel):
-    """We have an index storing multiple taxonomies
+class TaxonomyIndexConfig(BaseESIndexConfig):
+    """This is the configuration of
+    the ElasticSearch index storing the taxonomies.
+
+    All taxonomies are stored within the same index.
 
     It enables functions like auto-completion, or field suggestions
-    as well as enrichment of requests with synonyms
+    as well as enrichment of requests with synonyms.
     """
-
-    name: Annotated[
-        str,
-        Field(description="name of the taxonomy index alias to use"),
-    ]
-    number_of_shards: Annotated[
-        int, Field(description="number of shards to use for the index")
-    ] = 4
-    number_of_replicas: Annotated[
-        int, Field(description="number of replicas to use for the index")
-    ] = 1
 
 
 class TaxonomyConfig(BaseModel):
     """Configuration of taxonomies,
-    that is collections of entries with synonyms in multiple languages
+    that is collections of entries with synonyms in multiple languages.
 
     Field may be linked to taxonomies.
+
+    It enables enriching search with synonyms,
+    as well as providing suggestions,
+    or informative facets.
     """
 
     sources: Annotated[
         list[TaxonomySourceConfig],
-        Field(description="configurations of used taxonomies"),
+        Field(description="Configurations of taxonomies that this project will use."),
     ]
     exported_langs: Annotated[
         list[str],
         Field(
-            description="a list of languages for which we want taxonomized fields "
-            "to be always exported during indexing. During indexing, we use the taxonomy "
-            "to translate every taxonomized field in a language-specific subfield. The list "
-            "of language depends on the value defined here and on the optional "
-            "`taxonomy_langs` field that can be defined in each document.",
+            description=cd_(
+                """a list of languages for which
+                we want taxonomized fields to be always exported during indexing.
+
+                During indexing, we use the taxonomy to translate every taxonomized field
+                in a language-specific subfield.
+
+                The list of language depends on the value defined here and on the optional
+                `taxonomy_langs` field that can be defined in each document.
+
+                Beware that providing many language might inflate the index size.
+                """,
+            )
         ),
     ]
     index: Annotated[
         TaxonomyIndexConfig,
-        Field(
-            description="configuration of the taxonomy index. There is a single index for all taxonomies."
-        ),
+        Field(description=TaxonomyIndexConfig.__doc__),
     ]
 
 
@@ -346,14 +401,28 @@ class IndexConfig(BaseModel):
     One index usually correspond to one dataset.
     """
 
-    index: Annotated[
-        ESIndexConfig, Field(description="Configuration of the Elasticsearch index\n\n")
-    ]
+    index: Annotated[ESIndexConfig, Field(description=ESIndexConfig.__doc__)]
     fields: Annotated[
         dict[str, FieldConfig],
         Field(
-            description="configuration of all fields in the index, keys are field "
-            "names and values contain the field configuration"
+            description=cd_(
+                """Configuration of all fields we need to store in the index.
+
+                Keys are field names,
+                values contain the field configuration.
+
+                This is a very important part of the configuration.
+
+                Most of the ElasticSearch mapping will depends on it.
+                ElasticSearch will also use this configuration
+                to provide intended behaviour.
+
+                (see also [Explain Configuration](./explain_configuration.md#fields))
+
+                If you change those settings you will have to re-index all the data.
+                (But you can do so in the background).
+                """
+            )
         ),
     ]
     split_separator: Annotated[
@@ -380,9 +449,7 @@ class IndexConfig(BaseModel):
             'and the language code, ex: product_name_it if lang_separator="_"'
         ),
     ] = "#222"
-    taxonomy: Annotated[
-        TaxonomyConfig, Field(description="configuration of the taxonomies used")
-    ]
+    taxonomy: Annotated[TaxonomyConfig, Field(description=TaxonomyConfig.__doc__)]
     supported_langs: Annotated[
         list[str],
         Field(
