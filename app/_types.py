@@ -1,4 +1,5 @@
 import textwrap
+from enum import Enum
 from functools import cached_property
 from typing import Annotated, Any, Literal, Optional, Tuple, Union, cast, get_type_hints
 
@@ -432,3 +433,27 @@ class GetSearchParamsTypes:
     facets = _annotation_new_type(str, SEARCH_PARAMS_ANN["facets"])
     charts = _annotation_new_type(str, SEARCH_PARAMS_ANN["charts"])
     index_id = SEARCH_PARAMS_ANN["index_id"]
+
+
+class FetcherStatus(Enum):
+    """Status of a fetcher
+
+    * FOUND - document was found, index it
+    * REMOVED - document was removed, remove it
+    * SKIP - skip this document / update
+    * RETRY - retry this document / update later
+    * OTHER - unknown error
+    """
+
+    FOUND = 1
+    REMOVED = -1
+    SKIP = 0
+    RETRY = 2
+    OTHER = 3
+
+
+class FetcherResult(BaseModel):
+    """Result for a document fecher"""
+
+    status: FetcherStatus
+    document: JSONType | None

@@ -210,7 +210,7 @@ wget https://static.openfoodfacts.org/data/products.random-modulo-10000.jsonl.gz
 We will then import this file in our index, we have a specific command for that:
 
 ```bash
-docker compose run --rm api python3 -m app import /opt/search/data/products.random-modulo-10000.jsonl' args='--skip-updates
+docker compose run --rm api python3 -m app import /opt/search/data/products.random-modulo-10000.jsonl --skip-updates
 ```
 
 The first part is simply to run a command using our docker container.

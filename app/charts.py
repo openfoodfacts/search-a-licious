@@ -151,7 +151,7 @@ def build_scatter_chart(
     def _get(v, path):
         return reduce(lambda c, k: c.get(k, {}), path.split("."), v)
 
-    chart = empty_chart(f"{chart_option.x} x { chart_option.y }")
+    chart = empty_chart(f"{chart_option.x} x {chart_option.y}")
 
     # nutriments.xxx is broken in vega.
     # I think it searches for nutriments[xxx]

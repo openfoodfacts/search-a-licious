@@ -6,7 +6,7 @@ from typing import Any
 import requests
 
 from app._import import BaseDocumentFetcher
-from app._types import JSONType
+from app._types import FetcherResult, FetcherStatus, JSONType
 from app.indexing import BaseDocumentPreprocessor
 from app.postprocessing import BaseResultProcessor
 from app.taxonomy import get_taxonomy
@@ -89,27 +89,35 @@ OFF_API_URL = os.environ.get("OFF_API_URL", "https://world.openfoodfacts.org")
 
 
 class DocumentFetcher(BaseDocumentFetcher):
-    def fetch_document(self, stream_name: str, item: JSONType) -> JSONType | None:
+    def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
         code = item["code"]
         url = f"{OFF_API_URL}/api/v2/product/{code}"
         try:
             response = http_session.get(url)
         except requests.exceptions.RequestException as exc:
             logger.warning("Failed to fetch %s: %s", url, exc)
-            return None
+            return FetcherResult(status=FetcherStatus.RETRY, document=None)
         try:
             json_response = response.json()
         except requests.exceptions.JSONDecodeError as exc:
             logger.warning("Failed to decode JSON response from %s: %s", url, exc)
-            return None
+            return FetcherResult(status=FetcherStatus.OTHER, document=None)
 
-        if not json_response or not json_response.get("product"):
-            return None
-        return json_response["product"]
+        if (
+            not json_response
+            or str(json_response.get("status", "")) == "0"
+            or not json_response.get("product")
+        ):
+            # consider it removed
+            return FetcherResult(status=FetcherStatus.REMOVED, data=None)
+
+        return FetcherResult(
+            status=FetcherStatus.FOUND, document=json_response["product"]
+        )
 
 
 class DocumentPreprocessor(BaseDocumentPreprocessor):
-    def preprocess(self, document: JSONType) -> JSONType | None:
+    def preprocess(self, document: JSONType) -> FetcherResult:
         # no need to have a deep-copy here
         document = copy.copy(document)
         # convert obsolete field into bool
@@ -117,7 +125,7 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         document["taxonomy_langs"] = self.get_taxonomy_langs(document)
         # Don't keep all nutriment values
         self.select_nutriments(document)
-        return document
+        return FetcherResult(status=FetcherStatus.FOUND, document=document)
 
     def get_taxonomy_langs(self, document: JSONType) -> list[str]:
         # We add `taxonomy_langs` field to index taxonomized fields in

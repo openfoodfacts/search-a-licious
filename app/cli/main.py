@@ -3,6 +3,7 @@ setting up search-a-licious
 or doing maintenance operations.
 """
 
+from inspect import cleandoc as cd_
 from pathlib import Path
 from typing import Optional
 
@@ -54,11 +55,24 @@ def import_data(
         default=False,
         help="Skip fetching fresh records from redis",
     ),
+    partial: bool = typer.Option(
+        default=False,
+        help=cd_(
+            """Only run a partial update, on current index
+            while the default run a full import in a new index.
+
+            Use this if instead of re-importing the whole data,
+            you only want to update the data that has changed.
+
+            You will loose the *rollback* capability in case of failure.
+            """
+        ),
+    ),
     num_processes: int = typer.Option(
         default=2, help="How many import processes to run in parallel"
     ),
     num_items: Optional[int] = typer.Option(
-        default=None, help="How many items to import"
+        default=None, help="How many items to import (mainly for testing)"
     ),
     config_path: Optional[Path] = typer.Option(
         default=None,
@@ -81,7 +95,7 @@ def import_data(
     """
     import time
 
-    from app._import import run_full_import
+    from app._import import run_items_import
     from app.utils import get_logger
 
     logger = get_logger()
@@ -89,15 +103,19 @@ def import_data(
     start_time = time.perf_counter()
     index_id, index_config = _get_index_config(config_path, index_id)
 
-    run_full_import(
+    num_errors = run_items_import(
         input_path,
         num_processes,
         index_config,
         num_items=num_items,
         skip_updates=skip_updates,
+        partial=partial,
     )
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
+    if num_errors:
+        logger.error("There were %s errors during import", num_errors)
+        typer.Exit(1)
 
 
 @cli.command()
