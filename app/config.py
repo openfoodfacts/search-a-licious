@@ -43,16 +43,28 @@ class ScriptType(StrEnum):
 
 
 class Settings(BaseSettings):
-    # Path of the search-a-licious yaml configuration file
+    """Settings for Search-a-licious
+
+    Those settings can be overriden through environment
+    """
+
+    #: Path of the search-a-licious yaml configuration file
     config_path: Path | None = None
-    redis_reader_timeout: int = 5
+    #: URL to the ElasticSearch instance
     elasticsearch_url: str = "http://localhost:9200"
+    #: Host for the Redis instance containing event stream
     redis_host: str = "localhost"
+    #: Port for the redis host instance containing event stream
     redis_port: int = 6379
+    #: timeout in seconds to read redis event stream
+    redis_reader_timeout: int = 5
+    #: Sentry DNS to report incident, if None no incident is reported
     sentry_dns: str | None = None
+    #: Log level
     log_level: LoggingLevel = LoggingLevel.INFO
+    #: Directory where to store taxonomies before ingestion to ElasticSearch
     taxonomy_cache_dir: Path = Path("data/taxonomies")
-    # User-Agent used when fetching resources (taxonomies) or documents
+    #: User-Agent used when fetching resources (taxonomies) or documents
     user_agent: str = "search-a-licious"
 
 
@@ -109,7 +121,18 @@ class ConfigGenerateJsonSchema(GenerateJsonSchema):
 class TaxonomySourceConfig(BaseModel):
     """Configuration on how to fetch a particular taxonomy."""
 
-    name: Annotated[str, Field(description="Name of the taxonomy")]
+    name: Annotated[
+        str,
+        Field(
+            description=cd_(
+                """Name of the taxonomy
+
+                This is the name you will use in the configuration (and the API)
+                to reference this taxonomy
+                """
+            )
+        ),
+    ]
     url: Annotated[
         HttpUrl,
         Field(
@@ -118,6 +141,16 @@ class TaxonomySourceConfig(BaseModel):
 
                 The target file must be in JSON format
                 and follows Open Food Facts JSON taxonomy format.
+
+                This is a dict where each key correspond to a taxonomy entry id,
+                values are dict with following properties:
+
+                * name: contains a dict giving the name (string) for this entry
+                  in various languages (keys are language codes)
+                * synonyms: contains a dict giving a list of synonyms by language code
+                * parents: contains a list of direct parent ids (taxonomy is a directed acyclic graph)
+
+                Other keys correspond to properties associated to this entry (eg. wikidata id).
                 """
             )
         ),
@@ -125,6 +158,26 @@ class TaxonomySourceConfig(BaseModel):
 
 
 class FieldType(StrEnum):
+    """Supported field types in Search-a-Licious are:
+
+    * keyword: string values that won't be interpreted (tokenized).
+      Good for things like tags, serial, property values, etc.
+    * date: Date fields
+    * double, float, half_float, scaled_float:
+      different ways of storing floats with different capacity
+    * short, integer, long, unsigned_long :
+      integers (with different capacity:  8 / 16 / 32 bits)
+    * bool: boolean (true / false) values
+    * text: a text which is tokenized to enable full text search
+    * text_lang: like text, but with different values in different languages.
+      Tokenization will use analyzers specific to each languages.
+    * taxonomy: a field akin to keyword but
+      with support for matching using taxonomy synonyms and translations
+    * disabled: a field that is not stored nor searchable
+      (see [Elasticsearch help])
+    * object: this field contains a dict with sub-fields.
+    """
+
     keyword = auto()
     date = auto()
     half_float = auto()
@@ -145,63 +198,107 @@ class FieldType(StrEnum):
     object = auto()
 
     def is_numeric(self):
+        """Return wether this field type can be considered numeric"""
         return self in (FieldType.integer, FieldType.float, FieldType.double)
+
+
+# add url to FieldType doc
+if FieldType.__doc__:
+    FieldType.__doc__ += f"\n\n[Elasticsearch help]: {ES_DOCS_URL}/enabled.html"
 
 
 class FieldConfig(BaseModel):
     # name of the field (internal field), it's added here for convenience.
     # It's set by the `add_field_name_to_each_field` classmethod.
-    name: Annotated[str, Field(description="name of the field, must be unique")] = ""
+    name: Annotated[str, Field(description="name of the field (must be unique")] = ""
     type: Annotated[
         FieldType,
-        Field(description="type of the field, see `FieldType` for possible values"),
+        Field(description=f"Type of the field\n\n{cd_(FieldType.__doc__)}"),
     ]
     required: Annotated[
         bool,
-        Field(description="if required=True, the field is required in the input data"),
+        Field(
+            description=cd_(
+                """if required=True, the field is required in the input data
+
+                An entry that does not contains a value for this field will be rejected.
+                """
+            )
+        ),
     ] = False
     input_field: Annotated[
         str | None,
-        Field(description="name of the input field to use when importing data"),
+        Field(
+            description=cd_(
+                """name of the input field to use when importing data
+
+                By default, Search-a-licious use the same name as the field name.
+
+                This is useful to index the same field using different types or configurations.
+                """
+            )
+        ),
     ] = None
-    #
     split: Annotated[
         bool,
         Field(
-            description="do we split the input field with `split_separator` ?\n\n"
-            "This is useful if you have some text fields that contains list of values, "
-            "(for example a comma separated list of values, like apple,banana,carrot).\n\n"
-            "You must set split_separator to the character that separates the values in the dataset."
+            description=cd_(
+                """do we split the input field with `split_separator` ?
+
+                This is useful if you have some text fields that contains list of values,
+                (for example a comma separated list of values, like apple,banana,carrot).
+
+                You must set split_separator to the character that separates the values in the dataset.
+                """
+            )
         ),
     ] = False
     full_text_search: Annotated[
         bool,
         Field(
-            description="do we include perform full text search using this field. If "
-            "false, the field is only used during search when filters involving this "
-            "field are provided."
+            description=cd_(
+                """Wether this field in included on default full text search.
+
+                If `false`, the field is only used during search
+                when filters involving this field are provided
+                (as opposed to full text search expressions without any explicit field).
+                """
+            )
         ),
     ] = False
     bucket_agg: Annotated[
         bool,
         Field(
-            description="do we add an bucket aggregation to the elasticsearch query for this field. "
-            "It is used to return a 'faceted-view' with the number of results for each facet value. "
-            "Only valid for keyword or numeric field types."
+            description=cd_(
+                """do we add an bucket aggregation to the elasticsearch query for this field.
+
+                It is used to return a 'faceted-view' with the number of results for each facet value,
+                or to generate bar charts.
+
+                Only valid for keyword or numeric field types.
+                """
+            )
         ),
     ] = False
     taxonomy_name: Annotated[
         str | None,
         Field(
-            description="the name of the taxonomy associated with this field. "
-            "It must only be provided for taxonomy field type."
+            description=cd_(
+                """the name of the taxonomy associated with this field.
+
+                It must only be provided for taxonomy field type.
+                """
+            )
         ),
     ] = None
     add_taxonomy_synonyms: Annotated[
         bool,
         Field(
-            description="if True, add all synonyms of the taxonomy values to the index. "
-            "The flag is ignored if the field type is not `taxonomy`."
+            description=cd_(
+                """if True, add all synonyms of the taxonomy values to the index.
+                The flag is ignored if the field type is not `taxonomy`.
+                """
+            )
         ),
     ] = True
 
@@ -222,6 +319,8 @@ class FieldConfig(BaseModel):
         return self.input_field or self.name
 
     def has_lang_subfield(self) -> bool:
+        """Return wether this field type is supposed to have different values
+        per languages"""
         return self.type in (FieldType.taxonomy, FieldType.text_lang)
 
 
@@ -440,14 +539,11 @@ class IndexConfig(BaseModel):
     ] = "_"
     primary_color: Annotated[
         str,
-        Field(description="Used for vega charts. Should be html code."),
+        Field(description="Used for vega charts. Use CSS color code."),
     ] = "#aaa"
     accent_color: Annotated[
         str,
-        Field(
-            description="Used for vega. Should be html code."
-            'and the language code, ex: product_name_it if lang_separator="_"'
-        ),
+        Field(description="Used for vega. Should be CSS color code."),
     ] = "#222"
     taxonomy: Annotated[TaxonomyConfig, Field(description=TaxonomyConfig.__doc__)]
     supported_langs: Annotated[
@@ -460,9 +556,19 @@ class IndexConfig(BaseModel):
     document_fetcher: Annotated[
         str,
         Field(
-            description="The full qualified reference to the document fetcher, i.e. the class "
-            "responsible from fetching the document using the document ID present in the Redis "
-            "Stream.",
+            description=cd_(
+                """The full qualified reference to the document fetcher,
+                i.e. the class responsible from fetching the document.
+                using the document ID present in the Redis Stream.
+
+                It should inherit `app._import.BaseDocumentFetcher`
+                and specialize the `fetch_document` method.
+
+                To keep things sleek,
+                you generally have few item fields in the event stream payload.
+                This class will fetch the full document using your application API.
+                """
+            ),
             examples=["app.openfoodfacts.DocumentFetcher"],
         ),
     ]
@@ -470,9 +576,18 @@ class IndexConfig(BaseModel):
         Annotated[
             str,
             Field(
-                description="The full qualified reference to the preprocessor to use before "
-                "data import. This is used to adapt the data schema or to add search-a-licious "
-                "specific fields for example.",
+                description=cd_(
+                    """The full qualified reference to the preprocessor
+                    to use before data import.
+
+                    This class must inherit `app.indexing.BaseDocumentPreprocessor`
+                    and specialize the `preprocess` method.
+
+                    This is used to adapt the data schema
+                    or to add search-a-licious specific fields
+                    for example.
+                    """
+                ),
                 examples=["app.openfoodfacts.DocumentPreprocessor"],
             ),
         ]
@@ -482,9 +597,16 @@ class IndexConfig(BaseModel):
         Annotated[
             str,
             Field(
-                description="The full qualified reference to the elasticsearch result processor "
-                "to use after search query to Elasticsearch. This is used to add custom fields "
-                "for example.",
+                description=cd_(
+                    """The full qualified reference to the elasticsearch result processor
+                    to use after search query to Elasticsearch.
+
+)                    This class must inherit `app.postprocessing.BaseResultProcessor`
+                    and specialize the `process_after`
+
+                    This is can be used to add custom fields computed from index content.
+                    """
+                ),
                 examples=["app.openfoodfacts.ResultProcessor"],
             ),
         ]
@@ -494,23 +616,48 @@ class IndexConfig(BaseModel):
         Annotated[
             dict[str, ScriptConfig],
             Field(
-                description="You can add scripts that can be used for sorting results",
+                description=cd_(
+                    """You can add scripts that can be used for sorting results.
+
+                    Each key is a script name, with it's configuration.
+                    """
+                ),
             ),
         ]
         | None
     ) = None
     match_phrase_boost: Annotated[
-        float, Field(description="How much we boost exact matches on individual fields")
+        float,
+        Field(
+            description=cd_(
+                """How much we boost exact matches on individual fields
+
+            This only makes sense when using "best match" order.
+            """
+            )
+        ),
     ] = 2.0
     document_denylist: Annotated[
-        set[str], Field(description="list of documents IDs to ignore")
+        set[str],
+        Field(
+            description=cd_(
+                """list of documents IDs to ignore.
+
+            Use this to skip some documents at indexing time.
+            """
+            )
+        ),
     ] = Field(default_factory=set)
 
     redis_stream_name: Annotated[
         str | None,
         Field(
-            description="name of the Redis stream to read from when listening to document updates. "
-            "If not provided, document updates won't be listened to for this index."
+            description=cd_(
+                """Name of the Redis stream to read from when listening to document updates.
+
+                If not provided, document updates won't be listened to for this index.
+                """
+            )
         ),
     ] = None
 
@@ -555,6 +702,7 @@ class IndexConfig(BaseModel):
     @field_validator("fields")
     @classmethod
     def add_field_name_to_each_field(cls, fields: dict[str, FieldConfig]):
+        """It's handy to have the name of the field in the field definition"""
         for field_name, field_item in fields.items():
             field_item.name = field_name
         return fields
