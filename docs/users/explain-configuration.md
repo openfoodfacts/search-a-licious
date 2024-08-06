@@ -36,8 +36,8 @@ This section provides some important fields to control the way it is used.
 If you don't have such field, you might use `preprocessor` to compute one.
 It is important to have such an id to be able to use [continuous updates](FIXME).
 
-`last_modified_field_name` is also important to decide whether we should update an item
-and avoid indexing an item that is rapidly changing more than necessary.
+`last_modified_field_name` is also important for continuous updates to decide
+where to start the event stream processing.
 
 ## Fields
 
