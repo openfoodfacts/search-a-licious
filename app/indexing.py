@@ -112,10 +112,11 @@ class BaseDocumentPreprocessor(abc.ABC):
         This can be used to make document schema compatible with the project
         schema or to add custom fields.
 
-        :return: a FetcherResult object:
-            * the status can be used to pilot wether
-              to index or not the document (even delete it)
-            * the document is the document transformed document
+        :return: a FetcherResult
+          object:
+          * the status can be used to pilot wether
+            to index or not the document (even delete it)
+          * the document is the document transformed document
         """
         pass
 
