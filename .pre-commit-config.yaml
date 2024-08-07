@@ -36,4 +36,5 @@ repos:
       - id: check-translations
         name: "Check if translations files in 'frontend/xliff' need to be updated"
         entry: make check_translations
+        types_or: [ts,javascript,pofile]
         language: system
