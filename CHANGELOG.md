@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.4.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.3.0...v1.4.0) (2024-07-25)
+
+
+### Features
+
+* add default images for products without image in off.html [#208](https://github.com/openfoodfacts/search-a-licious/issues/208) ([#220](https://github.com/openfoodfacts/search-a-licious/issues/220)) ([e4456f3](https://github.com/openfoodfacts/search-a-licious/commit/e4456f3f42caa130a007e4b502cea83a64b7a43d))
+* add loader in search-results ([#209](https://github.com/openfoodfacts/search-a-licious/issues/209)) ([0ee92b5](https://github.com/openfoodfacts/search-a-licious/commit/0ee92b5d3f73b7982d6c38a9e5aabbe11e4c5809))
+* be able to create scatter plots ([#189](https://github.com/openfoodfacts/search-a-licious/issues/189)) ([92e1c1b](https://github.com/openfoodfacts/search-a-licious/commit/92e1c1bd78ff457fd4b6ce5c52e9a3f7fbb9be65))
+* hide chart when search is not launched ([#214](https://github.com/openfoodfacts/search-a-licious/issues/214)) ([468a4c6](https://github.com/openfoodfacts/search-a-licious/commit/468a4c662ae9d702fe90cadc339f91a09353b7ad))
+* update count and refacto code with Signal ([#203](https://github.com/openfoodfacts/search-a-licious/issues/203)) ([9fbec21](https://github.com/openfoodfacts/search-a-licious/commit/9fbec21b81a0c92185b29582556edfcb8461d897))
+
+
+### Bug Fixes
+
+* move docs and fix content ([#215](https://github.com/openfoodfacts/search-a-licious/issues/215)) ([2bc06c3](https://github.com/openfoodfacts/search-a-licious/commit/2bc06c3f46b50d4458763327ccd53a4c7d3ad1a8))
+
 ## [1.3.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.2.0...v1.3.0) (2024-06-28)
 
 
