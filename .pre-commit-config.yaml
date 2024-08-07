@@ -1,13 +1,13 @@
 repos:
   # Note for all linters: do not forget to update pyproject.toml when updating version.
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.3.0
+    rev: 24.8.0
     hooks:
       - id: black
         language_version: python3
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+    rev: 7.1.1
     hooks:
       - id: flake8
 
@@ -16,10 +16,10 @@ repos:
     hooks:
       - id: isort
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v1.11.1
     hooks:
     -   id: mypy
-        additional_dependencies: [types-all]
+        additional_dependencies: [types-all-v2]
   - repo: local
     hooks:
       - id: node-checks
