@@ -90,6 +90,10 @@ OFF_API_URL = os.environ.get("OFF_API_URL", "https://world.openfoodfacts.org")
 
 class DocumentFetcher(BaseDocumentFetcher):
     def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
+        if item.get("action") == "deleted":
+            # this is a deleted product, no need to fetch
+            return FetcherResult(status=FetcherStatus.REMOVED, data=None)
+
         code = item["code"]
         url = f"{OFF_API_URL}/api/v2/product/{code}"
         try:
