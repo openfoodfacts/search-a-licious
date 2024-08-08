@@ -17,7 +17,7 @@ from app._import import (
     run_update_daemon,
     update_alias,
 )
-from app._types import JSONType
+from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import Config, IndexConfig
 from app.indexing import DocumentProcessor
 
@@ -44,12 +44,15 @@ class DocumentFetcher(BaseDocumentFetcher):
         self.missing_documents = kwargs.pop("missing_documents", set())
         super().__init__(config, *args, **kwargs)
 
-    def fetch_document(self, stream_name: str, item: JSONType) -> JSONType | None:
+    def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
         assert stream_name == "product_updates_off"
         id_ = item["code"]
         if id_ in self.missing_documents:
-            return None
-        return {"code": id_, "name": f"Document {id_}"}
+            return FetcherResult(status=FetcherStatus.REMOVED, document=None)
+        return FetcherResult(
+            status=FetcherStatus.FOUND,
+            document={"code": id_, "name": f"Document {id_}"},
+        )
 
 
 def test_get_processed_since(default_config: IndexConfig):
@@ -83,11 +86,29 @@ def test_get_processed_since(default_config: IndexConfig):
     )
 
     # Assertions
-    assert len(results) == 3
-    assert results[0] == (1629878400000, {"code": "1", "name": "Document 1"})
-    assert results[1] == (1629878400001, {"code": "2", "name": "Document 2"})
-    assert results[2] == (1629878400002, {"code": "3", "name": "Document 3"})
-
+    assert len(results) == 4
+    assert results[0] == (
+        1629878400000,
+        FetcherResult(
+            status=FetcherStatus.FOUND, document={"code": "1", "name": "Document 1"}
+        ),
+    )
+    assert results[1] == (
+        1629878400001,
+        FetcherResult(
+            status=FetcherStatus.FOUND, document={"code": "2", "name": "Document 2"}
+        ),
+    )
+    assert results[2] == (
+        1629878400002,
+        FetcherResult(
+            status=FetcherStatus.FOUND, document={"code": "3", "name": "Document 3"}
+        ),
+    )
+    assert results[3] == (
+        1629878400004,
+        FetcherResult(status=FetcherStatus.REMOVED, document=None),
+    )
     results = list(
         get_processed_since(
             redis_client,
@@ -155,11 +176,38 @@ def test_get_new_updates(default_config: IndexConfig):
         {redis_stream_name: document_fetcher},
     )
 
-    results = next(updates_iter)
-    assert results == (
+    result = next(updates_iter)
+    assert result == (
+        redis_stream_name,
+        1629878400002,
+        FetcherResult(status=FetcherStatus.REMOVED, document=None),
+    )
+
+    result = next(updates_iter)
+    assert result == (
         redis_stream_name,
         1629878400000,
-        {"code": "1", "name": "Document 1"},
+        FetcherResult(
+            status=FetcherStatus.FOUND, document={"code": "1", "name": "Document 1"}
+        ),
+    )
+
+    result = next(updates_iter)
+    assert result == (
+        redis_stream_name,
+        1629878400001,
+        FetcherResult(
+            status=FetcherStatus.FOUND, document={"code": "2", "name": "Document 2"}
+        ),
+    )
+
+    result = next(updates_iter)
+    assert result == (
+        redis_stream_name,
+        1629878400003,
+        FetcherResult(
+            status=FetcherStatus.FOUND, document={"code": "3", "name": "Document 3"}
+        ),
     )
 
 
@@ -170,26 +218,68 @@ def test_load_document_fetcher(default_config):
 
 def test_get_document_dict(default_config):
     class MockDocumentProcessor:
-        def from_dict(self, row):
-            if row["_id"] == "id1":
-                return {
-                    "field1_processed": row["field1"],
-                    "field2_processed": row["field2"],
-                    "_id": row["_id"],
-                }
-            return None
+        def from_result(self, row):
+            doc = row.document
+            if doc["_id"] == "id1":
+                return FetcherResult(
+                    status=FetcherStatus.FOUND,
+                    document={
+                        "field1_processed": doc["field1"],
+                        "field2_processed": doc["field2"],
+                        "_id": doc["_id"],
+                    },
+                )
+            elif doc["_id"] == "id2":
+                return FetcherResult(
+                    status=FetcherStatus.REMOVED, document={"_id": doc["_id"]}
+                )
+            elif doc["_id"] == "id3":
+                return FetcherResult(
+                    status=FetcherStatus.SKIP, document={"_id": doc["_id"]}
+                )
+            else:
+                return FetcherResult(status=FetcherStatus.FOUND, document=None)
 
     processor = MockDocumentProcessor()
     next_index = "index1"
-    row_1 = {"field1": "value1", "field2": "value2", "_id": "id1"}
-    row_2 = {"field1": "value1", "field2": "value2", "_id": "id2"}
+    row_1 = FetcherResult(
+        status=FetcherStatus.FOUND,
+        document={"field1": "value1", "field2": "value2", "_id": "id1"},
+    )
+    # will be removed
+    row_2 = FetcherResult(
+        status=FetcherStatus.FOUND,
+        document={"field1": "value1", "field2": "value2", "_id": "id2"},
+    )
+    # will be skipped
+    row_3 = FetcherResult(
+        status=FetcherStatus.FOUND,
+        document={"field1": "value1", "field2": "value2", "_id": "id3"},
+    )
+    # will be skipped too
+    row_4 = FetcherResult(
+        status=FetcherStatus.FOUND,
+        document={"field1": "value1", "field2": "value2", "_id": "id4"},
+    )
 
-    assert get_document_dict(processor, row_1, next_index) == {
+    action = get_document_dict(processor, row_1, next_index)
+    assert action == {
         "_source": {"field1_processed": "value1", "field2_processed": "value2"},
         "_index": "index1",
         "_id": "id1",
     }
-    assert get_document_dict(processor, row_2, next_index) is None
+    action = get_document_dict(processor, row_2, next_index)
+    assert action == {
+        "_op_type": "delete",
+        "_index": "index1",
+        "_id": "id2",
+    }
+
+    action = get_document_dict(processor, row_3, next_index)
+    assert action is None
+
+    action = get_document_dict(processor, row_4, next_index)
+    assert action is None
 
 
 def test_gen_documents(default_config):
@@ -277,13 +367,63 @@ def test_run_update_daemon(default_global_config: Config):
     off_config: IndexConfig = default_global_config.indices["off"]
     es_client_mock = MagicMock()
     redis_client_mock = MagicMock()
+    # note that it won't really be used,
+    # but we need it to instanciate the gen_new_updates mock
     document_fetcher_mock = DocumentFetcher(off_config)
 
     # Replace with your desired test data
     updates = [
-        ("product_updates_off", 1629878400000, {"code": "1", "name": "Document 1"}),
-        ("product_updates_off", 1629878400001, {"code": "2", "name": "Document 2"}),
-        ("product_updates_off", 1629878400002, {"code": "3", "name": "Document 3"}),
+        (
+            "product_updates_off",
+            1629878400000,
+            FetcherResult(
+                status=FetcherStatus.FOUND, document={"code": "1", "name": "Document 1"}
+            ),
+        ),
+        (
+            "product_updates_off",
+            1629878400001,
+            FetcherResult(
+                status=FetcherStatus.FOUND, document={"code": "2", "name": "Document 2"}
+            ),
+        ),
+        (
+            "product_updates_off",
+            1629878400002,
+            FetcherResult(
+                status=FetcherStatus.FOUND, document={"code": "3", "name": "Document 3"}
+            ),
+        ),
+        (
+            "product_updates_off",
+            1629878400003,
+            FetcherResult(
+                status=FetcherStatus.REMOVED,
+                document={"code": "4", "name": "Document 4"},
+            ),
+        ),
+        (
+            "product_updates_off",
+            1629878400004,
+            FetcherResult(status=FetcherStatus.FOUND, document=None),
+        ),
+        # to skip
+        (
+            "product_updates_off",
+            1629878400005,
+            FetcherResult(
+                status=FetcherStatus.SKIP, document={"code": "6", "name": "Document 6"}
+            ),
+        ),
+        # this corresponds to id in document_denylist
+        (
+            "product_updates_off",
+            1629878400005,
+            FetcherResult(
+                status=FetcherStatus.FOUND,
+                document={"code": "8901552007122", "name": "Denyed Document"},
+            ),
+        ),
     ]
 
     # Mock the necessary dependencies
@@ -303,7 +443,8 @@ def test_run_update_daemon(default_global_config: Config):
     connection_mock.get_es_client.assert_called_once()
     connection_mock.get_redis_client.assert_called_once()
     load_document_fetcher_mock.assert_called_once_with(off_config)
-
+    # only three first elements are indexed
+    assert len(es_client_mock.index.mock_calls) == 3
     for i, mock_call in enumerate(es_client_mock.index.mock_calls):
         assert mock_call.args == ()
         kwargs = mock_call.kwargs
@@ -311,3 +452,10 @@ def test_run_update_daemon(default_global_config: Config):
         assert kwargs["id"] == str(i + 1)
         assert kwargs["body"]["code"] == str(i + 1)
         assert isinstance(kwargs["body"]["last_indexed_datetime"], str)
+    # one element removed
+    assert len(es_client_mock.delete.mock_calls) == 1
+    mock_call = es_client_mock.delete.mock_calls[0]
+    assert mock_call.args == ()
+    kwargs = mock_call.kwargs
+    assert set(kwargs.keys()) == {"index", "id"}
+    assert kwargs["id"] == "4"
