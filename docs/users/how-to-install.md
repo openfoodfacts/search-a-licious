@@ -8,5 +8,4 @@ All configuration are passed through environment variables to services through t
 
 The only required change is to set the `CONFIG_PATH` variable to the path of your YAML configuration file. This file is used to configure the search-a-licious indexer and search services.
 
-
-
+If you want to see more about settings, see the [Reference for Settings](./ref-settings.md)

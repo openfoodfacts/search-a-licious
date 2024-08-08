@@ -59,7 +59,10 @@ Here:
    It's mostly a way to declare constants in the script.
    (hopefully more convenient than declaring them in the script)
 
-See [introduction to script in Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting-using.html)
+For more information on configuration for scripts see [configuration reference](../ref-config/searchalicious-config-schema.html#indices_additionalProperties_scripts)
+
+For informations on how to write scripts,
+see [introduction to script in Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting-using.html)
 
 ## Import the scripts in Elasticsearch
 

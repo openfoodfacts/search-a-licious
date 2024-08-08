@@ -35,7 +35,7 @@ html_theme_options = {
     "github_repo": "search-a-licious",
     "github_banner": True,
     "extra_nav_links": {
-        "Back to main doc": "/search-a-licious",
+        "🢀 Back to main doc": "/search-a-licious",
     },
 }
 
