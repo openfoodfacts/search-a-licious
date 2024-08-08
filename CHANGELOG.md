@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.4.0...v1.5.0) (2024-08-08)
+
+
+### Features
+
+* better import ([#228](https://github.com/openfoodfacts/search-a-licious/issues/228)) ([ab75a96](https://github.com/openfoodfacts/search-a-licious/commit/ab75a966884350216fbcbea21b02bc62a042b16c))
+
+
+### Bug Fixes
+
+* fix broken pre-commit dependency ([0e7a8cf](https://github.com/openfoodfacts/search-a-licious/commit/0e7a8cf3a1537ee4decd8de2d008de6ff146d992))
+
 ## [1.4.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.3.0...v1.4.0) (2024-07-25)
 
 
