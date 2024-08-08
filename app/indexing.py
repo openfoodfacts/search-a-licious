@@ -6,7 +6,7 @@ from typing import Iterable
 from elasticsearch_dsl import Index, Mapping, analyzer
 from elasticsearch_dsl import field as dsl_field
 
-from app._types import JSONType
+from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import (
     ANALYZER_LANG_MAPPING,
     Config,
@@ -106,13 +106,18 @@ class BaseDocumentPreprocessor(abc.ABC):
         self.config = config
 
     @abc.abstractmethod
-    def preprocess(self, document: JSONType) -> JSONType | None:
+    def preprocess(self, document: JSONType) -> FetcherResult:
         """Preprocess the document before data ingestion in Elasticsearch.
 
         This can be used to make document schema compatible with the project
         schema or to add custom fields.
 
-        Is None is returned, the document is not indexed.
+        :return: a FetcherResult object:
+
+        * the status can be used to pilot wether
+          to index or not the document (even delete it)
+        * the document is the document transformed document
+
         """
         pass
 
@@ -278,34 +283,52 @@ class DocumentProcessor:
         else:
             self.preprocessor = None
 
-    def from_dict(self, data: JSONType) -> JSONType | None:
+    def from_result(self, result: FetcherResult) -> FetcherResult:
         """Generate an item ready to be indexed by elasticsearch-dsl
-        from an item dict.
+        from a fetcher result.
 
-        :param data: the input data
-        :return: a dict ready to be indexed
+        :param result: the input data
+        :return: a new result with transformed data, ready to be indexed
+          or removed or skipped.
+
+          In case of indexing or removal, the document always contains an `id_` item
         """
+        data = result.document
+        if data is None:
+            # unexpected !
+            return FetcherResult(status=FetcherStatus.OTHER, document=None)
         id_field_name = self.config.index.id_field_name
 
         _id = data.get(id_field_name)
         if _id is None or _id in self.config.document_denylist:
             # We don't process the document if it has no ID or if it's in the
             # denylist
-            return None
+            return FetcherResult(status=FetcherStatus.SKIP, document=None)
+
+        processed_result = (
+            self.preprocessor.preprocess(data)
+            if (self.preprocessor is not None)
+            and (result.status == FetcherStatus.FOUND)
+            else result
+        )
+
+        if processed_result.status == FetcherStatus.REMOVED:
+            return FetcherResult(
+                status=FetcherStatus.REMOVED,
+                document={"_id": _id},
+            )
+        elif (
+            processed_result.status != FetcherStatus.FOUND
+            or processed_result.document is None
+        ):
+            return processed_result
+
+        processed_data = processed_result.document
 
         inputs = {
             "last_indexed_datetime": datetime.datetime.utcnow().isoformat(),
             "_id": _id,
         }
-        processed_data = (
-            self.preprocessor.preprocess(data)
-            if self.preprocessor is not None
-            else data
-        )
-
-        if processed_data is None:
-            return None
-
         for field in self.config.fields.values():
             input_field = field.get_input_field()
 
@@ -339,7 +362,7 @@ class DocumentProcessor:
             if field_input:
                 inputs[field.name] = field_input
 
-        return inputs
+        return FetcherResult(status=processed_result.status, document=inputs)
 
 
 def generate_mapping_object(config: IndexConfig) -> Mapping:
