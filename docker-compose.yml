@@ -35,7 +35,7 @@ x-api-common: &api-common
   image: ghcr.io/openfoodfacts/search-a-licious/search_service_image:${TAG:-dev}
   restart: ${RESTART_POLICY:-always}
   environment:
-    - ELASTICSEARCH_URL=http://es01:9200
+    - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://es01:9200}
     - SENTRY_DNS
     - LOG_LEVEL
     - REDIS_HOST

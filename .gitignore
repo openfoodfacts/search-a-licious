@@ -4,6 +4,7 @@ data/**/*.jsonl
 products*.jsonl.gz
 data/searchalicious-openapi.yml
 data/searchalicious-config-schema.yml
+data/searchalicious-settings-schema.yml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
