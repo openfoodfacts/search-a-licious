@@ -15,6 +15,13 @@ ES_DOCS_URL = "https://www.elastic.co/guide/en/elasticsearch/reference/current"
 
 
 class LoggingLevel(StrEnum):
+    """Accepted logging levels
+
+    * NOTSET - means no los
+    * DEBUG / INFO / WARNING / ERROR / CRITICAL
+      - match standard Python logging levels
+    """
+
     NOTSET = "NOTSET"
     DEBUG = "DEBUG"
     INFO = "INFO"
@@ -45,27 +52,75 @@ class ScriptType(StrEnum):
 class Settings(BaseSettings):
     """Settings for Search-a-licious
 
-    Those settings can be overriden through environment
+    The most important settings is `config_path`.
+
+    Those settings can be overridden through environment
+    by using the name in capital letters.
+    If you use docker compose, a good way to do that
+    is to modify those values in your .env file.
     """
 
-    #: Path of the search-a-licious yaml configuration file
-    config_path: Path | None = None
-    #: URL to the ElasticSearch instance
-    elasticsearch_url: str = "http://localhost:9200"
-    #: Host for the Redis instance containing event stream
-    redis_host: str = "localhost"
-    #: Port for the redis host instance containing event stream
-    redis_port: int = 6379
-    #: timeout in seconds to read redis event stream
-    redis_reader_timeout: int = 5
-    #: Sentry DNS to report incident, if None no incident is reported
-    sentry_dns: str | None = None
-    #: Log level
-    log_level: LoggingLevel = LoggingLevel.INFO
-    #: Directory where to store taxonomies before ingestion to ElasticSearch
-    taxonomy_cache_dir: Path = Path("data/taxonomies")
-    #: User-Agent used when fetching resources (taxonomies) or documents
-    user_agent: str = "search-a-licious"
+    config_path: Annotated[
+        Path | None,
+        Field(
+            description=cd_(
+                """Path to the search-a-licious yaml configuration file.
+
+                See [Explain configuration file](../explain-configuration/) for more information
+                """
+            )
+        ),
+    ] = None
+    elasticsearch_url: Annotated[
+        str,
+        Field(
+            description=cd_(
+                """URL to the ElasticSearch instance
+
+                Bare in mind this is from inside the container.
+                """
+            )
+        ),
+    ] = "http://localhost:9200"
+    redis_host: Annotated[
+        str,
+        Field(
+            description=cd_(
+                """Host for the Redis instance containing event stream
+
+                Bare in mind this is from inside the container.
+                """
+            )
+        ),
+    ] = "localhost"
+    redis_port: Annotated[
+        int,
+        Field(description="Port for the redis host instance containing event stream"),
+    ] = 6379
+    redis_reader_timeout: Annotated[
+        int, Field(description="timeout in seconds to read redis event stream")
+    ] = 5
+    sentry_dns: Annotated[
+        str | None,
+        Field(
+            description="Sentry DNS to report incident, if None no incident is reported"
+        ),
+    ] = None
+    log_level: Annotated[
+        LoggingLevel, Field(description=f"Log level. {LoggingLevel.__doc__}")
+    ] = LoggingLevel.INFO
+    taxonomy_cache_dir: Annotated[
+        Path,
+        Field(
+            description="Directory where to store taxonomies before ingestion to ElasticSearch"
+        ),
+    ] = Path("data/taxonomies")
+    user_agent: Annotated[
+        str,
+        Field(
+            description="User-Agent used when fetching resources (taxonomies) or documents"
+        ),
+    ] = "search-a-licious"
 
 
 settings = Settings()
