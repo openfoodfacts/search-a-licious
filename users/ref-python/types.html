@@ -384,6 +384,85 @@
 <p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <a class="reference internal" href="#app._types.FacetInfo" title="app._types.FacetInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">FacetInfo</span></code></a>]</p>
 </dd></dl>
 
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="app._types.FetcherResult">
+<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app._types.</span></span><span class="sig-name descname"><span class="pre">FetcherResult</span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.FetcherResult" title="Link to this definition">¶</a></dt>
+<dd><p>Result for a document fecher</p>
+<p><details  class="autodoc_pydantic_collapsable_json">
+<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FetcherResult&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Result for a document fecher&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/FetcherStatus&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;document&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Document&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;FetcherStatus&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Status of a fetcher\n\n* FOUND - document was found, index it\n* REMOVED - document was removed, remove it\n* SKIP - skip this document / update\n* RETRY - retry this document / update later\n* OTHER - unknown error&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="mi">-1</span><span class="p">,</span>
+<span class="w">            </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">            </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">            </span><span class="mi">3</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FetcherStatus&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;status&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;document&quot;</span>
+<span class="w">   </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></p><dl class="field-list simple">
+<dt class="field-odd">Fields<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#app._types.FetcherResult.document" title="app._types.FetcherResult.document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">document</span> <span class="pre">(dict[str,</span> <span class="pre">Any]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#app._types.FetcherResult.status" title="app._types.FetcherResult.status"><code class="xref py py-obj docutils literal notranslate"><span class="pre">status</span> <span class="pre">(app._types.FetcherStatus)</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="app._types.FetcherResult.document">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">document</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.FetcherResult.document" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="app._types.FetcherResult.status">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#app._types.FetcherStatus" title="app._types.FetcherStatus"><span class="pre">FetcherStatus</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.FetcherResult.status" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="app._types.FetcherStatus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app._types.</span></span><span class="sig-name descname"><span class="pre">FetcherStatus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names=&lt;not</span> <span class="pre">given&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary=None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.FetcherStatus" title="Link to this definition">¶</a></dt>
+<dd><p>Status of a fetcher</p>
+<ul class="simple">
+<li><p>FOUND - document was found, index it</p></li>
+<li><p>REMOVED - document was removed, remove it</p></li>
+<li><p>SKIP - skip this document / update</p></li>
+<li><p>RETRY - retry this document / update later</p></li>
+<li><p>OTHER - unknown error</p></li>
+</ul>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="app._types.JSONType">
 <span class="sig-prename descclassname"><span class="pre">app._types.</span></span><span class="sig-name descname"><span class="pre">JSONType</span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.JSONType" title="Link to this definition">¶</a></dt>

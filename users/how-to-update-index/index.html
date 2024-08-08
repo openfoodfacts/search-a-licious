@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://openfoodfacts.github.io/search-a-licious/users/how-to-install/">
+        <link rel="canonical" href="https://openfoodfacts.github.io/search-a-licious/users/how-to-update-index/">
       
       
-        <link rel="prev" href="../tutorial/">
+        <link rel="prev" href="../how-to-install/">
       
       
-        <link rel="next" href="../how-to-update-index/">
+        <link rel="next" href="../how-to-use-scripts/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>How to install search-a-licious - Search-a-licious documentation</title>
+        <title>How to update the index - Search-a-licious documentation</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#how-to-install-search-a-licious" class="md-skip">
+        <a href="#how-to-update-the-index" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              How to install search-a-licious
+              How to update the index
             
           </span>
         </div>
@@ -292,6 +292,27 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../how-to-install/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    How to install search-a-licious
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -304,29 +325,18 @@
         
       
       
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
   
   <span class="md-ellipsis">
-    How to install search-a-licious
+    How to update the index
   </span>
   
 
-      </a>
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../how-to-update-index/" class="md-nav__link">
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -335,6 +345,62 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#first-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      First import
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuous-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Continuous updates
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-the-index-from-time-to-time-with-an-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating the index from time to time with an export
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#document-fetcher-and-pre-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Document fetcher and pre-processing
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -514,6 +580,50 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#first-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      First import
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuous-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Continuous updates
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-the-index-from-time-to-time-with-an-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating the index from time to time with an export
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#document-fetcher-and-pre-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Document fetcher and pre-processing
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -530,11 +640,51 @@
   
 
 
-<h1 id="how-to-install-search-a-licious">How to install search-a-licious<a class="headerlink" href="#how-to-install-search-a-licious" title="Permanent link">#</a></h1>
-<p>search-a-licious uses docker and docker compose to manage the services it needs to run. You will need to install both of these before you can use search-a-licious.</p>
-<p>Once <a href="https://docs.docker.com/engine/install/">docker</a> and <a href="https://docs.docker.com/compose/install/">docker compose</a> are installed, clone the git repository locally.</p>
-<p>All configuration are passed through environment variables to services through the use of a <code>.env</code> file. A sample <code>.env</code> file is provided in the repository, you will need to edit this file to suit your needs.</p>
-<p>The only required change is to set the <code>CONFIG_PATH</code> variable to the path of your YAML configuration file. This file is used to configure the search-a-licious indexer and search services.</p>
+<h1 id="how-to-update-the-index">How to update the index<a class="headerlink" href="#how-to-update-the-index" title="Permanent link">#</a></h1>
+<p>As you use search-a-licious, you will first import the data,
+but then, you might need to update the index to keep it up to date with the latest data.</p>
+<p>There are two strategies to update the index:</p>
+<ul>
+<li>either you push events to the redis stream, and search-a-licious update the index continuously</li>
+<li>either you update the index from time to time using a new import of whole dataset</li>
+</ul>
+<h2 id="first-import">First import<a class="headerlink" href="#first-import" title="Permanent link">#</a></h2>
+<p>First import will populate Elasticsearch index with all the data.</p>
+<p>See <a href="../tutorial/#initial-import"><em>initial import</em> section in tutorial</a>
+and <a href="../ref-python/cli.html#python3-m-app-import"><code>import</code> reference documentation</a></p>
+<p>It's important to note that if you don't use the <em>continous updates</em> strategy,
+you need to use <code>--skip-updates</code> option.</p>
+<h2 id="continuous-updates">Continuous updates<a class="headerlink" href="#continuous-updates" title="Permanent link">#</a></h2>
+<p>To have continuous updates, you need to push events to the redis stream.</p>
+<p>Normally this will be done by your application.</p>
+<p>On each update/removal/etc. it must push events with at least:</p>
+<ul>
+<li>the document id</li>
+<li>and eventually more info (if you need them to filter out items, for example).</li>
+</ul>
+<p>Of course you can also imagine to push events from another service,
+if you have another way of getting changes, but this part is up to you.</p>
+<p>Then you just have to run the <code>updater</code> container that comes in the docker-compose configuration.
+<div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>updater
+</code></pre></div></p>
+<p>This will continuously fetch updates from the event stream, and update the index accordingly.</p>
+<p>At start it will compute last update time using
+the <a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name"><code>last_modified_field_name</code> from the configuration</a>
+to know from where to start processing the event stream.</p>
+<h2 id="updating-the-index-from-time-to-time-with-an-export">Updating the index from time to time with an export<a class="headerlink" href="#updating-the-index-from-time-to-time-with-an-export" title="Permanent link">#</a></h2>
+<p>Another way to update the index is to periodically re-import the all the data, or changed data.</p>
+<p>This is less compelling to your users, but this might be the best way
+if you are using an external database publishing changes on a regular bases.</p>
+<p>For that you can use the <a href="../ref-python/cli.html#python3-m-app-import"><code>import</code> command</a>,
+with the <code>--skip-updates</code> option, and with the <code>--partial</code> option if you are importing only changed data
+(otherwise it is advised to use the normal import process, which can be rolled-back (it create a new index)).</p>
+<h2 id="document-fetcher-and-pre-processing">Document fetcher and pre-processing<a class="headerlink" href="#document-fetcher-and-pre-processing" title="Permanent link">#</a></h2>
+<p>In the configuration, you can define a
+<a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_document_fetcher"><code>document_fetcher</code></a>
+and a <a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_preprocessor"><code>preprocessor</code></a> to transform the data.</p>
+<p>Those are fully qualified dotted names to python classes.</p>
+<p><code>document_fetcher</code> is only used on continuous updates,
+while <code>preprocessor</code> is used both on continuous updates and on initial import.</p>
 
 
 
