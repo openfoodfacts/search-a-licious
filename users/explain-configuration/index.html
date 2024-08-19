@@ -404,9 +404,54 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#split-separator" class="md-nav__link">
+  <a href="#one-configuration-multiple-datasets" class="md-nav__link">
     <span class="md-ellipsis">
-      Split separator
+      One configuration, multiple datasets
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main sections
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#index-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Index configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#document-fetcher-pre-processors-and-post-processors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Document fetcher, pre-processors and post-processors
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scripts
     </span>
   </a>
   
@@ -449,6 +494,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../ref-config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reference for Configuration file
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../ref-openapi/" class="md-nav__link">
         
   
@@ -475,6 +541,27 @@
   
   <span class="md-ellipsis">
     Ref: Python Code documentation 🡕
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ref-settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reference for Settings
   </span>
   
 
@@ -560,9 +647,54 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#split-separator" class="md-nav__link">
+  <a href="#one-configuration-multiple-datasets" class="md-nav__link">
     <span class="md-ellipsis">
-      Split separator
+      One configuration, multiple datasets
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main sections
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#index-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Index configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#document-fetcher-pre-processors-and-post-processors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Document fetcher, pre-processors and post-processors
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scripts
     </span>
   </a>
   
@@ -590,8 +722,55 @@
 <p>The idea of Search-a-licious is that you provide all your configurations details in a central file,
 and all the rest works (at least for main scenarios).</p>
 <p>The configuration file is a YAML file.</p>
+<h2 id="one-configuration-multiple-datasets">One configuration, multiple datasets<a class="headerlink" href="#one-configuration-multiple-datasets" title="Permanent link">#</a></h2>
+<p>A Search-a-licious instance only have one configuration file,
+but is capable of serving multiple datasets</p>
 <p>It provides a section for each index you want to create (corresponding to a dataset).</p>
-<h3 id="split-separator">Split separator<a class="headerlink" href="#split-separator" title="Permanent link">#</a></h3>
+<p>If you have more than one dataset, one must be declared the default (see <a href="../ref-config/searchalicious-config-schema.html#default_index">default_index</a>)</p>
+<h2 id="main-sections">Main sections<a class="headerlink" href="#main-sections" title="Permanent link">#</a></h2>
+<p>For each indexe the main sections are:</p>
+<ul>
+<li>index: some configuration of the Elasticsearch index</li>
+<li>fields: the fields you want to put in the index, their type and other configurations</li>
+<li>taxonomy: definitions of taxonomies that are used by this index</li>
+<li>redis_stream_name and document_fetcher: if you use continuous updates, you will need to define one</li>
+<li>preprocessor and result_processor are two fields enabling to handle specificities of your dataset.</li>
+<li>scripts: to use sort by script (see <a href="../how-to-use-scripts/">How to use scripts</a>)</li>
+</ul>
+<h2 id="index-configuration">Index configuration<a class="headerlink" href="#index-configuration" title="Permanent link">#</a></h2>
+<p>Search-a-licious is really based upon Elasticsearch,</p>
+<p>This section provides some important fields to control the way it is used.</p>
+<p><code>id_field_name</code> is particularly important as it must contain a field that uniquely identifies each items.
+If you don't have such field, you might use <code>preprocessor</code> to compute one.
+It is important to have such an id to be able to use <a href="FIXME">continuous updates</a>.</p>
+<p><code>last_modified_field_name</code> is also important for continuous updates to decide
+where to start the event stream processing.</p>
+<h2 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">#</a></h2>
+<p>This is one of the most important section.</p>
+<p>It specifies what will be stored in your index,
+which fields will be searchable, and how.</p>
+<p>You have to plan in advance how you configure this.</p>
+<p>Think well about:</p>
+<ul>
+<li>fields you want to search and how you want to search them</li>
+<li>which informations you need to display in search results</li>
+<li>what you need to sort on</li>
+<li>which facets you want to display</li>
+<li>which charts you need to build</li>
+</ul>
+<p>Changing this section will probably involve a full re-indexing of all your items.</p>
+<p>Read more in the <a href="../ref-config/searchalicious-config-schema.html#fields">reference documentation</a>.</p>
+<h2 id="document-fetcher-pre-processors-and-post-processors">Document fetcher, pre-processors and post-processors<a class="headerlink" href="#document-fetcher-pre-processors-and-post-processors" title="Permanent link">#</a></h2>
+<p>It is not always straight forward to index an item.</p>
+<p>Search-a-licious offers a way for you to customize some critical operations using Python code.</p>
+<ul>
+<li>preprocessor adapts you document before being indexed</li>
+<li>whereas result_processor adapts each result returned by a search, keep it lightweight !</li>
+<li>document_fetcher is only used for continuous updates to fetch documents using an API</li>
+</ul>
+<p>Read more in the <a href="../ref-config/searchalicious-config-schema.html">reference documentation</a>.</p>
+<h2 id="scripts">Scripts<a class="headerlink" href="#scripts" title="Permanent link">#</a></h2>
+<p>You can also add scripts for sorting documents. See <a href="../how-to-use-scripts/">How to use scripts</a>.</p>
 
 
 

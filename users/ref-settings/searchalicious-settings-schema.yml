@@ -1,0 +1,93 @@
+$defs:
+  LoggingLevel:
+    description: "Accepted logging levels\n\n* NOTSET - means no los\n* DEBUG / INFO\
+      \ / WARNING / ERROR / CRITICAL\n  - match standard Python logging levels"
+    enum:
+    - NOTSET
+    - DEBUG
+    - INFO
+    - WARNING
+    - ERROR
+    - CRITICAL
+    title: LoggingLevel
+    type: string
+additionalProperties: false
+description: 'Settings for Search-a-licious
+
+
+  The most important settings is `config_path`.
+
+
+  Those settings can be overridden through environment
+
+  by using the name in capital letters.
+
+  If you use docker compose, a good way to do that
+
+  is to modify those values in your .env file.'
+properties:
+  config_path:
+    anyOf:
+    - format: path
+      type: string
+    - type: 'null'
+    default: null
+    description: 'Path to the search-a-licious yaml configuration file.
+
+
+      See [Explain configuration file](../explain-configuration/) for more information'
+    title: Config Path
+  elasticsearch_url:
+    default: http://localhost:9200
+    description: 'URL to the ElasticSearch instance
+
+
+      Bare in mind this is from inside the container.'
+    title: Elasticsearch Url
+    type: string
+  redis_host:
+    default: localhost
+    description: 'Host for the Redis instance containing event stream
+
+
+      Bare in mind this is from inside the container.'
+    title: Redis Host
+    type: string
+  redis_port:
+    default: 6379
+    description: Port for the redis host instance containing event stream
+    title: Redis Port
+    type: integer
+  redis_reader_timeout:
+    default: 5
+    description: timeout in seconds to read redis event stream
+    title: Redis Reader Timeout
+    type: integer
+  sentry_dns:
+    anyOf:
+    - type: string
+    - type: 'null'
+    default: null
+    description: Sentry DNS to report incident, if None no incident is reported
+    title: Sentry Dns
+  log_level:
+    allOf:
+    - $ref: '#/$defs/LoggingLevel'
+    default: INFO
+    description: "Log level. Accepted logging levels\n\n    * NOTSET - means no los\n\
+      \    * DEBUG / INFO / WARNING / ERROR / CRITICAL\n      - match standard Python\
+      \ logging levels\n    "
+  taxonomy_cache_dir:
+    default: data/taxonomies
+    description: Directory where to store taxonomies before ingestion to ElasticSearch
+    format: path
+    title: Taxonomy Cache Dir
+    type: string
+  user_agent:
+    default: search-a-licious
+    description: User-Agent used when fetching resources (taxonomies) or documents
+    title: User Agent
+    type: string
+title: JSON schema for search-a-licious configuration file
+type: object
+$schema: https://json-schema.org/draft/2020-12/schema

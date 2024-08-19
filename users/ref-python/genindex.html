@@ -316,13 +316,17 @@
 </li>
       <li><a href="types.html#app._types.ErrorSearchResponse.errors">errors (app._types.ErrorSearchResponse attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="types.html#app._types.QueryAnalysis.es_query">es_query (app._types.QueryAnalysis attribute)</a>
 </li>
-      <li><a href="config.html#app.config.Config.export_json_schema">export_json_schema() (app.config.Config class method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="cli.html#app.cli.main.export_config_schema">export_config_schema() (in module app.cli.main)</a>
 </li>
       <li><a href="cli.html#app.cli.main.export_openapi">export_openapi() (in module app.cli.main)</a>
+</li>
+      <li><a href="cli.html#app.cli.main.export_schema">export_schema() (in module app.cli.main)</a>
+</li>
+      <li><a href="cli.html#app.cli.main.export_settings_schema">export_settings_schema() (in module app.cli.main)</a>
 </li>
       <li><a href="config.html#app.config.TaxonomyConfig.exported_langs">exported_langs (app.config.TaxonomyConfig attribute)</a>
 </li>
@@ -462,6 +466,8 @@
 </li>
       <li><a href="types.html#app._types.SuccessSearchResponse.is_count_exact">is_count_exact (app._types.SuccessSearchResponse attribute)</a>
 </li>
+      <li><a href="config.html#app.config.FieldType.is_numeric">is_numeric() (app.config.FieldType method)</a>
+</li>
       <li><a href="misc.html#app.taxonomy.TaxonomyNode.is_parent_of">is_parent_of() (app.taxonomy.TaxonomyNode method)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.is_parent_of_any">is_parent_of_any() (app.taxonomy.Taxonomy method)</a>
@@ -582,29 +588,19 @@
       <ul>
         <li><a href="types.html#app._types.FacetItem.name">(app._types.FacetItem attribute)</a>
 </li>
-        <li><a href="config.html#app.config.ESIndexConfig.name">(app.config.ESIndexConfig attribute)</a>
+        <li><a href="config.html#app.config.BaseESIndexConfig.name">(app.config.BaseESIndexConfig attribute)</a>
 </li>
         <li><a href="config.html#app.config.FieldConfig.name">(app.config.FieldConfig attribute)</a>
-</li>
-        <li><a href="config.html#app.config.TaxonomyIndexConfig.name">(app.config.TaxonomyIndexConfig attribute)</a>
 </li>
         <li><a href="config.html#app.config.TaxonomySourceConfig.name">(app.config.TaxonomySourceConfig attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.ESIndexConfig.number_of_replicas">number_of_replicas (app.config.ESIndexConfig attribute)</a>
-
-      <ul>
-        <li><a href="config.html#app.config.TaxonomyIndexConfig.number_of_replicas">(app.config.TaxonomyIndexConfig attribute)</a>
+      <li><a href="config.html#app.config.BaseESIndexConfig.number_of_replicas">number_of_replicas (app.config.BaseESIndexConfig attribute)</a>
 </li>
-      </ul></li>
-      <li><a href="config.html#app.config.ESIndexConfig.number_of_shards">number_of_shards (app.config.ESIndexConfig attribute)</a>
-
-      <ul>
-        <li><a href="config.html#app.config.TaxonomyIndexConfig.number_of_shards">(app.config.TaxonomyIndexConfig attribute)</a>
+      <li><a href="config.html#app.config.BaseESIndexConfig.number_of_shards">number_of_shards (app.config.BaseESIndexConfig attribute)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -867,7 +863,7 @@
 <hr />
 <ul>
     
-    <li class="toctree-l1"><a href="/search-a-licious">Back to main doc</a></li>
+    <li class="toctree-l1"><a href="/search-a-licious">🢀 Back to main doc</a></li>
     
 </ul>
 <div class="relations">
