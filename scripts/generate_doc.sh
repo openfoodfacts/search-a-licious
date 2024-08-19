@@ -11,7 +11,9 @@ mkdir -p gh_pages
 echo "Build documentation with MkDocs"
 scripts/build_mkdocs.sh
 
-# TODO: generating python and documentation with sphinx
+echo "Generate documentation for configuration file and settings"
+scripts/build_schema.sh config
+scripts/build_schema.sh settings
 
 echo "Generate OpenAPI documentation"
 make generate-openapi

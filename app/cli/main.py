@@ -225,7 +225,7 @@ def export_openapi(
         exists=None,
         file_okay=True,
         dir_okay=False,
-        help="Path of target_path the YAML or JSON data file",
+        help="Path of the YAML or JSON data file",
     )
 ):
     """Export OpenAPI specification to a file."""
@@ -246,6 +246,52 @@ def export_openapi(
             yaml.dump(openapi, f, sort_keys=False)
 
     print(f"spec written to {target_path}")
+
+
+def export_schema(
+    class_: type["app.config.Config"] | type["app.config.Settings"], target_path: Path
+):
+    """Export schema to a file."""
+    import json
+
+    import yaml
+
+    from app.config import ConfigGenerateJsonSchema
+
+    schema = class_.model_json_schema(schema_generator=ConfigGenerateJsonSchema)
+
+    print("writing json schema")
+    with open(target_path, "w") as f:
+        if str(target_path).endswith(".json"):
+            json.dump(schema, f, indent=2)
+        else:
+            yaml.safe_dump(schema, f, sort_keys=False)
+
+    print(f"schema written to {target_path}")
+
+
+schema_target_path = typer.Argument(
+    exists=None,
+    file_okay=True,
+    dir_okay=False,
+    help="Path of the YAML or JSON data file",
+)
+
+
+@cli.command()
+def export_config_schema(target_path: Path = schema_target_path):
+    """Export Configuration json schema to a file."""
+    from app.config import Config
+
+    export_schema(Config, target_path)
+
+
+@cli.command()
+def export_settings_schema(target_path: Path = schema_target_path):
+    """Export Configuration json schema to a file."""
+    from app.config import Settings
+
+    export_schema(Settings, target_path)
 
 
 def main() -> None:
