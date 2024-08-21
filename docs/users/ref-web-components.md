@@ -4,6 +4,8 @@ This page documents [web Components](https://developer.mozilla.org/en-US/docs/We
 provided by Search-a-licious
 to quickly build your interfaces.
 
+See the [tutorial for an introduction](./tutorial.md#building-a-search-interface)
+
 ## Main components
 
 ### searchalicious-bar

@@ -234,6 +234,7 @@ class FieldType(StrEnum):
       Tokenization will use analyzers specific to each languages.
     * taxonomy: a field akin to keyword but
       with support for matching using taxonomy synonyms and translations
+      (and in fact also a text mapping possibility)
     * disabled: a field that is not stored nor searchable
       (see [Elasticsearch help])
     * object: this field contains a dict with sub-fields.
@@ -480,11 +481,16 @@ class TaxonomyConfig(BaseModel):
     """Configuration of taxonomies,
     that is collections of entries with synonyms in multiple languages.
 
+    See [Explain taxonomies](../explain-taxonomies)
+
     Field may be linked to taxonomies.
 
     It enables enriching search with synonyms,
     as well as providing suggestions,
     or informative facets.
+
+    Note: if you define taxonomies, you must import them using
+    [import-taxonomies command](../ref-python/cli.html#python3-m-app-import-taxonomies)
     """
 
     sources: Annotated[

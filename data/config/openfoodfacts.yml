@@ -74,7 +74,8 @@ indices:
         bucket_agg: true
       quantity:
         type: text
-      categories_tags:
+      categories_tags: keyworld / categories_tags.txt text
+        // full_text_search: true
         type: keyword
         taxonomy_name: category
         bucket_agg: true

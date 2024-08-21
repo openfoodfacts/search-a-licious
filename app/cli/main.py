@@ -131,10 +131,23 @@ def import_taxonomies(
         default=None,
         help=INDEX_ID_HELP,
     ),
+    skip_indexing: bool = typer.Option(
+        default=False,
+        help="Skip putting taxonomies in the ES index",
+    ),
+    skip_synonyms: bool = typer.Option(
+        default=False,
+        help="Skip creating synonyms files for ES analyzers",
+    ),
 ):
     """Import taxonomies into Elasticsearch.
 
-    It get taxonomies json files as specified in the configuration file.
+    It download taxonomies json files as specified in the configuration file.
+
+    It creates taxonomies indexes (for auto-completion).
+
+    It creates synonyms files for ElasticSearch analyzers
+    (enabling full text search to benefits from synonyms).
     """
     import time
 
@@ -145,19 +158,26 @@ def import_taxonomies(
 
     index_id, index_config = _get_index_config(config_path, index_id)
 
-    start_time = time.perf_counter()
     # open a connection for this process
     connection.get_es_client(timeout=120, retry_on_timeout=True)
-    perform_taxonomy_import(index_config)
-    end_time = time.perf_counter()
-    logger.info("Import time: %s seconds", end_time - start_time)
-    start_time = time.perf_counter()
-    perform_refresh_synonyms(
-        index_id,
-        index_config,
-    )
-    end_time = time.perf_counter()
-    logger.info("Synonyms generation time: %s seconds", end_time - start_time)
+
+    if skip_indexing:
+        logger.info("Skipping indexing of taxonomies")
+    else:
+        start_time = time.perf_counter()
+        perform_taxonomy_import(index_config)
+        end_time = time.perf_counter()
+        logger.info("Import time: %s seconds", end_time - start_time)
+    if skip_synonyms:
+        logger.info("Skipping synonyms generation")
+    else:
+        start_time = time.perf_counter()
+        perform_refresh_synonyms(
+            index_id,
+            index_config,
+        )
+        end_time = time.perf_counter()
+        logger.info("Synonyms generation time: %s seconds", end_time - start_time)
 
 
 @cli.command()

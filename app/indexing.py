@@ -18,7 +18,7 @@ from app.config import (
 )
 from app.taxonomy import get_taxonomy
 from app.utils import load_class_object_from_string
-from app.utils.analyzers import AUTOCOMPLETE_ANALYZERS
+from app.utils.analyzers import get_autocomplete_analyzer
 
 FIELD_TYPE_TO_DSL_TYPE = {
     FieldType.keyword: dsl_field.Keyword,
@@ -405,7 +405,7 @@ def generate_taxonomy_mapping_object(config: IndexConfig) -> Mapping:
             dynamic=False,
             properties={
                 lang: dsl_field.Completion(
-                    analyzer=AUTOCOMPLETE_ANALYZERS.get(lang, "simple"),
+                    analyzer=get_autocomplete_analyzer(lang),
                     contexts=[
                         {
                             "name": "taxonomy_name",
