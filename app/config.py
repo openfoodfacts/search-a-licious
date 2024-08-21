@@ -121,6 +121,12 @@ class Settings(BaseSettings):
             description="User-Agent used when fetching resources (taxonomies) or documents"
         ),
     ] = "search-a-licious"
+    synonyms_path: Annotated[
+        Path,
+        Field(
+            description="Path of the directory that will contain synonyms for ElasticSearch instances"
+        ),
+    ] = Path("/opt/search/synonyms")
 
 
 settings = Settings()

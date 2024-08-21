@@ -3,6 +3,7 @@
 See also :py:mod:`app.taxonomy_es`
 """
 
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
@@ -10,7 +11,7 @@ import cachetools
 import requests
 
 from app._types import JSONType
-from app.config import settings
+from app.config import TaxonomyConfig, settings
 from app.utils import get_logger
 from app.utils.download import download_file, http_session, should_download_file
 from app.utils.io import load_json
@@ -353,3 +354,10 @@ def get_taxonomy(
     logger.info("Downloading taxonomy, saving it in %s", taxonomy_path)
     download_file(taxonomy_url, taxonomy_path)
     return Taxonomy.from_path(taxonomy_path)
+
+
+def iter_taxonomies(taxonomy_config: TaxonomyConfig) -> Iterator[tuple[str, Taxonomy]]:
+    for taxonomy_source_config in taxonomy_config.sources:
+        yield taxonomy_source_config.name, get_taxonomy(
+            taxonomy_source_config.name, str(taxonomy_source_config.url)
+        )

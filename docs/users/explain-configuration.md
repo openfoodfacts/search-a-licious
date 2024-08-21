@@ -50,12 +50,63 @@ You have to plan in advance how you configure this.
 
 Think well about:
 * fields you want to search and how you want to search them
-* which informations you need to display in search results
+* which information you need to display in search results
 * what you need to sort on
 * which facets you want to display
 * which charts you need to build
 
 Changing this section will probably involve a full re-indexing of all your items.
+
+Some typical configurations for fields:
+
+A tags field that as values that are searched as an exact value (aka keyword), eg. a tag:
+```yaml
+tags:
+    type: keyword
+```
+
+An ingredients field that is used for full text search when no field is specified:
+```yaml
+ingredients:
+    type: text
+    full_text_search: true
+```
+
+A field `product_name` that is used for full text search, but with multilingual support:
+```yaml
+product_name:
+    full_text_search: true
+    type: text_lang
+```
+
+A scans_n field is an integer field:
+```yaml
+scans_n:
+    type: integer
+```
+
+A `specific_warnings` field that is used for full text search,
+but only when you specify the field:
+```yaml
+specific_warnings:
+    type: text
+```
+
+A field brands_tags that needs to be split in multiple values (according to `split_separator` option):
+```yaml
+brands_tags:
+    type: keyword
+    split: true
+```
+
+A field labels_tags, that is used for exact match but with support of a taxonomy,
+and that can be used for faceting, and bar graph generation:
+```yaml
+labels_tags:
+    type: keyword
+    taxonomy_name: label
+    bucket_agg: true
+```
 
 Read more in the [reference documentation](../ref-config/searchalicious-config-schema.html#fields).
 

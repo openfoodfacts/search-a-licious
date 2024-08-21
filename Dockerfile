@@ -40,6 +40,10 @@ COPY --from=builder-base $POETRY_HOME $POETRY_HOME
 RUN poetry config virtualenvs.create false
 ENV POETRY_VIRTUALENVS_IN_PROJECT=false
 
+# create some folders, to later ensure right ownership
+RUN mkdir -p /opt/search/data && \
+    mkdir -p /opt/search/synonyms
+
 # create off user
 ARG USER_UID
 ARG USER_GID

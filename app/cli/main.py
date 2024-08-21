@@ -138,17 +138,26 @@ def import_taxonomies(
     """
     import time
 
-    from app._import import perform_taxonomy_import
-    from app.utils import get_logger
+    from app._import import perform_refresh_synonyms, perform_taxonomy_import
+    from app.utils import connection, get_logger
 
     logger = get_logger()
 
     index_id, index_config = _get_index_config(config_path, index_id)
 
     start_time = time.perf_counter()
+    # open a connection for this process
+    connection.get_es_client(timeout=120, retry_on_timeout=True)
     perform_taxonomy_import(index_config)
     end_time = time.perf_counter()
     logger.info("Import time: %s seconds", end_time - start_time)
+    start_time = time.perf_counter()
+    perform_refresh_synonyms(
+        index_id,
+        index_config,
+    )
+    end_time = time.perf_counter()
+    logger.info("Synonyms generation time: %s seconds", end_time - start_time)
 
 
 @cli.command()
