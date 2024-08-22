@@ -102,7 +102,6 @@ def import_data(
 
     start_time = time.perf_counter()
     index_id, index_config = _get_index_config(config_path, index_id)
-
     num_errors = run_items_import(
         input_path,
         num_processes,

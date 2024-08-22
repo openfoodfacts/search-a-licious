@@ -755,7 +755,7 @@ class IndexConfig(BaseModel):
         """Verify that no field name clashes with a reserved name"""
         used_reserved = set(["last_indexed_datetime", "_id"]) & set(fields.keys())
         if used_reserved:
-            raise ValueError(f"The field names {",".join(used_reserved)} are reserved")
+            raise ValueError(f"The field names {','.join(used_reserved)} are reserved")
         return fields
 
     @field_validator("fields")

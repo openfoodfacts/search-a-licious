@@ -44,7 +44,7 @@ def get_taxonomy_analyzer(taxonomy: str, lang: str, with_synonyms: bool) -> anal
         filters.append(
             get_taxonomy_synonym_filter(taxonomy, lang),
         )
-    analyzer(
+    return analyzer(
         f"search_{taxonomy}_{lang}",
         tokenizer="standard",
         filter=filters,

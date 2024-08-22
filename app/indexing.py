@@ -1,5 +1,6 @@
 import abc
 import datetime
+import logging
 import re
 from typing import Iterable
 
@@ -17,6 +18,8 @@ from app.config import (
 )
 from app.utils import load_class_object_from_string
 from app.utils.analyzers import get_autocomplete_analyzer, get_taxonomy_analyzer
+
+log = logging.getLogger(__name__)
 
 FIELD_TYPE_TO_DSL_TYPE = {
     FieldType.keyword: dsl_field.Keyword,
@@ -52,20 +55,20 @@ def generate_dsl_field(
         # We will store the taxonomy identifier as keyword
         # And also store it in subfields with query analyzers for each language,
         # that will activate synonyms and specific normalizations
+        if field.taxonomy_name is None:
+            raise ValueError("Taxonomy field must have a taxonomy_name set in config")
         sub_fields = {
             lang: dsl_field.Text(
                 # we don't need a complicated indexing analyzer as we store an id
                 analyzer="simple",
                 # but on query we need to fold and match with synonyms
                 search_analyzer=get_taxonomy_analyzer(
-                    field.taxonomy, lang, with_synonyms=True
+                    field.taxonomy_name, lang, with_synonyms=True
                 ),
             )
             for lang in supported_langs
         }
-        return dsl_field.Keyword(
-            required=field.required, dynamic=False, fields=sub_fields
-        )
+        return dsl_field.Keyword(required=field.required, fields=sub_fields)
     elif field.type is FieldType.text_lang:
         properties = {
             lang: dsl_field.Text(

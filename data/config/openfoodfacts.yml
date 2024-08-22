@@ -74,8 +74,8 @@ indices:
         bucket_agg: true
       quantity:
         type: text
-      categories_tags: keyworld / categories_tags.txt text
-        // full_text_search: true
+      categories_tags: # keyworld / categories_tags.txt text
+        # full_text_search: true
         type: keyword
         taxonomy_name: category
         bucket_agg: true
@@ -220,13 +220,6 @@ indices:
         url: https://static.openfoodfacts.org/data/taxonomies/vitamins.full.json
       - name: brand
         url: https://static.openfoodfacts.org/data/taxonomies/brands.full.json
-      exported_langs:
-      - en
-      - fr
-      - es
-      - de
-      - it
-      - nl
       index:
         number_of_replicas: 1
         number_of_shards: 4
@@ -389,7 +382,6 @@ indices:
     - wa
     - wo
     - xh
-    - xx
     - yi
     - yo
     - zh
