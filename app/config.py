@@ -1,3 +1,4 @@
+import functools
 import logging
 from enum import StrEnum, auto
 from inspect import cleandoc as cd_
@@ -497,24 +498,6 @@ class TaxonomyConfig(BaseModel):
         list[TaxonomySourceConfig],
         Field(description="Configurations of taxonomies that this project will use."),
     ]
-    exported_langs: Annotated[
-        list[str],
-        Field(
-            description=cd_(
-                """a list of languages for which
-                we want taxonomized fields to be always exported during indexing.
-
-                During indexing, we use the taxonomy to translate every taxonomized field
-                in a language-specific subfield.
-
-                The list of language depends on the value defined here and on the optional
-                `taxonomy_langs` field that can be defined in each document.
-
-                Beware that providing many language might inflate the index size.
-                """,
-            )
-        ),
-    ]
     index: Annotated[
         TaxonomyIndexConfig,
         Field(description=TaxonomyIndexConfig.__doc__),
@@ -768,36 +751,38 @@ class IndexConfig(BaseModel):
 
     @field_validator("fields")
     @classmethod
+    def ensure_no_fields_use_reserved_name(cls, fields: dict[str, FieldConfig]):
+        """Verify that no field name clashes with a reserved name"""
+        used_reserved = set(["last_indexed_datetime", "_id"]) & set(fields.keys())
+        if used_reserved:
+            raise ValueError(f"The field names {",".join(used_reserved)} are reserved")
+        return fields
+
+    @field_validator("fields")
+    @classmethod
     def add_field_name_to_each_field(cls, fields: dict[str, FieldConfig]):
         """It's handy to have the name of the field in the field definition"""
         for field_name, field_item in fields.items():
             field_item.name = field_name
         return fields
 
-    def get_supported_langs(self) -> set[str]:
-        """Return the set of supported languages for `text_lang` fields.
-
-        It's used to know which language-specific subfields to create.
-        """
-        return (
-            set(self.supported_langs or [])
-            # only keep langs for which a built-in analyzer built-in, other
-            # langs will be stored in a unique `other` subfield
-        ) & set(ANALYZER_LANG_MAPPING)
-
-    def get_taxonomy_langs(self) -> set[str]:
-        """Return the set of exported languages for `taxonomy` fields.
-
-        It's used to know which language-specific subfields to create.
-        """
-        # only keep langs for which a built-in analyzer built-in, other
-        # langs will be stored in a unique `other` subfield
-        return (set(self.taxonomy.exported_langs)) & set(ANALYZER_LANG_MAPPING)
-
     def get_fields_with_bucket_agg(self):
         return [
             field_name for field_name, field in self.fields.items() if field.bucket_agg
         ]
+
+    @functools.cached_property
+    def text_lang_fields(self):
+        """List all text_lang fields in an efficient way"""
+        return [
+            field_name
+            for field_name, field in self.fields.items()
+            if field.type == FieldType.text_lang
+        ]
+
+    @functools.cached_property
+    def supported_langs_set(self):
+        return frozenset(self.supported_langs)
 
 
 CONFIG_DESCRIPTION_INDICES = """

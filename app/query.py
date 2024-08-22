@@ -40,8 +40,7 @@ def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQuery
 
 def build_query_clause(query: str, langs: list[str], config: IndexConfig) -> Query:
     fields = []
-    supported_langs = config.get_supported_langs()
-    taxonomy_langs = config.get_taxonomy_langs()
+    supported_langs = config.supported_langs
     match_phrase_boost_queries = []
 
     for field in config.fields.values():
@@ -49,13 +48,7 @@ def build_query_clause(query: str, langs: list[str], config: IndexConfig) -> Que
         # of them
         if field.full_text_search:
             if field.type in (FieldType.taxonomy, FieldType.text_lang):
-                # language subfields are not the same depending on whether the
-                # field is a `taxonomy` or a `text_lang` field
-                langs_subset = frozenset(
-                    supported_langs
-                    if field.type is FieldType.text_lang
-                    else taxonomy_langs
-                )
+                langs_subset = supported_langs
                 field_match_phrase_boost_queries = []
                 for lang in (_lang for _lang in langs if _lang in langs_subset):
                     subfield_name = f"{field.name}.{lang}"

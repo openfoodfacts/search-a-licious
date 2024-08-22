@@ -1,3 +1,5 @@
+import pytest
+
 import app.config
 
 BASE_CONFIG = """
@@ -38,6 +40,7 @@ indices:
         document_fetcher: app._import.BaseDocumentFetcher
 default_index: test
 """
+
 AGGS_FIELDS = """
             other_agg:
                 type: keyword
@@ -48,6 +51,13 @@ AGGS_FIELDS = """
             somuch_agg:
                 type: keyword
                 bucket_agg: true
+"""
+
+RESERVED_FIELDS = """
+            last_indexed_datetime:
+                type: date
+            _id:
+                type: keyword
 """
 
 
@@ -64,3 +74,14 @@ def test_loading_config(tmpdir):
     # just test it loads for now
     app.config.Config.from_yaml(conf_file)
     # TODO add asserts on config
+
+
+def test_reserved_field_names(tmpdir):
+    """Test we can't use a reserved field name"""
+    my_config = tmpdir / "config.yaml"
+    conf_content = BASE_CONFIG.replace("        # more fields\n", RESERVED_FIELDS)
+    open(my_config, "w").write(conf_content)
+    with pytest.raises(ValueError) as excinfo:
+        app.config.Config.from_yaml(my_config)
+    assert "last_indexed_datetime" in str(excinfo.value)
+    assert "_id" in str(excinfo.value)

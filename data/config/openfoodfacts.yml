@@ -232,6 +232,8 @@ indices:
         number_of_shards: 4
         name: off_taxonomy
     supported_langs:
+    # a specific language to put the main language entry
+    - main
     - aa
     - ab
     - ae

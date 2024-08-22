@@ -35,8 +35,25 @@ def get_taxonomy_names(
     }
 
 
+def _normalize_synonym(token: str) -> str:
+    """Normalize a synonym,
+
+    It applies the same filter as ES will apply before the synonym filter
+    to ensure matching tokens
+    """
+    # also avoid commas in synonyms…
+    # TODO: should we also run asciifolding or so ? Or depends on language ?
+    return token.lower().replace(" ", "_")
+
+
 def create_synonyms_files(taxonomy: Taxonomy, langs: list[str], target_dir: Path):
     """Create a set of files that can be used to define a Synonym Graph Token Filter
+
+    We will match every known synonym in a language
+    to the identifier of the entry.
+    We do this because we are not sure which is the main language for an entry.
+
+    Also the special xx language is added to every languages if it exists.
 
     see:
     https://www.elastic.co/guide/en/elasticsearch/reference/current/search-with-synonyms.html#synonyms-store-synonyms-file
@@ -47,11 +64,13 @@ def create_synonyms_files(taxonomy: Taxonomy, langs: list[str], target_dir: Path
     synonyms_files = {lang: fpath.open("w") for lang, fpath in synonyms_paths.items()}
 
     for node in taxonomy.iter_nodes():
+        multi_lang_synonyms = node.synonyms.get("xx", [])
+        multi_lang_synonyms = [_normalize_synonym(s) for s in multi_lang_synonyms]
         for lang, synonyms in node.synonyms.items():
-            if not synonyms or lang not in langs:
+            if (not synonyms and not multi_lang_synonyms) or lang not in langs:
                 continue
             # avoid commas in synonyms…
-            synonyms = [s.replace(",", " ") for s in synonyms]
+            synonyms = [_normalize_synonym(s) for s in synonyms] + multi_lang_synonyms
             synonyms_files[lang].write(f"{','.join(synonyms)} => {node.id}\n")
 
     # close files
