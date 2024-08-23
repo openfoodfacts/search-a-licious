@@ -210,6 +210,52 @@ def sync_scripts(
 
 
 @cli.command()
+def cleanup_indexes(
+    config_path: Optional[Path] = typer.Option(
+        default=None,
+        help="path of the yaml configuration file, it overrides CONFIG_PATH envvar",
+        dir_okay=False,
+        file_okay=True,
+        exists=True,
+    ),
+    index_id: Optional[str] = typer.Option(
+        default=None,
+        help=f"{INDEX_ID_HELP}\nIf not specified, all indexes are cleaned",
+    ),
+):
+    """Clean old indexes that are not active anymore (no aliases)
+
+    As you do full import of data or update taxonomies,
+    old indexes are not removed automatically.
+    (in the case you want to roll back or compare).
+
+    This command will remove all indexes that are not active anymore.
+    """
+    import time
+
+    from app._import import perform_cleanup_indexes
+    from app.utils import get_logger
+
+    logger = get_logger()
+    if index_id:
+        _, index_config = _get_index_config(config_path, index_id)
+        index_configs = [index_config]
+    else:
+        _get_index_config(config_path, None)  # just to set global config variable
+        from app.config import CONFIG
+
+        if CONFIG is None:
+            raise ValueError("No configuration found")
+        index_configs = list(CONFIG.indices.values())
+    start_time = time.perf_counter()
+    removed = 0
+    for index_config in index_configs:
+        removed += perform_cleanup_indexes(index_config)
+    end_time = time.perf_counter()
+    logger.info("Removed %d indexes in %s seconds", removed, end_time - start_time)
+
+
+@cli.command()
 def run_update_daemon(
     config_path: Optional[Path] = typer.Option(
         default=None,
