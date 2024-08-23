@@ -477,7 +477,8 @@ def run_items_import(
       if True consider we don't have a full import,
       and directly updates items in current index.
     """
-    es_client = connection.get_es_client()
+    # we need a large timeout as index creation can take a while because of synonyms
+    es_client = connection.get_es_client(request_timeout=600)
     if not partial:
         # we create a temporary index to import to
         # at the end we will change alias to point to it
@@ -485,7 +486,7 @@ def run_items_import(
         next_index = f"{config.index.name}-{index_date}"
         index = generate_index_object(next_index, config)
         # create the index
-        index.save()
+        index.save(using=es_client)
     else:
         # use current index
         next_index = config.index.name
