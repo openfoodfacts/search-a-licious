@@ -338,7 +338,7 @@ class FieldConfig(BaseModel):
                 It is used to return a 'faceted-view' with the number of results for each facet value,
                 or to generate bar charts.
 
-                Only valid for keyword or numeric field types.
+                Only valid for keyword, taxonomy or numeric field types.
                 """
             )
         ),
@@ -370,7 +370,8 @@ class FieldConfig(BaseModel):
         """Validator that checks that `bucket_agg` is only provided for
         fields with types `keyword`, `double`, `float`, `integer` or `bool`."""
         if self.bucket_agg and not (
-            self.type.is_numeric() or self.type in (FieldType.keyword, FieldType.bool)
+            self.type.is_numeric()
+            or self.type in (FieldType.keyword, FieldType.bool, FieldType.taxonomy)
         ):
             raise ValueError(
                 "bucket_agg should be provided for taxonomy or numeric type only"

@@ -17,7 +17,11 @@ from app.config import (
     TaxonomyConfig,
 )
 from app.utils import load_class_object_from_string
-from app.utils.analyzers import get_autocomplete_analyzer, get_taxonomy_analyzer
+from app.utils.analyzers import (
+    get_autocomplete_analyzer,
+    get_taxonomy_analyzer,
+    number_of_fields,
+)
 
 log = logging.getLogger(__name__)
 
@@ -329,11 +333,18 @@ def generate_mapping_object(config: IndexConfig) -> Mapping:
 def generate_index_object(index_name: str, config: IndexConfig) -> Index:
     """Index configuration for project index, that will contain the data"""
     index = Index(index_name)
-    index.settings(
-        number_of_shards=config.index.number_of_shards,
-        number_of_replicas=config.index.number_of_replicas,
-    )
+    settings = {
+        "number_of_shards": config.index.number_of_shards,
+        "number_of_replicas": config.index.number_of_replicas,
+    }
     mapping = generate_mapping_object(config)
+    num_fields = number_of_fields(mapping)
+    # add 25% margin
+    num_fields = int(num_fields * 1.25)
+    if num_fields > 1000:
+        # default limit is 1000 fields, set a specific one
+        settings["index.mapping.total_fields.limit"] = num_fields
+    index.settings(**settings)
     index.mapping(mapping)
     return index
 

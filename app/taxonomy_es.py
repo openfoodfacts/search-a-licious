@@ -4,6 +4,7 @@ See also :py:mod:`app.taxonomy`
 """
 
 import os
+import re
 import shutil
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from elasticsearch_dsl.query import Q
 from app.config import IndexConfig
 from app.taxonomy import Taxonomy, iter_taxonomies
 from app.utils import connection
+from app.utils.io import safe_replace_dir
 
 
 def get_taxonomy_names(
@@ -41,9 +43,14 @@ def _normalize_synonym(token: str) -> str:
     It applies the same filter as ES will apply before the synonym filter
     to ensure matching tokens
     """
-    # also avoid commas in synonyms…
+    # make lower case
+    token = token.lower()
+    # changes anything that is neither a word char nor a space for space
+    token = re.sub(r"[^\w\s]+", " ", token)
+    # normalize spaces
+    token = re.sub(r"\s+", " ", token)
     # TODO: should we also run asciifolding or so ? Or depends on language ?
-    return token.lower().replace(" ", "_")
+    return token
 
 
 def create_synonyms_files(taxonomy: Taxonomy, langs: list[str], target_dir: Path):
@@ -64,14 +71,22 @@ def create_synonyms_files(taxonomy: Taxonomy, langs: list[str], target_dir: Path
     synonyms_files = {lang: fpath.open("w") for lang, fpath in synonyms_paths.items()}
 
     for node in taxonomy.iter_nodes():
+        # we add multi lang synonyms to every language
         multi_lang_synonyms = node.synonyms.get("xx", [])
         multi_lang_synonyms = [_normalize_synonym(s) for s in multi_lang_synonyms]
+        # also node id without prefix
+        multi_lang_synonyms.append(_normalize_synonym(node.id.split(":", 1)[-1]))
+        multi_lang_synonyms = [s for s in multi_lang_synonyms if s.strip()]
         for lang, synonyms in node.synonyms.items():
             if (not synonyms and not multi_lang_synonyms) or lang not in langs:
                 continue
-            # avoid commas in synonyms…
-            synonyms = [_normalize_synonym(s) for s in synonyms] + multi_lang_synonyms
-            synonyms_files[lang].write(f"{','.join(synonyms)} => {node.id}\n")
+            # avoid commas in synonyms… add multilang syns and identifier without prefix
+            synonyms_ = (_normalize_synonym(s) for s in synonyms)
+            synonyms = [s for s in synonyms_ if s.strip()]
+            synonyms = sorted(set(synonyms + multi_lang_synonyms))
+            synonyms = [s for s in synonyms if s.strip()]
+            if synonyms:
+                synonyms_files[lang].write(f"{','.join(synonyms)} => {node.id}\n")
 
     # close files
     for f in synonyms_files.values():
@@ -83,14 +98,13 @@ def create_synonyms(index_config: IndexConfig, target_dir: Path):
         target = target_dir / name
         # a temporary directory, we move at the end
         target_tmp = target_dir / f"{name}.tmp"
+        shutil.rmtree(target_tmp, ignore_errors=True)
         # ensure directory
         os.makedirs(target_tmp, mode=0o775, exist_ok=True)
         # generate synonyms files
         create_synonyms_files(taxonomy, index_config.supported_langs, target_tmp)
         # move to final location, overriding previous files
-        shutil.move(target, str(target) + ".old")
-        shutil.move(target_tmp, target)
-        shutil.rmtree(str(target) + ".old")
+        safe_replace_dir(target, target_tmp)
         # Note: in current deployment, file are shared between ES instance,
         # so we don't need to replicate the files
 

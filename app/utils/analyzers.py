@@ -1,6 +1,8 @@
 """Defines some analyzers for the elesaticsearch fields."""
 
-from elasticsearch_dsl import analyzer, token_filter
+from elasticsearch_dsl import Mapping, analyzer, token_filter
+
+from app._types import JSONType
 
 # some normalizers existing in ES that are specific to some languages
 SPECIAL_NORMALIZERS = {
@@ -58,3 +60,23 @@ def get_autocomplete_analyzer(lang: str) -> analyzer:
         tokenizer="standard",
         filter=["lowercase", SPECIAL_NORMALIZERS.get(lang, "asciifolding")],
     )
+
+
+def number_of_fields(mapping: Mapping | dict[str, JSONType]) -> int:
+    """Return the number of fields in the mapping"""
+    count = 0
+    properties: dict[str, JSONType] = (
+        mapping.to_dict().get("properties", {})
+        if isinstance(mapping, Mapping)
+        else mapping
+    )
+    for field, value in properties.items():
+        if isinstance(value, dict):
+            if props := value.get("properties"):
+                # object field with properties
+                count += number_of_fields(props)
+            if fields := value.get("fields"):
+                # subfields
+                count += number_of_fields(fields)
+        count += 1
+    return count
