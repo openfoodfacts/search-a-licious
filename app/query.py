@@ -1,12 +1,11 @@
 import elastic_transport
 import elasticsearch
 import luqum.exceptions
-from elasticsearch_dsl import A, Q, Search
+from elasticsearch_dsl import A, Search
 from elasticsearch_dsl.aggs import Agg
-from elasticsearch_dsl.query import Query
 from luqum import tree
-from luqum.elasticsearch import ElasticsearchQueryBuilder
 from luqum.elasticsearch.schema import SchemaAnalyzer
+from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
 from luqum.parser import parser
 
 from ._types import (
@@ -20,6 +19,7 @@ from ._types import (
     SuccessSearchResponse,
 )
 from .config import FieldType, IndexConfig
+from .es_query_builder import FullTextQueryBuilder
 from .es_scripts import get_script_id
 from .indexing import generate_index_object
 from .postprocessing import BaseResultProcessor
@@ -35,64 +35,7 @@ def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQuery
     options = SchemaAnalyzer(index.to_dict()).query_builder_options()
     # we default to a AND between terms that are just space separated
     options["default_operator"] = ElasticsearchQueryBuilder.MUST
-    return ElasticsearchQueryBuilder(**options)
-
-
-def build_query_clause(query: str, langs: list[str], config: IndexConfig) -> Query:
-    fields = []
-    supported_langs = config.supported_langs
-    match_phrase_boost_queries = []
-
-    for field in config.fields.values():
-        # We don't include all fields in the multi-match clause, only a subset
-        # of them
-        if field.full_text_search:
-            if field.type in (FieldType.taxonomy, FieldType.text_lang):
-                langs_subset = supported_langs
-                field_match_phrase_boost_queries = []
-                for lang in (_lang for _lang in langs if _lang in langs_subset):
-                    subfield_name = f"{field.name}.{lang}"
-                    fields.append(subfield_name)
-                    field_match_phrase_boost_queries.append(
-                        Q(
-                            "match_phrase",
-                            **{
-                                subfield_name: {
-                                    "query": query,
-                                    "boost": config.match_phrase_boost,
-                                }
-                            },
-                        )
-                    )
-                if len(field_match_phrase_boost_queries) == 1:
-                    match_phrase_boost_queries.append(
-                        field_match_phrase_boost_queries[0]
-                    )
-                elif len(field_match_phrase_boost_queries) > 1:
-                    match_phrase_boost_queries.append(
-                        Q("bool", should=field_match_phrase_boost_queries)
-                    )
-
-            else:
-                fields.append(field.name)
-                match_phrase_boost_queries.append(
-                    Q(
-                        "match_phrase",
-                        **{
-                            field.name: {
-                                "query": query,
-                                "boost": config.match_phrase_boost,
-                            }
-                        },
-                    )
-                )
-
-    multi_match_query = Q("multi_match", query=query, fields=fields)
-
-    if match_phrase_boost_queries:
-        multi_match_query |= Q("bool", should=match_phrase_boost_queries)
-
-    return multi_match_query
+    return FullTextQueryBuilder(**options)
 
 
 def parse_query(q: str | None) -> QueryAnalysis:
@@ -102,6 +45,7 @@ def parse_query(q: str | None) -> QueryAnalysis:
         return analysis
     try:
         analysis.luqum_tree = parser.parse(q)
+        # FIXME: resolve UnknownFilter (to AND)
     except (
         luqum.exceptions.ParseError,
         luqum.exceptions.InconsistentQueryException,
@@ -110,62 +54,6 @@ def parse_query(q: str | None) -> QueryAnalysis:
         logger.warning("parsing error for query: '%s':\n%s", q, e)
         analysis.luqum_tree = None
     return analysis
-
-
-def decompose_query(
-    q: QueryAnalysis, filter_query_builder: ElasticsearchQueryBuilder
-) -> QueryAnalysis:
-    """Decompose the query into two parts:
-
-    - a Lucene DSL query, which is used as a filter clause in the
-      Elasticsearch query. Luqum library is used to transform the
-      Lucene DSL into Elasticsearch DSL.
-    - remaining terms, used for full text search.
-
-    :param q: the user query
-    :param filter_query_builder: Luqum query builder
-    :return: a tuple containing the Elasticsearch filter clause and
-      the remaining terms for full text search
-    """
-    if q.text_query is None:
-        return q
-    remaining_terms = ""
-    if q.luqum_tree is not None:
-        # Successful parsing
-        logger.debug("parsed luqum tree: %s", repr(q.luqum_tree))
-        word_children = []
-        filter_children = []
-        if isinstance(q.luqum_tree, (tree.UnknownOperation, tree.AndOperation)):
-            for child in q.luqum_tree.children:
-                if isinstance(child, tree.Word):
-                    word_children.append(child)
-                else:
-                    filter_children.append(child)
-        elif isinstance(q.luqum_tree, tree.Word):
-            # the query single term
-            word_children.append(q.luqum_tree)
-        else:
-            filter_children.append(q.luqum_tree)
-        # We join with space every non word not recognized by the parser
-        remaining_terms = " ".join(item.value for item in word_children)
-        filter_tree = None
-        if filter_children:
-            # Note: we always wrap in AndOperation,
-            # even if only one, to be consistent
-            filter_tree = tree.AndOperation(*filter_children)
-
-        # remove harvested words
-        logger.debug("filter luqum tree: %s", repr(filter_tree))
-        if filter_tree:
-            filter_query = filter_query_builder(filter_tree)
-        else:
-            filter_query = None
-        logger.debug("filter query from luqum: '%s'", filter_query)
-    else:
-        filter_query = None
-        remaining_terms = q.text_query
-
-    return q.clone(fulltext=remaining_terms, filter_query=filter_query)
 
 
 def compute_facets_filters(q: QueryAnalysis) -> QueryAnalysis:
@@ -290,45 +178,92 @@ def create_aggregation_clauses(
     return clauses
 
 
+class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
+
+    def __init__(self, lang_fields=list[str], langs=list[str], **kwargs):
+        # we need to track parents to get full field name
+        super().__init__(track_parents=True, track_new_parents=False, **kwargs)
+        self.langs = langs
+        self.lang_fields = lang_fields
+
+    def visit_search_field(self, node, context):
+        """As we reach a search_field,
+        if it's one that have a lang,
+        we replace single expression with a OR on sub-language fields
+        """
+        # FIXME: verify again the way luqum work on this side !
+        field_name = node.name
+        # add eventual parents
+        prefix = ".".join(
+            node.name
+            for node in context["parents"]
+            if isinstance(node, tree.SearchField)
+        )
+        if prefix:
+            field_name = f"{prefix}.{field_name}"
+        # is it a lang dependant field
+        if field_name in self.lang_fields:
+            # create a new expression for each languages
+            new_nodes = []
+            for lang in self.langs:
+                # note: we don't have to care about having searchfield in children
+                # because only complete field_name would match a self.lang_fields
+                new_node = self.generic_visit(node)
+                # add language prefix
+                new_node.name = f"{new_node.name}.{lang}"
+                new_nodes.append(new_node)
+            if len(new_nodes) > 1:
+                yield tree.OrOperation(*new_nodes)
+            else:
+                yield from new_nodes
+        else:
+            # default
+            yield from self.generic_visit(node)
+
+
+def add_languages_suffix(
+    analysis: QueryAnalysis, langs: list[str], config: IndexConfig
+) -> QueryAnalysis:
+    """Add correct languages suffixes to fields of type text_lang or taxonomy
+
+    This match in a langage OR another
+    """
+    transformer = LanguageSuffixTransformer(lang_fields=config.lang_fields, langs=langs)
+    analysis.luqum_tree = transformer.transform(analysis.luqum_tree)
+    return analysis
+
+
 def build_search_query(
     params: SearchParameters,
-    filter_query_builder: ElasticsearchQueryBuilder,
+    es_query_builder: ElasticsearchQueryBuilder,
 ) -> QueryAnalysis:
     """Build an elasticsearch_dsl Query.
 
-    :param q: the user raw query
-    :param langs: the set of languages we want to support, it is used to
-      select language subfields for some field types
-    :param size: number of results to return
-    :param page: requested page (starts at 1).
-    :param config: the index configuration to use
-    :param filter_query_builder: luqum elasticsearch query builder
-    :param sort_by: sorting key, defaults to None (=relevance-based sorting)
+    :param params: SearchParameters containing all search parameters
+    :param es_query_builder: the builder to transform
+      the luqum tree to an elasticsearch query
     :return: the built Search query
     """
     analysis = parse_query(params.q)
-    analysis = decompose_query(analysis, filter_query_builder)
     analysis = compute_facets_filters(analysis)
+    # add languages for localized fields
+    analysis = add_languages_suffix(analysis, params.langs, params.index_config)
 
     logger.debug("filter query: %s", analysis.filter_query)
     logger.debug("remaining terms: '%s'", analysis.fulltext)
 
-    return build_es_query(analysis, params)
+    return build_es_query(analysis, params, es_query_builder)
 
 
 def build_es_query(
-    q: QueryAnalysis,
+    analysis: QueryAnalysis,
     params: SearchParameters,
+    es_query_builder: ElasticsearchQueryBuilder,
 ) -> QueryAnalysis:
     config = params.index_config
     es_query = Search(index=config.index.name)
-
-    if q.fulltext:
-        base_multi_match_q = build_query_clause(q.fulltext, params.langs, config)
-        es_query = es_query.query(base_multi_match_q)
-
-    if q.filter_query:
-        es_query = es_query.query("bool", filter=q.filter_query)
+    # main query
+    es_query = es_query.query(es_query_builder(analysis.luqum_tree))
 
     agg_fields = set(params.facets) if params.facets is not None else set()
     if params.charts is not None:
@@ -356,7 +291,7 @@ def build_es_query(
         size=params.page_size,
         from_=params.page_size * (params.page - 1),
     )
-    return q.clone(es_query=es_query)
+    return analysis.clone(es_query=es_query)
 
 
 def build_completion_query(

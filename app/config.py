@@ -785,6 +785,20 @@ class IndexConfig(BaseModel):
     def supported_langs_set(self):
         return frozenset(self.supported_langs)
 
+    @functools.cached_property
+    def lang_fields(self):
+        """Fully qualified name of fields that are translated"""
+        return [
+            fname
+            for fname, attrs in self.fields.items()
+            if attrs.type in ["taxonomy", "text_lang"]
+        ]
+
+    @functools.cached_property
+    def full_text_fields(self):
+        """Fully qualified name of fields that are part of default full text search"""
+        return [fname for fname, attrs in self.fields.items() if attrs.full_text_search]
+
 
 CONFIG_DESCRIPTION_INDICES = """
 A Search-a-licious instance only have one configuration file,
