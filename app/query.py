@@ -35,6 +35,8 @@ def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQuery
     options = SchemaAnalyzer(index.to_dict()).query_builder_options()
     # we default to a AND between terms that are just space separated
     options["default_operator"] = ElasticsearchQueryBuilder.MUST
+    # remove default_field
+    options.pop("default_field", None)
     return FullTextQueryBuilder(**options)
 
 
@@ -180,7 +182,7 @@ def create_aggregation_clauses(
 
 class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
 
-    def __init__(self, lang_fields=list[str], langs=list[str], **kwargs):
+    def __init__(self, lang_fields=set[str], langs=list[str], **kwargs):
         # we need to track parents to get full field name
         super().__init__(track_parents=True, track_new_parents=False, **kwargs)
         self.langs = langs
@@ -228,8 +230,10 @@ def add_languages_suffix(
 
     This match in a langage OR another
     """
-    transformer = LanguageSuffixTransformer(lang_fields=config.lang_fields, langs=langs)
-    analysis.luqum_tree = transformer.transform(analysis.luqum_tree)
+    transformer = LanguageSuffixTransformer(
+        lang_fields=set(config.lang_fields), langs=langs
+    )
+    analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
     return analysis
 
 
@@ -263,7 +267,9 @@ def build_es_query(
     config = params.index_config
     es_query = Search(index=config.index.name)
     # main query
-    es_query = es_query.query(es_query_builder(analysis.luqum_tree))
+    es_query = es_query.query(
+        es_query_builder(analysis.luqum_tree, params.index_config, params.langs)
+    )
 
     agg_fields = set(params.facets) if params.facets is not None else set()
     if params.charts is not None:

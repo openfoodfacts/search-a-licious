@@ -773,31 +773,35 @@ class IndexConfig(BaseModel):
         ]
 
     @functools.cached_property
-    def text_lang_fields(self):
+    def text_lang_fields(self) -> dict[str, FieldConfig]:
         """List all text_lang fields in an efficient way"""
-        return [
-            field_name
+        return {
+            field_name: field
             for field_name, field in self.fields.items()
             if field.type == FieldType.text_lang
-        ]
+        }
 
     @functools.cached_property
     def supported_langs_set(self):
         return frozenset(self.supported_langs)
 
     @functools.cached_property
-    def lang_fields(self):
+    def lang_fields(self) -> dict[str, FieldConfig]:
         """Fully qualified name of fields that are translated"""
-        return [
-            fname
-            for fname, attrs in self.fields.items()
-            if attrs.type in ["taxonomy", "text_lang"]
-        ]
+        return {
+            fname: field
+            for fname, field in self.fields.items()
+            if field.type in ["taxonomy", "text_lang"]
+        }
 
     @functools.cached_property
-    def full_text_fields(self):
+    def full_text_fields(self) -> dict[str, FieldConfig]:
         """Fully qualified name of fields that are part of default full text search"""
-        return [fname for fname, attrs in self.fields.items() if attrs.full_text_search]
+        return {
+            fname: field
+            for fname, field in self.fields.items()
+            if field.full_text_search
+        }
 
 
 CONFIG_DESCRIPTION_INDICES = """
