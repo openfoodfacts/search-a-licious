@@ -20,13 +20,11 @@ class BaseResultProcessor:
             "is_count_exact": response.hits.total["relation"] == "eq",
         }
         hits = []
-        import pdb
-
-        pdb.set_trace()
         for hit in response.hits:
             result = hit.to_dict()
             result["_score"] = hit.meta.score
 
+            # TODO make it an unsplit option or move to specific off post processing
             for fname in self.config.text_lang_fields:
                 if fname not in result:
                     continue

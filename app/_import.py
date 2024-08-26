@@ -321,7 +321,7 @@ def import_parallel(
     """
     processor = DocumentProcessor(config)
     # open a connection for this process
-    es = connection.get_es_client(timeout=120, retry_on_timeout=True)
+    es = connection.get_es_client(request_timeout=120, retry_on_timeout=True)
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to
     # parallelize that. If we then do parallel_bulk here, this causes queueing

@@ -66,7 +66,8 @@ def build_full_text_query(query: str, config: IndexConfig, query_langs: list[str
                     },
                 )
             )
-
+    # TODO: see whether we should instead use a multi_match query
+    # with individual field boosts and with match_phrase ?
     multi_match_query = Q("multi_match", query=query, fields=fields)
 
     if match_phrase_boost_queries:

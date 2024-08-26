@@ -2,11 +2,11 @@ from pathlib import Path
 
 import orjson
 import pytest
-from luqum.elasticsearch import ElasticsearchQueryBuilder
 
-from app._types import JSONType, SearchParameters
+from app._types import SearchParameters
 from app.config import IndexConfig
-from app.query import build_search_query, decompose_query, parse_query
+from app.es_query_builder import FullTextQueryBuilder
+from app.query import build_search_query
 from app.utils.io import dump_json, load_json
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -14,84 +14,6 @@ DATA_DIR = Path(__file__).parent / "data"
 
 def load_elasticsearch_query_result(id_: str):
     return load_json(DATA_DIR / f"{id_}.json")
-
-
-@pytest.mark.parametrize(
-    "q,expected_filter_query,expected_fulltext",
-    [
-        # single term
-        (
-            "word",
-            None,
-            "word",
-        ),
-        (
-            'word1 (states_tags:"en:france" OR states_tags:"en:germany") word2 labels_tags:"en:organic" word3',
-            {
-                "bool": {
-                    "must": [
-                        {
-                            "bool": {
-                                "should": [
-                                    {"term": {"states_tags": {"value": "en:france"}}},
-                                    {"term": {"states_tags": {"value": "en:germany"}}},
-                                ]
-                            }
-                        },
-                        {"term": {"labels_tags": {"value": "en:organic"}}},
-                    ]
-                },
-            },
-            "word1 word2 word3",
-        ),
-        # only non-filter keywords
-        (
-            "word1 word2",
-            None,
-            "word1 word2",
-        ),
-        (
-            'states_tags:"en:spain"',
-            {"bool": {"must": [{"term": {"states_tags": {"value": "en:spain"}}}]}},
-            "",
-        ),
-        (
-            "nutriments.salt_100g:[2 TO *]",
-            {"bool": {"must": [{"range": {"nutriments.salt_100g": {"gte": "2"}}}]}},
-            "",
-        ),
-        (
-            "non_existing_field:value",
-            {
-                "bool": {
-                    "must": [
-                        {
-                            "match": {
-                                "non_existing_field": {
-                                    "query": "value",
-                                    "zero_terms_query": "all",
-                                }
-                            }
-                        }
-                    ]
-                }
-            },
-            "",
-        ),
-    ],
-)
-def test_decompose_query(
-    q: str, expected_filter_query: list[JSONType], expected_fulltext: str
-):
-    query_builder = ElasticsearchQueryBuilder(
-        default_operator=ElasticsearchQueryBuilder.MUST,
-        not_analyzed_fields=["states_tags", "labels_tags", "countries_tags"],
-        object_fields=["nutriments", "nutriments.salt_100g"],
-    )
-    analysis = parse_query(q)
-    analysis = decompose_query(analysis, filter_query_builder=query_builder)
-    assert analysis.filter_query == expected_filter_query
-    assert analysis.fulltext == expected_fulltext
 
 
 @pytest.mark.parametrize(
@@ -160,7 +82,7 @@ def test_build_search_query(
     facets: list[str] | None,
     update_results: bool,
     default_config: IndexConfig,
-    default_filter_query_builder: ElasticsearchQueryBuilder,
+    default_filter_query_builder: FullTextQueryBuilder,
 ):
     query = build_search_query(
         SearchParameters(
@@ -171,7 +93,7 @@ def test_build_search_query(
             sort_by=sort_by,
             facets=facets,
         ),
-        filter_query_builder=default_filter_query_builder,
+        es_query_builder=default_filter_query_builder,
     )
 
     if update_results:

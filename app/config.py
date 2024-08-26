@@ -6,7 +6,14 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import yaml
-from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    FileUrl,
+    HttpUrl,
+    field_validator,
+    model_validator,
+)
 from pydantic.json_schema import GenerateJsonSchema
 from pydantic_settings import BaseSettings
 
@@ -196,7 +203,7 @@ class TaxonomySourceConfig(BaseModel):
         ),
     ]
     url: Annotated[
-        HttpUrl,
+        FileUrl | HttpUrl,
         Field(
             description=cd_(
                 """URL of the taxonomy.
@@ -879,11 +886,18 @@ class Config(BaseModel):
 # CONFIG is a global variable that contains the search-a-licious configuration
 # used. It is specified by the envvar CONFIG_PATH.
 CONFIG: Config | None = None
+
+
+def set_global_config(config_path: Path):
+    global CONFIG
+    CONFIG = Config.from_yaml(config_path)
+
+
 if settings.config_path:
     if not settings.config_path.is_file():
         raise RuntimeError(f"config file does not exist: {settings.config_path}")
 
-    CONFIG = Config.from_yaml(settings.config_path)
+    set_global_config(settings.config_path)
 
 
 def check_config_is_defined():
@@ -893,8 +907,3 @@ def check_config_is_defined():
             "No configuration is configured, set envvar "
             "CONFIG_PATH with the path of the yaml configuration file"
         )
-
-
-def set_global_config(config_path: Path):
-    global CONFIG
-    CONFIG = Config.from_yaml(config_path)

@@ -1,0 +1,67 @@
+# This is a small configuration for integration tests using OFF like data
+indices:
+  "test_off":
+    index:
+      id_field_name: code
+      last_modified_field_name: last_modified_t
+      name: openfoodfacts
+      number_of_replicas: 1
+      number_of_shards: 1
+    fields:
+      code:
+        required: true
+        type: keyword
+      product_name:
+        full_text_search: true
+        type: text_lang
+      categories:
+        full_text_search: true
+        input_field: categories_tags
+        taxonomy_name: categories
+        type: taxonomy
+        bucket_agg: true
+      labels:
+        full_text_search: true
+        input_field: labels_tags
+        taxonomy_name: labels
+        type: taxonomy
+        bucket_agg: true
+      unique_scans_n:
+        type: integer
+      nova_groups:
+        type: keyword
+        bucket_agg: true
+      last_modified_t:
+        type: date
+      created_t:
+        type: date
+      nutriments:
+        type: object
+      completeness:
+        type: float
+    lang_separator: _
+    match_phrase_boost: 2.0
+    # todo ?
+    preprocessor: tests.int.helpers.TestDocumentPreprocessor
+    document_fetcher: tests.int.helpers.TestDocumentFetcher
+    result_processor: tests.int.helpers.TestResultProcessor
+    split_separator: ','
+    redis_stream_name: product_updates_off
+    primary_color: "#341100"
+    accent_color: "#ff8714"
+    taxonomy:
+      sources:
+      - name: categories
+        url: file:///opt/search/tests/int/data/test_categories.full.json
+      - name: labels
+        url: file:///opt/search/tests/int/data/test_labels.full.json
+      index:
+        number_of_replicas: 1
+        number_of_shards: 4
+        name: test_off_taxonomy
+    supported_langs:
+    # a specific language to put the main language entry
+    - main
+    - en
+    - fr
+default_index: "test_off"

@@ -340,6 +340,12 @@ def get_taxonomy(
         ~/.cache/openfoodfacts/taxonomy
     :return: a Taxonomy
     """
+    if taxonomy_url.startswith("file://"):
+        # just use the file, it's already local
+        fpath = taxonomy_url[len("file://") :]
+        if not fpath.startswith("/"):
+            raise RuntimeError("Relative path (not yet) supported for taxonomy url")
+        return Taxonomy.from_path(fpath.rstrip("/"))
     filename = f"{taxonomy_name}.json"
 
     cache_dir = DEFAULT_CACHE_DIR if cache_dir is None else cache_dir

@@ -230,6 +230,8 @@ def add_languages_suffix(
 
     This match in a langage OR another
     """
+    if analysis.luqum_tree is None:
+        return analysis
     transformer = LanguageSuffixTransformer(
         lang_fields=set(config.lang_fields), langs=langs
     )
@@ -267,9 +269,10 @@ def build_es_query(
     config = params.index_config
     es_query = Search(index=config.index.name)
     # main query
-    es_query = es_query.query(
-        es_query_builder(analysis.luqum_tree, params.index_config, params.langs)
-    )
+    if analysis.luqum_tree is not None:
+        es_query = es_query.query(
+            es_query_builder(analysis.luqum_tree, params.index_config, params.langs)
+        )
 
     agg_fields = set(params.facets) if params.facets is not None else set()
     if params.charts is not None:

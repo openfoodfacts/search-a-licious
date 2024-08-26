@@ -158,7 +158,7 @@ def import_taxonomies(
     index_id, index_config = _get_index_config(config_path, index_id)
 
     # open a connection for this process
-    connection.get_es_client(timeout=120, retry_on_timeout=True)
+    connection.get_es_client(request_timeout=120, retry_on_timeout=True)
 
     if skip_indexing:
         logger.info("Skipping indexing of taxonomies")
