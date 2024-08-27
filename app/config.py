@@ -680,7 +680,8 @@ class IndexConfig(BaseModel):
             description=cd_(
                 """How much we boost exact matches on individual fields
 
-            This only makes sense when using "best match" order.
+            This only makes sense when using
+            "boost_phrase" request parameters and "best match" order.
             """
             )
         ),

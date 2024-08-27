@@ -23,6 +23,11 @@ from .es_query_builder import FullTextQueryBuilder
 from .es_scripts import get_script_id
 from .indexing import generate_index_object
 from .postprocessing import BaseResultProcessor
+from .query_transformers import (
+    LanguageSuffixTransformer,
+    PhraseBoostTransformer,
+    SmartUnknownOperationResolver,
+)
 from .utils import get_logger, str_utils
 
 logger = get_logger(__name__)
@@ -180,49 +185,6 @@ def create_aggregation_clauses(
     return clauses
 
 
-class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
-
-    def __init__(self, lang_fields=set[str], langs=list[str], **kwargs):
-        # we need to track parents to get full field name
-        super().__init__(track_parents=True, track_new_parents=False, **kwargs)
-        self.langs = langs
-        self.lang_fields = lang_fields
-
-    def visit_search_field(self, node, context):
-        """As we reach a search_field,
-        if it's one that have a lang,
-        we replace single expression with a OR on sub-language fields
-        """
-        # FIXME: verify again the way luqum work on this side !
-        field_name = node.name
-        # add eventual parents
-        prefix = ".".join(
-            node.name
-            for node in context["parents"]
-            if isinstance(node, tree.SearchField)
-        )
-        if prefix:
-            field_name = f"{prefix}.{field_name}"
-        # is it a lang dependant field
-        if field_name in self.lang_fields:
-            # create a new expression for each languages
-            new_nodes = []
-            for lang in self.langs:
-                # note: we don't have to care about having searchfield in children
-                # because only complete field_name would match a self.lang_fields
-                new_node = self.generic_visit(node)
-                # add language prefix
-                new_node.name = f"{new_node.name}.{lang}"
-                new_nodes.append(new_node)
-            if len(new_nodes) > 1:
-                yield tree.OrOperation(*new_nodes)
-            else:
-                yield from new_nodes
-        else:
-            # default
-            yield from self.generic_visit(node)
-
-
 def add_languages_suffix(
     analysis: QueryAnalysis, langs: list[str], config: IndexConfig
 ) -> QueryAnalysis:
@@ -235,6 +197,27 @@ def add_languages_suffix(
     transformer = LanguageSuffixTransformer(
         lang_fields=set(config.lang_fields), langs=langs
     )
+    analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
+    return analysis
+
+
+def add_smart_words(analysis: QueryAnalysis) -> QueryAnalysis:
+    """Add smart words heuristic
+
+    see SearchParameters.smart_words
+    """
+    if analysis.luqum_tree is None:
+        return analysis
+    transformer = SmartUnknownOperationResolver()
+    analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
+    return analysis
+
+
+def boost_phrases(analysis: QueryAnalysis, boost: float | str) -> QueryAnalysis:
+    """Boost all phrases in the query"""
+    if analysis.luqum_tree is None:
+        return analysis
+    transformer = PhraseBoostTransformer(boost=boost)
     analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
     return analysis
 
@@ -252,6 +235,10 @@ def build_search_query(
     """
     analysis = parse_query(params.q)
     analysis = compute_facets_filters(analysis)
+    if params.smart_words:
+        analysis = add_smart_words(analysis)
+    if params.boost_phrase and params.sort_by is None:
+        analysis = boost_phrases(analysis, params.index_config.match_phrase_boost)
     # add languages for localized fields
     analysis = add_languages_suffix(analysis, params.langs, params.index_config)
 

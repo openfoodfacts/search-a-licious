@@ -129,6 +129,8 @@ def parse_charts_get(charts_params: str):
 @app.get("/search")
 def search_get(
     q: GetSearchParamsTypes.q = None,
+    boost_phrase: GetSearchParamsTypes.boost_phrase = False,
+    smart_words: GetSearchParamsTypes.smart_words = False,
     langs: GetSearchParamsTypes.langs = None,
     page_size: GetSearchParamsTypes.page_size = 10,
     page: GetSearchParamsTypes.page = 1,
@@ -147,6 +149,8 @@ def search_get(
     try:
         search_parameters = SearchParameters(
             q=q,
+            boost_phrase=boost_phrase,
+            smart_words=smart_words,
             langs=langs_list,
             page_size=page_size,
             page=page,

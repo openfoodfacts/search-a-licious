@@ -186,6 +186,32 @@ The query is optional, but `sort_by` value must then be provided."""
         ),
     ] = None
 
+    boost_phrase: Annotated[
+        bool,
+        Query(
+            description="""This enables an heuristic that will favor,
+matching terms that are consecutive.
+
+Technically, if you have a query with the two words `whole milk`
+it will boost entries with `"whole milk"` exact match.
+The boost factor is defined by `match_phrase_boost` value in Configuration
+
+Note, that it only make sense if you use best match sorting.
+So in any other case it is ignored."""
+        ),
+    ]
+
+    smart_words: Annotated[
+        bool,
+        Query(
+            description="""This enables an heuristic that helps users search what they mean.
+
+If the type `Whole Milk labels:vegan`, it will match (whole OR milk) AND labels:vegan`.
+
+Also consider the `boost_phrase` parameter with this one"""
+        ),
+    ]
+
     langs: Annotated[
         list[str],
         Query(
@@ -214,8 +240,9 @@ If not provided, `['en']` is used."""
         Query(
             description=textwrap.dedent(
                 """
-            Field name to use to sort results, the field should exist
-            and be sortable. If it is not provided, results are sorted by descending relevance score.
+            Field name to use to sort results, the field should exist and be sortable.
+            If it is not provided, results are sorted by descending relevance score.
+            (aka best match)
 
             If you put a minus before the name, the results will be sorted by descending order.
 
@@ -315,7 +342,9 @@ If not provided, `['en']` is used."""
         is_field = sort_by in index_config.fields
         # TODO: verify field type is compatible with sorting
         if not (self.sort_by is None or is_field or self.uses_sort_script):
-            raise ValueError("`sort_by` must be a valid field name or script name")
+            raise ValueError(
+                "`sort_by` must be a valid field name or script name or None"
+            )
         return self
 
     @model_validator(mode="after")
@@ -419,12 +448,15 @@ def _annotation_new_type(type_, annotation):
     return Annotated[type_, *annotation.__metadata__]
 
 
-# types for search parameters for GET
+# types and annotations for search parameters for GET,
+# created from POST search parameters
 SEARCH_PARAMS_ANN = get_type_hints(SearchParameters, include_extras=True)
 
 
 class GetSearchParamsTypes:
     q = SEARCH_PARAMS_ANN["q"]
+    boost_phrase = SEARCH_PARAMS_ANN["boost_phrase"]
+    smart_words = SEARCH_PARAMS_ANN["smart_words"]
     langs = _annotation_new_type(str, SEARCH_PARAMS_ANN["langs"])
     page_size = SEARCH_PARAMS_ANN["page_size"]
     page = SEARCH_PARAMS_ANN["page"]
@@ -453,7 +485,11 @@ class FetcherStatus(Enum):
 
 
 class FetcherResult(BaseModel):
-    """Result for a document fecher"""
+    """Result for a document fetcher
+
+    This is also used by pre-processors
+    who have the opportunity to discard an entry
+    """
 
     status: FetcherStatus
     document: JSONType | None
