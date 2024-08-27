@@ -118,9 +118,18 @@ tsc_watch:
 
 test: _ensure_network test_api test_front
 
-test_api:
-	@echo "🔎 Running API tests..."
-	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/
+test_api: test_api_unit test_api_integration
+
+test_api_unit:
+	@echo "🔎 Running API unit tests..."
+	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/int
+
+test_api_integration:
+	@echo "🔎 Running API integration tests..."
+	${DOCKER_COMPOSE_TEST} up -d es01 es02
+	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/unit
+	${DOCKER_COMPOSE_TEST} stop es01 es02
+
 
 test_front:
 	@echo "🔎 Running front-end tests..."

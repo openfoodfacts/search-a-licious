@@ -115,5 +115,5 @@ def refresh_synonyms(index_name: str, index_config: IndexConfig, target_dir: Pat
     if es.indices.exists(index=index_name):
         # trigger update of synonyms in token filters by reloading search analyzers
         # and clearing relevant cache
-        es.reload_search_analyzers(index_name)
-        es.clear_cache(index_name, request=True)
+        es.indices.reload_search_analyzers(index=index_name)
+        es.indices.clear_cache(index=index_name, request=True)

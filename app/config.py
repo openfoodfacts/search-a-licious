@@ -891,6 +891,7 @@ CONFIG: Config | None = None
 def set_global_config(config_path: Path):
     global CONFIG
     CONFIG = Config.from_yaml(config_path)
+    return CONFIG
 
 
 if settings.config_path:

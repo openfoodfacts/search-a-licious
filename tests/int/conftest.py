@@ -14,7 +14,7 @@ DEFAULT_CONFIG_PATH = DATA_DIR / "test_off.yml"
 @pytest.fixture(scope="module")
 def test_off_config():
     """Fixture that sets default config to DEFAULT_CONFIG_PATH"""
-    app.config.set_global_config(DEFAULT_CONFIG_PATH)
+    return app.config.set_global_config(DEFAULT_CONFIG_PATH)
 
 
 @pytest.fixture
