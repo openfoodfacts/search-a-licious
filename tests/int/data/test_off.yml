@@ -4,7 +4,7 @@ indices:
     index:
       id_field_name: code
       last_modified_field_name: last_modified_t
-      name: openfoodfacts
+      name: test_off
       number_of_replicas: 1
       number_of_shards: 1
     fields:

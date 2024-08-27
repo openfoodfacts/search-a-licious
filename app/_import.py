@@ -227,17 +227,17 @@ def gen_documents(
     next_index: str,
     num_items: int | None,
     num_processes: int,
-    process_id: int,
+    process_num: int,
 ):
-    """Generate documents to index for process number process_id
+    """Generate documents to index for process number process_num
 
-    We chunk documents based on document num % process_id
+    We chunk documents based on document num % process_num
     """
     for i, row in enumerate(tqdm.tqdm(jsonl_iter(file_path))):
         if num_items is not None and i >= num_items:
             break
         # Only get the relevant
-        if i % num_processes != process_id:
+        if i % num_processes != process_num:
             continue
 
         document_dict = get_document_dict(
@@ -308,7 +308,7 @@ def import_parallel(
     next_index: str,
     num_items: int | None,
     num_processes: int,
-    process_id: int,
+    process_num: int,
 ):
     """One task of import.
 
@@ -316,7 +316,7 @@ def import_parallel(
     :param str next_index: the index to write to
     :param int num_items: max number of items to import, default to no limit
     :param int num_processes: total number of processes
-    :param int process_id: the index of the process
+    :param int process_num: the index of the process
         (from 0 to num_processes - 1)
     """
     processor = DocumentProcessor(config)
@@ -334,13 +334,11 @@ def import_parallel(
             next_index,
             num_items,
             num_processes,
-            process_id,
+            process_num,
         ),
         raise_on_error=False,
     )
-    if not success:
-        logger.error("Encountered errors: %s", errors)
-    return success, errors
+    return process_num, success, errors
 
 
 def import_taxonomies(config: IndexConfig, next_index: str):
@@ -507,12 +505,18 @@ def run_items_import(
     # run in parallel
     num_errors = 0
     with Pool(num_processes) as pool:
-        for success, errors in pool.starmap(import_parallel, args):
-            if not success:
+        for i, success, errors in pool.starmap(import_parallel, args):
+            # Note: we log here instead of in sub-process because
+            # it's easier to avoid mixing logs, and it works better for pytest
+            logger.info("[%d] Indexed %d documents", i, success)
+            if errors:
+                logger.error("[%d] Encountered %d errors: %s", i, len(errors), errors)
                 num_errors += len(errors)
     # update with last index updates (hopefully since the jsonl)
     if not skip_updates:
         num_errors += get_redis_updates(es_client, next_index, config)
+    # wait for index refresh
+    es_client.indices.refresh(index=next_index)
     if not partial:
         # make alias point to new index
         update_alias(es_client, next_index, config.index.name)
@@ -535,6 +539,8 @@ def perform_taxonomy_import(config: IndexConfig) -> None:
     index.save()
 
     import_taxonomies(config, next_index)
+    # wait for index refresh
+    es_client.indices.refresh(index=next_index)
 
     # make alias point to new index
     update_alias(es_client, next_index, config.taxonomy.index.name)
