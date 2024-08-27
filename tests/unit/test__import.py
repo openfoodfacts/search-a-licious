@@ -325,19 +325,8 @@ def test_gen_documents(default_config):
         assert isinstance(last_indexed_datetime, str)
         assert datetime.datetime.fromisoformat(last_indexed_datetime) > start_datetime
         assert "categories" in document["_source"]
-        categories = {
-            lang: set(names)
-            for lang, names in document["_source"].pop("categories").items()
-        }
-        assert categories == {
-            "de": {"Getränke"},
-            "en": {"Beverages", "Drinks"},
-            "es": {"Bebidas"},
-            "fr": {"Boissons"},
-            "it": {"Bevande"},
-            "nl": {"Drank", "Dranken"},
-        }
         assert document["_source"] == {
+            "categories": ["en:beverages"],
             "categories_tags": ["en:beverages"],
             "code": ids[i],
         }

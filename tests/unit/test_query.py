@@ -73,6 +73,7 @@ def load_elasticsearch_query_result(id_: str):
     ],
 )
 def test_build_search_query(
+    # parameters
     id_: str,
     q: str,
     langs: set[str],
@@ -80,6 +81,7 @@ def test_build_search_query(
     page: int,
     sort_by: str | None,
     facets: list[str] | None,
+    # fixtures
     update_results: bool,
     default_config: IndexConfig,
     default_filter_query_builder: FullTextQueryBuilder,

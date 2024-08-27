@@ -361,16 +361,6 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = None
-    add_taxonomy_synonyms: Annotated[
-        bool,
-        Field(
-            description=cd_(
-                """if True, add all synonyms of the taxonomy values to the index.
-                The flag is ignored if the field type is not `taxonomy`.
-                """
-            )
-        ),
-    ] = True
 
     @model_validator(mode="after")
     def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
