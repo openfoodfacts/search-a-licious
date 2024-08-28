@@ -112,7 +112,7 @@ class PhraseBoostTransformer(luqum.visitor.TreeTransformer):
         """Given a group of words, give the new operation"""
         expr = " ".join(word.value for word in words)
         expr = f'"{expr}"'
-        phrase: tree.Item = tree.Phrase(expr)
+        phrase = tree.Phrase(expr)
         if self.proximity:
             phrase = tree.Proximity(phrase, degree=self.proximity)
         phrase = tree.Boost(phrase, force=self.boost, head=" ")

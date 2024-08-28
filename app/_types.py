@@ -1,12 +1,12 @@
-import textwrap
-from enum import Enum
+from enum import Enum, StrEnum
 from functools import cached_property
+from inspect import cleandoc as cd_
 from typing import Annotated, Any, Literal, Optional, Tuple, Union, cast, get_type_hints
 
 import elasticsearch_dsl.query
 import luqum.tree
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from . import config
 from .utils import str_utils
@@ -73,8 +73,18 @@ FacetsFilters = dict[str, list[str]]
 """Data about selected filters for each facet: facet name -> list of values"""
 
 
+class DebugInfo(StrEnum):
+    """Debug information to return in the API"""
+
+    aggregations = "aggregations"
+    lucene_query = "lucene_query"
+    es_query = "es_query"
+
+
 class SearchResponseDebug(BaseModel):
-    query: JSONType
+    lucene_query: str | None = None
+    es_query: JSONType | None = None
+    aggregations: JSONType | None = None
 
 
 class SearchResponseError(BaseModel):
@@ -98,7 +108,7 @@ class SuccessSearchResponse(BaseModel):
     page: int
     page_size: int
     page_count: int
-    debug: SearchResponseDebug
+    debug: SearchResponseDebug | None = None
     took: int
     timed_out: bool
     count: int
@@ -201,17 +211,6 @@ So in any other case it is ignored."""
         ),
     ]
 
-    smart_words: Annotated[
-        bool,
-        Query(
-            description="""This enables an heuristic that helps users search what they mean.
-
-If the type `Whole Milk labels:vegan`, it will match (whole OR milk) AND labels:vegan`.
-
-Also consider the `boost_phrase` parameter with this one"""
-        ),
-    ]
-
     langs: Annotated[
         list[str],
         Query(
@@ -238,54 +237,73 @@ If not provided, `['en']` is used."""
     sort_by: Annotated[
         str | None,
         Query(
-            description=textwrap.dedent(
+            description=cd_(
+                """Field name to use to sort results,
+                the field should exist and be sortable.
+                If it is not provided, results are sorted by descending relevance score.
+                (aka best match)
+
+                If you put a minus before the name, the results will be sorted by descending order.
+
+                If the field name match a known script (defined in your configuration),
+                it will be use for sorting.
+
+                In this case you also need to provide additional parameters corresponding to your script parameters.
+                If a script needs parameters, you can only use the POST method.
+
+                Beware that this may have a big [impact on performance][perf_link]
+
+                Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
+
+                [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
+                [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
                 """
-            Field name to use to sort results, the field should exist and be sortable.
-            If it is not provided, results are sorted by descending relevance score.
-            (aka best match)
-
-            If you put a minus before the name, the results will be sorted by descending order.
-
-            If the field name match a known script (defined in your configuration),
-            it will be use for sorting.
-
-            In this case you also need to provide additional parameters corresponding to your script parameters.
-            If a script needs parameters, you can only use the POST method.
-
-            Beware that this may have a big [impact on performance][perf_link]
-
-            Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
-
-            [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
-            [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
-            """
             )
         ),
     ] = None
     facets: Annotated[
         list[str] | None,
         Query(
-            description="""Name of facets to return in the response as a comma-separated value.
-            If None (default) no facets are returned."""
+            description=cd_(
+                """Name of facets to return in the response as a comma-separated value.
+                If None (default) no facets are returned.
+                """
+            )
         ),
     ] = None
     charts: Annotated[
         list[ChartType] | None,
         Query(
-            description="""Name of vega representations to return in the response.
-            Can be distribution chart or scatter plot"""
+            description=cd_(
+                """Name of vega representations to return in the response.
+                Can be distribution chart or scatter plot
+                """
+            )
         ),
     ] = None
     sort_params: Annotated[
         JSONType | None,
         Query(
-            description="""Additional parameters when using  a sort script in sort_by.
-            If the sort script needs parameters, you can only be used the POST method.""",
+            description=cd_(
+                """Additional parameters when using  a sort script in sort_by.
+                If the sort script needs parameters, you can only be used the POST method.
+                """
+            ),
         ),
     ] = None
     index_id: Annotated[
         str | None,
         INDEX_ID_QUERY_PARAM,
+    ] = None
+    debug_info: Annotated[
+        list[DebugInfo] | None,
+        Query(
+            description=cd_(
+                """Tells which debug information to return in the response.
+                It can be a comma separated list of values
+                """
+            ),
+        ),
     ] = None
 
     @model_validator(mode="after")
@@ -425,6 +443,17 @@ If not provided, `['en']` is used."""
             )
         return self
 
+    @field_validator("debug_info")
+    @classmethod
+    def debug_info_list_from_str(
+        cls, debug_info: str | list[DebugInfo] | None
+    ) -> list[DebugInfo] | None:
+        """We can pass a comma separated list of DebugInfo values as a string"""
+        if isinstance(debug_info, str):
+            values = [getattr(DebugInfo, part, None) for part in debug_info.split(",")]
+            debug_info = [v for v in values if v is not None]
+        return debug_info
+
     @property
     def langs_set(self):
         return set(self.langs)
@@ -456,7 +485,6 @@ SEARCH_PARAMS_ANN = get_type_hints(SearchParameters, include_extras=True)
 class GetSearchParamsTypes:
     q = SEARCH_PARAMS_ANN["q"]
     boost_phrase = SEARCH_PARAMS_ANN["boost_phrase"]
-    smart_words = SEARCH_PARAMS_ANN["smart_words"]
     langs = _annotation_new_type(str, SEARCH_PARAMS_ANN["langs"])
     page_size = SEARCH_PARAMS_ANN["page_size"]
     page = SEARCH_PARAMS_ANN["page"]
@@ -465,6 +493,7 @@ class GetSearchParamsTypes:
     facets = _annotation_new_type(str, SEARCH_PARAMS_ANN["facets"])
     charts = _annotation_new_type(str, SEARCH_PARAMS_ANN["charts"])
     index_id = SEARCH_PARAMS_ANN["index_id"]
+    debug_info = SEARCH_PARAMS_ANN["debug_info"]
 
 
 class FetcherStatus(Enum):

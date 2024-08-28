@@ -2,7 +2,14 @@ import logging
 from typing import cast
 
 from . import config
-from ._types import SearchParameters, SearchResponse, SuccessSearchResponse
+from ._types import (
+    DebugInfo,
+    QueryAnalysis,
+    SearchParameters,
+    SearchResponse,
+    SearchResponseDebug,
+    SuccessSearchResponse,
+)
 from .charts import build_charts
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
@@ -27,6 +34,29 @@ else:
         index_id: load_result_processor(index_config)
         for index_id, index_config in config.CONFIG.indices.items()
     }
+
+
+def add_debug_info(
+    search_result: SuccessSearchResponse,
+    analysis: QueryAnalysis,
+    params: SearchParameters,
+) -> SearchResponseDebug | None:
+    if not params.debug_info:
+        return None
+    data = {}
+    for debug_info in params.debug_info:
+        match debug_info:
+            case DebugInfo.es_query:
+                data[debug_info.value] = (
+                    analysis.es_query.to_dict() if analysis.es_query else None
+                )
+            case DebugInfo.lucene_query:
+                data[debug_info.value] = (
+                    str(analysis.luqum_tree) if analysis.luqum_tree else None
+                )
+            case DebugInfo.aggregations:
+                data[debug_info.value] = search_result.aggregations
+    return SearchResponseDebug(**data)
 
 
 def search(
@@ -54,9 +84,14 @@ def search(
         # takes ~40ms to generate, build-it before hand to avoid this delay
         es_query_builder=FILTER_QUERY_BUILDERS[params.valid_index_id],
     )
-    logger.debug(
-        "Elasticsearch query: %s",
-        query.es_query.to_dict() if query.es_query else query.es_query,
+    (
+        logger.debug(
+            "Luqum query: %s\nElasticsearch query: %s",
+            str(query.luqum_tree),
+            query.es_query.to_dict() if query.es_query else query.es_query,
+        )
+        if logger.isEnabledFor(logging.DEBUG)  # avoid processing if no debug
+        else None
     )
 
     projection = set(params.fields) if params.fields else None
@@ -72,6 +107,7 @@ def search(
             search_result, query, params.main_lang, index_config, params.facets
         )
         search_result.charts = build_charts(search_result, index_config, params.charts)
-        # remove aggregations to avoid sending too much information
+        search_result.debug = add_debug_info(search_result, query, params)
+        # remove aggregations
         search_result.aggregations = None
     return search_result
