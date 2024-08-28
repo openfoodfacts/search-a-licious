@@ -7,6 +7,7 @@ from luqum import tree
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
 from luqum.parser import parser
+from luqum.utils import UnknownOperationResolver
 
 from ._types import (
     ErrorSearchResponse,
@@ -23,11 +24,7 @@ from .es_query_builder import FullTextQueryBuilder
 from .es_scripts import get_script_id
 from .indexing import generate_index_object
 from .postprocessing import BaseResultProcessor
-from .query_transformers import (
-    LanguageSuffixTransformer,
-    PhraseBoostTransformer,
-    SmartUnknownOperationResolver,
-)
+from .query_transformers import LanguageSuffixTransformer, PhraseBoostTransformer
 from .utils import get_logger, str_utils
 
 logger = get_logger(__name__)
@@ -201,23 +198,22 @@ def add_languages_suffix(
     return analysis
 
 
-def add_smart_words(analysis: QueryAnalysis) -> QueryAnalysis:
-    """Add smart words heuristic
-
-    see SearchParameters.smart_words
-    """
+def resolve_unknown_operation(analysis: QueryAnalysis) -> QueryAnalysis:
+    """Resolve unknown operations in the query to a AND"""
     if analysis.luqum_tree is None:
         return analysis
-    transformer = SmartUnknownOperationResolver()
+    transformer = UnknownOperationResolver(resolve_to=tree.AndOperation)
     analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
     return analysis
 
 
-def boost_phrases(analysis: QueryAnalysis, boost: float | str) -> QueryAnalysis:
+def boost_phrases(
+    analysis: QueryAnalysis, boost: float, proximity: int | None
+) -> QueryAnalysis:
     """Boost all phrases in the query"""
     if analysis.luqum_tree is None:
         return analysis
-    transformer = PhraseBoostTransformer(boost=boost)
+    transformer = PhraseBoostTransformer(boost=boost, proximity=proximity)
     analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
     return analysis
 
@@ -235,10 +231,13 @@ def build_search_query(
     """
     analysis = parse_query(params.q)
     analysis = compute_facets_filters(analysis)
-    if params.smart_words:
-        analysis = add_smart_words(analysis)
+    analysis = resolve_unknown_operation(analysis)
     if params.boost_phrase and params.sort_by is None:
-        analysis = boost_phrases(analysis, params.index_config.match_phrase_boost)
+        analysis = boost_phrases(
+            analysis,
+            params.index_config.match_phrase_boost,
+            params.index_config.match_phrase_boost_proximity,
+        )
     # add languages for localized fields
     analysis = add_languages_suffix(analysis, params.langs, params.index_config)
 

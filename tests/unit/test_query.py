@@ -7,7 +7,7 @@ from luqum.parser import parser
 from app._types import QueryAnalysis, SearchParameters
 from app.config import IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
-from app.query import add_smart_words, boost_phrases, build_search_query
+from app.query import boost_phrases, build_search_query, resolve_unknown_operation
 from app.utils.io import dump_json, load_json
 
 DATA_DIR = Path(__file__).parent / "data"
@@ -20,78 +20,50 @@ def load_elasticsearch_query_result(id_: str):
 def test_boost_phrases_none():
     # luqum_tree is None
     analysis = QueryAnalysis()
-    analysis = boost_phrases(analysis, 3.0)
+    analysis = boost_phrases(analysis, 3.0, 2)
     assert analysis.luqum_tree is None
 
 
 @pytest.mark.parametrize(
-    "query,boost,expected",
+    "query,proximity,expected",
     [
-        ("Milk", "2.1", "Milk"),
-        ("Whole OR Milk", "2.1", 'Whole OR Milk OR "Whole Milk"^2.1'),
+        ("Milk", 3, "Milk"),
+        ("Whole Milk", None, '((Whole AND Milk) OR "Whole Milk"^2.1)'),
+        ("Whole Milk", 3, '((Whole AND Milk) OR "Whole Milk"~3^2.1)'),
+        ("Whole AND Milk", 3, '((Whole AND Milk) OR "Whole Milk"~3^2.1)'),
         (
-            "Whole OR Milk OR Cream",
-            "2.1",
-            'Whole OR Milk OR Cream OR "Whole Milk Cream"^2.1',
+            "Whole Milk Cream",
+            3,
+            '((Whole AND Milk AND Cream) OR "Whole Milk Cream"~3^2.1)',
         ),
-        # no boost on AND and UnknownOperation
-        ("Whole AND Milk", "2.1", "Whole AND Milk"),
-        ("Whole Milk", "2.1", "Whole Milk"),
+        # no boost on OR
+        ("Whole OR Milk", 3, "Whole OR Milk"),
+        # and in search fields expressions
+        (
+            "Cream AND labels:(Vegan AND Fair-trade)",
+            3,
+            "Cream AND labels:(Vegan AND Fair-trade)",
+        ),
         # mix things
         (
-            'Whole OR Milk OR "complete sentence" OR foo OR spam',
-            "2.1",
-            'Whole OR Milk OR "complete sentence" OR foo OR spam OR "Whole Milk"^2.1 OR "foo spam"^2.1',
+            'Whole Milk "No gluten" Vegetarian Soup',
+            3,
+            '((Whole AND Milk) OR "Whole Milk"~3^2.1) AND "No gluten" AND ((Vegetarian AND Soup) OR "Vegetarian Soup"~3^2.1)',
         ),
-        # inside search field expressions --> untouched
-        ("test:(Whole OR Milk)", "2.1", "test:(Whole OR Milk)"),
-        ("Cream OR test:(Whole OR Milk)", "2.1", "Cream OR test:(Whole OR Milk)"),
         # complexe expression
         (
-            "Cream AND (spam OR NOT (Whole OR Milk)^3)",
-            "2.1",
-            'Cream AND (spam OR NOT (Whole OR Milk OR "Whole Milk"^2.1)^3)',
+            "Cream AND (labels:Vegan OR NOT (Whole AND Milk)^3)",
+            3,
+            'Cream AND (labels:Vegan OR NOT (((Whole AND Milk) OR "Whole Milk"~3^2.1))^3)',
         ),
     ],
 )
-def test_boost_phrases(query: str, boost: str, expected: str):
+def test_boost_phrases(query: str, proximity: int | None, expected: str):
     luqum_tree = parser.parse(query)
     analysis = QueryAnalysis(luqum_tree=luqum_tree)
-    analysis = boost_phrases(analysis, boost)
-    assert str(analysis.luqum_tree) == expected
-
-
-def test_add_smart_words_none():
-    # luqum_tree is None
-    analysis = QueryAnalysis()
-    analysis = add_smart_words(analysis)
-    assert analysis.luqum_tree is None
-
-
-@pytest.mark.parametrize(
-    "query,expected",
-    [
-        ("Milk", "Milk"),
-        ("Milk Foam", "(Milk OR Foam)"),
-        # correctly group
-        ("Milk Foam Cream foo:spam", "(Milk OR Foam OR Cream) AND foo:spam"),
-        (
-            'Milk "Heavy Foam" Cream foo:spam',
-            'Milk AND "Heavy Foam" AND Cream AND foo:spam',
-        ),
-        ('Milk Cream "Heavy Foam"', '(Milk OR Cream) AND "Heavy Foam"'),
-        (
-            "Milk Foam foo:spam Creamy Cheese",
-            "(Milk OR Foam) AND foo:spam AND (Creamy OR Cheese)",
-        ),
-        # deep inside
-        ("foo:(spam:(Milk Foam)^2)", "foo:(spam:((Milk OR Foam))^2)"),
-    ],
-)
-def test_add_smart_words(query: str, expected: str):
-    luqum_tree = parser.parse(query)
-    analysis = QueryAnalysis(luqum_tree=luqum_tree)
-    analysis = add_smart_words(analysis)
+    # resolve unknown operation
+    analysis = resolve_unknown_operation(analysis)
+    analysis = boost_phrases(analysis, 2.1, proximity)
     assert str(analysis.luqum_tree) == expected
 
 

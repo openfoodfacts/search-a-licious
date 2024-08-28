@@ -678,14 +678,38 @@ class IndexConfig(BaseModel):
         float,
         Field(
             description=cd_(
-                """How much we boost exact matches on individual fields
+                """How much we boost exact matches on consecutive words
+
+            That is, if you search "Dark Chocolate",
+            it will boost entries that have the "Dark Chocolate" phrase (in the same field).
+
+            It only applies to free text search.
+
+            This only makes sense when using
+            "boost_phrase" request parameters and "best match" order.
+
+            Note: this field accept float of string,
+            because using float might generate rounding problems.
+            The string must represent a float.
+            """
+            )
+        ),
+    ] = 2.0
+    match_phrase_boost_proximity: Annotated[
+        int | None,
+        Field(
+            description=cd_(
+                """How much we allow proximity for `match_phrase_boost`.
+
+            If unspecified we will just match word to word.
+            Otherwise it will allow some gap between words matching
 
             This only makes sense when using
             "boost_phrase" request parameters and "best match" order.
             """
             )
         ),
-    ] = 2.0
+    ] = None
     document_denylist: Annotated[
         set[str],
         Field(

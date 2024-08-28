@@ -1,6 +1,5 @@
 import luqum.visitor
 from luqum import tree
-from luqum.utils import UnknownOperationResolver
 
 
 class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
@@ -81,88 +80,87 @@ class PhraseBoostTransformer(luqum.visitor.TreeTransformer):
     """This transformer boosts terms that are consecutive
     and might be found in a query
 
-    For example if we have `Whole OR Milk OR Cream`
-    we will boost items containing "Whole Milk Cream"
+    For example if we have `Whole AND Milk AND Cream`
+    we will boost items containing `"Whole Milk Cream"`,
+    the new expression will look like
+    (here with a boost of 2 and proxmity of 3):
+    `((Whole AND Milk AND Cream^2) OR "Whole Milk Cream"^2.0~3)`
 
-    We also only apply it to terms that are not for a specified field
+    We also only apply it to terms that are not for a specified field.
+
+    Note: It won't work on UnknownOperation, so you'd better resolve them before.
+
+    :param boost: how much to boost consecutive terms
+    :param proximity: proxmity of the boosted phrase, enable to match with gaps
+    :param only_free_text: only apply to text without an explicit search field defined
     """
 
-    def __init__(self, boost=float, **kwargs):
+    def __init__(
+        self, boost: float, proximity: int | None = 1, only_free_text=True, **kwargs
+    ):
         super().__init__(track_parents=True, track_new_parents=False, **kwargs)
-        self.boost = boost
-
-    def _get_consecutive_words(self, node):
-        return [[word for _, word in words] for words in get_consecutive_words(node)]
-
-    def _phrase_from_words(self, words):
-        expr = " ".join(word.value for word in words)
-        expr = f'"{expr}"'
-        phrase = tree.Phrase(expr)
-        return tree.Boost(phrase, force=self.boost, head=" ", tail=" ")
-
-    def visit_or_operation(self, node, context):
-        """As we find an OR operation try to boost consecutive word terms"""
-        # get the or operation with cloned children
-        (new_node,) = list(super().generic_visit(node, context))
-        has_search_field = any(
-            isinstance(p, tree.SearchField) for p in context.get("parents", [])
-        )
-        if not has_search_field:
-            # we are in an expression with no field specified, transform
-            consecutive = self._get_consecutive_words(new_node)
-            if consecutive:
-                # create new match phrase w terms from consecutive words
-                new_terms = [self._phrase_from_words(words) for words in consecutive]
-                # head / tail problem
-                new_terms[-1].tail = new_node.children[-1].tail
-                new_node.children[-1].tail = " "
-                # add operands
-                new_node.children += tuple(new_terms)
-        yield new_node
-
-
-class SmartUnknownOperationResolver(UnknownOperationResolver):
-    """A complex unknown operation resolver that fits what users might intend
-
-    It replace UnknownOperation by a AND operation,
-    but if consecutive words are found it will try to group them in a OR operation
-    """
+        # we transform float to str,
+        # because otherwise decimal.Decimal will make it look weird
+        self.boost = str(boost)
+        self.proximity = proximity
+        self.only_free_text = only_free_text
 
     def _get_consecutive_words(self, node):
         return get_consecutive_words(node)
 
-    def _words_or_operation(self, words):
-        # transfer head and tail
-        head = words[0].head
-        tail = words[-1].tail
+    def _phrase_boost_from_words(self, words):
+        """Given a group of words, give the new operation"""
+        expr = " ".join(word.value for word in words)
+        expr = f'"{expr}"'
+        phrase: tree.Item = tree.Phrase(expr)
+        if self.proximity:
+            phrase = tree.Proximity(phrase, degree=self.proximity)
+        phrase = tree.Boost(phrase, force=self.boost, head=" ")
+        new_expr = tree.Group(
+            tree.OrOperation(tree.Group(tree.AndOperation(*words), tail=" "), phrase)
+        )
+        # tail and head transfer, to have good looking str
+        new_expr.head = words[0].head
         words[0].head = ""
+        new_expr.tail = words[-1].tail
         words[-1].tail = ""
-        operation = tree.Group(tree.OrOperation(*words), head=head, tail=tail)
-        return operation
+        return new_expr
 
-    def visit_unknown_operation(self, node, context):
-        # create the node as intended, this might be AND or OR operation
-        (new_node,) = list(super().visit_unknown_operation(node, context))
-        # if it's AND operation
-        if isinstance(new_node, tree.AndOperation):
-            # group consecutive terms in OROperations
+    def visit_and_operation(self, node, context):
+        """As we find an OR operation try to boost consecutive word terms"""
+        # get the or operation with cloned children
+        (new_node,) = list(super().generic_visit(node, context))
+        do_boost_phrases = True
+        if self.only_free_text:
+            # we don't do it if a parent is a SearchField
+            do_boost_phrases = not any(
+                isinstance(p, tree.SearchField) for p in context.get("parents", [])
+            )
+        if do_boost_phrases:
+            # group consecutive terms in AndOperations
             consecutive = self._get_consecutive_words(new_node)
             if consecutive:
-                # change first word by the OR operation
+                # We have to modify children
+                # by replacing consecutive words with our new expressions.
+                # We use indexes for that.
+                new_children = []
+                # change first word by the new operation
                 index_to_change = {
-                    words[0][0]: self._words_or_operation([word[1] for word in words])
+                    words[0][0]: self._phrase_boost_from_words(
+                        [word[1] for word in words]
+                    )
                     for words in consecutive
                 }
                 # remove other words that are part of the expression
+                # (and we will keep the rest)
                 index_to_remove = set(
                     word[0] for words in consecutive for word in words[1:]
                 )
-                new_children = []
                 for i, child in enumerate(new_node.children):
                     if i in index_to_change:
                         new_children.append(index_to_change[i])
                     elif i not in index_to_remove:
                         new_children.append(child)
-                # substitute children
+                # substitute children of the new node
                 new_node.children = new_children
         yield new_node
