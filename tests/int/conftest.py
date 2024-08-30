@@ -17,6 +17,9 @@ def test_off_config():
     return app.config.set_global_config(DEFAULT_CONFIG_PATH)
 
 
+ES_MAX_WAIT = 60  # 1 minute
+
+
 @pytest.fixture
 def es_connection(test_off_config):
     """Fixture that get's an Elasticsearch connection"""
@@ -33,6 +36,7 @@ def es_connection(test_off_config):
             return es
         except elasticsearch.exceptions.ConnectionError:
             waited += 1
-            if waited > 10:
+            if waited > ES_MAX_WAIT:
                 raise
             time.sleep(1)
+            es = None

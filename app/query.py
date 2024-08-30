@@ -7,7 +7,7 @@ from luqum import tree
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
 from luqum.parser import parser
-from luqum.utils import UnknownOperationResolver
+from luqum.utils import OpenRangeTransformer, UnknownOperationResolver
 
 from ._types import (
     ErrorSearchResponse,
@@ -22,9 +22,14 @@ from ._types import (
 from .config import FieldType, IndexConfig
 from .es_query_builder import FullTextQueryBuilder
 from .es_scripts import get_script_id
+from .exceptions import InvalidLuceneQueryError, QueryCheckError, UnknownScriptError
 from .indexing import generate_index_object
 from .postprocessing import BaseResultProcessor
-from .query_transformers import LanguageSuffixTransformer, PhraseBoostTransformer
+from .query_transformers import (
+    LanguageSuffixTransformer,
+    PhraseBoostTransformer,
+    QueryCheck,
+)
 from .utils import get_logger, str_utils
 
 logger = get_logger(__name__)
@@ -54,9 +59,7 @@ def parse_query(q: str | None) -> QueryAnalysis:
         luqum.exceptions.ParseError,
         luqum.exceptions.InconsistentQueryException,
     ) as e:
-        # if the lucene syntax is invalid, consider the query as plain text
-        logger.warning("parsing error for query: '%s':\n%s", q, e)
-        analysis.luqum_tree = None
+        raise InvalidLuceneQueryError("Request could not be analyzed by luqum") from e
     return analysis
 
 
@@ -149,7 +152,7 @@ def parse_sort_by_script(
     operator, sort_by = str_utils.split_sort_by_sign(sort_by)
     script = (config.scripts or {}).get(sort_by)
     if script is None:
-        raise ValueError(f"Unknown script '{sort_by}'")
+        raise UnknownScriptError(f"Unknown script '{sort_by}'")
     script_id = get_script_id(index_id, sort_by)
     # join params and static params
     script_params = dict((params or {}), **(script.static_params or {}))
@@ -218,6 +221,26 @@ def boost_phrases(
     return analysis
 
 
+def check_query(params: SearchParameters, analysis: QueryAnalysis) -> None:
+    """Run some sanity checks on the luqum query"""
+    if analysis.luqum_tree is None:
+        return
+    checker = QueryCheck(index_config=params.index_config, zeal=1)
+    errors = checker.errors(analysis.luqum_tree)
+    if errors:
+        raise QueryCheckError("Found errors while checking query", errors=errors)
+
+
+def resolve_open_ranges(analysis: QueryAnalysis) -> QueryAnalysis:
+    """We need to resolve open ranges to closed ranges
+    before using elasticsearch query builder"""
+    if analysis.luqum_tree is None:
+        return analysis
+    transformer = OpenRangeTransformer()
+    analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
+    return analysis
+
+
 def build_search_query(
     params: SearchParameters,
     es_query_builder: ElasticsearchQueryBuilder,
@@ -232,6 +255,7 @@ def build_search_query(
     analysis = parse_query(params.q)
     analysis = compute_facets_filters(analysis)
     analysis = resolve_unknown_operation(analysis)
+    analysis = resolve_open_ranges(analysis)
     if params.boost_phrase and params.sort_by is None:
         analysis = boost_phrases(
             analysis,
@@ -240,9 +264,10 @@ def build_search_query(
         )
     # add languages for localized fields
     analysis = add_languages_suffix(analysis, params.langs, params.index_config)
+    # we are at a goop point to check the query
+    check_query(params, analysis)
 
-    logger.debug("filter query: %s", analysis.filter_query)
-    logger.debug("remaining terms: '%s'", analysis.fulltext)
+    logger.debug("luqum query: %s", analysis.luqum_tree)
 
     return build_es_query(analysis, params, es_query_builder)
 
@@ -256,9 +281,14 @@ def build_es_query(
     es_query = Search(index=config.index.name)
     # main query
     if analysis.luqum_tree is not None:
-        es_query = es_query.query(
-            es_query_builder(analysis.luqum_tree, params.index_config, params.langs)
-        )
+        try:
+            es_query = es_query.query(
+                es_query_builder(analysis.luqum_tree, params.index_config, params.langs)
+            )
+        except luqum.exceptions.InconsistentQueryException as e:
+            raise InvalidLuceneQueryError(
+                "Request could not be transformed by luqum"
+            ) from e
 
     agg_fields = set(params.facets) if params.facets is not None else set()
     if params.charts is not None:

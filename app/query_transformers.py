@@ -1,5 +1,10 @@
+import re
+
+import luqum.check
 import luqum.visitor
 from luqum import tree
+
+from .config import IndexConfig
 
 
 class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
@@ -8,6 +13,10 @@ class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
 
     That is `field1:something` will become
     `field1:en:something OR field1:fr:something`
+
+    Note: we do this only for the query parts that have a search field,
+    the text search without specifying a field
+    is handled by the ElasticSearch query builder
     """
 
     def __init__(self, lang_fields=set[str], langs=list[str], **kwargs):
@@ -26,7 +35,7 @@ class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
         # add eventual parents
         prefix = ".".join(
             node.name
-            for node in context["parents"]
+            for node in context.get("parents", ())
             if isinstance(node, tree.SearchField)
         )
         if prefix:
@@ -38,7 +47,7 @@ class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
             for lang in self.langs:
                 # note: we don't have to care about having searchfield in children
                 # because only complete field_name would match a self.lang_fields
-                new_node = self.generic_visit(node)
+                (new_node,) = self.generic_visit(node, context)
                 # add language prefix
                 new_node.name = f"{new_node.name}.{lang}"
                 new_nodes.append(new_node)
@@ -48,7 +57,7 @@ class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
                 yield from new_nodes
         else:
             # default
-            yield from self.generic_visit(node)
+            yield from self.generic_visit(node, context)
 
 
 def get_consecutive_words(
@@ -134,7 +143,7 @@ class PhraseBoostTransformer(luqum.visitor.TreeTransformer):
         if self.only_free_text:
             # we don't do it if a parent is a SearchField
             do_boost_phrases = not any(
-                isinstance(p, tree.SearchField) for p in context.get("parents", [])
+                isinstance(p, tree.SearchField) for p in context.get("parents", ())
             )
         if do_boost_phrases:
             # group consecutive terms in AndOperations
@@ -164,3 +173,46 @@ class PhraseBoostTransformer(luqum.visitor.TreeTransformer):
                 # substitute children of the new node
                 new_node.children = new_children
         yield new_node
+
+
+class QueryCheck(luqum.check.LuceneCheck):
+    """Sanity checks on luqum request"""
+
+    # TODO: port to luqum
+    SIMPLE_EXPR_FIELDS = luqum.check.LuceneCheck.SIMPLE_EXPR_FIELDS + (
+        tree.Range,
+        tree.OpenRange,
+    )
+    FIELD_EXPR_FIELDS = SIMPLE_EXPR_FIELDS + (tree.FieldGroup,)
+    # TODO: shan't luqum should support "." in field names
+    field_name_re = re.compile(r"^[\w.]+$")
+
+    def __init__(self, index_config: IndexConfig, **kwargs):
+        super().__init__(**kwargs)
+        self.index_config = index_config
+
+    # TODO: this should be in LuceneCheck !
+    def check_phrase(self, item, parents):
+        return iter([])
+
+    def check_open_range(self, item, parents):
+        return iter([])
+
+    def check_search_field(self, item, parents):
+        """Check if the search field is valid"""
+        yield from super().check_search_field(item, parents)
+        # might be an inner field get all parents fields
+        fields = [p.name for p in parents if isinstance(p, tree.SearchField)] + [
+            item.name
+        ]
+        # join and split to normalize and only have one field
+        field_names = (".".join(fields)).split(".")
+        # remove eventual lang suffix
+        has_lang_suffix = field_names[-1] in self.index_config.supported_langs_set
+        if has_lang_suffix:
+            field_names.pop()
+        is_sub_field = len(field_names) > 1
+        # check field exists in config, but only for non sub-field
+        # (TODO until we implement them in config)
+        if not is_sub_field and (field_names[0] not in self.index_config.fields):
+            yield f"Search field '{'.'.join(field_names)}' not found in index config"

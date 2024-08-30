@@ -1,59 +1,67 @@
 {
   "text_query": "flocons d'avoine",
-  "luqum_tree": "flocons d'avoine",
+  "luqum_tree": "((flocons AND d'avoine) OR \"flocons d'avoine\"^2)",
   "es_query": {
     "query": {
       "bool": {
-        "should": [
+        "must": [
           {
-            "match_phrase": {
-              "product_name.fr": {
-                "query": "flocons d'avoine",
-                "boost": 2.0
-              }
-            }
-          },
-          {
-            "match_phrase": {
-              "generic_name.fr": {
-                "query": "flocons d'avoine",
-                "boost": 2.0
-              }
-            }
-          },
-          {
-            "match_phrase": {
-              "categories.fr": {
-                "query": "flocons d'avoine",
-                "boost": 2.0
-              }
-            }
-          },
-          {
-            "match_phrase": {
-              "labels.fr": {
-                "query": "flocons d'avoine",
-                "boost": 2.0
-              }
-            }
-          },
-          {
-            "match_phrase": {
-              "brands": {
-                "query": "flocons d'avoine",
-                "boost": 2.0
-              }
-            }
-          },
-          {
-            "multi_match": {
-              "query": "flocons d'avoine",
-              "fields": [
-                "product_name.fr",
-                "generic_name.fr",
-                "categories.fr",
-                "labels.fr",
-                "brands"
+            "bool": {
+              "should": [
+                {
+                  "bool": {
+                    "must": [
+                      {
+                        "multi_match": {
+                          "query": {
+                            "query": "flocons",
+                            "zero_terms_query": "all"
+                          },
+                          "fields": [
+                            "product_name.fr",
+                            "generic_name.fr",
+                            "categories.fr",
+                            "labels.fr",
+                            "brands.fr"
+                          ],
+                          "type": "best_fields"
+                        }
+                      },
+                      {
+                        "multi_match": {
+                          "query": {
+                            "query": "d'avoine",
+                            "zero_terms_query": "all"
+                          },
+                          "fields": [
+                            "product_name.fr",
+                            "generic_name.fr",
+                            "categories.fr",
+                            "labels.fr",
+                            "brands.fr"
+                          ],
+                          "type": "best_fields"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "multi_match": {
+                    "query": {
+                      "boost": 2.0,
+                      "query": "flocons d'avoine"
+                    },
+                    "fields": [
+                      "product_name.fr",
+                      "generic_name.fr",
+                      "categories.fr",
+                      "labels.fr",
+                      "brands.fr"
+                    ],
+                    "type": "phrase"
+                  }
+                }
               ]
             }
           }
@@ -61,14 +69,9 @@
       }
     },
     "aggs": {
-      "brands_tags": {
+      "owner": {
         "terms": {
-          "field": "brands_tags"
-        }
-      },
-      "labels_tags": {
-        "terms": {
-          "field": "labels_tags"
+          "field": "owner"
         }
       },
       "nutrition_grades": {
@@ -76,16 +79,19 @@
           "field": "nutrition_grades"
         }
       },
-      "owner": {
+      "brands": {
         "terms": {
-          "field": "owner"
+          "field": "brands"
+        }
+      },
+      "labels": {
+        "terms": {
+          "field": "labels"
         }
       }
     },
     "size": 10,
     "from": 0
   },
-  "fulltext": "flocons d'avoine",
-  "filter_query": null,
   "facets_filters": {}
 }

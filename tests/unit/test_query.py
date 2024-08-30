@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import orjson
 import pytest
@@ -7,6 +8,7 @@ from luqum.parser import parser
 from app._types import QueryAnalysis, SearchParameters
 from app.config import IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
+from app.exceptions import QueryAnalysisError
 from app.query import boost_phrases, build_search_query, resolve_unknown_operation
 from app.utils.io import dump_json, load_json
 
@@ -68,9 +70,9 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
 
 
 @pytest.mark.parametrize(
-    "id_,q,langs,size,page,sort_by,facets",
+    "id_,q,langs,size,page,sort_by,facets,boost_phrase",
     [
-        ("simple_full_text_query", "flocons d'avoine", {"fr"}, 10, 1, None, None),
+        ("simple_full_text_query", "flocons d'avoine", {"fr"}, 10, 1, None, None, True),
         (
             "simple_full_text_query_facets",
             "flocons d'avoine",
@@ -78,30 +80,41 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
             10,
             1,
             None,
-            ["brands_tags", "labels_tags", "nutrition_grades", "owner"],
+            ["brands", "labels", "nutrition_grades", "owner"],
+            True,
         ),
         # sort by descending number of scan count
-        ("sort_by_query", "flocons d'avoine", {"fr"}, 10, 1, "-unique_scans_n", None),
+        (
+            "sort_by_query",
+            "flocons d'avoine",
+            {"fr"},
+            10,
+            1,
+            "-unique_scans_n",
+            None,
+            True,
+        ),
         # we change number of results (25 instead of 10) and request page 2
-        ("simple_filter_query", 'countries_tags:"en:italy"', {"en"}, 25, 2, None, None),
+        (
+            "simple_filter_query",
+            'countries:"en:italy"',
+            {"en"},
+            25,
+            2,
+            None,
+            None,
+            True,
+        ),
         (
             "complex_query",
-            'bacon de boeuf (countries_tags:"en:italy" AND (categories_tags:"en:beef" AND '
+            'bacon de boeuf (countries:italy AND (categories:"en:beef" AND '
             "(nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
             {"en"},
             25,
             2,
             None,
             None,
-        ),
-        (
-            "non_existing_filter_field",
-            "non_existing_field:value",
-            {"en"},
-            25,
-            2,
-            None,
-            None,
+            True,
         ),
         (
             "empty_query_with_sort_by",
@@ -111,6 +124,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
             2,
             "unique_scans_n",
             None,
+            True,
         ),
         (
             "empty_query_with_sort_by_and_facets",
@@ -119,8 +133,44 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
             25,
             2,
             "unique_scans_n",
-            ["brands_tags", "categories_tags", "nutrition_grades", "lang"],
+            ["brands", "categories", "nutrition_grades", "lang"],
+            True,
         ),
+        (
+            "open_range",
+            "(unique_scans_n:>2 AND unique_scans_n:<3) OR unique_scans_n:>=10",
+            {"en"},
+            25,
+            2,
+            None,
+            None,
+            True,
+        ),
+        (
+            # it should be ok for now, until we implement subfields
+            "non_existing_subfield",
+            "Milk AND nutriments:(nonexisting:>=3)",
+            {"en"},
+            25,
+            2,
+            None,
+            None,
+            True,
+        ),
+        (
+            # * in a phrase is legit, it does not have the wildcard meaning
+            "wildcard_in_phrase_is_legit",
+            'Milk AND "*" AND categories:"*"',
+            {"en"},
+            25,
+            2,
+            None,
+            None,
+            True,
+        ),
+        # TODO
+        # - test scripts sorting
+        # - test ranges and OPen ranges
     ],
 )
 def test_build_search_query(
@@ -132,20 +182,23 @@ def test_build_search_query(
     page: int,
     sort_by: str | None,
     facets: list[str] | None,
+    boost_phrase: bool,
     # fixtures
     update_results: bool,
     default_config: IndexConfig,
     default_filter_query_builder: FullTextQueryBuilder,
 ):
+    params = SearchParameters(
+        q=q,
+        langs=langs,
+        page_size=size,
+        page=page,
+        sort_by=sort_by,
+        facets=facets,
+        boost_phrase=boost_phrase,
+    )
     query = build_search_query(
-        SearchParameters(
-            q=q,
-            langs=langs,
-            page_size=size,
-            page=page,
-            sort_by=sort_by,
-            facets=facets,
-        ),
+        params,
         es_query_builder=default_filter_query_builder,
     )
 
@@ -156,3 +209,54 @@ def test_build_search_query(
 
     expected_result = load_elasticsearch_query_result(id_)
     assert query._dict_dump() == expected_result
+
+
+@pytest.mark.parametrize(
+    "specific_params, error_msg",
+    [
+        # non existing field
+        ({"q": "nonexisting:Milk"}, "field 'nonexisting' not found in index config"),
+        # non existing field inside more complex request
+        (
+            {"q": "Milk AND (categories:en:Whole OR (nonexisting:Whole)^2)"},
+            "field 'nonexisting' not found in index config",
+        ),
+        # wildcard alone
+        (
+            {"q": "Milk OR (Cream AND *)"},
+            "Free wildcards are not allowed in full text queries",
+        ),
+        # unparsable request
+        # missing closing bracket or parenthesis
+        ({"q": "completeness:[2 TO 22"}, "Request could not be analyzed by luqum"),
+        ({"q": "(Milk OR Cream"}, "Request could not be analyzed by luqum"),
+        # And and OR on same level
+        (
+            {"q": "Milk OR Cream AND Coffee"},
+            "Request could not be transformed by luqum",
+        ),
+    ],
+)
+def test_build_search_query_failure(
+    specific_params: dict[str, Any],
+    error_msg: str,
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    # base search params
+    params = {
+        "q": "Milk",
+        "langs": ["fr", "en"],
+        "page_size": 5,
+        "page": 1,
+        "sort_by": None,
+        "facets": None,
+        "boost_phrase": True,
+    }
+    params.update(specific_params)
+    with pytest.raises((QueryAnalysisError, ValueError)) as exc_info:
+        build_search_query(
+            SearchParameters(**params),
+            es_query_builder=default_filter_query_builder,
+        )
+    assert error_msg in str(exc_info.value)

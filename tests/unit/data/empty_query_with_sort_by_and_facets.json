@@ -3,24 +3,24 @@
   "luqum_tree": "None",
   "es_query": {
     "aggs": {
-      "brands_tags": {
+      "lang": {
         "terms": {
-          "field": "brands_tags"
+          "field": "lang"
         }
       },
-      "categories_tags": {
+      "categories": {
         "terms": {
-          "field": "categories_tags"
+          "field": "categories"
+        }
+      },
+      "brands": {
+        "terms": {
+          "field": "brands"
         }
       },
       "nutrition_grades": {
         "terms": {
           "field": "nutrition_grades"
-        }
-      },
-      "lang": {
-        "terms": {
-          "field": "lang"
         }
       }
     },
@@ -30,7 +30,5 @@
     "size": 25,
     "from": 25
   },
-  "fulltext": null,
-  "filter_query": null,
   "facets_filters": null
 }

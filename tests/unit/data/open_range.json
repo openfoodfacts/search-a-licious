@@ -1,0 +1,42 @@
+{
+  "text_query": "(unique_scans_n:>2 AND unique_scans_n:<3) OR unique_scans_n:>=10",
+  "luqum_tree": "(unique_scans_n:{2  TO *]AND unique_scans_n:[* TO 3}) OR unique_scans_n:[10 TO *]",
+  "es_query": {
+    "query": {
+      "bool": {
+        "should": [
+          {
+            "bool": {
+              "must": [
+                {
+                  "range": {
+                    "unique_scans_n": {
+                      "gt": "2"
+                    }
+                  }
+                },
+                {
+                  "range": {
+                    "unique_scans_n": {
+                      "lt": "3"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "range": {
+              "unique_scans_n": {
+                "gte": "10"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "size": 25,
+    "from": 25
+  },
+  "facets_filters": {}
+}

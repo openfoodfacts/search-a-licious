@@ -75,18 +75,21 @@ indices:
         bucket_agg: true
       quantity:
         type: text
-      countries_tags:
-        type: keyword
+      countries:
+        type: taxonomy
+        input_field: conutries_tags
         bucket_agg: true
         taxonomy_name: countries
-      states_tags:
-        type: keyword
+      states:
+        type: taxonomy
+        input_field: states_tags
         bucket_agg: true
         taxonomy_name: states
       origins_tags:
         type: keyword
-      ingredients_tags:
-        type: keyword
+      ingredients:
+        type: taxonomy
+        input_field: ingredients_tags
         taxonomy_name: ingredients
       unique_scans_n:
         type: integer
@@ -109,9 +112,11 @@ indices:
         type: disabled
       additives_n:
         type: integer
-      allergens_tags:
-        type: keyword
+      allergens:
+        type: taxonomy
+        input_field: allergens_tags
         taxonomy_name: allergens
+        bucket_agg: true
       ecoscore_data:
         type: disabled
       ecoscore_score:

@@ -22,11 +22,11 @@ if config.CONFIG is None:
     # failure, but we add a warning message as it's not expected in a
     # production settings
     logger.warning("Main configuration is not set, use CONFIG_PATH envvar")
-    FILTER_QUERY_BUILDERS = {}
+    ES_QUERY_BUILDERS = {}
     RESULT_PROCESSORS = {}
 else:
     # we cache query builder and result processor here for faster processing
-    FILTER_QUERY_BUILDERS = {
+    ES_QUERY_BUILDERS = {
         index_id: build_elasticsearch_query_builder(index_config)
         for index_id, index_config in config.CONFIG.indices.items()
     }
@@ -82,7 +82,7 @@ def search(
         params,
         # ES query builder is generated from elasticsearch mapping and
         # takes ~40ms to generate, build-it before hand to avoid this delay
-        es_query_builder=FILTER_QUERY_BUILDERS[params.valid_index_id],
+        es_query_builder=ES_QUERY_BUILDERS[params.valid_index_id],
     )
     (
         logger.debug(

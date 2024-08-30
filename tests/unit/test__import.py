@@ -327,7 +327,6 @@ def test_gen_documents(default_config):
         assert "categories" in document["_source"]
         assert document["_source"] == {
             "categories": ["en:beverages"],
-            "categories_tags": ["en:beverages"],
             "code": ids[i],
         }
 

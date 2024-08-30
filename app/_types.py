@@ -136,12 +136,6 @@ class QueryAnalysis(BaseModel):
     es_query: Optional[elasticsearch_dsl.query.Query] = None
     """The query as an elasticsearch_dsl object"""
 
-    fulltext: Optional[str] = None
-    """The full text part of the query"""
-
-    filter_query: Optional[JSONType] = None
-    """The filter part of the query"""
-
     facets_filters: Optional[FacetsFilters] = None
     """The filters corresponding to the facets:
     a facet name and a list of values"""
@@ -151,8 +145,6 @@ class QueryAnalysis(BaseModel):
             text_query=self.text_query,
             luqum_tree=self.luqum_tree,
             es_query=self.es_query,
-            fulltext=self.fulltext,
-            filter_query=self.filter_query,
             facets_filters=self.facets_filters,
         )
         for k, v in kwargs.items():
@@ -165,8 +157,6 @@ class QueryAnalysis(BaseModel):
             "text_query": self.text_query,
             "luqum_tree": str(self.luqum_tree),
             "es_query": self.es_query.to_dict(),
-            "fulltext": self.fulltext,
-            "filter_query": self.filter_query,
             "facets_filters": self.facets_filters,
         }
 
@@ -209,7 +199,7 @@ The boost factor is defined by `match_phrase_boost` value in Configuration
 Note, that it only make sense if you use best match sorting.
 So in any other case it is ignored."""
         ),
-    ]
+    ] = False
 
     langs: Annotated[
         list[str],
