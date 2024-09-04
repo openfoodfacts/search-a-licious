@@ -7,7 +7,7 @@ on:
 
 jobs:
   add-to-design-project:
-    name: Add issues to the 🎨 openfoodfacts-design or 📚 documentation project
+    name: Add issues to the 🎨 openfoodfacts-design or 📚 Documentation project
     runs-on: ubuntu-latest
     steps:
       - uses: actions/add-to-project@main
@@ -20,7 +20,7 @@ jobs:
         with:
           project-url: https://github.com/orgs/openfoodfacts/projects/25 # Add issue to the documentation project
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-          labeled: 📚 documentation
+          labeled: 📚 Documentation
           label-operator: OR
       - uses: actions/add-to-project@main
         with:
