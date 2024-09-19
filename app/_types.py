@@ -1,12 +1,12 @@
-import textwrap
-from enum import Enum
+from enum import Enum, StrEnum
 from functools import cached_property
+from inspect import cleandoc as cd_
 from typing import Annotated, Any, Literal, Optional, Tuple, Union, cast, get_type_hints
 
 import elasticsearch_dsl.query
 import luqum.tree
 from fastapi import Query
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from . import config
 from .utils import str_utils
@@ -73,8 +73,18 @@ FacetsFilters = dict[str, list[str]]
 """Data about selected filters for each facet: facet name -> list of values"""
 
 
+class DebugInfo(StrEnum):
+    """Debug information to return in the API"""
+
+    aggregations = "aggregations"
+    lucene_query = "lucene_query"
+    es_query = "es_query"
+
+
 class SearchResponseDebug(BaseModel):
-    query: JSONType
+    lucene_query: str | None = None
+    es_query: JSONType | None = None
+    aggregations: JSONType | None = None
 
 
 class SearchResponseError(BaseModel):
@@ -98,7 +108,7 @@ class SuccessSearchResponse(BaseModel):
     page: int
     page_size: int
     page_count: int
-    debug: SearchResponseDebug
+    debug: SearchResponseDebug | None = None
     took: int
     timed_out: bool
     count: int
@@ -126,12 +136,6 @@ class QueryAnalysis(BaseModel):
     es_query: Optional[elasticsearch_dsl.query.Query] = None
     """The query as an elasticsearch_dsl object"""
 
-    fulltext: Optional[str] = None
-    """The full text part of the query"""
-
-    filter_query: Optional[JSONType] = None
-    """The filter part of the query"""
-
     facets_filters: Optional[FacetsFilters] = None
     """The filters corresponding to the facets:
     a facet name and a list of values"""
@@ -141,8 +145,6 @@ class QueryAnalysis(BaseModel):
             text_query=self.text_query,
             luqum_tree=self.luqum_tree,
             es_query=self.es_query,
-            fulltext=self.fulltext,
-            filter_query=self.filter_query,
             facets_filters=self.facets_filters,
         )
         for k, v in kwargs.items():
@@ -155,8 +157,6 @@ class QueryAnalysis(BaseModel):
             "text_query": self.text_query,
             "luqum_tree": str(self.luqum_tree),
             "es_query": self.es_query.to_dict(),
-            "fulltext": self.fulltext,
-            "filter_query": self.filter_query,
             "facets_filters": self.facets_filters,
         }
 
@@ -186,6 +186,21 @@ The query is optional, but `sort_by` value must then be provided."""
         ),
     ] = None
 
+    boost_phrase: Annotated[
+        bool,
+        Query(
+            description="""This enables an heuristic that will favor,
+matching terms that are consecutive.
+
+Technically, if you have a query with the two words `whole milk`
+it will boost entries with `"whole milk"` exact match.
+The boost factor is defined by `match_phrase_boost` value in Configuration
+
+Note, that it only make sense if you use best match sorting.
+So in any other case it is ignored."""
+        ),
+    ] = False
+
     langs: Annotated[
         list[str],
         Query(
@@ -212,53 +227,73 @@ If not provided, `['en']` is used."""
     sort_by: Annotated[
         str | None,
         Query(
-            description=textwrap.dedent(
+            description=cd_(
+                """Field name to use to sort results,
+                the field should exist and be sortable.
+                If it is not provided, results are sorted by descending relevance score.
+                (aka best match)
+
+                If you put a minus before the name, the results will be sorted by descending order.
+
+                If the field name match a known script (defined in your configuration),
+                it will be use for sorting.
+
+                In this case you also need to provide additional parameters corresponding to your script parameters.
+                If a script needs parameters, you can only use the POST method.
+
+                Beware that this may have a big [impact on performance][perf_link]
+
+                Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
+
+                [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
+                [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
                 """
-            Field name to use to sort results, the field should exist
-            and be sortable. If it is not provided, results are sorted by descending relevance score.
-
-            If you put a minus before the name, the results will be sorted by descending order.
-
-            If the field name match a known script (defined in your configuration),
-            it will be use for sorting.
-
-            In this case you also need to provide additional parameters corresponding to your script parameters.
-            If a script needs parameters, you can only use the POST method.
-
-            Beware that this may have a big [impact on performance][perf_link]
-
-            Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
-
-            [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
-            [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
-            """
             )
         ),
     ] = None
     facets: Annotated[
         list[str] | None,
         Query(
-            description="""Name of facets to return in the response as a comma-separated value.
-            If None (default) no facets are returned."""
+            description=cd_(
+                """Name of facets to return in the response as a comma-separated value.
+                If None (default) no facets are returned.
+                """
+            )
         ),
     ] = None
     charts: Annotated[
         list[ChartType] | None,
         Query(
-            description="""Name of vega representations to return in the response.
-            Can be distribution chart or scatter plot"""
+            description=cd_(
+                """Name of vega representations to return in the response.
+                Can be distribution chart or scatter plot
+                """
+            )
         ),
     ] = None
     sort_params: Annotated[
         JSONType | None,
         Query(
-            description="""Additional parameters when using  a sort script in sort_by.
-            If the sort script needs parameters, you can only be used the POST method.""",
+            description=cd_(
+                """Additional parameters when using  a sort script in sort_by.
+                If the sort script needs parameters, you can only be used the POST method.
+                """
+            ),
         ),
     ] = None
     index_id: Annotated[
         str | None,
         INDEX_ID_QUERY_PARAM,
+    ] = None
+    debug_info: Annotated[
+        list[DebugInfo] | None,
+        Query(
+            description=cd_(
+                """Tells which debug information to return in the response.
+                It can be a comma separated list of values
+                """
+            ),
+        ),
     ] = None
 
     @model_validator(mode="after")
@@ -315,7 +350,9 @@ If not provided, `['en']` is used."""
         is_field = sort_by in index_config.fields
         # TODO: verify field type is compatible with sorting
         if not (self.sort_by is None or is_field or self.uses_sort_script):
-            raise ValueError("`sort_by` must be a valid field name or script name")
+            raise ValueError(
+                "`sort_by` must be a valid field name or script name or None"
+            )
         return self
 
     @model_validator(mode="after")
@@ -396,6 +433,17 @@ If not provided, `['en']` is used."""
             )
         return self
 
+    @field_validator("debug_info")
+    @classmethod
+    def debug_info_list_from_str(
+        cls, debug_info: str | list[DebugInfo] | None
+    ) -> list[DebugInfo] | None:
+        """We can pass a comma separated list of DebugInfo values as a string"""
+        if isinstance(debug_info, str):
+            values = [getattr(DebugInfo, part, None) for part in debug_info.split(",")]
+            debug_info = [v for v in values if v is not None]
+        return debug_info
+
     @property
     def langs_set(self):
         return set(self.langs)
@@ -419,12 +467,14 @@ def _annotation_new_type(type_, annotation):
     return Annotated[type_, *annotation.__metadata__]
 
 
-# types for search parameters for GET
+# types and annotations for search parameters for GET,
+# created from POST search parameters
 SEARCH_PARAMS_ANN = get_type_hints(SearchParameters, include_extras=True)
 
 
 class GetSearchParamsTypes:
     q = SEARCH_PARAMS_ANN["q"]
+    boost_phrase = SEARCH_PARAMS_ANN["boost_phrase"]
     langs = _annotation_new_type(str, SEARCH_PARAMS_ANN["langs"])
     page_size = SEARCH_PARAMS_ANN["page_size"]
     page = SEARCH_PARAMS_ANN["page"]
@@ -433,6 +483,7 @@ class GetSearchParamsTypes:
     facets = _annotation_new_type(str, SEARCH_PARAMS_ANN["facets"])
     charts = _annotation_new_type(str, SEARCH_PARAMS_ANN["charts"])
     index_id = SEARCH_PARAMS_ANN["index_id"]
+    debug_info = SEARCH_PARAMS_ANN["debug_info"]
 
 
 class FetcherStatus(Enum):
@@ -453,7 +504,11 @@ class FetcherStatus(Enum):
 
 
 class FetcherResult(BaseModel):
-    """Result for a document fecher"""
+    """Result for a document fetcher
+
+    This is also used by pre-processors
+    who have the opportunity to discard an entry
+    """
 
     status: FetcherStatus
     document: JSONType | None

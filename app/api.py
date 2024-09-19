@@ -129,6 +129,7 @@ def parse_charts_get(charts_params: str):
 @app.get("/search")
 def search_get(
     q: GetSearchParamsTypes.q = None,
+    boost_phrase: GetSearchParamsTypes.boost_phrase = False,
     langs: GetSearchParamsTypes.langs = None,
     page_size: GetSearchParamsTypes.page_size = 10,
     page: GetSearchParamsTypes.page = 1,
@@ -137,16 +138,20 @@ def search_get(
     facets: GetSearchParamsTypes.facets = None,
     charts: GetSearchParamsTypes.charts = None,
     index_id: GetSearchParamsTypes.index_id = None,
+    debug_info: GetSearchParamsTypes.debug_info | str = None,
 ) -> SearchResponse:
     # str to lists
     langs_list = langs.split(",") if langs else ["en"]
     fields_list = fields.split(",") if fields else None
     facets_list = facets.split(",") if facets else None
     charts_list = parse_charts_get(charts) if charts else None
+    # str to good type
+    debug_info_list = SearchParameters.debug_info_list_from_str(debug_info)
     # create SearchParameters object
     try:
         search_parameters = SearchParameters(
             q=q,
+            boost_phrase=boost_phrase,
             langs=langs_list,
             page_size=page_size,
             page=page,
@@ -155,6 +160,7 @@ def search_get(
             facets=facets_list,
             index_id=index_id,
             charts=charts_list,
+            debug_info=debug_info_list,
         )
         return app_search.search(search_parameters)
     except ValidationError as e:

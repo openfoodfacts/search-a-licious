@@ -30,7 +30,6 @@ x-base-es-envs: &base-es-envs
   http.cors.allow-headers: X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
   http.cors.allow-credentials: "true"
 
-
 x-api-common: &api-common
   image: ghcr.io/openfoodfacts/search-a-licious/search_service_image:${TAG:-dev}
   restart: ${RESTART_POLICY:-always}
@@ -52,6 +51,7 @@ x-api-common: &api-common
     - common_net
   volumes:
     - ./data:/opt/search/data
+    - es_synonyms:/opt/search/synonyms
 
 
 services:
@@ -63,6 +63,7 @@ services:
       discovery.seed_hosts: es02
     volumes:
       - esdata01:/usr/share/elasticsearch/data
+      - es_synonyms:/usr/share/elasticsearch/config/synonyms
 
   es02:
     <<: *base-es-service
@@ -74,6 +75,7 @@ services:
       - es01
     volumes:
       - esdata02:/usr/share/elasticsearch/data
+      - es_synonyms:/usr/share/elasticsearch/config/synonyms
 
   # elasticsearch browser
   elasticvue:
@@ -125,6 +127,7 @@ services:
 volumes:
   esdata01:
   esdata02:
+  es_synonyms:
 
 networks:
   # this is the network shared with product opener
