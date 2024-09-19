@@ -1,5 +1,4 @@
 MOUNT_POINT ?= /mnt
-DOCKER_LOCAL_DATA ?= /srv/off/docker_data
 ENV_FILE ?= .env
 # for dev we need to align user uid with the one in the container
 # this is handled through build args
@@ -32,13 +31,10 @@ create_external_volumes:
 	@for vol_name in esdata01 esdata02; \
 	do \
 		vol_name=${COMPOSE_PROJECT_NAME}_$$vol_name; \
-		vol_path=${DOCKER_LOCAL_DATA}/$$vol_name; \
-		echo creating docker volume $$vol_name at $$vol_path; \
-		# ensure directory \
-		mkdir -p -v "$$vol_path"; \
+		echo creating docker volume $$vol_name \
 		# create volume \
 		# this bind mount a folder, it will happen when volume will be used \
-		docker volume create --driver=local -o type=none -o o=bind -o device="$$vol_path" "$$vol_name" ; \
+		docker volume create --driver=local "$$vol_name" ; \
 	done;
 
 livecheck:
