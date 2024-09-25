@@ -15,7 +15,7 @@ health = HealthCheck()
 
 
 def test_connect_redis():
-    """Test connection to redis."""
+    """Test connection to REDIS."""
     logger.debug("health: testing redis connection")
     client = connection.get_redis_client(socket_connect_timeout=5)
     if client.ping():
@@ -24,7 +24,7 @@ def test_connect_redis():
 
 
 def test_connect_es():
-    """Test connection to Elastiicsearch."""
+    """Test connection to ElasticSearch."""
     logger.debug("health: testing es connection")
     es = connection.get_es_client(timeout=5)
     if es.ping():

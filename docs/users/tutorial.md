@@ -324,7 +324,7 @@ If we wanted products having one or the other `labels_tags:("en:fair-trade" OR "
 We can also combine those filters with a search. Using `cocoa labels_tags:"en:fair-trade"`
 will help find some fair trade cocoa.
 
-You can find more abotu the search query syntax in [Explain Query Language](./explain-query-language.md)
+You can find more about the search query syntax in [Explain Query Language](./explain-query-language.md)
 
 [^using-quotes]: Note that we have to use "" around value here, because the value contains a ":" inside.`labels_tags:en:fair-trade`  would be interpreted as asking for a field named labels_tags.en 
 having the value fair-trade.

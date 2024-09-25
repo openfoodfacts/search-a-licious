@@ -2,7 +2,7 @@
 
 Search-a-licious unlocks the full potential of large data collections by transforming them into easily searchable content. Users can quickly and efficiently find exactly what they need.
 
-With powerful text queries, facet exploration, and intuitive visualizations, Search-a-licious empowers users to dive deep into data effortlessly.
+With powerful text queries, facet exploration, and intuitive visualizations, Search-a-licious empowers your users to dive deep into data effortlessly.
 
 Developers can rapidly build and deploy new applications based on existing data collections in just hours. The platform offers reusable components that adapt to various contexts, all built on best-in-class open-source tools.
 
@@ -12,7 +12,7 @@ Its versatile architecture makes it ideal for a wide range of applications: from
 
 Ready to use it ? Jump to the [documentation](https://openfoodfacts.github.io/search-a-licious/)
 
-This is an Open Source project and [contributions are really welcome](https://openfoodfacts.github.io/search-a-licious/#contributing) !
+This is an Open Source project and [contributions are very welcome](https://openfoodfacts.github.io/search-a-licious/#contributing) !
 
 
 ## Thank you to our sponsors !

@@ -4,7 +4,7 @@ See [Explain frontend](../docs/devs/explain-web-frontend.md) for an introduction
 
 ## Credits
 
-This part of the project was bootstrap using [lit-element-starter-ts](https://github.com/lit/lit-element-starter-ts/).
+This part of the project was bootstrapped using [lit-element-starter-ts](https://github.com/lit/lit-element-starter-ts/).
 
 
 ## Widgets

@@ -34,7 +34,7 @@ sudo chown $UID -R gh_pages/users/ref-web-components
 echo "Generate python code documentation using sphinx"
 scripts/build_sphinx.sh
 
-# tell github we don't want to use jekill ! (otherwise it will remove _static)
+# tell GitHub we don't want to use jekyll ! (otherwise it will remove _static)
 # see https://github.blog/news-insights/the-library/bypassing-jekyll-on-github-pages/
 touch gh_pages/.nojekyll
 

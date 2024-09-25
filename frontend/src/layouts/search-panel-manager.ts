@@ -6,7 +6,7 @@ import {provide} from '@lit/context';
 import {EventRegistrationMixin} from '../event-listener-setup';
 
 /**
- * This component enable sharing state about panels in a central place.
+ * This component enables sharing state about panels in a central place.
  *
  * it should be high in the hierarchy (just below `body`)
  * to wrap all other web-components

@@ -46,9 +46,9 @@ The components documentation is rendered in `web-components.html`, using the [ap
 
 Note that we use:
 * [Open Web Component testing framework](https://open-wc.org/docs/testing/testing-package/),
-  which in turn use:
+  which in turn uses:
   * [Mocha](https://mochajs.org/) as the test runner
-  * which run tests using [playwright](https://playwright.dev/)
+  * which runs tests using [playwright](https://playwright.dev/)
   * and [Chai](https://www.chaijs.com/) for assertions
 
 ## Translations
