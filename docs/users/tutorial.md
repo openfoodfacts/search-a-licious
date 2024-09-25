@@ -21,6 +21,7 @@ cd search-a-licious
 We need to create a configuration file to indicate which fields we care about in our index.
 
 For this we can create a conf/data/openfoodfacts-tutorial.yml file. It uses the [YAML format](https://yaml.org/).
+
 #### Default Index and Indices
 
 At the top we have:
@@ -169,6 +170,8 @@ indices:
 
 We have our configuration ready. That was a bit though, but this was the hardest part !
 
+Don't hesitate to read the [Reference for Configuration file](./ref-config.md) to learn more.
+
 ### Setup the project
 
 In the project you can modify the `.env` file and change variables you need to change,
@@ -181,6 +184,9 @@ is the one that will point to our configuration file.
 # This envvar is **required**
 CONFIG_PATH=`data/config/openfoodfacts.yml`
 ```
+
+See the [Reference for Settings](./ref-settings.md) to learn about other settings.
+
 
 ## Initial import
 
@@ -223,6 +229,9 @@ We also need our taxonomy, and there is a command `import-taxonomies` to get it.
 ```bash
 docker compose run --rm api python3 -m app import-taxonomies
 ```
+
+You can read more about this process reading [How to update index documentation](./how-to-update-index.md#first-import).
+
 
 ### Inspecting Elasticsearch
 
@@ -314,6 +323,8 @@ If we wanted products having one or the other `labels_tags:("en:fair-trade" OR "
 
 We can also combine those filters with a search. Using `cocoa labels_tags:"en:fair-trade"`
 will help find some fair trade cocoa.
+
+You can find more abotu the search query syntax in [Explain Query Language](./explain-query-language.md)
 
 [^using-quotes]: Note that we have to use "" around value here, because the value contains a ":" inside.`labels_tags:en:fair-trade`  would be interpreted as asking for a field named labels_tags.en 
 having the value fair-trade.

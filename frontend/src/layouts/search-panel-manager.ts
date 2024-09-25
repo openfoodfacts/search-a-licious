@@ -6,9 +6,14 @@ import {provide} from '@lit/context';
 import {EventRegistrationMixin} from '../event-listener-setup';
 
 /**
- * This component enable sharing state about panels in a central place
+ * This component enable sharing state about panels in a central place.
  *
- * It must be used if you want to use the searchalicious-layout-page component
+ * it should be high in the hierarchy (just below `body`)
+ * to wrap all other web-components
+ *
+ * It must be used if you want to use the `searchalicious-layout-page` component
+ *
+ * It allows to have a global variable to store with @lit/context
  */
 @customElement('searchalicious-panel-manager')
 export class SearchaliciousPanelManager extends EventRegistrationMixin(
