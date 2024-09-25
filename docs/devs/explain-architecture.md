@@ -4,7 +4,7 @@ Refer to the [introduction](./introduction.md) to get main components.
 
 This image illustrates the main components and their interactions.
 
-![../assets/architecture.png](../assets/architecture.png)
+![Architecture diagram](../assets/architecture-diagram.drawio.svg) ([source](../assets/architecture-diagram.drawio))
 
 The main idea is to have:
 * a very good stack with best in class open source components (see docker compose files)
