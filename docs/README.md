@@ -5,6 +5,12 @@
 Welcome to the documentation of search-a-licious,
 a ready to use search component built on top of [Elasticsearch](https://www.elastic.co/).
 
+## Executive summary
+
+Search-a-licious transforms large data collections into searchable content, allowing users to quickly find what they need with powerful queries, facet exploration, and visualizations. Originally developed for Open Food Facts, it’s perfect for exposing data, supporting decision-making, and enabling exploration, unlocking the full potential of open data collections. Developers can rapidly build apps thanks to its easy configuration, reusable components, and robust architecture.
+
+## What is search-a-licious ?
+
 We created this project in order to leverage collections of (uniform enough) data
 to build tools that can:
 * make this data reachable by a large public
@@ -20,6 +26,8 @@ It provides a ready to use component to:
 * help your users build insights with instant charts
 * build powerful in app features thanks to a powerful API
 
+## Technical overview
+
 On a technical level, you can use:
 * [web components](./users/tutorial.md#building-a-search-interface) to quickly build your UI using any JavaScript framework, or plain HTML
 * sensible defaults to provide a good search experience
@@ -32,7 +40,7 @@ It leverages existing components:
 * [Elasticsearch](https://www.elastic.co/elasticsearch) for the search engine
 * [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_Components) (built thanks to [Lit framework](https://lit.dev/))
 * [Vega](https://vega.github.io/) for the charts
-* [Redis] for event stream
+* [Redis](https://redis.io/) for event stream
 
 [Read our tutorial](./users/tutorial.md) to get started !
 
