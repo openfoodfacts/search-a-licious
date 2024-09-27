@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.34">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.36">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.35f28582.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.06209087.min.css">
       
       
 
@@ -719,27 +719,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../ref-python/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ref: Python Code documentation 🡕
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../ref-settings/" class="md-nav__link">
         
   
@@ -787,6 +766,174 @@
   
   <span class="md-ellipsis">
     Index
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Devs
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Devs
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../devs/introduction/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Developer introduction
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../devs/how-to-debug-backend/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    How to Debug the backend app
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../devs/how-to-install/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    How to install for local development
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../devs/explain-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Explain Architecture
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../devs/explain-web-frontend/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Explain web frontend
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../devs/ref-python/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ref: Python Code documentation 🡕
   </span>
   
 
@@ -1247,6 +1394,7 @@ Search-a-licious can help you have it done in a matter of few hours, while retai
   In our case it means, for example, that <code>product_name_fr</code> contains the french version of <code>product_name</code>.</li>
 </ol>
 <p>We have our configuration ready. That was a bit though, but this was the hardest part !</p>
+<p>Don't hesitate to read the <a href="../ref-config/">Reference for Configuration file</a> to learn more.</p>
 <h3 id="setup-the-project">Setup the project<a class="headerlink" href="#setup-the-project" title="Permanent link">#</a></h3>
 <p>In the project you can modify the <code>.env</code> file and change variables you need to change,
 but for now, the only mandatory variable to change
@@ -1256,6 +1404,7 @@ is the one that will point to our configuration file.</p>
 <span class="c1"># This envvar is **required**</span>
 <span class="na">CONFIG_PATH</span><span class="o">=</span><span class="s">`data/config/openfoodfacts.yml`</span>
 </code></pre></div>
+<p>See the <a href="../ref-settings/">Reference for Settings</a> to learn about other settings.</p>
 <h2 id="initial-import">Initial import<a class="headerlink" href="#initial-import" title="Permanent link">#</a></h2>
 <h3 id="getting-the-data">Getting the data<a class="headerlink" href="#getting-the-data" title="Permanent link">#</a></h3>
 <p>Now that it's all done, we are ready to start to import the data.</p>
@@ -1281,6 +1430,7 @@ The <code>python3 -m app import</code> part is to run the <code>import</code> co
 <p>We also need our taxonomy, and there is a command <code>import-taxonomies</code> to get it.</p>
 <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>api<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>app<span class="w"> </span>import-taxonomies
 </code></pre></div>
+<p>You can read more about this process reading <a href="../how-to-update-index/#first-import">How to update index documentation</a>.</p>
 <h3 id="inspecting-elasticsearch">Inspecting Elasticsearch<a class="headerlink" href="#inspecting-elasticsearch" title="Permanent link">#</a></h3>
 <p>We can take a look at what just happened by using ElasticVue, a simple but handy tool to inspect Elasticsearch.</p>
 <p>Open http://127.0.0.1:8080 in your browser.</p>
@@ -1340,6 +1490,7 @@ For this we can use <code>labels_tags:("en:fair-trade" AND "en:eu-organic")</cod
 <p>If we wanted products having one or the other <code>labels_tags:("en:fair-trade" OR "en:eu-organic")</code> would do.</p>
 <p>We can also combine those filters with a search. Using <code>cocoa labels_tags:"en:fair-trade"</code>
 will help find some fair trade cocoa.</p>
+<p>You can find more about the search query syntax in <a href="../explain-query-language/">Explain Query Language</a></p>
 <h3 id="getting-facets">Getting facets<a class="headerlink" href="#getting-facets" title="Permanent link">#</a></h3>
 <p>Remember in our configuration we added a <code>bucket_agg: true</code> on some fields.
 This will enable us to get facets on those fields.</p>
@@ -1515,7 +1666,7 @@ having the value fair-trade.&#160;<a class="footnote-backref" href="#fnref:using
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.56dfad97.min.js"></script>

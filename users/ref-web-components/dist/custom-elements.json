@@ -2180,7 +2180,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "",
+          "description": "Base class for chart elements",
           "name": "SearchaliciousChart",
           "members": [
             {
@@ -2388,7 +2388,7 @@
         },
         {
           "kind": "class",
-          "description": "",
+          "description": "Distribution chart.\n\nThis will draw bars for each value of the field, reflecting the number of elements.",
           "name": "SearchaliciousDistributionChart",
           "members": [
             {
@@ -2636,7 +2636,7 @@
         },
         {
           "kind": "class",
-          "description": "",
+          "description": "Scatter plot chart.\n\nThis will plot a point to each element at the corresponding coordinates,\ngiving a sense of the distribution of the data.",
           "name": "SearchaliciousScatterChart",
           "members": [
             {
@@ -6733,7 +6733,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "Component for the layout of the page\nThree columns layout with display flex",
+          "description": "Component for the layout of the page\n\nIt allows to handle sidebars:\nThree columns layout with display flex,\none for facets, one for the results and one for the chart sidebar",
           "name": "SearchLayoutPage",
           "members": [
             {
@@ -6922,7 +6922,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "This component enable sharing state about panels in a central place\n\nIt must be used if you want to use the searchalicious-layout-page component",
+          "description": "This component enables sharing state about panels in a central place.\n\nit should be high in the hierarchy (just below `body`)\nto wrap all other web-components\n\nIt must be used if you want to use the `searchalicious-layout-page` component\n\nIt allows to have a global variable to store with @lit/context",
           "name": "SearchaliciousPanelManager",
           "members": [
             {
