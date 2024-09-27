@@ -1,4 +1,4 @@
-# ![Search-a-licious](./assets/RVB_HORIZONTAL_WHITE_BG_SEARCH-A-LICIOUS-50.png "Search-a-licious logo")
+![Search-a-licious](./assets/RVB_HORIZONTAL_WHITE_BG_SEARCH-A-LICIOUS-50.png "Search-a-licious logo")
 
 Search-a-licious unlocks the full potential of large data collections by transforming them into easily searchable content. Users can quickly and efficiently find exactly what they need.
 
@@ -19,5 +19,5 @@ This is an Open Source project and [contributions are very welcome](https://open
 
 This project has received financial support from the NGI Search (New Generation Internet) program, funded by the 🇪🇺 European Commission. Thank you for supporting Open-Souce, Open Data, and the Commons.
 
-<img src="./assets/NGISearch_logo_tag_icon.svg" alt="NGI-search logo" title="NGI-search logo" height="100" />  
-<img src="./assets/europa-flag.jpg" alt="European flag" title="European flag" height="100" />
+<img src="./docs/assets/NGISearch_logo_tag_icon.svg" alt="NGI-search logo" title="NGI-search logo" height="100" />  
+<img src="./docs/assets/europa-flag.jpg" alt="European flag" title="European flag" height="100" />

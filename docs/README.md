@@ -1,5 +1,7 @@
 # Search-a-licious
 
+![Search-a-licious](./assets/RVB_HORIZONTAL_WHITE_BG_SEARCH-A-LICIOUS-50.png "Search-a-licious logo")
+
 Welcome to the documentation of search-a-licious,
 a ready to use search component built on top of [Elasticsearch](https://www.elastic.co/).
 
