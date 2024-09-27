@@ -11,7 +11,10 @@ import {refreshCharts} from '../utils/charts';
 
 /**
  * Component for the layout of the page
- * Three columns layout with display flex
+ *
+ * It allows to handle sidebars:
+ * Three columns layout with display flex,
+ * one for facets, one for the results and one for the chart sidebar
  */
 @customElement('searchalicious-layout-page')
 export class SearchLayoutPage extends SearchaliciousResultCtlMixin(

@@ -106,6 +106,12 @@ def get_document(
 
 @app.post("/search")
 def search(search_parameters: Annotated[SearchParameters, Body()]):
+    """This is the main search endpoint.
+
+    It uses POST request to ensure privacy.
+
+    Under the hood, it calls the :py:func:`app.search.search` function
+    """
     return app_search.search(search_parameters)
 
 
@@ -138,6 +144,10 @@ def search_get(
     charts: GetSearchParamsTypes.charts = None,
     index_id: GetSearchParamsTypes.index_id = None,
 ) -> SearchResponse:
+    """This is the main search endpoint when using GET request
+
+    Under the hood, it calls the :py:func:`app.search.search` function
+    """
     # str to lists
     langs_list = langs.split(",") if langs else ["en"]
     fields_list = fields.split(",") if fields else None
@@ -183,6 +193,7 @@ def taxonomy_autocomplete(
     ] = None,
     index_id: Annotated[str | None, INDEX_ID_QUERY_PARAM] = None,
 ):
+    """API endpoint for autocompletion using taxonomies"""
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
     check_index_id_is_defined_or_400(index_id, global_config)
@@ -216,6 +227,7 @@ def taxonomy_autocomplete(
 
 @app.get("/", response_class=HTMLResponse)
 def off_demo():
+    """Redirects to the off.html page"""
     return RedirectResponse(url="/static/off.html", status_code=status.HTTP_302_FOUND)
 
 
@@ -231,6 +243,7 @@ def html_search(
     # Display debug information in the HTML response
     display_debug: bool = False,
 ):
+    """A demo page to test the search endpoint directly"""
     if not q:
         return templates.TemplateResponse("search.html", {"request": request})
 
@@ -282,6 +295,10 @@ def robots_txt():
 
 @app.get("/health")
 def healthcheck():
+    """API endpoint to check the health of the application
+
+    It uses :py:mod:`app.health`.
+    """
     from app.health import health
 
     message, status, _ = health.run()

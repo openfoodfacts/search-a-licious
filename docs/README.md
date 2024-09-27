@@ -19,23 +19,29 @@ It provides a ready to use component to:
 * build powerful in app features thanks to a powerful API
 
 On a technical level, you can use:
-* web components to quickly build your UI using any javascript framework, or plain HTML
+* [web components](./users/tutorial.md#building-a-search-interface) to quickly build your UI using any JavaScript framework, or plain HTML
 * sensible defaults to provide a good search experience
-* an easy to setup, one stop, file configuration to describe your content
-* a ready to deploy docker compose file including all needed services
-* a one command initial data import from a jsonl data export
-* continuous update through a stream of events
+* an easy to setup, [one stop, file configuration](./users/tutorial.md#create-a-configuration-file) to describe your content
+* a [ready to deploy Docker Compose file](./users/how-to-install.md) including all needed services
+* a [one command initial data import](./users/tutorial.md#import-the-data) from a JSONL data export
+* [continuous update](./users/how-to-update-index.md) through a stream of events
 
-It leverage existing components:
-* [Elasticsearch](https://www.elastic.co/elasticsearch) for the search engine[^OpenSearchWanted]
+It leverages existing components:
+* [Elasticsearch](https://www.elastic.co/elasticsearch) for the search engine
 * [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_Components) (built thanks to [Lit framework](https://lit.dev/))
 * [Vega](https://vega.github.io/) for the charts
-* [Redis] for event stream[^AltRedisWanted]
+* [Redis] for event stream
 
-[^OpenSearchWanted]: [Open Search](https://opensearch.org/) is also a desirable target, contribution to verify compatibility and provide it as default would be appreciated.
+[Read our tutorial](./users/tutorial.md) to get started !
 
-[^AltRedisWanted]: an alternative to Redis for event stream would also be a desirable target.
+## Contributing
 
+This is an Open Source project and contributions are really welcome !
+
+See our [developer introduction to get started](./devs/introduction.md)
+
+Every contribution as bug report, documentation, UX design is also really welcome !
+See our [wiki page about Open Food Facts](https://wiki.openfoodfacts.org/Search-a-licious)
 
 ## documentation organization
 
@@ -48,3 +54,11 @@ Pages title should start with:
 * *how to…* - how to guides to reach a specific goal
 * *explain…* - explanation to understand a topic
 * *reference…* - providing detailed information
+
+
+## Thank you to our sponsors !
+
+This project has received financial support from the NGI Search (New Generation Internet) program, funded by the 🇪🇺 European Commission. Thank you for supporting Open-Source, Open Data, and the Commons.
+
+<img src="./assets/NGISearch_logo_tag_icon.svg" alt="NGI-search logo" title="NGI-search logo" height="100" />  
+<img src="./assets/europa-flag.jpg" alt="European flag" title="The European Union flag" height="100" />

@@ -19,6 +19,9 @@ export type ChartSearchParam = ChartSearchParamPOST | string;
 // eslint-disable-next-line
 declare const vega: any;
 
+/**
+ * Base class for chart elements
+ */
 export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
@@ -119,6 +122,11 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   }
 }
 
+/**
+ * Distribution chart.
+ *
+ * This will draw bars for each value of the field, reflecting the number of elements.
+ */
 @customElement('searchalicious-distribution-chart')
 export class SearchaliciousDistributionChart extends SearchaliciousChart {
   static override styles = [WHITE_PANEL_STYLE];
@@ -139,6 +147,13 @@ export class SearchaliciousDistributionChart extends SearchaliciousChart {
       };
   }
 }
+
+/**
+ * Scatter plot chart.
+ *
+ * This will plot a point to each element at the corresponding coordinates,
+ * giving a sense of the distribution of the data.
+ */
 @customElement('searchalicious-scatter-chart')
 export class SearchaliciousScatterChart extends SearchaliciousChart {
   static override styles = [WHITE_PANEL_STYLE];

@@ -3,27 +3,19 @@
 # Pull requests that update GitHub Actions code. If you navigate to the folder, you will have a README of what it does
 📚 Documentation:
 - changed-files:
-  - any-glob-to-any-file: 'docs/how-to-install.md'
-  - any-glob-to-any-file: 'docs/sphinx/_static/.empty'
-  - any-glob-to-any-file: 'docs/sphinx/_templates/.empty'
-  - any-glob-to-any-file: 'docs/sphinx/api.rst'
-  - any-glob-to-any-file: 'docs/sphinx/cli.rst'
-  - any-glob-to-any-file: 'docs/sphinx/conf.py'
-  - any-glob-to-any-file: 'docs/sphinx/config.rst'
-  - any-glob-to-any-file: 'docs/sphinx/index.rst'
-  - any-glob-to-any-file: 'docs/sphinx/misc.rst'
-  - any-glob-to-any-file: 'docs/sphinx/searching.rst'
-  - any-glob-to-any-file: 'docs/sphinx/types.rst'
-  - any-glob-to-any-file: 'docs/users/ref-python.md'
-
+  - any-glob-to-any-file:
+    - 'docs/**/*'
+    - 'docs/*'
 API:
 - changed-files:
-  - any-glob-to-any-file: 'docs/sphinx/api.rst'
+  - any-glob-to-any-file:
+    - 'docs/sphinx/api.rst'
+    - 'app/api.py'
 
 Build Scripts:
 - changed-files:
   - any-glob-to-any-file: 'scripts/Dockerfile.sphinx'
-  - any-glob-to-any-file: 'scripts/build_sphinx.sh'
+  - any-glob-to-any-file: 'scripts/build_*.sh'
   - any-glob-to-any-file: 'scripts/generate_doc.sh'
   - any-glob-to-any-file: 'scripts/sphinx/Makefile'
 
