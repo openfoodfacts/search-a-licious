@@ -553,27 +553,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Index
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -840,7 +819,7 @@ but then, you might need to update the index to keep it up to date with the late
 <h2 id="first-import">First import<a class="headerlink" href="#first-import" title="Permanent link">#</a></h2>
 <p>First import will populate Elasticsearch index with all the data.</p>
 <p>See <a href="../tutorial/#initial-import"><em>initial import</em> section in tutorial</a>
-and <a href="../ref-python/cli.html#python3-m-app-import"><code>import</code> reference documentation</a></p>
+and <a href="../../devs/ref-python/cli.html#python3-m-app-import"><code>import</code> reference documentation</a></p>
 <p>It's important to note that if you don't use the <em>continous updates</em> strategy,
 you need to use <code>--skip-updates</code> option.</p>
 <h2 id="continuous-updates">Continuous updates<a class="headerlink" href="#continuous-updates" title="Permanent link">#</a></h2>
@@ -864,7 +843,7 @@ to know from where to start processing the event stream.</p>
 <p>Another way to update the index is to periodically re-import the all the data, or changed data.</p>
 <p>This is less compelling to your users, but this might be the best way
 if you are using an external database publishing changes on a regular bases.</p>
-<p>For that you can use the <a href="../ref-python/cli.html#python3-m-app-import"><code>import</code> command</a>,
+<p>For that you can use the <a href="../../devs/ref-python/cli.html#python3-m-app-import"><code>import</code> command</a>,
 with the <code>--skip-updates</code> option, and with the <code>--partial</code> option if you are importing only changed data
 (otherwise it is advised to use the normal import process, which can be rolled-back (it create a new index)).</p>
 <h2 id="document-fetcher-and-pre-processing">Document fetcher and pre-processing<a class="headerlink" href="#document-fetcher-and-pre-processing" title="Permanent link">#</a></h2>

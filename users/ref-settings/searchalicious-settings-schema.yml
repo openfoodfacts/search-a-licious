@@ -88,6 +88,6 @@ properties:
     description: User-Agent used when fetching resources (taxonomies) or documents
     title: User Agent
     type: string
-title: JSON schema for search-a-licious configuration file
+title: JSON schema for search-a-licious settings
 type: object
 $schema: https://json-schema.org/draft/2020-12/schema
