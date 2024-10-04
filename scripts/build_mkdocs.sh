@@ -12,4 +12,4 @@ docker build --build-arg "USER_UID=$UID" --build-arg "USER_GID=$GID" --tag 'mkdo
 docker run --rm \
   -e USER_ID=$UID -e GROUP_ID=$GID \
   -v $(pwd):/app -w /app \
-  mkdocs-builder build
+  mkdocs-builder build --strict
