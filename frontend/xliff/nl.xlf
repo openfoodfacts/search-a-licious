@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
-  <file target-language="nl" source-language="en" original="lit-localize-inputs" datatype="plaintext">
+  <file target-language="nl-BE" source-language="en" original="lit-localize-inputs" datatype="plaintext">
     <body>
       <trans-unit id="sde0081b1dc3582d3" approved="yes">
         <source>Reset filters</source>
@@ -28,7 +28,7 @@
       </trans-unit>
       <trans-unit id="s49730f3d5751a433" approved="yes">
         <source>Loading...</source>
-        <target state="final">Aan het laden...</target>
+        <target state="final">Bezig met laden...</target>
       </trans-unit>
       <trans-unit id="s3848a805287c795d">
         <source>Show charts</source>
