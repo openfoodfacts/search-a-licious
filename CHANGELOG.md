@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.4.0...v1.5.0) (2024-10-07)
+
+
+### Features
+
+* better import ([#228](https://github.com/openfoodfacts/search-a-licious/issues/228)) ([ab75a96](https://github.com/openfoodfacts/search-a-licious/commit/ab75a966884350216fbcbea21b02bc62a042b16c))
+* prepare crowdin usage to make the app translatable ([#244](https://github.com/openfoodfacts/search-a-licious/issues/244)) ([a321cd2](https://github.com/openfoodfacts/search-a-licious/commit/a321cd251cf07b27c33e496a2ead278f04180a69))
+
+
+### Bug Fixes
+
+* do not create docker volume on a specific place ([51a2450](https://github.com/openfoodfacts/search-a-licious/commit/51a2450ee84854686b593213bd74eae7794461a7))
+* fix broken pre-commit dependency ([0e7a8cf](https://github.com/openfoodfacts/search-a-licious/commit/0e7a8cf3a1537ee4decd8de2d008de6ff146d992))
+
 ## [1.4.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.3.0...v1.4.0) (2024-07-25)
 
 
