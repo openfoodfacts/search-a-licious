@@ -340,7 +340,7 @@ If not provided, `['en']` is used."""
         """Does sort_by use a script?"""
         index_config = self.index_config
         _, sort_by = self.sign_sort_by
-        return sort_by in index_config.scripts.keys()
+        return index_config.scripts and sort_by in index_config.scripts.keys()
 
     @model_validator(mode="after")
     def sort_by_is_field_or_script(self):

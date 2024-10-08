@@ -30,7 +30,7 @@ FROM python-base as builder-base
 RUN curl -sSL https://install.python-poetry.org | python3 -
 WORKDIR $PYSETUP_PATH
 COPY poetry.lock  pyproject.toml ./
-RUN poetry install --without dev
+RUN poetry lock --no-update && poetry install --without dev
 
 # This is our final image
 # ------------------------
@@ -72,7 +72,7 @@ FROM builder-base as builder-dev
 WORKDIR $PYSETUP_PATH
 COPY poetry.lock  pyproject.toml ./
 # full install, with dev packages
-RUN poetry install
+RUN poetry lock --no-update && poetry install
 
 # image with dev tooling
 # ----------------------

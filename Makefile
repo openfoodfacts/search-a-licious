@@ -63,7 +63,7 @@ livecheck:
 
 build:
 	@echo "🔎 building docker (for dev)"
-	${DOCKER_COMPOSE} build --progress=plain
+	${DOCKER_COMPOSE} build --progress=plain ${args}
 
 
 up: _ensure_network
@@ -128,7 +128,7 @@ test_api_integration:
 	@echo "🔎 Running API integration tests..."
 	${DOCKER_COMPOSE_TEST} up -d es01 es02
 	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/unit
-	${DOCKER_COMPOSE_TEST} stop es01 es02
+	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop es01 es02 || true
 
 
 test_front:

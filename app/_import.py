@@ -302,6 +302,15 @@ def update_alias(es_client: Elasticsearch, next_index: str, index_alias: str):
     )
 
 
+def get_alias(es_client: Elasticsearch, index_name: str):
+    """Get the current index pointed by the alias."""
+    resp = es_client.indices.get_alias(name=index_name)
+    resp = list(resp.keys())
+    if len(resp) == 0:
+        return None
+    return resp[0]
+
+
 def import_parallel(
     config: IndexConfig,
     file_path: Path,
