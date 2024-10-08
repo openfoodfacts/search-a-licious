@@ -104,9 +104,19 @@ def get_document(
     return product
 
 
+def status_for_response(result: SearchResponse):
+    if isinstance(result, SuccessSearchResponse):
+        return status.HTTP_200_OK
+    else:
+        # TODO: should we refine that ?
+        return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
 @app.post("/search")
-def search(search_parameters: Annotated[SearchParameters, Body()]):
-    return app_search.search(search_parameters)
+def search(response: Response, search_parameters: Annotated[SearchParameters, Body()]):
+    result = app_search.search(search_parameters)
+    response.status_code = status_for_response(result)
+    return result
 
 
 def parse_charts_get(charts_params: str):
@@ -128,6 +138,7 @@ def parse_charts_get(charts_params: str):
 
 @app.get("/search")
 def search_get(
+    response: Response,
     q: GetSearchParamsTypes.q = None,
     boost_phrase: GetSearchParamsTypes.boost_phrase = False,
     langs: GetSearchParamsTypes.langs = None,
@@ -162,7 +173,9 @@ def search_get(
             charts=charts_list,
             debug_info=debug_info_list,
         )
-        return app_search.search(search_parameters)
+        result = app_search.search(search_parameters)
+        response.status_code = status_for_response(result)
+        return result
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

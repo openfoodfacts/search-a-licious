@@ -126,9 +126,9 @@ test_api_unit:
 
 test_api_integration:
 	@echo "🔎 Running API integration tests..."
-	${DOCKER_COMPOSE_TEST} up -d es01 es02
+	${DOCKER_COMPOSE_TEST} up -d es01 es02 elasticvue
 	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/unit
-	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop es01 es02 || true
+	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop es01 es02 elasticvue || true
 
 
 test_front:

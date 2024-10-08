@@ -63,8 +63,8 @@ def generate_dsl_field(
             raise ValueError("Taxonomy field must have a taxonomy_name set in config")
         sub_fields = {
             lang: dsl_field.Text(
-                # we don't need a complicated indexing analyzer as we store an id
-                analyzer="simple",
+                # we must use keyword analyzer as we really map synonyms to a keyword
+                analyzer="keyword",
                 # but on query we need to fold and match with synonyms
                 search_analyzer=get_taxonomy_analyzer(
                     field.taxonomy_name, lang, with_synonyms=True

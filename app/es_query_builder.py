@@ -53,12 +53,13 @@ class FullTextMixin:
                 "Free wildcards are not allowed in full text queries"
             )
         if "query_string" in query:
+            # no need to transform, just add fields
             query["query_string"]["fields"] = fields
         elif "match" in query or "match_phrase" in query:
             query_type = list(k for k in query.keys() if k.startswith("match"))[0]
             # go for multi_match
             inner_json = query["multi_match"] = query.pop(query_type)
-            inner_json["query"] = inner_json.pop(self.field)
+            inner_json.update(inner_json.pop(self.field))
             inner_json["fields"] = fields
             inner_json["type"] = self.MATCH_TO_MULTI_MATCH_TYPE[query_type]
         else:
