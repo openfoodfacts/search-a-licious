@@ -12,7 +12,7 @@
       </trans-unit>
       <trans-unit id="s7ae5963112a50472">
         <source>Others</source>
-        <target state="needs-translation">Others</target>
+        <target state="translated">Kiti</target>
       </trans-unit>
       <trans-unit id="s9094c0cde8fb5058">
         <source>No results found</source>
@@ -20,7 +20,7 @@
       </trans-unit>
       <trans-unit id="sb074d20f9b64aa31">
         <source>results found</source>
-        <target state="needs-translation">results found</target>
+        <target state="translated">rezultatai rasti</target>
       </trans-unit>
       <trans-unit id="h4a560de48c98b38f">
         <source>More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</source>
