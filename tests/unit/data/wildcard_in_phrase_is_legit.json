@@ -7,10 +7,8 @@
         "must": [
           {
             "multi_match": {
-              "query": {
-                "query": "Milk",
-                "zero_terms_query": "all"
-              },
+              "query": "Milk",
+              "zero_terms_query": "all",
               "fields": [
                 "product_name.en",
                 "generic_name.en",
@@ -23,9 +21,7 @@
           },
           {
             "multi_match": {
-              "query": {
-                "query": "*"
-              },
+              "query": "*",
               "fields": [
                 "product_name.en",
                 "generic_name.en",

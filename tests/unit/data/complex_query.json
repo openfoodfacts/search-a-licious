@@ -13,10 +13,8 @@
                     "must": [
                       {
                         "multi_match": {
-                          "query": {
-                            "query": "bacon",
-                            "zero_terms_query": "all"
-                          },
+                          "query": "bacon",
+                          "zero_terms_query": "all",
                           "fields": [
                             "product_name.en",
                             "generic_name.en",
@@ -29,10 +27,8 @@
                       },
                       {
                         "multi_match": {
-                          "query": {
-                            "query": "de",
-                            "zero_terms_query": "all"
-                          },
+                          "query": "de",
+                          "zero_terms_query": "all",
                           "fields": [
                             "product_name.en",
                             "generic_name.en",
@@ -45,10 +41,8 @@
                       },
                       {
                         "multi_match": {
-                          "query": {
-                            "query": "boeuf",
-                            "zero_terms_query": "all"
-                          },
+                          "query": "boeuf",
+                          "zero_terms_query": "all",
                           "fields": [
                             "product_name.en",
                             "generic_name.en",
@@ -64,10 +58,8 @@
                 },
                 {
                   "multi_match": {
-                    "query": {
-                      "boost": 2.0,
-                      "query": "bacon de boeuf"
-                    },
+                    "boost": 2.0,
+                    "query": "bacon de boeuf",
                     "fields": [
                       "product_name.en",
                       "generic_name.en",

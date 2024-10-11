@@ -50,7 +50,7 @@ def search_sample():
         Product(
             code="3012345670005",
             product_name_en="Organic Brown Sugar",
-            product_name_fr="Sucre brun",
+            product_name_fr="Sucre roux bio",
             categories_tags=["en:sweeteners", "en:sugars", "en:brown-sugars"],
             labels_tags=["en:organic"],
             **brown_sugar_nutriments,
@@ -58,7 +58,7 @@ def search_sample():
         Product(
             code="3012345670006",
             product_name_en="Brown Sugar",
-            product_name_fr="Sucre brun",
+            product_name_fr="Sucre roux",
             categories_tags=["en:sweeteners", "en:sugars", "en:brown-sugars"],
             labels_tags=[],
             **brown_sugar_nutriments,
@@ -126,6 +126,11 @@ def test_search_sort_by_created_t(sample_data, test_client):
 
 ALL_CODES = [s["code"] for s in search_sample()]
 ORGANIC_CODES = ["3012345670001", "3012345670002", "3012345670005"]
+BROWN_SUGAR_CODES = ["3012345670005", "3012345670006"]
+
+
+def xfail_param(*args):
+    return pytest.param(*args, marks=pytest.mark.xfail)
 
 
 @pytest.mark.parametrize(
@@ -135,10 +140,26 @@ ORGANIC_CODES = ["3012345670001", "3012345670002", "3012345670005"]
         ("q=brown", ["3012345670005", "3012345670006"]),
         # this also searches in labels
         ("q=organic", ORGANIC_CODES),
-        # synonym of label organic
-        ("q=organically grown", ORGANIC_CODES),
+        # synonym of label organic, will work only if we boost phrase
+        ("q=organically grown&boost_phrase=1", ORGANIC_CODES),
+        # also works for translations
+        ("q=bio&langs=fr", ORGANIC_CODES),
+        ("q=bio&langs=en,fr", ORGANIC_CODES),
+        # with more terms this does not work, yet, see
+        xfail_param("q=organically grown plants&boost_phrase=1", ORGANIC_CODES),
         # as phrase
         ('q="organically grown"', ORGANIC_CODES),
+        # Note: we need this double escape for simple quote, I'm not sure why…
+        ('q="issu de l\\\'agriculture biologique"&langs=fr', ORGANIC_CODES),
+        # synonyms on label field
+        ('q=labels:"organically grown"', ORGANIC_CODES),
+        # search a field
+        ("q=product_name:brown sugar", BROWN_SUGAR_CODES),
+        ('q=product_name:"brown sugar"', BROWN_SUGAR_CODES),
+        ("q=product_name:Sucre roux&langs=fr", BROWN_SUGAR_CODES),
+        ('q=product_name:"Sucre roux"&langs=fr', BROWN_SUGAR_CODES),
+        # search in multiple fields
+        ('q="brown sugar" organic', ["3012345670005"]),
     ],
 )
 def test_search_full_text(req, codes, sample_data, test_client):
@@ -146,3 +167,31 @@ def test_search_full_text(req, codes, sample_data, test_client):
     assert resp.status_code == 200
     data = resp.json()
     assert set(hits_attr(data, "code")) == set(codes)
+
+
+def test_extra_params_rejected(test_client):
+    # lang instead of langs
+    resp = test_client.get("/search?sort_by=created_t&lang=fr")
+    assert resp.status_code == 422
+    assert resp.json() == {
+        "detail": [
+            {
+                "type": "extra_forbidden",
+                "loc": ["query", "lang"],
+                "msg": "Extra inputs are not permitted",
+                "input": "fr",
+            }
+        ]
+    }
+    resp = test_client.post("/search", json=dict(sort_by="created_t", lang="fr"))
+    assert resp.status_code == 422
+    assert resp.json() == {
+        "detail": [
+            {
+                "type": "extra_forbidden",
+                "loc": ["body", "lang"],
+                "msg": "Extra inputs are not permitted",
+                "input": "fr",
+            }
+        ]
+    }

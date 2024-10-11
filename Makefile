@@ -124,6 +124,7 @@ test_api_unit:
 	@echo "🔎 Running API unit tests..."
 	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/int
 
+# you can use keep_es=1 to avoid stopping elasticsearch after tests (useful during development)
 test_api_integration:
 	@echo "🔎 Running API integration tests..."
 	${DOCKER_COMPOSE_TEST} up -d es01 es02 elasticvue

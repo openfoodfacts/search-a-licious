@@ -13,10 +13,8 @@
                     "must": [
                       {
                         "multi_match": {
-                          "query": {
-                            "query": "flocons",
-                            "zero_terms_query": "all"
-                          },
+                          "query": "flocons",
+                          "zero_terms_query": "all",
                           "fields": [
                             "product_name.fr",
                             "generic_name.fr",
@@ -29,10 +27,8 @@
                       },
                       {
                         "multi_match": {
-                          "query": {
-                            "query": "d'avoine",
-                            "zero_terms_query": "all"
-                          },
+                          "query": "d'avoine",
+                          "zero_terms_query": "all",
                           "fields": [
                             "product_name.fr",
                             "generic_name.fr",
@@ -48,10 +44,8 @@
                 },
                 {
                   "multi_match": {
-                    "query": {
-                      "boost": 2.0,
-                      "query": "flocons d'avoine"
-                    },
+                    "boost": 2.0,
+                    "query": "flocons d'avoine",
                     "fields": [
                       "product_name.fr",
                       "generic_name.fr",

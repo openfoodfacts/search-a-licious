@@ -118,7 +118,7 @@ def save_state(index_id, index_config, es_connection):
     so that even between test run, we minimize the number of ingestion
     """
     es_connection.index(
-        index=".test-" + index_id,
+        index="test-" + index_id,
         id="state",
         document={
             "ingested_taxonomies": INGESTED_TAXONOMY,
@@ -128,7 +128,7 @@ def save_state(index_id, index_config, es_connection):
 
 
 def load_state(index_id, index_config, es_connection):
-    state_idx = ".test-" + index_id
+    state_idx = "test-" + index_id
     if es_connection.exists(index=state_idx, id="state"):
         state = es_connection.get(index=state_idx, id="state")["_source"]
         INGESTED_DATA.update(state["ingested_data"])
@@ -138,7 +138,7 @@ def load_state(index_id, index_config, es_connection):
 def delete_es_indices(es_connection):
     """Do a full cleanup of ES, including deleting all indexes"""
     for index in es_connection.indices.get(index="*", expand_wildcards="all"):
-        if index.startswith(".") and not index.startswith(".test-"):
+        if index.startswith(".") and not index.startswith("test-"):
             # skip special indexes
             continue
         es_connection.indices.delete(index=index)

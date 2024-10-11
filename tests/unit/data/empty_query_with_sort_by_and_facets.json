@@ -8,11 +8,6 @@
           "field": "lang"
         }
       },
-      "categories": {
-        "terms": {
-          "field": "categories"
-        }
-      },
       "brands": {
         "terms": {
           "field": "brands"
@@ -21,6 +16,11 @@
       "nutrition_grades": {
         "terms": {
           "field": "nutrition_grades"
+        }
+      },
+      "categories": {
+        "terms": {
+          "field": "categories"
         }
       }
     },
