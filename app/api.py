@@ -15,10 +15,8 @@ from pydantic import ValidationError
 import app.search as app_search
 from app import config
 from app._types import (
-    INDEX_ID_QUERY_PARAM,
-    DistributionChartType,
-    GetSearchParamsTypes,
-    ScatterChartType,
+    CommonParametersQuery,
+    GetSearchParameters,
     SearchParameters,
     SearchResponse,
     SuccessSearchResponse,
@@ -80,7 +78,8 @@ def check_index_id_is_defined_or_400(index_id: str | None, config: config.Config
 
 @app.get("/document/{identifier}")
 def get_document(
-    identifier: str, index_id: Annotated[str | None, INDEX_ID_QUERY_PARAM] = None
+    identifier: str,
+    index_id: Annotated[str | None, CommonParametersQuery.index_id] = None,
 ):
     """Fetch a document from Elasticsearch with specific ID."""
     check_config_is_defined()
@@ -119,65 +118,17 @@ def search(response: Response, search_parameters: Annotated[SearchParameters, Bo
     return result
 
 
-def parse_charts_get(charts_params: str):
-    """
-    Parse for get params are 'field' or 'xfield:yfield'
-    separated by ',' for Distribution and Scatter charts.
-
-    Directly the dictionnaries in POST request
-    """
-    charts = []
-    for c in charts_params.split(","):
-        if ":" in c:
-            [x, y] = c.split(":")
-            charts.append(ScatterChartType(x=x, y=y))
-        else:
-            charts.append(DistributionChartType(field=c))
-    return charts
-
-
 @app.get("/search")
 def search_get(
-    response: Response,
-    q: GetSearchParamsTypes.q = None,
-    boost_phrase: GetSearchParamsTypes.boost_phrase = False,
-    langs: GetSearchParamsTypes.langs = None,
-    page_size: GetSearchParamsTypes.page_size = 10,
-    page: GetSearchParamsTypes.page = 1,
-    fields: GetSearchParamsTypes.fields = None,
-    sort_by: GetSearchParamsTypes.sort_by = None,
-    facets: GetSearchParamsTypes.facets = None,
-    charts: GetSearchParamsTypes.charts = None,
-    index_id: GetSearchParamsTypes.index_id = None,
-    debug_info: GetSearchParamsTypes.debug_info | str = None,
+    response: Response, search_parameters: Annotated[GetSearchParameters, Query()]
 ) -> SearchResponse:
-    # str to lists
-    langs_list = langs.split(",") if langs else ["en"]
-    fields_list = fields.split(",") if fields else None
-    facets_list = facets.split(",") if facets else None
-    charts_list = parse_charts_get(charts) if charts else None
-    # str to good type
-    debug_info_list = SearchParameters.debug_info_list_from_str(debug_info)
-    # create SearchParameters object
     try:
-        search_parameters = SearchParameters(
-            q=q,
-            boost_phrase=boost_phrase,
-            langs=langs_list,
-            page_size=page_size,
-            page=page,
-            fields=fields_list,
-            sort_by=sort_by,
-            facets=facets_list,
-            index_id=index_id,
-            charts=charts_list,
-            debug_info=debug_info_list,
-        )
-        result = app_search.search(search_parameters)
-        response.status_code = status_for_response(result)
-        return result
+        _search_parameters = search_parameters.to_search_parameters()
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    result = app_search.search(_search_parameters)
+    response.status_code = status_for_response(result)
+    return result
 
 
 @app.get("/autocomplete")
@@ -200,7 +151,7 @@ def taxonomy_autocomplete(
         int | None,
         Query(description="Fuzziness level to use, default to no fuzziness."),
     ] = None,
-    index_id: Annotated[str | None, INDEX_ID_QUERY_PARAM] = None,
+    index_id: Annotated[str | None, CommonParametersQuery.index_id] = None,
 ):
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
@@ -246,7 +197,7 @@ def html_search(
     page_size: int = 24,
     langs: str = "fr,en",
     sort_by: str | None = None,
-    index_id: Annotated[str | None, INDEX_ID_QUERY_PARAM] = None,
+    index_id: Annotated[str | None, CommonParametersQuery.index_id] = None,
     # Display debug information in the HTML response
     display_debug: bool = False,
 ):

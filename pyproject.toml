@@ -9,7 +9,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 elasticsearch-dsl = "~8.9.0"
-fastapi = "~0.109.1"
+fastapi = "~0.115.0"
 requests = "~2.32.2"
 redis = "~5.0.0"
 uvicorn = "~0.23.2"

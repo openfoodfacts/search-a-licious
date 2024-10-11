@@ -1,7 +1,7 @@
 from enum import Enum, StrEnum
 from functools import cached_property
 from inspect import cleandoc as cd_
-from typing import Annotated, Any, Literal, Optional, Tuple, Union, cast, get_type_hints
+from typing import Annotated, Any, Literal, Optional, Tuple, Union, cast
 
 import elasticsearch_dsl.query
 import luqum.tree
@@ -161,139 +161,158 @@ class QueryAnalysis(BaseModel):
         }
 
 
-INDEX_ID_QUERY_PARAM = Query(
-    description="""Index ID to use for the search, if not provided, the default index is used.
-        If there is only one index, this parameter is not needed."""
-)
+class CommonParametersQuery:
+    """Documentation and constraints for some common query parameters"""
+
+    index_id = Query(
+        description=cd_(
+            """Index ID to use for the search, if not provided, the default index is used.
+            If there is only one index, this parameter is not needed.
+            """
+        )
+    )
 
 
-class SearchParameters(BaseModel):
+class SearchParametersQuery(CommonParametersQuery):
+    """Documentation and constraints for search parameters
+
+    We put this in a class because we want to reuse the same description
+    in SearchParameters and GetSearchParameters
+    """
+
+    q = Query(
+        description=cd_(
+            """The search query, it supports Lucene search query
+            syntax (https://lucene.apache.org/core/3_6_0/queryparsersyntax.html). Words
+            that are not recognized by the lucene query parser are searched as full text
+            search.
+
+            Example: `categories_tags:"en:beverages" strawberry brands:"casino"` query use a
+            filter clause for categories and brands and look for "strawberry" in multiple
+            fields.
+
+            The query is optional, but `sort_by` value must then be provided.
+            """
+        )
+    )
+    boost_phrase = Query(
+        description=cd_(
+            """This enables an heuristic that will favor,
+            matching terms that are consecutive.
+
+            Technically, if you have a query with the two words `whole milk`
+            it will boost entries with `"whole milk"` exact match.
+            The boost factor is defined by `match_phrase_boost` value in Configuration
+
+            Note, that it only make sense if you use best match sorting.
+            So in any other case it is ignored.
+            """
+        )
+    )
+    langs = Query(
+        description=cd_(
+            """List of languages we want to support during search.
+            This list should include the user expected language, and additional languages (such
+            as english for example).
+
+            This is currently used for language-specific subfields to choose in which
+            subfields we're searching in.
+
+            If not provided, `['en']` is used.
+            """
+        )
+    )
+    page_size = Query(description="Number of results to return per page.")
+    page = Query(ge=1, description="Page to request, starts at 1.")
+    fields = Query(
+        description="List of fields to include in the response. All other fields will be ignored."
+    )
+    sort_by = Query(
+        description=cd_(
+            """Field name to use to sort results,
+            the field should exist and be sortable.
+            If it is not provided, results are sorted by descending relevance score.
+            (aka best match)
+
+            If you put a minus before the name, the results will be sorted by descending order.
+
+            If the field name match a known script (defined in your configuration),
+            it will be use for sorting.
+
+            In this case you also need to provide additional parameters corresponding to your script parameters.
+            If a script needs parameters, you can only use the POST method.
+
+            Beware that this may have a big [impact on performance][perf_link]
+
+            Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
+
+            [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
+            [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
+            """
+        )
+    )
+    facets = Query(
+        description=cd_(
+            """Name of facets to return in the response as a comma-separated value.
+            If None (default) no facets are returned.
+            """
+        )
+    )
+    charts = Query(
+        description=cd_(
+            """Name of vega representations to return in the response.
+            Can be distribution chart or scatter plot
+            """
+        )
+    )
+    sort_params = (
+        Query(
+            description=cd_(
+                """Additional parameters when using  a sort script in sort_by.
+            If the sort script needs parameters, you can only be used the POST method.
+            """
+            ),
+        ),
+    )
+    debug_info = Query(
+        description=cd_(
+            """Tells which debug information to return in the response.
+            It can be a comma separated list of values
+            """
+        ),
+    )
+
+
+class BaseSearchParameters(BaseModel):
     """Common parameters for search"""
 
     q: Annotated[
         str | None,
-        Query(
-            description="""The search query, it supports Lucene search query
-syntax (https://lucene.apache.org/core/3_6_0/queryparsersyntax.html). Words
-that are not recognized by the lucene query parser are searched as full text
-search.
-
-Example: `categories_tags:"en:beverages" strawberry brands:"casino"` query use a
-filter clause for categories and brands and look for "strawberry" in multiple
-fields.
-
-The query is optional, but `sort_by` value must then be provided."""
-        ),
+        SearchParametersQuery.q,
     ] = None
 
     boost_phrase: Annotated[
         bool,
-        Query(
-            description="""This enables an heuristic that will favor,
-matching terms that are consecutive.
-
-Technically, if you have a query with the two words `whole milk`
-it will boost entries with `"whole milk"` exact match.
-The boost factor is defined by `match_phrase_boost` value in Configuration
-
-Note, that it only make sense if you use best match sorting.
-So in any other case it is ignored."""
-        ),
+        SearchParametersQuery.boost_phrase,
     ] = False
 
-    langs: Annotated[
-        list[str],
-        Query(
-            description="""List of languages we want to support during search.
-This list should include the user expected language, and additional languages (such
-as english for example).
+    page_size: Annotated[int, SearchParametersQuery.page_size] = 10
 
-This is currently used for language-specific subfields to choose in which
-subfields we're searching in.
+    page: Annotated[int, SearchParametersQuery.page] = 1
 
-If not provided, `['en']` is used."""
-        ),
-    ] = ["en"]
-    page_size: Annotated[
-        int, Query(description="Number of results to return per page.")
-    ] = 10
-    page: Annotated[int, Query(ge=1, description="Page to request, starts at 1.")] = 1
-    fields: Annotated[
-        list[str] | None,
-        Query(
-            description="List of fields to include in the response. All other fields will be ignored."
-        ),
-    ] = None
     sort_by: Annotated[
         str | None,
-        Query(
-            description=cd_(
-                """Field name to use to sort results,
-                the field should exist and be sortable.
-                If it is not provided, results are sorted by descending relevance score.
-                (aka best match)
-
-                If you put a minus before the name, the results will be sorted by descending order.
-
-                If the field name match a known script (defined in your configuration),
-                it will be use for sorting.
-
-                In this case you also need to provide additional parameters corresponding to your script parameters.
-                If a script needs parameters, you can only use the POST method.
-
-                Beware that this may have a big [impact on performance][perf_link]
-
-                Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
-
-                [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
-                [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
-                """
-            )
-        ),
+        SearchParametersQuery.sort_by,
     ] = None
-    facets: Annotated[
-        list[str] | None,
-        Query(
-            description=cd_(
-                """Name of facets to return in the response as a comma-separated value.
-                If None (default) no facets are returned.
-                """
-            )
-        ),
-    ] = None
-    charts: Annotated[
-        list[ChartType] | None,
-        Query(
-            description=cd_(
-                """Name of vega representations to return in the response.
-                Can be distribution chart or scatter plot
-                """
-            )
-        ),
-    ] = None
-    sort_params: Annotated[
-        JSONType | None,
-        Query(
-            description=cd_(
-                """Additional parameters when using  a sort script in sort_by.
-                If the sort script needs parameters, you can only be used the POST method.
-                """
-            ),
-        ),
-    ] = None
+
     index_id: Annotated[
         str | None,
-        INDEX_ID_QUERY_PARAM,
+        SearchParametersQuery.index_id,
     ] = None
+
     debug_info: Annotated[
         list[DebugInfo] | None,
-        Query(
-            description=cd_(
-                """Tells which debug information to return in the response.
-                It can be a comma separated list of values
-                """
-            ),
-        ),
+        SearchParametersQuery.debug_info,
     ] = None
 
     @model_validator(mode="after")
@@ -341,6 +360,59 @@ If not provided, `['en']` is used."""
         index_config = self.index_config
         _, sort_by = self.sign_sort_by
         return index_config.scripts and sort_by in index_config.scripts.keys()
+
+    @model_validator(mode="after")
+    def check_max_results(self):
+        """Check we don't ask too many results at once"""
+        if self.page * self.page_size > 10_000:
+            raise ValueError(
+                f"Maximum number of returned results is 10 000 (here: page * page_size = {self.page * self.page_size})",
+            )
+        return self
+
+    @field_validator("debug_info")
+    @classmethod
+    def debug_info_list_from_str(
+        cls, debug_info: str | list[DebugInfo] | None
+    ) -> list[DebugInfo] | None:
+        """We can pass a comma separated list of DebugInfo values as a string"""
+        if isinstance(debug_info, str):
+            values = [getattr(DebugInfo, part, None) for part in debug_info.split(",")]
+            debug_info = [v for v in values if v is not None]
+        return debug_info
+
+
+# TODO: this way of doing could be simplified simply using inheritance
+class SearchParameters(BaseSearchParameters):
+    """POST parameters for search"""
+
+    # forbid extra parameters to prevent failed expectations because of typos
+    model_config = {"extra": "forbid"}
+
+    langs: Annotated[
+        list[str],
+        SearchParametersQuery.langs,
+    ] = ["en"]
+
+    fields: Annotated[
+        list[str] | None,
+        SearchParametersQuery.fields,
+    ] = None
+
+    facets: Annotated[
+        list[str] | None,
+        SearchParametersQuery.facets,
+    ] = None
+
+    charts: Annotated[
+        list[ChartType] | None,
+        SearchParametersQuery.charts,
+    ] = None
+
+    sort_params: Annotated[
+        JSONType | None,
+        SearchParametersQuery.sort_params,
+    ] = None
 
     @model_validator(mode="after")
     def sort_by_is_field_or_script(self):
@@ -424,26 +496,6 @@ If not provided, `['en']` is used."""
             raise ValueError(errors)
         return self
 
-    @model_validator(mode="after")
-    def check_max_results(self):
-        """Check we don't ask too many results at once"""
-        if self.page * self.page_size > 10_000:
-            raise ValueError(
-                f"Maximum number of returned results is 10 000 (here: page * page_size = {self.page * self.page_size})",
-            )
-        return self
-
-    @field_validator("debug_info")
-    @classmethod
-    def debug_info_list_from_str(
-        cls, debug_info: str | list[DebugInfo] | None
-    ) -> list[DebugInfo] | None:
-        """We can pass a comma separated list of DebugInfo values as a string"""
-        if isinstance(debug_info, str):
-            values = [getattr(DebugInfo, part, None) for part in debug_info.split(",")]
-            debug_info = [v for v in values if v is not None]
-        return debug_info
-
     @property
     def langs_set(self):
         return set(self.langs)
@@ -467,23 +519,70 @@ def _annotation_new_type(type_, annotation):
     return Annotated[type_, *annotation.__metadata__]
 
 
-# types and annotations for search parameters for GET,
-# created from POST search parameters
-SEARCH_PARAMS_ANN = get_type_hints(SearchParameters, include_extras=True)
+class GetSearchParameters(BaseSearchParameters):
+    """Parameters for GET /search"""
 
+    # forbid extra parameters to prevent failed expectations because of typos
+    model_config = {"extra": "forbid"}
 
-class GetSearchParamsTypes:
-    q = SEARCH_PARAMS_ANN["q"]
-    boost_phrase = SEARCH_PARAMS_ANN["boost_phrase"]
-    langs = _annotation_new_type(str, SEARCH_PARAMS_ANN["langs"])
-    page_size = SEARCH_PARAMS_ANN["page_size"]
-    page = SEARCH_PARAMS_ANN["page"]
-    fields = _annotation_new_type(str, SEARCH_PARAMS_ANN["fields"])
-    sort_by = SEARCH_PARAMS_ANN["sort_by"]
-    facets = _annotation_new_type(str, SEARCH_PARAMS_ANN["facets"])
-    charts = _annotation_new_type(str, SEARCH_PARAMS_ANN["charts"])
-    index_id = SEARCH_PARAMS_ANN["index_id"]
-    debug_info = SEARCH_PARAMS_ANN["debug_info"]
+    langs: Annotated[
+        str,
+        SearchParametersQuery.langs,
+    ] = "en"
+
+    fields: Annotated[
+        str | None,
+        SearchParametersQuery.fields,
+    ] = None
+
+    facets: Annotated[
+        str | None,
+        SearchParametersQuery.facets,
+    ] = None
+
+    charts: Annotated[
+        str | None,
+        SearchParametersQuery.charts,
+    ] = None
+
+    def parse_charts_get(self, charts_params: str):
+        """
+        Parse for get params are 'field' or 'xfield:yfield'
+        separated by ',' for Distribution and Scatter charts.
+
+        Directly the dictionnaries in POST request
+        """
+        charts = []
+        for c in charts_params.split(","):
+            if ":" in c:
+                [x, y] = c.split(":")
+                charts.append(ScatterChartType(x=x, y=y))
+            else:
+                charts.append(DistributionChartType(field=c))
+        return charts
+
+    def to_search_parameters(self) -> SearchParameters:
+        """Convert to a SearchParameters object"""
+        # str to lists
+        langs_list = self.langs.split(",") if self.langs else ["en"]
+        fields_list = self.fields.split(",") if self.fields else None
+        facets_list = self.facets.split(",") if self.facets else None
+        charts_list = self.parse_charts_get(self.charts) if self.charts else None
+        # str to good type
+        debug_info_list = SearchParameters.debug_info_list_from_str(self.debug_info)
+        return SearchParameters(
+            q=self.q,
+            boost_phrase=self.boost_phrase,
+            langs=langs_list,
+            page_size=self.page_size,
+            page=self.page,
+            fields=fields_list,
+            sort_by=self.sort_by,
+            facets=facets_list,
+            charts=charts_list,
+            index_id=self.index_id,
+            debug_info=debug_info_list,
+        )
 
 
 class FetcherStatus(Enum):
