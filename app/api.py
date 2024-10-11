@@ -113,6 +113,12 @@ def status_for_response(result: SearchResponse):
 
 @app.post("/search")
 def search(response: Response, search_parameters: Annotated[SearchParameters, Body()]):
+    """This is the main search endpoint.
+
+    It uses POST request to ensure privacy.
+
+    Under the hood, it calls the :py:func:`app.search.search` function
+    """
     result = app_search.search(search_parameters)
     response.status_code = status_for_response(result)
     return result
@@ -122,6 +128,10 @@ def search(response: Response, search_parameters: Annotated[SearchParameters, Bo
 def search_get(
     response: Response, search_parameters: Annotated[GetSearchParameters, Query()]
 ) -> SearchResponse:
+    """This is the main search endpoint when using GET request
+
+    Under the hood, it calls the :py:func:`app.search.search` function
+    """
     try:
         _search_parameters = search_parameters.to_search_parameters()
     except ValidationError as e:
@@ -153,6 +163,7 @@ def taxonomy_autocomplete(
     ] = None,
     index_id: Annotated[str | None, CommonParametersQuery.index_id] = None,
 ):
+    """API endpoint for autocompletion using taxonomies"""
     check_config_is_defined()
     global_config = cast(config.Config, config.CONFIG)
     check_index_id_is_defined_or_400(index_id, global_config)
@@ -186,6 +197,7 @@ def taxonomy_autocomplete(
 
 @app.get("/", response_class=HTMLResponse)
 def off_demo():
+    """Redirects to the off.html page"""
     return RedirectResponse(url="/static/off.html", status_code=status.HTTP_302_FOUND)
 
 
@@ -201,6 +213,7 @@ def html_search(
     # Display debug information in the HTML response
     display_debug: bool = False,
 ):
+    """A demo page to test the search endpoint directly"""
     if not q:
         return templates.TemplateResponse("search.html", {"request": request})
 
@@ -252,6 +265,10 @@ def robots_txt():
 
 @app.get("/health")
 def healthcheck():
+    """API endpoint to check the health of the application
+
+    It uses :py:mod:`app.health`.
+    """
     from app.health import health
 
     message, status, _ = health.run()

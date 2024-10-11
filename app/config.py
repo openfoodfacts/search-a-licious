@@ -187,6 +187,16 @@ class ConfigGenerateJsonSchema(GenerateJsonSchema):
         return json_schema
 
 
+class SettingsGenerateJsonSchema(GenerateJsonSchema):
+    """Config to add fields to generated JSON schema for Settings."""
+
+    def generate(self, schema, mode="validation"):
+        json_schema = super().generate(schema, mode=mode)
+        json_schema["title"] = "JSON schema for search-a-licious settings"
+        json_schema["$schema"] = self.schema_dialect
+        return json_schema
+
+
 class TaxonomySourceConfig(BaseModel):
     """Configuration on how to fetch a particular taxonomy."""
 

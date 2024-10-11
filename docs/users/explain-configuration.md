@@ -12,7 +12,7 @@ but is capable of serving multiple datasets
 
 It provides a section for each index you want to create (corresponding to a dataset).
 
-If you have more than one dataset, one must be declared the default (see [default_index](../ref-config/searchalicious-config-schema.html#default_index))
+If you have more than one dataset, one must be declared the default (see [default_index](./ref-config/searchalicious-config-schema.html#default_index))
 
 ## Main sections
 
@@ -120,7 +120,7 @@ Search-a-licious offers a way for you to customize some critical operations usin
 * whereas result_processor adapts each result returned by a search, keep it lightweight !
 * document_fetcher is only used for continuous updates to fetch documents using an API
 
-Read more in the [reference documentation](../ref-config/searchalicious-config-schema.html).
+Read more in the [reference documentation](./ref-config/searchalicious-config-schema.html).
 
 ## Scripts
 

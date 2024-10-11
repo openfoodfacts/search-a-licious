@@ -330,9 +330,14 @@ def export_schema(
 
     import yaml
 
-    from app.config import ConfigGenerateJsonSchema
+    from app.config import Config, ConfigGenerateJsonSchema, SettingsGenerateJsonSchema
 
-    schema = class_.model_json_schema(schema_generator=ConfigGenerateJsonSchema)
+    schema_generator = (
+        ConfigGenerateJsonSchema
+        if issubclass(class_, Config)
+        else SettingsGenerateJsonSchema
+    )
+    schema = class_.model_json_schema(schema_generator=schema_generator)
 
     print("writing json schema")
     with open(target_path, "w") as f:

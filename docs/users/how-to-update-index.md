@@ -12,7 +12,7 @@ There are two strategies to update the index:
 First import will populate Elasticsearch index with all the data.
 
 See [*initial import* section in tutorial](./tutorial.md#initial-import)
-and [`import` reference documentation](../ref-python/cli.html#python3-m-app-import)
+and [`import` reference documentation](../devs/ref-python/cli.html#python3-m-app-import)
 
 It's important to note that if you don't use the *continous updates* strategy,
 you need to use `--skip-updates` option.
@@ -38,7 +38,7 @@ docker-compose up -d updater
 This will continuously fetch updates from the event stream, and update the index accordingly.
 
 At start it will compute last update time using
-the [`last_modified_field_name` from the configuration](../ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name)
+the [`last_modified_field_name` from the configuration](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name)
 to know from where to start processing the event stream.
 
 ## Updating the index from time to time with an export
@@ -48,15 +48,15 @@ Another way to update the index is to periodically re-import the all the data, o
 This is less compelling to your users, but this might be the best way
 if you are using an external database publishing changes on a regular bases.
 
-For that you can use the [`import` command](../ref-python/cli.html#python3-m-app-import),
+For that you can use the [`import` command](../devs/ref-python/cli.html#python3-m-app-import),
 with the `--skip-updates` option, and with the `--partial` option if you are importing only changed data
 (otherwise it is advised to use the normal import process, which can be rolled-back (it create a new index)).
 
 ## Document fetcher and pre-processing
 
 In the configuration, you can define a
-[`document_fetcher`](../ref-config/searchalicious-config-schema.html#indices_additionalProperties_document_fetcher)
-and a [`preprocessor`](../ref-config/searchalicious-config-schema.html#indices_additionalProperties_preprocessor) to transform the data.
+[`document_fetcher`](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_document_fetcher)
+and a [`preprocessor`](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_preprocessor) to transform the data.
 
 Those are fully qualified dotted names to python classes.
 
