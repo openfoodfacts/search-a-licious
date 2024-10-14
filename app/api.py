@@ -10,14 +10,13 @@ from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import ValidationError
 
 import app.search as app_search
 from app import config
 from app._types import (
     CommonParametersQuery,
     GetSearchParameters,
-    SearchParameters,
+    PostSearchParameters,
     SearchResponse,
     SuccessSearchResponse,
 )
@@ -112,7 +111,9 @@ def status_for_response(result: SearchResponse):
 
 
 @app.post("/search")
-def search(response: Response, search_parameters: Annotated[SearchParameters, Body()]):
+def search(
+    response: Response, search_parameters: Annotated[PostSearchParameters, Body()]
+):
     """This is the main search endpoint.
 
     It uses POST request to ensure privacy.
@@ -132,11 +133,7 @@ def search_get(
 
     Under the hood, it calls the :py:func:`app.search.search` function
     """
-    try:
-        _search_parameters = search_parameters.to_search_parameters()
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    result = app_search.search(_search_parameters)
+    result = app_search.search(search_parameters)
     response.status_code = status_for_response(result)
     return result
 

@@ -173,147 +173,79 @@ class CommonParametersQuery:
     )
 
 
-class SearchParametersQuery(CommonParametersQuery):
-    """Documentation and constraints for search parameters
-
-    We put this in a class because we want to reuse the same description
-    in SearchParameters and GetSearchParameters
+class QuerySearchParameters(BaseModel):
+    """Parameters for search,
+    this class concentrates on parameters that define the search query
     """
-
-    q = Query(
-        description=cd_(
-            """The search query, it supports Lucene search query
-            syntax (https://lucene.apache.org/core/3_6_0/queryparsersyntax.html). Words
-            that are not recognized by the lucene query parser are searched as full text
-            search.
-
-            Example: `categories_tags:"en:beverages" strawberry brands:"casino"` query use a
-            filter clause for categories and brands and look for "strawberry" in multiple
-            fields.
-
-            The query is optional, but `sort_by` value must then be provided.
-            """
-        )
-    )
-    boost_phrase = Query(
-        description=cd_(
-            """This enables an heuristic that will favor,
-            matching terms that are consecutive.
-
-            Technically, if you have a query with the two words `whole milk`
-            it will boost entries with `"whole milk"` exact match.
-            The boost factor is defined by `match_phrase_boost` value in Configuration
-
-            Note, that it only make sense if you use best match sorting.
-            So in any other case it is ignored.
-            """
-        )
-    )
-    langs = Query(
-        description=cd_(
-            """List of languages we want to support during search.
-            This list should include the user expected language, and additional languages (such
-            as english for example).
-
-            This is currently used for language-specific subfields to choose in which
-            subfields we're searching in.
-
-            If not provided, `['en']` is used.
-            """
-        )
-    )
-    page_size = Query(description="Number of results to return per page.")
-    page = Query(ge=1, description="Page to request, starts at 1.")
-    fields = Query(
-        description="List of fields to include in the response. All other fields will be ignored."
-    )
-    sort_by = Query(
-        description=cd_(
-            """Field name to use to sort results,
-            the field should exist and be sortable.
-            If it is not provided, results are sorted by descending relevance score.
-            (aka best match)
-
-            If you put a minus before the name, the results will be sorted by descending order.
-
-            If the field name match a known script (defined in your configuration),
-            it will be use for sorting.
-
-            In this case you also need to provide additional parameters corresponding to your script parameters.
-            If a script needs parameters, you can only use the POST method.
-
-            Beware that this may have a big [impact on performance][perf_link]
-
-            Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
-
-            [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
-            [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
-            """
-        )
-    )
-    facets = Query(
-        description=cd_(
-            """Name of facets to return in the response as a comma-separated value.
-            If None (default) no facets are returned.
-            """
-        )
-    )
-    charts = Query(
-        description=cd_(
-            """Name of vega representations to return in the response.
-            Can be distribution chart or scatter plot
-            """
-        )
-    )
-    sort_params = (
-        Query(
-            description=cd_(
-                """Additional parameters when using  a sort script in sort_by.
-            If the sort script needs parameters, you can only be used the POST method.
-            """
-            ),
-        ),
-    )
-    debug_info = Query(
-        description=cd_(
-            """Tells which debug information to return in the response.
-            It can be a comma separated list of values
-            """
-        ),
-    )
-
-
-class BaseSearchParameters(BaseModel):
-    """Common parameters for search"""
 
     q: Annotated[
         str | None,
-        SearchParametersQuery.q,
+        Query(
+            description=cd_(
+                """The search query, it supports Lucene search query
+                syntax (https://lucene.apache.org/core/3_6_0/queryparsersyntax.html). Words
+                that are not recognized by the lucene query parser are searched as full text
+                search.
+
+                Example: `categories_tags:"en:beverages" strawberry brands:"casino"` query use a
+                filter clause for categories and brands and look for "strawberry" in multiple
+                fields.
+
+                The query is optional, but `sort_by` value must then be provided.
+                """
+            )
+        ),
     ] = None
 
     boost_phrase: Annotated[
         bool,
-        SearchParametersQuery.boost_phrase,
+        Query(
+            description=cd_(
+                """This enables an heuristic that will favor,
+                matching terms that are consecutive.
+
+                Technically, if you have a query with the two words `whole milk`
+                it will boost entries with `"whole milk"` exact match.
+                The boost factor is defined by `match_phrase_boost` value in Configuration
+
+                Note, that it only make sense if you use best match sorting.
+                So in any other case it is ignored.
+                """
+            )
+        ),
     ] = False
 
-    page_size: Annotated[int, SearchParametersQuery.page_size] = 10
+    langs: Annotated[
+        list[str],
+        Query(
+            description=cd_(
+                """List of languages we want to support during search.
+                This list should include the user expected language, and additional languages (such
+                as english for example).
 
-    page: Annotated[int, SearchParametersQuery.page] = 1
+                This is currently used for language-specific subfields to choose in which
+                subfields we're searching in.
 
-    sort_by: Annotated[
-        str | None,
-        SearchParametersQuery.sort_by,
-    ] = None
+                If not provided, `['en']` is used.
+                """
+            )
+        ),
+    ] = ["en"]
 
     index_id: Annotated[
         str | None,
-        SearchParametersQuery.index_id,
+        CommonParametersQuery.index_id,
     ] = None
 
-    debug_info: Annotated[
-        list[DebugInfo] | None,
-        SearchParametersQuery.debug_info,
-    ] = None
+    @field_validator("langs")
+    @classmethod
+    def parse_langs_str(cls, langs: str | list[str]) -> list[str]:
+        """
+        Parse for get params 'langs'
+        """
+        if isinstance(langs, str):
+            langs = langs.split(",")
+        return langs
 
     @model_validator(mode="after")
     def validate_index_id(self):
@@ -341,10 +273,12 @@ class BaseSearchParameters(BaseModel):
         return self.index_id
 
     @model_validator(mode="after")
-    def validate_q_or_sort_by(self):
-        """We want at least one of q or sort_by before launching a request"""
-        if self.q is None and self.sort_by is None:
-            raise ValueError("`sort_by` must be provided when `q` is missing")
+    def check_max_results(self):
+        """Check we don't ask too many results at once"""
+        if self.page * self.page_size > 10_000:
+            raise ValueError(
+                f"Maximum number of returned results is 10 000 (here: page * page_size = {self.page * self.page_size})",
+            )
         return self
 
     @cached_property
@@ -355,63 +289,50 @@ class BaseSearchParameters(BaseModel):
         return index_config
 
     @cached_property
-    def uses_sort_script(self):
-        """Does sort_by use a script?"""
-        index_config = self.index_config
-        _, sort_by = self.sign_sort_by
-        return index_config.scripts and sort_by in index_config.scripts.keys()
+    def langs_set(self):
+        return set(self.langs)
 
-    @model_validator(mode="after")
-    def check_max_results(self):
-        """Check we don't ask too many results at once"""
-        if self.page * self.page_size > 10_000:
-            raise ValueError(
-                f"Maximum number of returned results is 10 000 (here: page * page_size = {self.page * self.page_size})",
+    @cached_property
+    def main_lang(self):
+        """Get the main lang of the query"""
+        return self.langs[0] if self.langs else "en"
+
+
+class ResultSearchParameters(BaseModel):
+    """Parameters that influence results presentation: pagination and sorting"""
+
+    page_size: Annotated[
+        int, Query(description="Number of results to return per page.")
+    ] = 10
+
+    page: Annotated[int, Query(description="Number of results to return per page.")] = 1
+
+    sort_by: Annotated[
+        str | None,
+        Query(
+            description=cd_(
+                """Field name to use to sort results,
+                the field should exist and be sortable.
+                If it is not provided, results are sorted by descending relevance score.
+                (aka best match)
+
+                If you put a minus before the name, the results will be sorted by descending order.
+
+                If the field name match a known script (defined in your configuration),
+                it will be use for sorting.
+
+                In this case you also need to provide additional parameters corresponding to your script parameters.
+                If a script needs parameters, you can only use the POST method.
+
+                Beware that this may have a big [impact on performance][perf_link]
+
+                Also bare in mind [privacy considerations][privacy_link] if your script parameters contains sensible data.
+
+                [perf_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
+                [privacy_link]: https://openfoodfacts.github.io/search-a-licious/users/how-to-use-scripts/#performance-considerations
+                """
             )
-        return self
-
-    @field_validator("debug_info")
-    @classmethod
-    def debug_info_list_from_str(
-        cls, debug_info: str | list[DebugInfo] | None
-    ) -> list[DebugInfo] | None:
-        """We can pass a comma separated list of DebugInfo values as a string"""
-        if isinstance(debug_info, str):
-            values = [getattr(DebugInfo, part, None) for part in debug_info.split(",")]
-            debug_info = [v for v in values if v is not None]
-        return debug_info
-
-
-# TODO: this way of doing could be simplified simply using inheritance
-class SearchParameters(BaseSearchParameters):
-    """POST parameters for search"""
-
-    # forbid extra parameters to prevent failed expectations because of typos
-    model_config = {"extra": "forbid"}
-
-    langs: Annotated[
-        list[str],
-        SearchParametersQuery.langs,
-    ] = ["en"]
-
-    fields: Annotated[
-        list[str] | None,
-        SearchParametersQuery.fields,
-    ] = None
-
-    facets: Annotated[
-        list[str] | None,
-        SearchParametersQuery.facets,
-    ] = None
-
-    charts: Annotated[
-        list[ChartType] | None,
-        SearchParametersQuery.charts,
-    ] = None
-
-    sort_params: Annotated[
-        JSONType | None,
-        SearchParametersQuery.sort_params,
+        ),
     ] = None
 
     @model_validator(mode="after")
@@ -427,31 +348,40 @@ class SearchParameters(BaseSearchParameters):
             )
         return self
 
-    @model_validator(mode="after")
-    def sort_by_scripts_needs_params(self):
-        """If sort_by is a script,
-        verify we got corresponding parameters in sort_params
-        """
-        if self.uses_sort_script:
-            if self.sort_params is None:
-                raise ValueError(
-                    "`sort_params` must be provided when using a sort script"
-                )
-            if not isinstance(self.sort_params, dict):
-                raise ValueError("`sort_params` must be a dict")
-            # verifies keys are those expected
-            request_keys = set(self.sort_params.keys())
-            sort_sign, sort_by = self.sign_sort_by
-            expected_keys = set(self.index_config.scripts[sort_by].params.keys())
-            if request_keys != expected_keys:
-                missing = expected_keys - request_keys
-                missing_str = ("missing keys: " + ", ".join(missing)) if missing else ""
-                new = request_keys - expected_keys
-                new_str = ("unexpected keys: " + ", ".join(new)) if new else ""
-                raise ValueError(
-                    f"sort_params keys must match expected keys. {missing_str} {new_str}"
-                )
-        return self
+    @cached_property
+    def uses_sort_script(self):
+        """Does sort_by use a script?"""
+        index_config = self.index_config
+        _, sort_by = self.sign_sort_by
+        return index_config.scripts and sort_by in index_config.scripts.keys()
+
+
+class AggregateSearchParameters(BaseModel):
+
+    facets: Annotated[
+        list[str] | None,
+        Query(
+            description=cd_(
+                """Name of facets to return in the response as a comma-separated value.
+                If None (default) no facets are returned.
+                """
+            )
+        ),
+    ] = None
+
+    charts: Annotated[
+        list[ChartType] | None,
+        Query(
+            description=cd_(
+                """Name of vega representations to return in the response.
+                Can be distribution chart or scatter plot.
+
+                If you pass a simple string, it will be interpreted as a distribution chart,
+                or a scatter plot if it is two fields separated by a column (x_axis_field:y_axis_field).
+                """
+            )
+        ),
+    ] = None
 
     @model_validator(mode="after")
     def check_facets_are_valid(self):
@@ -496,11 +426,7 @@ class SearchParameters(BaseSearchParameters):
             raise ValueError(errors)
         return self
 
-    @property
-    def langs_set(self):
-        return set(self.langs)
-
-    @property
+    @cached_property
     def sign_sort_by(self) -> Tuple[str_utils.BoolOperator, str | None]:
         return (
             ("+", None)
@@ -508,81 +434,135 @@ class SearchParameters(BaseSearchParameters):
             else str_utils.split_sort_by_sign(self.sort_by)
         )
 
-    @property
-    def main_lang(self):
-        """Get the main lang of the query"""
-        return self.langs[0] if self.langs else "en"
 
-
-def _annotation_new_type(type_, annotation):
-    """Use a new type for a given annotation"""
-    return Annotated[type_, *annotation.__metadata__]
-
-
-class GetSearchParameters(BaseSearchParameters):
-    """Parameters for GET /search"""
+class SearchParameters(
+    QuerySearchParameters, ResultSearchParameters, AggregateSearchParameters
+):
+    """Parameters for search, common to GET and POST"""
 
     # forbid extra parameters to prevent failed expectations because of typos
     model_config = {"extra": "forbid"}
 
-    langs: Annotated[
-        str,
-        SearchParametersQuery.langs,
-    ] = "en"
-
-    fields: Annotated[
-        str | None,
-        SearchParametersQuery.fields,
+    debug_info: Annotated[
+        list[DebugInfo] | None,
+        Query(
+            description=cd_(
+                """Tells which debug information to return in the response.
+                It can be a comma separated list of values
+                """
+            ),
+        ),
     ] = None
 
-    facets: Annotated[
-        str | None,
-        SearchParametersQuery.facets,
-    ] = None
 
-    charts: Annotated[
-        str | None,
-        SearchParametersQuery.charts,
-    ] = None
+class GetSearchParameters(SearchParameters):
+    """GET parameters for search"""
 
-    def parse_charts_get(self, charts_params: str):
+    @field_validator("charts")
+    @classmethod
+    def parse_charts_str(
+        cls, charts: str | list[ChartType] | None
+    ) -> list[ChartType] | None:
         """
         Parse for get params are 'field' or 'xfield:yfield'
         separated by ',' for Distribution and Scatter charts.
 
         Directly the dictionnaries in POST request
         """
-        charts = []
-        for c in charts_params.split(","):
-            if ":" in c:
-                [x, y] = c.split(":")
-                charts.append(ScatterChartType(x=x, y=y))
-            else:
-                charts.append(DistributionChartType(field=c))
+        if isinstance(charts, str):
+            charts_list = charts.split(",")
+            charts = []
+            for c in charts_list:
+                if ":" in c:
+                    [x, y] = c.split(":")
+                    charts.append(ScatterChartType(x=x, y=y))
+                else:
+                    charts.append(DistributionChartType(field=c))
         return charts
 
-    def to_search_parameters(self) -> SearchParameters:
-        """Convert to a SearchParameters object"""
-        # str to lists
-        langs_list = self.langs.split(",") if self.langs else ["en"]
-        fields_list = self.fields.split(",") if self.fields else None
-        facets_list = self.facets.split(",") if self.facets else None
-        charts_list = self.parse_charts_get(self.charts) if self.charts else None
-        # str to good type
-        debug_info_list = SearchParameters.debug_info_list_from_str(self.debug_info)
-        return SearchParameters(
-            q=self.q,
-            boost_phrase=self.boost_phrase,
-            langs=langs_list,
-            page_size=self.page_size,
-            page=self.page,
-            fields=fields_list,
-            sort_by=self.sort_by,
-            facets=facets_list,
-            charts=charts_list,
-            index_id=self.index_id,
-            debug_info=debug_info_list,
-        )
+    @model_validator(mode="after")
+    def validate_q_or_sort_by(self):
+        """We want at least one of q or sort_by before launching a request"""
+        if self.q is None and self.sort_by is None:
+            raise ValueError("`sort_by` must be provided when `q` is missing")
+        return self
+
+    @field_validator("debug_info")
+    @classmethod
+    def debug_info_list_from_str(
+        cls, debug_info: str | list[DebugInfo] | None
+    ) -> list[DebugInfo] | None:
+        """We can pass a comma separated list of DebugInfo values as a string"""
+        if isinstance(debug_info, str):
+            values = [getattr(DebugInfo, part, None) for part in debug_info.split(",")]
+            debug_info = [v for v in values if v is not None]
+        return debug_info
+
+    fields: Annotated[
+        list[str] | None,
+        Query(
+            description="List of fields to include in the response. All other fields will be ignored."
+        ),
+    ] = None
+
+    @classmethod
+    def parse_value_str(cls, value: str | list[str] | None) -> list[str] | None:
+        """
+        Parse for get params 'langs'
+        """
+        if isinstance(value, str):
+            value = value.split(",")
+        return value
+
+    field_validator("fields")(parse_value_str)
+    field_validator("facets")(parse_value_str)
+
+    @model_validator(mode="after")
+    def no_sort_by_scripts_on_get(self):
+        if self.uses_sort_script:
+            raise ValueError("`sort_by` must not be a script when using GET")
+        return self
+
+
+class PostSearchParameters(SearchParameters):
+    """POST parameters for search"""
+
+    sort_params: Annotated[
+        JSONType | None,
+        Query(
+            description=cd_(
+                """Additional parameters when using  a sort script in sort_by.
+            If the sort script needs parameters, you can only be used the POST method.
+            """
+            ),
+        ),
+    ] = None
+
+    @model_validator(mode="after")
+    def sort_by_scripts_needs_params(self):
+        """If sort_by is a script,
+        verify we got corresponding parameters in sort_params
+        """
+        if self.uses_sort_script:
+            if self.sort_params is None:
+                raise ValueError(
+                    "`sort_params` must be provided when using a sort script"
+                )
+            if not isinstance(self.sort_params, dict):
+                raise ValueError("`sort_params` must be a dict")
+            # verifies keys are those expected
+            request_keys = set(self.sort_params.keys())
+            sort_sign, sort_by = self.sign_sort_by
+            expected_keys = set(self.index_config.scripts[sort_by].params.keys())
+            if request_keys != expected_keys:
+                missing = expected_keys - request_keys
+                missing_str = ("missing keys: " + ", ".join(missing)) if missing else ""
+                new = request_keys - expected_keys
+                new_str = ("unexpected keys: " + ", ".join(new)) if new else ""
+                raise ValueError(
+                    f"sort_params keys must match expected keys. {missing_str} {new_str}"
+                )
+        return self
 
 
 class FetcherStatus(Enum):
