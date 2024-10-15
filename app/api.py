@@ -20,7 +20,7 @@ from app._types import (
     SearchResponse,
     SuccessSearchResponse,
 )
-from app.config import check_config_is_defined, settings
+from app.config import settings
 from app.postprocessing import process_taxonomy_completion_response
 from app.query import build_completion_query
 from app.utils import connection, get_logger, init_sentry
@@ -81,8 +81,7 @@ def get_document(
     index_id: Annotated[str | None, CommonParametersQuery.index_id] = None,
 ):
     """Fetch a document from Elasticsearch with specific ID."""
-    check_config_is_defined()
-    global_config = cast(config.Config, config.CONFIG)
+    global_config = config.get_config()
     check_index_id_is_defined_or_400(index_id, global_config)
     index_id, index_config = global_config.get_index_config(index_id)
 
@@ -161,8 +160,7 @@ def taxonomy_autocomplete(
     index_id: Annotated[str | None, CommonParametersQuery.index_id] = None,
 ):
     """API endpoint for autocompletion using taxonomies"""
-    check_config_is_defined()
-    global_config = cast(config.Config, config.CONFIG)
+    global_config = config.get_config()
     check_index_id_is_defined_or_400(index_id, global_config)
     index_id, index_config = global_config.get_index_config(index_id)
     taxonomy_names_list = taxonomy_names.split(",")

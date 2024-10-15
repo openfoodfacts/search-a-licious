@@ -39,7 +39,7 @@ class Product(factory.DictFactory):
     nova_groups = "2"
     last_modified_t = 1700525044
     created_t = 1537090000
-    completeness = (0.5874999999999999,)
+    completeness = 0.5874999999999999
     product_name_en = "Granulated sugar"
     product_name_fr = "Sucre semoule"
     lc = "en"

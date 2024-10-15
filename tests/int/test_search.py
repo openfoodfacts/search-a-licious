@@ -195,3 +195,184 @@ def test_extra_params_rejected(test_client):
             }
         ]
     }
+
+
+def list_of_dict_to_comparable(list_of_dicts):
+    return set(tuple(sorted(dict_.items())) for dict_ in list_of_dicts)
+
+
+def test_simple_charts(sample_data, test_client):
+    resp = test_client.get(
+        "/search?sort_by=created_t&langs=en&charts=categories,labels,unique_scans_n:completeness"
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    # does not alter search results
+    assert data["count"] == 6
+    assert set(hits_attr(data, "code")) == set(ALL_CODES)
+    # charts are there
+    charts = data["charts"]
+    assert set(charts.keys()) == set(
+        ["categories", "labels", "unique_scans_n:completeness"]
+    )
+    assert set(c["title"] for c in charts.values()) == set(
+        ["categories", "labels", "unique_scans_n x completeness"]
+    )
+    assert charts["categories"]["data"][0]["values"] == [
+        {"category": "en:brown-sugars", "amount": 2},
+        {"category": "en:granulated-sugars", "amount": 4},
+        {"category": "en:sugars", "amount": 6},
+        {"category": "en:sweeteners", "amount": 6},
+    ]
+    assert charts["labels"]["data"][0]["values"] == [
+        {"category": "en:no-lactose", "amount": 2},
+        {"category": "en:organic", "amount": 3},
+    ]
+    assert list_of_dict_to_comparable(
+        charts["unique_scans_n:completeness"]["data"][0]["values"]
+    ) == list_of_dict_to_comparable(
+        [
+            {"unique_scans_n": 600, "completeness": 0.5874999999999999},
+            {"unique_scans_n": 500, "completeness": 0.5874999999999999},
+            {"unique_scans_n": 400, "completeness": 0.5874999999999999},
+            {"unique_scans_n": 300, "completeness": 0.5874999999999999},
+            {"unique_scans_n": 200, "completeness": 0.5874999999999999},
+            {"unique_scans_n": 100, "completeness": 0.5874999999999999},
+        ]
+    )
+
+
+def test_charts_bad_fields_fails(test_client):
+    resp = test_client.get(
+        "/search?sort_by=created_t&langs=en&charts=non_existing_field"
+    )
+    assert resp.status_code == 422
+    assert "Unknown field name in facets/charts" in resp.text
+    assert "non_existing_field" in resp.text
+    resp = test_client.get("/search?sort_by=created_t&langs=en&charts=unique_scans_n")
+    assert resp.status_code == 422
+    assert "Non aggregation field name in facets/charts" in resp.text
+    assert "unique_scans_n" in resp.text
+    resp = test_client.get(
+        "/search?sort_by=created_t&langs=en&charts=labels:categories"
+    )
+    assert resp.status_code == 422
+    assert "Non numeric field name" in resp.text
+    assert "labels" in resp.text
+    assert "categories" in resp.text
+    resp = test_client.get(
+        "/search?sort_by=created_t&langs=en&charts=non_existing_field:unique_scans_n"
+    )
+    assert resp.status_code == 422
+    assert "Unknown field name" in resp.text
+    assert "non_existing_field" in resp.text
+
+
+def test_multi_lang(sample_data, test_client):
+    resp = test_client.get("/search?q=roux&langs=en,fr")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert set(hits_attr(data, "code")) == set(BROWN_SUGAR_CODES)
+    resp = test_client.get("/search?q=product_name:roux&langs=en,fr")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert set(hits_attr(data, "code")) == set(BROWN_SUGAR_CODES)
+
+
+def test_simple_facets(sample_data, test_client):
+    resp = test_client.get(
+        "/search?sort_by=created_t&langs=en&facets=labels,categories"
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    # does not alter search results
+    assert data["count"] == 6
+    assert set(hits_attr(data, "code")) == set(ALL_CODES)
+    # facets are there
+    facets = data["facets"]
+    assert set(facets.keys()) == {"labels", "categories"}
+    assert list_of_dict_to_comparable(
+        facets["labels"]["items"]
+    ) == list_of_dict_to_comparable(
+        [
+            {"key": "en:organic", "name": "Organic", "count": 3, "selected": False},
+            {
+                "key": "en:no-lactose",
+                "name": "No lactose",
+                "count": 2,
+                "selected": False,
+            },
+        ]
+    )
+    assert list_of_dict_to_comparable(
+        facets["categories"]["items"]
+    ) == list_of_dict_to_comparable(
+        [
+            {"key": "en:sugars", "name": "Sugars", "count": 6, "selected": False},
+            {
+                "key": "en:sweeteners",
+                "name": "Sweeteners",
+                "count": 6,
+                "selected": False,
+            },
+            {
+                "key": "en:granulated-sugars",
+                "name": "Granulated sugars",
+                "count": 4,
+                "selected": False,
+            },
+            {
+                "key": "en:brown-sugars",
+                "name": "en:brown-sugars",
+                "count": 2,
+                "selected": False,
+            },
+        ]
+    )
+
+
+def test_facets_bad_fields_fails(test_client):
+    resp = test_client.get(
+        "/search?sort_by=created_t&langs=en&facets=non_existing_field"
+    )
+    assert resp.status_code == 422
+    assert "Unknown field name in facets/charts" in resp.text
+    assert "non_existing_field" in resp.text
+    resp = test_client.get("/search?sort_by=created_t&langs=en&facets=unique_scans_n")
+    assert resp.status_code == 422
+    assert "Non aggregation field name in facets/charts" in resp.text
+    assert "unique_scans_n" in resp.text
+
+
+def test_pagination(sample_data, test_client):
+    resp = test_client.get("/search?sort_by=code&langs=en&page_size=2")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["count"] == 6
+    assert data["page_size"] == 2
+    assert data["page_count"] == 3
+    assert hits_attr(data, "code") == ALL_CODES[:2]
+    resp = test_client.get("/search?sort_by=code&langs=en&page_size=2&page=3")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert hits_attr(data, "code") == ALL_CODES[4:]
+    # uneven end
+    resp = test_client.get("/search?sort_by=code&langs=en&page_size=5&page=2")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["page_count"] == 2
+    assert hits_attr(data, "code") == ALL_CODES[-1:]
+    # out of range
+    resp = test_client.get("/search?sort_by=code&langs=en&page_size=2&page=20")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert hits_attr(data, "code") == []
+
+
+def test_debug_infos(sample_data, test_client):
+    resp = test_client.get(
+        "/search?q=categories:organic&langs=en&facets=labels&debug_info=es_query,lucene_query,aggregations"
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert set(data["debug"].keys()) == {"lucene_query", "es_query", "aggregations"}

@@ -908,15 +908,29 @@ class Config(BaseModel):
         return cls(**data)
 
 
-# CONFIG is a global variable that contains the search-a-licious configuration
+# _CONFIG is a global variable that contains the search-a-licious configuration
 # used. It is specified by the envvar CONFIG_PATH.
-CONFIG: Config | None = None
+# use get_config() to access it.
+_CONFIG: Config | None = None
+
+
+def get_config() -> Config:
+    """Return the object containing global configuration
+
+    It raises if configuration was not yet set
+    """
+    if _CONFIG is None:
+        raise RuntimeError(
+            "No configuration is configured, set envvar "
+            "CONFIG_PATH with the path of the yaml configuration file"
+        )
+    return _CONFIG
 
 
 def set_global_config(config_path: Path):
-    global CONFIG
-    CONFIG = Config.from_yaml(config_path)
-    return CONFIG
+    global _CONFIG
+    _CONFIG = Config.from_yaml(config_path)
+    return _CONFIG
 
 
 if settings.config_path:
@@ -924,12 +938,3 @@ if settings.config_path:
         raise RuntimeError(f"config file does not exist: {settings.config_path}")
 
     set_global_config(settings.config_path)
-
-
-def check_config_is_defined():
-    """Raise a RuntimeError if the Config path is not set."""
-    if CONFIG is None:
-        raise RuntimeError(
-            "No configuration is configured, set envvar "
-            "CONFIG_PATH with the path of the yaml configuration file"
-        )

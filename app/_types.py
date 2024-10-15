@@ -237,14 +237,20 @@ class QuerySearchParameters(BaseModel):
         CommonParametersQuery.index_id,
     ] = None
 
-    @field_validator("langs")
+    @field_validator("langs", mode="before")
     @classmethod
     def parse_langs_str(cls, langs: str | list[str]) -> list[str]:
         """
         Parse for get params 'langs'
         """
-        if isinstance(langs, str):
-            langs = langs.split(",")
+        value_str = _prepare_str_list(langs)
+        if value_str:
+            langs = value_str.split(",")
+        else:
+            # we already know because of code logic that langs is the right type
+            # but we need to cast for mypy type checking
+            langs = cast(list[str], langs)
+
         return langs
 
     @model_validator(mode="after")
@@ -256,8 +262,7 @@ class QuerySearchParameters(BaseModel):
         because we want to be able to substitute the default None value,
         by the default index
         """
-        config.check_config_is_defined()
-        global_config = cast(config.Config, config.CONFIG)
+        global_config = config.get_config()
         check_index_id_is_defined(self.index_id, global_config)
         self.index_id, _ = global_config.get_index_config(self.index_id)
         return self
@@ -284,7 +289,7 @@ class QuerySearchParameters(BaseModel):
     @cached_property
     def index_config(self):
         """Get the index config once and for all"""
-        global_config = cast(config.Config, config.CONFIG)
+        global_config = config.get_config()
         _, index_config = global_config.get_index_config(self.index_id)
         return index_config
 
@@ -396,7 +401,6 @@ class AggregateSearchParameters(BaseModel):
         """Check that the graph names are valid."""
         if self.charts is None:
             return self
-
         errors = check_all_values_are_fields_agg(
             self.index_id,
             [
@@ -435,6 +439,14 @@ class AggregateSearchParameters(BaseModel):
         )
 
 
+def _prepare_str_list(item: Any) -> str | None:
+    if isinstance(item, str):
+        return item
+    elif isinstance(item, list) and all(isinstance(x, str) for x in item):
+        return ",".join(item)
+    return None
+
+
 class SearchParameters(
     QuerySearchParameters, ResultSearchParameters, AggregateSearchParameters
 ):
@@ -454,14 +466,31 @@ class SearchParameters(
         ),
     ] = None
 
+    @field_validator("debug_info", mode="before")
+    @classmethod
+    def debug_info_list_from_str(
+        cls, debug_info: str | list[str] | list[DebugInfo] | None
+    ) -> list[DebugInfo] | None:
+        """We can pass a comma separated list of DebugInfo values as a string"""
+        # as we are a before validator, we get a list
+        str_infos = _prepare_str_list(debug_info)
+        if str_infos:
+            values = [getattr(DebugInfo, part, None) for part in str_infos.split(",")]
+            debug_info = [v for v in values if v is not None]
+        if debug_info is not None:
+            # we already know because of code logic that debug_info is the right type
+            # but we need to cast for mypy type checking
+            debug_info = cast(list[DebugInfo], debug_info)
+        return debug_info
+
 
 class GetSearchParameters(SearchParameters):
     """GET parameters for search"""
 
-    @field_validator("charts")
+    @field_validator("charts", mode="before")
     @classmethod
     def parse_charts_str(
-        cls, charts: str | list[ChartType] | None
+        cls, charts: str | list[str] | list[ChartType] | None
     ) -> list[ChartType] | None:
         """
         Parse for get params are 'field' or 'xfield:yfield'
@@ -469,15 +498,20 @@ class GetSearchParameters(SearchParameters):
 
         Directly the dictionnaries in POST request
         """
-        if isinstance(charts, str):
-            charts_list = charts.split(",")
+        str_charts = _prepare_str_list(charts)
+        if str_charts:
             charts = []
+            charts_list = str_charts.split(",")
             for c in charts_list:
                 if ":" in c:
                     [x, y] = c.split(":")
                     charts.append(ScatterChartType(x=x, y=y))
                 else:
                     charts.append(DistributionChartType(field=c))
+        if charts is not None:
+            # we already know because of code logic that charts is the right type
+            # but we need to cast for mypy type checking
+            charts = cast(list[ChartType], charts)
         return charts
 
     @model_validator(mode="after")
@@ -487,17 +521,6 @@ class GetSearchParameters(SearchParameters):
             raise ValueError("`sort_by` must be provided when `q` is missing")
         return self
 
-    @field_validator("debug_info")
-    @classmethod
-    def debug_info_list_from_str(
-        cls, debug_info: str | list[DebugInfo] | None
-    ) -> list[DebugInfo] | None:
-        """We can pass a comma separated list of DebugInfo values as a string"""
-        if isinstance(debug_info, str):
-            values = [getattr(DebugInfo, part, None) for part in debug_info.split(",")]
-            debug_info = [v for v in values if v is not None]
-        return debug_info
-
     fields: Annotated[
         list[str] | None,
         Query(
@@ -505,17 +528,20 @@ class GetSearchParameters(SearchParameters):
         ),
     ] = None
 
+    @field_validator("facets", "fields", mode="before")
     @classmethod
     def parse_value_str(cls, value: str | list[str] | None) -> list[str] | None:
         """
         Parse for get params 'langs'
         """
-        if isinstance(value, str):
-            value = value.split(",")
+        value_str = _prepare_str_list(value)
+        if value_str:
+            value = value_str.split(",")
+        if value is not None:
+            # we already know because of code logic that value is the right type
+            # but we need to cast for mypy type checking
+            value = cast(list[str], value)
         return value
-
-    field_validator("fields")(parse_value_str)
-    field_validator("facets")(parse_value_str)
 
     @model_validator(mode="after")
     def no_sort_by_scripts_on_get(self):

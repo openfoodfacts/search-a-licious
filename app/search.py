@@ -17,23 +17,24 @@ from .query import build_elasticsearch_query_builder, build_search_query, execut
 
 logger = logging.getLogger(__name__)
 
-if config.CONFIG is None:
-    # We want to be able to import api.py (for tests for example) without
-    # failure, but we add a warning message as it's not expected in a
-    # production settings
-    logger.warning("Main configuration is not set, use CONFIG_PATH envvar")
-    ES_QUERY_BUILDERS = {}
-    RESULT_PROCESSORS = {}
-else:
-    # we cache query builder and result processor here for faster processing
-    ES_QUERY_BUILDERS = {
-        index_id: build_elasticsearch_query_builder(index_config)
-        for index_id, index_config in config.CONFIG.indices.items()
-    }
-    RESULT_PROCESSORS = {
-        index_id: load_result_processor(index_config)
-        for index_id, index_config in config.CONFIG.indices.items()
-    }
+
+# we cache query builder and result processor here for faster processing
+_ES_QUERY_BUILDERS = {}
+_RESULT_PROCESSORS = {}
+
+
+def get_es_query_builder(index_id):
+    if index_id not in _ES_QUERY_BUILDERS:
+        index_config = config.get_config().indices[index_id]
+        _ES_QUERY_BUILDERS[index_id] = build_elasticsearch_query_builder(index_config)
+    return _ES_QUERY_BUILDERS[index_id]
+
+
+def get_result_processor(index_id):
+    if index_id not in _RESULT_PROCESSORS:
+        index_config = config.get_config().indices[index_id]
+        _RESULT_PROCESSORS[index_id] = load_result_processor(index_config)
+    return _RESULT_PROCESSORS[index_id]
 
 
 def add_debug_info(
@@ -64,7 +65,7 @@ def search(
 ) -> SearchResponse:
     """Run a search"""
     result_processor = cast(
-        BaseResultProcessor, RESULT_PROCESSORS[params.valid_index_id]
+        BaseResultProcessor, get_result_processor(params.valid_index_id)
     )
     logger.debug(
         "Received search query: q='%s', langs='%s', page=%d, "
@@ -82,7 +83,7 @@ def search(
         params,
         # ES query builder is generated from elasticsearch mapping and
         # takes ~40ms to generate, build-it before hand to avoid this delay
-        es_query_builder=ES_QUERY_BUILDERS[params.valid_index_id],
+        es_query_builder=get_es_query_builder(params.valid_index_id),
     )
     (
         logger.debug(
