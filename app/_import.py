@@ -263,21 +263,24 @@ def gen_taxonomy_documents(
     """
     for taxonomy_name, taxonomy in tqdm.tqdm(iter_taxonomies(taxonomy_config)):
         for node in taxonomy.iter_nodes():
-            names = {}
-            for lang in supported_langs:
-                lang_names = set()
-                if lang in node.names:
-                    lang_names.add(node.names[lang])
-                if lang in node.synonyms:
-                    lang_names |= set(node.synonyms[lang])
-                names[lang] = list(lang_names)
+            names = {
+                lang: lang_names
+                for lang, lang_names in node.names.items()
+                if lang in supported_langs
+            }
+            synonyms = {
+                lang: lang_names
+                for lang, lang_names in node.synonyms.items()
+                if lang in supported_langs
+            }
 
             yield {
                 "_index": next_index,
                 "_source": {
                     "id": node.id,
                     "taxonomy_name": taxonomy_name,
-                    "names": names,
+                    "name": names,
+                    "synonyms": synonyms,
                 },
             }
 

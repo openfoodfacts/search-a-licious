@@ -356,7 +356,17 @@ def generate_taxonomy_mapping_object(config: IndexConfig) -> Mapping:
     mapping.field("id", dsl_field.Keyword(required=True))
     mapping.field("taxonomy_name", dsl_field.Keyword(required=True))
     mapping.field(
-        "names",
+        "name",
+        dsl_field.Object(
+            required=True,
+            dynamic=False,
+            properties={
+                lang: dsl_field.Keyword(required=False) for lang in supported_langs
+            },
+        ),
+    ),
+    mapping.field(
+        "synonyms",
         dsl_field.Object(
             required=True,
             dynamic=False,

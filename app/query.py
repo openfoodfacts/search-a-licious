@@ -339,7 +339,7 @@ def build_completion_query(
     """
 
     completion_clause = {
-        "field": f"names.{lang}",
+        "field": f"synonyms.{lang}",
         "size": size,
         "contexts": {"taxonomy_name": taxonomy_names},
     }

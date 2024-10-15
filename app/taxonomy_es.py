@@ -20,7 +20,7 @@ from app.utils.io import safe_replace_dir
 def get_taxonomy_names(
     items: list[tuple[str, str]],
     config: IndexConfig,
-) -> dict[tuple[str, str], dict[str, list[str]]]:
+) -> dict[tuple[str, str], dict[str, str]]:
     """Given a set of terms in different taxonomies, return their names"""
     filters = []
     for id, taxonomy_name in items:
@@ -32,7 +32,7 @@ def get_taxonomy_names(
         .params(size=len(filters))
     )
     return {
-        (result.id, result.taxonomy_name): result.names.to_dict()
+        (result.id, result.taxonomy_name): result.name.to_dict()
         for result in query.execute().hits
     }
 
