@@ -21,22 +21,22 @@ from .validations import (
 JSONType = dict[str, Any]
 
 
-class DistributionChartType(BaseModel):
+class DistributionChart(BaseModel):
     """Describes an entry for a distribution chart"""
 
-    chart_type: Literal["DistributionChartType"] = "DistributionChartType"
+    chart_type: Literal["DistributionChart"] = "DistributionChart"
     field: str
 
 
-class ScatterChartType(BaseModel):
+class ScatterChart(BaseModel):
     """Describes an entry for a scatter plot"""
 
-    chart_type: Literal["ScatterChartType"] = "ScatterChartType"
+    chart_type: Literal["ScatterChart"] = "ScatterChart"
     x: str
     y: str
 
 
-ChartType = Union[DistributionChartType, ScatterChartType]
+ChartType = Union[DistributionChart, ScatterChart]
 
 
 class FacetItem(BaseModel):
@@ -306,6 +306,13 @@ class QuerySearchParameters(BaseModel):
 class ResultSearchParameters(BaseModel):
     """Parameters that influence results presentation: pagination and sorting"""
 
+    fields: Annotated[
+        list[str] | None,
+        Query(
+            description="List of fields to include in the response. All other fields will be ignored."
+        ),
+    ] = None
+
     page_size: Annotated[
         int, Query(description="Number of results to return per page.")
     ] = 10
@@ -406,22 +413,18 @@ class AggregateSearchParameters(BaseModel):
             [
                 chart.field
                 for chart in self.charts
-                if chart.chart_type == "DistributionChartType"
+                if chart.chart_type == "DistributionChart"
             ],
         )
 
         errors.extend(
             check_fields_are_numeric(
                 self.index_id,
-                [
-                    chart.x
-                    for chart in self.charts
-                    if chart.chart_type == "ScatterChartType"
-                ]
+                [chart.x for chart in self.charts if chart.chart_type == "ScatterChart"]
                 + [
                     chart.y
                     for chart in self.charts
-                    if chart.chart_type == "ScatterChartType"
+                    if chart.chart_type == "ScatterChart"
                 ],
             )
         )
@@ -505,9 +508,9 @@ class GetSearchParameters(SearchParameters):
             for c in charts_list:
                 if ":" in c:
                     [x, y] = c.split(":")
-                    charts.append(ScatterChartType(x=x, y=y))
+                    charts.append(ScatterChart(x=x, y=y))
                 else:
-                    charts.append(DistributionChartType(field=c))
+                    charts.append(DistributionChart(field=c))
         if charts is not None:
             # we already know because of code logic that charts is the right type
             # but we need to cast for mypy type checking
@@ -520,13 +523,6 @@ class GetSearchParameters(SearchParameters):
         if self.q is None and self.sort_by is None:
             raise ValueError("`sort_by` must be provided when `q` is missing")
         return self
-
-    fields: Annotated[
-        list[str] | None,
-        Query(
-            description="List of fields to include in the response. All other fields will be ignored."
-        ),
-    ] = None
 
     @field_validator("facets", "fields", mode="before")
     @classmethod

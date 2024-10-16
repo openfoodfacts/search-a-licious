@@ -296,7 +296,7 @@ def build_es_query(
             [
                 chart.field
                 for chart in params.charts
-                if chart.chart_type == "DistributionChartType"
+                if chart.chart_type == "DistributionChart"
             ]
         )
     for agg_name, agg in create_aggregation_clauses(config, agg_fields).items():

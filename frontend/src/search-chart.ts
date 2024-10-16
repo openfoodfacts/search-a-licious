@@ -142,7 +142,7 @@ export class SearchaliciousDistributionChart extends SearchaliciousChart {
     if (isGetRequest) return this.field;
     else
       return {
-        chart_type: 'DistributionChartType',
+        chart_type: 'DistributionChart',
         field: this.field,
       };
   }
@@ -172,7 +172,7 @@ export class SearchaliciousScatterChart extends SearchaliciousChart {
     if (isGetRequest) return `${this.x}:${this.y}`;
     else
       return {
-        chart_type: 'ScatterChartType',
+        chart_type: 'ScatterChart',
         x: this.x,
         y: this.y,
       };

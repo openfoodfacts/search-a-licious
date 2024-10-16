@@ -1,4 +1,7 @@
+from typing import Any, Literal
+
 import pytest
+from fastapi import Response
 
 from .data_generation import Product
 
@@ -87,10 +90,41 @@ def hits_attr(data, name):
     return [product[name] for product in data["hits"]]
 
 
-def test_search_all(sample_data, test_client):
-    resp = test_client.get("/search?sort_by=unique_scans_n")
-    assert resp.status_code == 200
-    data = resp.json()
+def list_of_dict_to_comparable(list_of_dicts) -> set[tuple[tuple[Any]]]:
+    """We want to compare lists of dict without taking order into account,
+    but they are not hashable
+
+    transform to set of tuples of tuples
+    """
+    return set(tuple(sorted(dict_.items())) for dict_ in list_of_dicts)
+
+
+GetType = Literal["GET"]
+PostType = Literal["POST"]
+GetOrPostType = GetType | PostType
+GET_POST: list[GetOrPostType] = ["GET", "POST"]
+
+
+def do_search(
+    test_client, req_type: GetOrPostType, params: dict[str, Any], code=200
+) -> tuple[Response, dict[str, Any]]:
+    if req_type == "GET":
+        # eventually transform list[str] to str
+        for field in ("langs", "fields", "debug_info", "facets", "charts"):
+            if isinstance(params.get(field), list):
+                params[field] = ",".join(params[field])
+        if params.get("boost_phrase"):
+            params["boost_phrase"] = "1"
+        resp = test_client.get("/search", params=params)
+    else:
+        resp = test_client.post("/search", json=params)
+    assert resp.status_code == code
+    return resp, resp.json()
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_search_all(req_type, sample_data, test_client):
+    _, data = do_search(test_client, req_type, {"sort_by": "unique_scans_n"})
     # all products
     assert data["count"] == 6
     assert len(data["hits"]) == 6
@@ -100,10 +134,9 @@ def test_search_all(sample_data, test_client):
     assert hits_attr(data, "unique_scans_n") == list(range(100, 700, 100))
 
 
-def test_search_sort_by_created_t(sample_data, test_client):
-    resp = test_client.get("/search?sort_by=created_t")
-    assert resp.status_code == 200
-    data = resp.json()
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_search_sort_by_created_t(req_type, sample_data, test_client):
+    _, data = do_search(test_client, req_type, {"sort_by": "created_t"})
     # all products
     assert data["count"] == 6
     assert len(data["hits"]) == 6
@@ -114,9 +147,7 @@ def test_search_sort_by_created_t(sample_data, test_client):
     assert sorted(created_t) == created_t
 
     # reverse sort
-    resp = test_client.get("/search?sort_by=-created_t")
-    assert resp.status_code == 200
-    data = resp.json()
+    _, data = do_search(test_client, req_type, {"sort_by": "-created_t"})
     # all products
     assert data["count"] == 6
     # sorted ok
@@ -133,39 +164,43 @@ def xfail_param(*args):
     return pytest.param(*args, marks=pytest.mark.xfail)
 
 
+@pytest.mark.parametrize("req_type", GET_POST)
 @pytest.mark.parametrize(
     "req,codes",
     [
-        ("q=sugar", ALL_CODES),
-        ("q=brown", ["3012345670005", "3012345670006"]),
+        ({"q": "sugar"}, ALL_CODES),
+        ({"q": "brown"}, ["3012345670005", "3012345670006"]),
         # this also searches in labels
-        ("q=organic", ORGANIC_CODES),
+        ({"q": "organic"}, ORGANIC_CODES),
         # synonym of label organic, will work only if we boost phrase
-        ("q=organically grown&boost_phrase=1", ORGANIC_CODES),
+        ({"q": "organically grown", "boost_phrase": True}, ORGANIC_CODES),
         # also works for translations
-        ("q=bio&langs=fr", ORGANIC_CODES),
-        ("q=bio&langs=en,fr", ORGANIC_CODES),
+        ({"q": "bio", "langs": ["fr"]}, ORGANIC_CODES),
+        ({"q": "bio", "langs": ["en,fr"]}, ORGANIC_CODES),
         # with more terms this does not work, yet, see
-        xfail_param("q=organically grown plants&boost_phrase=1", ORGANIC_CODES),
+        xfail_param(
+            {"q": "organically grown plants", "boost_phrase": True}, ORGANIC_CODES
+        ),
         # as phrase
-        ('q="organically grown"', ORGANIC_CODES),
+        ({"q": '"organically grown"'}, ORGANIC_CODES),
         # Note: we need this double escape for simple quote, I'm not sure why…
-        ('q="issu de l\\\'agriculture biologique"&langs=fr', ORGANIC_CODES),
+        (
+            {"q": '"issu de l\\\'agriculture biologique"', "langs": ["fr"]},
+            ORGANIC_CODES,
+        ),
         # synonyms on label field
-        ('q=labels:"organically grown"', ORGANIC_CODES),
+        ({"q": 'labels:"organically grown"'}, ORGANIC_CODES),
         # search a field
-        ("q=product_name:brown sugar", BROWN_SUGAR_CODES),
-        ('q=product_name:"brown sugar"', BROWN_SUGAR_CODES),
-        ("q=product_name:Sucre roux&langs=fr", BROWN_SUGAR_CODES),
-        ('q=product_name:"Sucre roux"&langs=fr', BROWN_SUGAR_CODES),
+        ({"q": "product_name:brown sugar"}, BROWN_SUGAR_CODES),
+        ({"q": 'product_name:"brown sugar"'}, BROWN_SUGAR_CODES),
+        ({"q": "product_name:Sucre roux", "langs": ["fr"]}, BROWN_SUGAR_CODES),
+        ({"q": 'product_name:"Sucre roux"', "langs": ["fr"]}, BROWN_SUGAR_CODES),
         # search in multiple fields
-        ('q="brown sugar" organic', ["3012345670005"]),
+        ({"q": '"brown sugar" organic'}, ["3012345670005"]),
     ],
 )
-def test_search_full_text(req, codes, sample_data, test_client):
-    resp = test_client.get(f"/search?{req}")
-    assert resp.status_code == 200
-    data = resp.json()
+def test_search_full_text(req_type, req, codes, sample_data, test_client):
+    _, data = do_search(test_client, req_type, req)
     assert set(hits_attr(data, "code")) == set(codes)
 
 
@@ -197,16 +232,23 @@ def test_extra_params_rejected(test_client):
     }
 
 
-def list_of_dict_to_comparable(list_of_dicts):
-    return set(tuple(sorted(dict_.items())) for dict_ in list_of_dicts)
-
-
-def test_simple_charts(sample_data, test_client):
-    resp = test_client.get(
-        "/search?sort_by=created_t&langs=en&charts=categories,labels,unique_scans_n:completeness"
-    )
-    assert resp.status_code == 200
-    data = resp.json()
+@pytest.mark.parametrize(
+    "req_type,charts",
+    [
+        ("GET", "categories,labels,unique_scans_n:completeness"),
+        (
+            "POST",
+            [
+                {"type": "DistributionChart", "field": "categories"},
+                {"type": "DistributionChart", "field": "labels"},
+                {"type": "ScatterChart", "x": "unique_scans_n", "y": "completeness"},
+            ],
+        ),
+    ],
+)
+def test_simple_charts(req_type, charts, sample_data, test_client):
+    params = {"sort_by": "created_t", "langs": ["en"], "charts": charts}
+    _, data = do_search(test_client, req_type, params)
     # does not alter search results
     assert data["count"] == 6
     assert set(hits_attr(data, "code")) == set(ALL_CODES)
@@ -243,48 +285,55 @@ def test_simple_charts(sample_data, test_client):
 
 
 def test_charts_bad_fields_fails(test_client):
-    resp = test_client.get(
-        "/search?sort_by=created_t&langs=en&charts=non_existing_field"
+    # non existing in distribution chart
+    params = {"sort_by": "created_t", "langs": ["en"]}
+    resp, _ = do_search(
+        test_client, "GET", dict(params, charts=["non_existing_field"]), code=422
     )
-    assert resp.status_code == 422
     assert "Unknown field name in facets/charts" in resp.text
     assert "non_existing_field" in resp.text
-    resp = test_client.get("/search?sort_by=created_t&langs=en&charts=unique_scans_n")
-    assert resp.status_code == 422
+    # non agg in distribution chart
+    resp, _ = do_search(
+        test_client, "GET", dict(params, charts=["unique_scans_n"]), code=422
+    )
     assert "Non aggregation field name in facets/charts" in resp.text
     assert "unique_scans_n" in resp.text
-    resp = test_client.get(
-        "/search?sort_by=created_t&langs=en&charts=labels:categories"
+    # non numeric in scatter chart
+    resp, _ = do_search(
+        test_client, "GET", dict(params, charts=["labels:categories"]), code=422
     )
-    assert resp.status_code == 422
     assert "Non numeric field name" in resp.text
     assert "labels" in resp.text
     assert "categories" in resp.text
-    resp = test_client.get(
-        "/search?sort_by=created_t&langs=en&charts=non_existing_field:unique_scans_n"
+    # non existing in scatter chart
+    resp, _ = do_search(
+        test_client,
+        "GET",
+        dict(params, charts=["non_existing_field:unique_scans_n"]),
+        code=422,
     )
-    assert resp.status_code == 422
     assert "Unknown field name" in resp.text
     assert "non_existing_field" in resp.text
 
 
-def test_multi_lang(sample_data, test_client):
-    resp = test_client.get("/search?q=roux&langs=en,fr")
-    assert resp.status_code == 200
-    data = resp.json()
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_multi_lang(req_type, sample_data, test_client):
+    _, data = do_search(test_client, req_type, {"q": "roux", "langs": ["en", "fr"]})
     assert set(hits_attr(data, "code")) == set(BROWN_SUGAR_CODES)
-    resp = test_client.get("/search?q=product_name:roux&langs=en,fr")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert set(hits_attr(data, "code")) == set(BROWN_SUGAR_CODES)
-
-
-def test_simple_facets(sample_data, test_client):
-    resp = test_client.get(
-        "/search?sort_by=created_t&langs=en&facets=labels,categories"
+    _, data = do_search(
+        test_client, req_type, {"q": "product_name:roux", "langs": ["en", "fr"]}
     )
-    assert resp.status_code == 200
-    data = resp.json()
+    assert set(hits_attr(data, "code")) == set(BROWN_SUGAR_CODES)
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_simple_facets(req_type, sample_data, test_client):
+    params = {
+        "sort_by": "created_t",
+        "langs": ["en"],
+        "facets": ["labels", "categories"],
+    }
+    _, data = do_search(test_client, req_type, params)
     # does not alter search results
     assert data["count"] == 6
     assert set(hits_attr(data, "code")) == set(ALL_CODES)
@@ -331,48 +380,61 @@ def test_simple_facets(sample_data, test_client):
     )
 
 
-def test_facets_bad_fields_fails(test_client):
-    resp = test_client.get(
-        "/search?sort_by=created_t&langs=en&facets=non_existing_field"
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_facets_bad_fields_fails(req_type, test_client):
+    params = {"sort_by": "created_t", "langs": ["en"]}
+    # non existing field
+    resp, _ = do_search(
+        test_client, req_type, dict(params, facets=["non_existing_field"]), code=422
     )
-    assert resp.status_code == 422
     assert "Unknown field name in facets/charts" in resp.text
     assert "non_existing_field" in resp.text
-    resp = test_client.get("/search?sort_by=created_t&langs=en&facets=unique_scans_n")
-    assert resp.status_code == 422
+    # non agg field
+    resp, _ = do_search(
+        test_client, req_type, dict(params, facets=["unique_scans_n"]), code=422
+    )
     assert "Non aggregation field name in facets/charts" in resp.text
     assert "unique_scans_n" in resp.text
 
 
-def test_pagination(sample_data, test_client):
-    resp = test_client.get("/search?sort_by=code&langs=en&page_size=2")
-    assert resp.status_code == 200
-    data = resp.json()
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_pagination(req_type, sample_data, test_client):
+    params = {"sort_by": "code", "langs": ["en"]}
+    _, data = do_search(test_client, req_type, dict(params, page_size=2))
     assert data["count"] == 6
     assert data["page_size"] == 2
     assert data["page_count"] == 3
     assert hits_attr(data, "code") == ALL_CODES[:2]
-    resp = test_client.get("/search?sort_by=code&langs=en&page_size=2&page=3")
-    assert resp.status_code == 200
-    data = resp.json()
+    _, data = do_search(test_client, req_type, dict(params, page_size=2, page=3))
     assert hits_attr(data, "code") == ALL_CODES[4:]
     # uneven end
-    resp = test_client.get("/search?sort_by=code&langs=en&page_size=5&page=2")
-    assert resp.status_code == 200
-    data = resp.json()
+    _, data = do_search(test_client, req_type, dict(params, page_size=5, page=2))
     assert data["page_count"] == 2
     assert hits_attr(data, "code") == ALL_CODES[-1:]
     # out of range
-    resp = test_client.get("/search?sort_by=code&langs=en&page_size=2&page=20")
-    assert resp.status_code == 200
-    data = resp.json()
+    _, data = do_search(test_client, req_type, dict(params, page_size=2, page=20))
     assert hits_attr(data, "code") == []
 
 
-def test_debug_infos(sample_data, test_client):
-    resp = test_client.get(
-        "/search?q=categories:organic&langs=en&facets=labels&debug_info=es_query,lucene_query,aggregations"
-    )
-    assert resp.status_code == 200
-    data = resp.json()
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_debug_infos(req_type, sample_data, test_client):
+    params = {
+        "q": "categories:organic",
+        "langs": ["en"],
+        "facets": ["labels"],
+        "debug_info": ["es_query", "lucene_query", "aggregations"],
+    }
+    _, data = do_search(test_client, req_type, params)
     assert set(data["debug"].keys()) == {"lucene_query", "es_query", "aggregations"}
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_fields(req_type, sample_data, test_client):
+    params = {"sort_by": "code", "langs": ["en"], "fields": ["code", "product_name"]}
+    _, data = do_search(test_client, req_type, params)
+    assert data["count"] == 6
+    assert hits_attr(data, "code") == ALL_CODES
+    # we only get code and product_name
+    assert set(
+        attributes for result in data["hits"] for attributes in result.keys()
+    ) == {"code", "product_name"}
