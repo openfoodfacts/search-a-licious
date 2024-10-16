@@ -168,6 +168,9 @@ def xfail_param(*args):
 @pytest.mark.parametrize(
     "req,codes",
     [
+        # empty string query is not a problem
+        ({"q": "", "sort_by": "created_t"}, ALL_CODES),
+        # simple queries
         ({"q": "sugar"}, ALL_CODES),
         ({"q": "brown"}, ["3012345670005", "3012345670006"]),
         # this also searches in labels
