@@ -377,11 +377,15 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _paramsToQueryStr(params: SearchParameters): string {
       return Object.entries(params)
         .map(([key, value]) => {
+          if (value === false) {
+            return null;
+          }
           if (value.constructor === Array) {
             value = value.join(API_LIST_DIVIDER);
           }
           return `${encodeURIComponent(key)}=${encodeURIComponent(value!)}`;
         })
+        .filter((val) => val !== null)
         .sort() // for perdictability in tests !
         .join('&');
     }
