@@ -1,3 +1,4 @@
+import functools
 import logging
 from enum import StrEnum, auto
 from inspect import cleandoc as cd_
@@ -5,7 +6,14 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import yaml
-from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    FileUrl,
+    HttpUrl,
+    field_validator,
+    model_validator,
+)
 from pydantic.json_schema import GenerateJsonSchema
 from pydantic_settings import BaseSettings
 
@@ -121,6 +129,12 @@ class Settings(BaseSettings):
             description="User-Agent used when fetching resources (taxonomies) or documents"
         ),
     ] = "search-a-licious"
+    synonyms_path: Annotated[
+        Path,
+        Field(
+            description="Path of the directory that will contain synonyms for ElasticSearch instances"
+        ),
+    ] = Path("/opt/search/synonyms")
 
 
 settings = Settings()
@@ -199,7 +213,7 @@ class TaxonomySourceConfig(BaseModel):
         ),
     ]
     url: Annotated[
-        HttpUrl,
+        FileUrl | HttpUrl,
         Field(
             description=cd_(
                 """URL of the taxonomy.
@@ -238,6 +252,7 @@ class FieldType(StrEnum):
       Tokenization will use analyzers specific to each languages.
     * taxonomy: a field akin to keyword but
       with support for matching using taxonomy synonyms and translations
+      (and in fact also a text mapping possibility)
     * disabled: a field that is not stored nor searchable
       (see [Elasticsearch help])
     * object: this field contains a dict with sub-fields.
@@ -340,7 +355,7 @@ class FieldConfig(BaseModel):
                 It is used to return a 'faceted-view' with the number of results for each facet value,
                 or to generate bar charts.
 
-                Only valid for keyword or numeric field types.
+                Only valid for keyword, taxonomy or numeric field types.
                 """
             )
         ),
@@ -356,23 +371,14 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = None
-    add_taxonomy_synonyms: Annotated[
-        bool,
-        Field(
-            description=cd_(
-                """if True, add all synonyms of the taxonomy values to the index.
-                The flag is ignored if the field type is not `taxonomy`.
-                """
-            )
-        ),
-    ] = True
 
     @model_validator(mode="after")
     def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
         """Validator that checks that `bucket_agg` is only provided for
         fields with types `keyword`, `double`, `float`, `integer` or `bool`."""
         if self.bucket_agg and not (
-            self.type.is_numeric() or self.type in (FieldType.keyword, FieldType.bool)
+            self.type.is_numeric()
+            or self.type in (FieldType.keyword, FieldType.bool, FieldType.taxonomy)
         ):
             raise ValueError(
                 "bucket_agg should be provided for taxonomy or numeric type only"
@@ -484,34 +490,21 @@ class TaxonomyConfig(BaseModel):
     """Configuration of taxonomies,
     that is collections of entries with synonyms in multiple languages.
 
+    See [Explain taxonomies](../explain-taxonomies)
+
     Field may be linked to taxonomies.
 
     It enables enriching search with synonyms,
     as well as providing suggestions,
     or informative facets.
+
+    Note: if you define taxonomies, you must import them using
+    [import-taxonomies command](../ref-python/cli.html#python3-m-app-import-taxonomies)
     """
 
     sources: Annotated[
         list[TaxonomySourceConfig],
         Field(description="Configurations of taxonomies that this project will use."),
-    ]
-    exported_langs: Annotated[
-        list[str],
-        Field(
-            description=cd_(
-                """a list of languages for which
-                we want taxonomized fields to be always exported during indexing.
-
-                During indexing, we use the taxonomy to translate every taxonomized field
-                in a language-specific subfield.
-
-                The list of language depends on the value defined here and on the optional
-                `taxonomy_langs` field that can be defined in each document.
-
-                Beware that providing many language might inflate the index size.
-                """,
-            )
-        ),
     ]
     index: Annotated[
         TaxonomyIndexConfig,
@@ -695,13 +688,38 @@ class IndexConfig(BaseModel):
         float,
         Field(
             description=cd_(
-                """How much we boost exact matches on individual fields
+                """How much we boost exact matches on consecutive words
 
-            This only makes sense when using "best match" order.
+            That is, if you search "Dark Chocolate",
+            it will boost entries that have the "Dark Chocolate" phrase (in the same field).
+
+            It only applies to free text search.
+
+            This only makes sense when using
+            "boost_phrase" request parameters and "best match" order.
+
+            Note: this field accept float of string,
+            because using float might generate rounding problems.
+            The string must represent a float.
             """
             )
         ),
     ] = 2.0
+    match_phrase_boost_proximity: Annotated[
+        int | None,
+        Field(
+            description=cd_(
+                """How much we allow proximity for `match_phrase_boost`.
+
+            If unspecified we will just match word to word.
+            Otherwise it will allow some gap between words matching
+
+            This only makes sense when using
+            "boost_phrase" request parameters and "best match" order.
+            """
+            )
+        ),
+    ] = None
     document_denylist: Annotated[
         set[str],
         Field(
@@ -766,36 +784,56 @@ class IndexConfig(BaseModel):
 
     @field_validator("fields")
     @classmethod
+    def ensure_no_fields_use_reserved_name(cls, fields: dict[str, FieldConfig]):
+        """Verify that no field name clashes with a reserved name"""
+        used_reserved = set(["last_indexed_datetime", "_id"]) & set(fields.keys())
+        if used_reserved:
+            raise ValueError(f"The field names {','.join(used_reserved)} are reserved")
+        return fields
+
+    @field_validator("fields")
+    @classmethod
     def add_field_name_to_each_field(cls, fields: dict[str, FieldConfig]):
         """It's handy to have the name of the field in the field definition"""
         for field_name, field_item in fields.items():
             field_item.name = field_name
         return fields
 
-    def get_supported_langs(self) -> set[str]:
-        """Return the set of supported languages for `text_lang` fields.
-
-        It's used to know which language-specific subfields to create.
-        """
-        return (
-            set(self.supported_langs or [])
-            # only keep langs for which a built-in analyzer built-in, other
-            # langs will be stored in a unique `other` subfield
-        ) & set(ANALYZER_LANG_MAPPING)
-
-    def get_taxonomy_langs(self) -> set[str]:
-        """Return the set of exported languages for `taxonomy` fields.
-
-        It's used to know which language-specific subfields to create.
-        """
-        # only keep langs for which a built-in analyzer built-in, other
-        # langs will be stored in a unique `other` subfield
-        return (set(self.taxonomy.exported_langs)) & set(ANALYZER_LANG_MAPPING)
-
     def get_fields_with_bucket_agg(self):
         return [
             field_name for field_name, field in self.fields.items() if field.bucket_agg
         ]
+
+    @functools.cached_property
+    def text_lang_fields(self) -> dict[str, FieldConfig]:
+        """List all text_lang fields in an efficient way"""
+        return {
+            field_name: field
+            for field_name, field in self.fields.items()
+            if field.type == FieldType.text_lang
+        }
+
+    @functools.cached_property
+    def supported_langs_set(self):
+        return frozenset(self.supported_langs)
+
+    @functools.cached_property
+    def lang_fields(self) -> dict[str, FieldConfig]:
+        """Fully qualified name of fields that are translated"""
+        return {
+            fname: field
+            for fname, field in self.fields.items()
+            if field.type in ["taxonomy", "text_lang"]
+        }
+
+    @functools.cached_property
+    def full_text_fields(self) -> dict[str, FieldConfig]:
+        """Fully qualified name of fields that are part of default full text search"""
+        return {
+            fname: field
+            for fname, field in self.fields.items()
+            if field.full_text_search
+        }
 
 
 CONFIG_DESCRIPTION_INDICES = """
@@ -870,25 +908,33 @@ class Config(BaseModel):
         return cls(**data)
 
 
-# CONFIG is a global variable that contains the search-a-licious configuration
+# _CONFIG is a global variable that contains the search-a-licious configuration
 # used. It is specified by the envvar CONFIG_PATH.
-CONFIG: Config | None = None
-if settings.config_path:
-    if not settings.config_path.is_file():
-        raise RuntimeError(f"config file does not exist: {settings.config_path}")
-
-    CONFIG = Config.from_yaml(settings.config_path)
+# use get_config() to access it.
+_CONFIG: Config | None = None
 
 
-def check_config_is_defined():
-    """Raise a RuntimeError if the Config path is not set."""
-    if CONFIG is None:
+def get_config() -> Config:
+    """Return the object containing global configuration
+
+    It raises if configuration was not yet set
+    """
+    if _CONFIG is None:
         raise RuntimeError(
             "No configuration is configured, set envvar "
             "CONFIG_PATH with the path of the yaml configuration file"
         )
+    return _CONFIG
 
 
 def set_global_config(config_path: Path):
-    global CONFIG
-    CONFIG = Config.from_yaml(config_path)
+    global _CONFIG
+    _CONFIG = Config.from_yaml(config_path)
+    return _CONFIG
+
+
+if settings.config_path:
+    if not settings.config_path.is_file():
+        raise RuntimeError(f"config file does not exist: {settings.config_path}")
+
+    set_global_config(settings.config_path)

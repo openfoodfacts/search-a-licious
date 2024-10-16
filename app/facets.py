@@ -17,6 +17,13 @@ from .taxonomy_es import get_taxonomy_names
 def _get_translations(
     lang: str, items: list[tuple[str, str]], index_config: config.IndexConfig
 ) -> dict[tuple[str, str], str]:
+    """Get translations for a list of items
+
+    :param lang: target language
+    :param items: list of (entry id, field_name)
+    :param index_config: the index configuration
+    :return: a dict mapping (id, field_name) to the translation
+    """
     # go from field_name to taxonomy
     field_names = set([field_name for _, field_name in items])
     field_taxonomy: dict[str, str] = {
@@ -25,7 +32,7 @@ def _get_translations(
         for field_name in field_names
         if index_config.fields[field_name].taxonomy_name
     }
-    # fetch items names
+    # fetch items names within a single query
     items_to_fetch = [
         (id, field_taxonomy[field_name])
         for id, field_name in items
@@ -35,24 +42,24 @@ def _get_translations(
     # compute best translations
     translations: dict[tuple[str, str], str] = {}
     for id, field_name in items:
-        item_translations = None
+        item_translation = None
         names = (
             items_names.get((id, field_taxonomy[field_name]))
             if field_name in field_taxonomy
             else None
         )
         if names:
-            item_translations = names.get(lang, None)
+            item_translation = names.get(lang, None)
             # fold back to main language for item
-            if not item_translations:
+            if not item_translation:
                 main_lang = id.split(":", 1)[0]
-                item_translations = names.get(main_lang, None)
+                item_translation = names.get(main_lang, None)
             # fold back to english
-            if not translations:
-                item_translations = names.get("en", None)
+            if not item_translation:
+                item_translation = names.get("en", None)
         # eventually translate
-        if item_translations:
-            translations[(id, field_name)] = item_translations[0]
+        if item_translation:
+            translations[(id, field_name)] = item_translation
     return translations
 
 
