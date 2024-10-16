@@ -29,8 +29,11 @@ ENV PYTHONUNBUFFERED=1 \
 FROM python-base as builder-base
 RUN curl -sSL https://install.python-poetry.org | python3 -
 WORKDIR $PYSETUP_PATH
-COPY poetry.lock  pyproject.toml ./
-RUN poetry lock --no-update && poetry install --without dev
+# we need README.md for poetry check
+COPY poetry.lock  pyproject.toml README.md ./
+RUN poetry check --lock || \
+  ( echo "Poetry.lock is outdated, please run make update_poetry_lock" && false )
+RUN poetry install --without dev
 
 # This is our final image
 # ------------------------
@@ -70,9 +73,12 @@ CMD ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port",
 # ----------------------
 FROM builder-base as builder-dev
 WORKDIR $PYSETUP_PATH
-COPY poetry.lock  pyproject.toml ./
+# we need README.md for poetry check
+COPY poetry.lock  pyproject.toml README.md ./
 # full install, with dev packages
-RUN poetry lock --no-update && poetry install
+RUN poetry check --lock || \
+  ( echo "Poetry.lock is outdated, please run make update_poetry_lock" && false )
+RUN poetry install
 
 # image with dev tooling
 # ----------------------

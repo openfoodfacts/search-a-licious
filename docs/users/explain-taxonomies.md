@@ -49,4 +49,4 @@ You can also use the [autocompletion API](../ref-openapi/#operation/taxonomy_aut
 ## Importing taxonomies
 
 If you defined taxonomies,
-you must import them using the [import-taxonomies command](./ref-python/cli.html#python3-m-app-import-taxonomies).
+you must import them using the [import-taxonomies command](../devs/ref-python/cli.html#python3-m-app-import-taxonomies).

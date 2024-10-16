@@ -108,11 +108,20 @@ tsc_watch:
 	@echo "🔎 Running front-end tsc in watch mode..."
 	${DOCKER_COMPOSE} run --rm search_nodejs npm run build:watch
 
+update_poetry_lock:
+	@echo "🔎 Updating poetry.lock"
+	${DOCKER_COMPOSE} run --rm api poetry lock --no-update
+
 #-------#
 # Tests #
 #-------#
 
-test: _ensure_network test_api test_front
+test: _ensure_network check_poetry_lock test_api test_front
+
+check_poetry_lock:
+	@echo "🔎 Checking poetry.lock"
+# we have to mount whole project folder for pyproject will be checked
+	${DOCKER_COMPOSE} run -v $$(pwd):/project -w /project --rm api poetry check --lock
 
 test_api: test_api_unit test_api_integration
 

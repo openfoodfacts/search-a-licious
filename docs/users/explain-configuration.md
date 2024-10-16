@@ -108,7 +108,7 @@ labels_tags:
     bucket_agg: true
 ```
 
-Read more in the [reference documentation](../ref-config/searchalicious-config-schema.html#fields).
+Read more in the [reference documentation](./ref-config/searchalicious-config-schema.html#fields).
 
 ## Document fetcher, pre-processors and post-processors
 
