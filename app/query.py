@@ -50,7 +50,7 @@ def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQuery
 def parse_query(q: str | None) -> QueryAnalysis:
     """Begin query analysis by parsing the query."""
     analysis = QueryAnalysis(text_query=q)
-    if q is None:
+    if q is None or not q.strip():
         return analysis
     try:
         analysis.luqum_tree = parser.parse(q)
