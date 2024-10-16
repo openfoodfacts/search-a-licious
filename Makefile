@@ -145,6 +145,10 @@ test_front_watch:
 	@echo "🔎 Running front-end tests..."
 	${DOCKER_COMPOSE_TEST} run --rm search_nodejs npm run test:watch
 
+test_clean:
+	@echo "🔎 Cleaning tests instances..."
+	${DOCKER_COMPOSE_TEST} down -v
+
 #-----------#
 # Utilities #
 #-----------#

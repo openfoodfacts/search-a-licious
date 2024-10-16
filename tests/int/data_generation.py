@@ -51,7 +51,7 @@ class Product(factory.DictFactory):
 
 # we keep track of ingested,
 # associating data to a sha256 hash with index name
-INGESTED_DATA = {}
+INGESTED_DATA: dict[str, str] = {}
 
 
 def ingest_data(data, index_name, index_config, es_connection, read_only=True):
@@ -62,7 +62,9 @@ def ingest_data(data, index_name, index_config, es_connection, read_only=True):
     data_sha256 = (
         index_name + hashlib.sha256(json.dumps(data).encode("utf-8")).hexdigest()
     )
-    if data_sha256 not in INGESTED_DATA:
+    if data_sha256 not in INGESTED_DATA or not _index_exists(
+        es_connection, INGESTED_DATA[data_sha256]
+    ):
         # ingest data
         with tempfile.NamedTemporaryFile("w+t", suffix=".jsonl") as f:
             f.write("\n".join(json.dumps(d) for d in data))
@@ -92,12 +94,18 @@ def ingest_data(data, index_name, index_config, es_connection, read_only=True):
     return real_index
 
 
-INGESTED_TAXONOMY = {}
+INGESTED_TAXONOMY: dict[str, str] = {}
+
+
+def _index_exists(es_connection, name):
+    return es_connection.indices.exists(index=name)
 
 
 def ingest_taxonomies(index_id, index_config, es_connection):
     """Ingest taxonomies into ES"""
-    if index_id not in INGESTED_TAXONOMY:
+    if index_id not in INGESTED_TAXONOMY or not _index_exists(
+        es_connection, INGESTED_TAXONOMY[index_id]
+    ):
         perform_taxonomy_import(index_config)
         perform_refresh_synonyms(
             index_id,

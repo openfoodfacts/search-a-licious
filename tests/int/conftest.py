@@ -55,6 +55,12 @@ def es_connection(test_off_config):
             es = None
 
 
+@pytest.fixture
+def synonyms_created(index_config, es_connection):
+    """A feature to ensure synonyms file are created"""
+    ingest_taxonomies("test_off", index_config, es_connection)
+
+
 @pytest.fixture(scope="session")
 def data_ingester(index_config, es_connection, clean_es):
     """Return a feature to ingest data

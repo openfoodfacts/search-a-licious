@@ -2,7 +2,7 @@ from tests.cli_utils import runner_invoke
 from tests.int import helpers
 
 
-def test_import_data(test_off_config, es_connection):
+def test_import_data(test_off_config, es_connection, synonyms_created):
     helpers.TestDocumentFetcher.clean_calls()
     helpers.TestDocumentPreprocessor.clean_calls()
     # Important note: we use multiprocessing which is not compatible with pytest logging
