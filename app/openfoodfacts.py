@@ -177,7 +177,7 @@ class ResultProcessor(BaseResultProcessor):
 
     @staticmethod
     def build_image_fields(product: JSONType):
-        """Images are stored in a weird way in OpenFoodFacts,
+        """Images are stored in a weird way in Open Food Facts,
         We want to make it far more simple to use in results.
         """
         # Python copy of the code from

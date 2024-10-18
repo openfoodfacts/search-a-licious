@@ -31,7 +31,7 @@ class BaseResultProcessor:
                 # Flatten the language dict
                 lang_values = result.pop(fname)
                 for lang, text in lang_values.items():
-                    # FIXME: this reproduce OFF behaviour, but is this a good thing ?
+                    # FIXME: this reproduces OFF behaviour, but is this a good thing?
                     suffix = "" if lang == "main" else f"_{lang}"
                     result[f"{fname}{suffix}"] = text
 

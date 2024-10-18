@@ -52,7 +52,8 @@ def generate_dsl_field(
 
     :param field: the field to use as input
     :param supported_langs: an iterable of languages (2-letter codes),
-        used to know which sub-fields to create for `text_lang` field types
+        used to know which sub-fields to create for `text_lang` 
+        and `taxonomy` field types
     :return: the elasticsearch_dsl field
     """
     if field.type is FieldType.taxonomy:

@@ -2,11 +2,11 @@
 
 Taxonomies are a way to organize categorization of items.
 
-Normally a taxonomy is about a specific field.
-For each possible values, it defines translations in different languages, and also possible synonyms (in each languages).
+Normally, a taxonomy is about a specific field.
+For each possible values, it defines translations in different languages, and also possible synonyms (in each language).
 For each entry we have a canonical identifier.
 
-A taxonomy also organize the entries within a direct acyclic graph (a hierarchy but with possibility of multiple parents, though always avoiding cycles).
+A taxonomy also organizes the entries within a direct acyclic graph (a hierarchy but with possibility of multiple parents, though always avoiding cycles).
 For example it may help describe that a salmon is a marine fish as well as a freshwater fish, and a oily fish.
 
 It can be used to help users find items using a specific field, in their language, even if they use a synonym for it.
@@ -17,7 +17,7 @@ If you plan to use taxonomies, you should first list them, in the [taxonomy sect
 
 Taxonomies must come in a JSON format, that can be downloaded at a particular URL.
 
-The data in the JSON must contains an object, where:
+The data in the JSON must contain an object, where:
 * each key correspond to the id of the taxonomy entries
 * the value is an Object, with the following fields (none are mandatory):
   * `name`: an Object associating language code,
@@ -30,7 +30,7 @@ The data in the JSON must contains an object, where:
 As you define your [fields in the configuration](./explain-configuration.md#fields),
 you can specify that a field is a taxonomy field (`type: taxonomy`).
 
-In this case, you also have to provide following fields:
+In this case, you also have to provide the following fields:
 * taxonomy_name: the name of the taxonomy (as defined in the configuration)
 
 * synonyms_search: if true,
