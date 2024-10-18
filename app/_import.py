@@ -12,13 +12,14 @@ from elasticsearch_dsl import Index, Search
 from redis import Redis
 
 from app._types import FetcherResult, FetcherStatus, JSONType
-from app.config import Config, IndexConfig, TaxonomyConfig
+from app.config import Config, IndexConfig, TaxonomyConfig, settings
 from app.indexing import (
     DocumentProcessor,
     generate_index_object,
     generate_taxonomy_index_object,
 )
-from app.taxonomy import get_taxonomy
+from app.taxonomy import iter_taxonomies
+from app.taxonomy_es import refresh_synonyms
 from app.utils import connection, get_logger, load_class_object_from_string
 from app.utils.io import jsonl_iter
 
@@ -226,17 +227,17 @@ def gen_documents(
     next_index: str,
     num_items: int | None,
     num_processes: int,
-    process_id: int,
+    process_num: int,
 ):
-    """Generate documents to index for process number process_id
+    """Generate documents to index for process number process_num
 
-    We chunk documents based on document num % process_id
+    We chunk documents based on document num % process_num
     """
     for i, row in enumerate(tqdm.tqdm(jsonl_iter(file_path))):
         if num_items is not None and i >= num_items:
             break
         # Only get the relevant
-        if i % num_processes != process_id:
+        if i % num_processes != process_num:
             continue
 
         document_dict = get_document_dict(
@@ -260,26 +261,26 @@ def gen_taxonomy_documents(
     :param supported_langs: a set of supported languages
     :yield: a dict with the document to index, compatible with ES bulk API
     """
-    for taxonomy_source_config in tqdm.tqdm(taxonomy_config.sources):
-        taxonomy = get_taxonomy(
-            taxonomy_source_config.name, str(taxonomy_source_config.url)
-        )
+    for taxonomy_name, taxonomy in tqdm.tqdm(iter_taxonomies(taxonomy_config)):
         for node in taxonomy.iter_nodes():
-            names = {}
-            for lang in supported_langs:
-                lang_names = set()
-                if lang in node.names:
-                    lang_names.add(node.names[lang])
-                if lang in node.synonyms:
-                    lang_names |= set(node.synonyms[lang])
-                names[lang] = list(lang_names)
+            names = {
+                lang: lang_names
+                for lang, lang_names in node.names.items()
+                if lang in supported_langs
+            }
+            synonyms = {
+                lang: lang_names
+                for lang, lang_names in node.synonyms.items()
+                if lang in supported_langs
+            }
 
             yield {
                 "_index": next_index,
                 "_source": {
                     "id": node.id,
-                    "taxonomy_name": taxonomy_source_config.name,
-                    "names": names,
+                    "taxonomy_name": taxonomy_name,
+                    "name": names,
+                    "synonyms": synonyms,
                 },
             }
 
@@ -304,13 +305,22 @@ def update_alias(es_client: Elasticsearch, next_index: str, index_alias: str):
     )
 
 
+def get_alias(es_client: Elasticsearch, index_name: str):
+    """Get the current index pointed by the alias."""
+    resp = es_client.indices.get_alias(name=index_name)
+    resp = list(resp.keys())
+    if len(resp) == 0:
+        return None
+    return resp[0]
+
+
 def import_parallel(
     config: IndexConfig,
     file_path: Path,
     next_index: str,
     num_items: int | None,
     num_processes: int,
-    process_id: int,
+    process_num: int,
 ):
     """One task of import.
 
@@ -318,12 +328,12 @@ def import_parallel(
     :param str next_index: the index to write to
     :param int num_items: max number of items to import, default to no limit
     :param int num_processes: total number of processes
-    :param int process_id: the index of the process
+    :param int process_num: the index of the process
         (from 0 to num_processes - 1)
     """
     processor = DocumentProcessor(config)
     # open a connection for this process
-    es = connection.get_es_client(timeout=120, retry_on_timeout=True)
+    es = connection.get_es_client(request_timeout=120, retry_on_timeout=True)
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to
     # parallelize that. If we then do parallel_bulk here, this causes queueing
@@ -336,13 +346,11 @@ def import_parallel(
             next_index,
             num_items,
             num_processes,
-            process_id,
+            process_num,
         ),
         raise_on_error=False,
     )
-    if not success:
-        logger.error("Encountered errors: %s", errors)
-    return success, errors
+    return process_num, success, errors
 
 
 def import_taxonomies(config: IndexConfig, next_index: str):
@@ -353,8 +361,7 @@ def import_taxonomies(config: IndexConfig, next_index: str):
     :param config: the index configuration to use
     :param next_index: the index to write to
     """
-    # open a connection for this process
-    es = connection.get_es_client(timeout=120, retry_on_timeout=True)
+    es = connection.current_es_client()
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to
     # parallelize that. If we then do parallel_bulk
@@ -480,7 +487,8 @@ def run_items_import(
       if True consider we don't have a full import,
       and directly updates items in current index.
     """
-    es_client = connection.get_es_client()
+    # we need a large timeout as index creation can take a while because of synonyms
+    es_client = connection.get_es_client(request_timeout=600)
     if not partial:
         # we create a temporary index to import to
         # at the end we will change alias to point to it
@@ -488,7 +496,7 @@ def run_items_import(
         next_index = f"{config.index.name}-{index_date}"
         index = generate_index_object(next_index, config)
         # create the index
-        index.save()
+        index.save(using=es_client)
     else:
         # use current index
         next_index = config.index.name
@@ -509,12 +517,18 @@ def run_items_import(
     # run in parallel
     num_errors = 0
     with Pool(num_processes) as pool:
-        for success, errors in pool.starmap(import_parallel, args):
-            if not success:
+        for i, success, errors in pool.starmap(import_parallel, args):
+            # Note: we log here instead of in sub-process because
+            # it's easier to avoid mixing logs, and it works better for pytest
+            logger.info("[%d] Indexed %d documents", i, success)
+            if errors:
+                logger.error("[%d] Encountered %d errors: %s", i, len(errors), errors)
                 num_errors += len(errors)
     # update with last index updates (hopefully since the jsonl)
     if not skip_updates:
         num_errors += get_redis_updates(es_client, next_index, config)
+    # wait for index refresh
+    es_client.indices.refresh(index=next_index)
     if not partial:
         # make alias point to new index
         update_alias(es_client, next_index, config.index.name)
@@ -537,9 +551,36 @@ def perform_taxonomy_import(config: IndexConfig) -> None:
     index.save()
 
     import_taxonomies(config, next_index)
+    # wait for index refresh
+    es_client.indices.refresh(index=next_index)
 
     # make alias point to new index
     update_alias(es_client, next_index, config.taxonomy.index.name)
+
+
+def perform_cleanup_indexes(config: IndexConfig) -> int:
+    """Delete old indexes (that have no active alias on them)."""
+    removed = 0
+    # some timeout for it can be long
+    es_client = connection.get_es_client(request_timeout=600)
+    prefixes = [config.index.name, config.taxonomy.index.name]
+    for prefix in prefixes:
+        # get all indexes
+        indexes = es_client.indices.get_alias(index=f"{prefix}-*")
+        # remove all index without alias
+        to_remove = [
+            index for index, data in indexes.items() if not data.get("aliases")
+        ]
+        for index in to_remove:
+            logger.info("Deleting index %s", index)
+            es_client.indices.delete(index=index)
+            removed += 1
+    return removed
+
+
+def perform_refresh_synonyms(index_id: str, config: IndexConfig) -> None:
+    """Refresh synonyms files generated by taxonomies."""
+    refresh_synonyms(index_id, config, settings.synonyms_path)
 
 
 def run_update_daemon(config: Config) -> None:

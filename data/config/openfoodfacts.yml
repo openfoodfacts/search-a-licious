@@ -44,19 +44,20 @@ indices:
       categories:
         full_text_search: true
         input_field: categories_tags
-        taxonomy_name: category
+        taxonomy_name: categories
         type: taxonomy
+        bucket_agg: true
       labels:
         full_text_search: true
         input_field: labels_tags
-        taxonomy_name: label
+        taxonomy_name: labels
         type: taxonomy
+        bucket_agg: true
       brands:
         full_text_search: true
-        split: true
-        type: text
-      brands_tags:
-        type: keyword
+        input_field: brands_tags
+        type: taxonomy
+        taxonomy_name: brands
         bucket_agg: true
       stores:
         split: true
@@ -74,27 +75,22 @@ indices:
         bucket_agg: true
       quantity:
         type: text
-      categories_tags:
-        type: keyword
-        taxonomy_name: category
+      countries:
+        type: taxonomy
+        input_field: conutries_tags
         bucket_agg: true
-      labels_tags:
-        type: keyword
-        taxonomy_name: label
+        taxonomy_name: countries
+      states:
+        type: taxonomy
+        input_field: states_tags
         bucket_agg: true
-      countries_tags:
-        type: keyword
-        bucket_agg: true
-        taxonomy_name: country
-      states_tags:
-        type: keyword
-        bucket_agg: true
-        taxonomy_name: state
+        taxonomy_name: states
       origins_tags:
         type: keyword
-      ingredients_tags:
-        type: keyword
-        taxonomy_name: ingredient
+      ingredients:
+        type: taxonomy
+        input_field: ingredients_tags
+        taxonomy_name: ingredients
       unique_scans_n:
         type: integer
       scans_n:
@@ -116,9 +112,11 @@ indices:
         type: disabled
       additives_n:
         type: integer
-      allergens_tags:
-        type: keyword
-        taxonomy_name: allergen
+      allergens:
+        type: taxonomy
+        input_field: allergens_tags
+        taxonomy_name: allergens
+        bucket_agg: true
       ecoscore_data:
         type: disabled
       ecoscore_score:
@@ -163,74 +161,69 @@ indices:
     accent_color: "#ff8714"
     taxonomy:
       sources:
-      - name: category
+      - name: categories
         url: https://static.openfoodfacts.org/data/taxonomies/categories.full.json
-      - name: label
+      - name: labels
         url: https://static.openfoodfacts.org/data/taxonomies/labels.full.json
-      - name: additive
+      - name: additives
         url: https://static.openfoodfacts.org/data/taxonomies/additives.full.json
-      - name: allergen
+      - name: allergens
         url: https://static.openfoodfacts.org/data/taxonomies/allergens.full.json
-      - name: amino_acid
+      - name: amino_acids
         url: https://static.openfoodfacts.org/data/taxonomies/amino_acids.full.json
-      - name: country
+      - name: countries
         url: https://static.openfoodfacts.org/data/taxonomies/countries.full.json
       - name: data_quality
         url: https://static.openfoodfacts.org/data/taxonomies/data_quality.full.json
-      - name: food_group
+      - name: food_groups
         url: https://static.openfoodfacts.org/data/taxonomies/food_groups.full.json
-      - name: improvement
+      - name: improvements
         url: https://static.openfoodfacts.org/data/taxonomies/improvements.full.json
-      - name: ingredient
+      - name: ingredients
         url: https://static.openfoodfacts.org/data/taxonomies/ingredients.full.json
       - name: ingredients_analysis
         url: https://static.openfoodfacts.org/data/taxonomies/ingredients_analysis.full.json
       - name: ingredients_processing
         url: https://static.openfoodfacts.org/data/taxonomies/ingredients_processing.full.json
-      - name: language
+      - name: languages
         url: https://static.openfoodfacts.org/data/taxonomies/languages.full.json
-      - name: mineral
+      - name: minerals
         url: https://static.openfoodfacts.org/data/taxonomies/minerals.full.json
       - name: misc
         url: https://static.openfoodfacts.org/data/taxonomies/misc.full.json
-      - name: nova_group
+      - name: nova_groups
         url: https://static.openfoodfacts.org/data/taxonomies/nova_groups.full.json
-      - name: nucleotide
+      - name: nucleotides
         url: https://static.openfoodfacts.org/data/taxonomies/nucleotides.full.json
-      - name: nutrient
+      - name: nutrients
         url: https://static.openfoodfacts.org/data/taxonomies/nutrients.full.json
-      - name: origin
+      - name: origins
         url: https://static.openfoodfacts.org/data/taxonomies/origins.full.json
-      - name: other_nutritional_substance
+      - name: other_nutritional_substances
         url: https://static.openfoodfacts.org/data/taxonomies/other_nutritional_substances.full.json
-      - name: packaging_material
+      - name: packaging_materials
         url: https://static.openfoodfacts.org/data/taxonomies/packaging_materials.full.json
       - name: packaging_recycling
         url: https://static.openfoodfacts.org/data/taxonomies/packaging_recycling.full.json
-      - name: packaging_shape
+      - name: packaging_shapes
         url: https://static.openfoodfacts.org/data/taxonomies/packaging_shapes.full.json
       - name: periods_after_opening
         url: https://static.openfoodfacts.org/data/taxonomies/periods_after_opening.full.json
       - name: preservation
         url: https://static.openfoodfacts.org/data/taxonomies/preservation.full.json
-      - name: state
+      - name: states
         url: https://static.openfoodfacts.org/data/taxonomies/states.full.json
-      - name: vitamin
+      - name: vitamins
         url: https://static.openfoodfacts.org/data/taxonomies/vitamins.full.json
-      - name: brand
+      - name: brands
         url: https://static.openfoodfacts.org/data/taxonomies/brands.full.json
-      exported_langs:
-      - en
-      - fr
-      - es
-      - de
-      - it
-      - nl
       index:
         number_of_replicas: 1
         number_of_shards: 4
         name: off_taxonomy
     supported_langs:
+    # a specific language to put the main language entry
+    - main
     - aa
     - ab
     - ae
@@ -386,7 +379,6 @@ indices:
     - wa
     - wo
     - xh
-    - xx
     - yi
     - yo
     - zh

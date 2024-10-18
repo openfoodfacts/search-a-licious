@@ -4,8 +4,8 @@ from . import config
 from ._types import (
     ChartsInfos,
     ChartType,
-    DistributionChartType,
-    ScatterChartType,
+    DistributionChart,
+    ScatterChart,
     SuccessSearchResponse,
 )
 
@@ -44,7 +44,7 @@ def empty_chart(chart_name):
 
 
 def build_distribution_chart(
-    chart: DistributionChartType, values, index_config: config.IndexConfig
+    chart: DistributionChart, values, index_config: config.IndexConfig
 ):
     """
     Return the vega structure for a Bar Chart
@@ -139,7 +139,7 @@ def build_distribution_chart(
 
 
 def build_scatter_chart(
-    chart_option: ScatterChartType, search_result, index_config: config.IndexConfig
+    chart_option: ScatterChart, search_result, index_config: config.IndexConfig
 ):
     """
     Build a scatter plot only for values from search_results
@@ -242,7 +242,7 @@ def build_charts(
     aggregations = search_result.aggregations
 
     for requested_chart in requested_charts:
-        if requested_chart.chart_type == "ScatterChartType":
+        if requested_chart.chart_type == "ScatterChart":
             charts[f"{requested_chart.x}:{requested_chart.y}"] = build_scatter_chart(
                 requested_chart, search_result, index_config
             )

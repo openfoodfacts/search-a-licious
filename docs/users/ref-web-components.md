@@ -4,6 +4,8 @@ This page documents [web Components](https://developer.mozilla.org/en-US/docs/We
 provided by Search-a-licious
 to quickly build your interfaces.
 
+See the [tutorial for an introduction](./tutorial.md#building-a-search-interface)
+
 ## Customization
 
 ### Styling
@@ -15,7 +17,6 @@ We added a lot of `part` attributes to the components, to allow you to customize
 We only translated basic messages and most labels can generally be overridden using slots inside web component, where your own translation framework might be use (be it in javascript, or through your template engine or any technique).
 
 If you however needs to override current translations, you might clone this project, change translations in xliff files and regenerate the bundle.
-
 
 ## Main components
 

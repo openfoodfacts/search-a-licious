@@ -1,7 +1,7 @@
 from elasticsearch_dsl.response import Response
 
 from app._types import JSONType
-from app.config import FieldType, IndexConfig
+from app.config import IndexConfig
 from app.utils import load_class_object_from_string
 
 
@@ -10,6 +10,9 @@ class BaseResultProcessor:
         self.config = config
 
     def process(self, response: Response, projection: set[str] | None) -> JSONType:
+        """Post process results to add some information,
+        or transform results to flatten them
+        """
         output = {
             "took": response.took,
             "timed_out": response.timed_out,
@@ -21,17 +24,16 @@ class BaseResultProcessor:
             result = hit.to_dict()
             result["_score"] = hit.meta.score
 
-            for field in self.config.fields.values():
-                if field.name not in result:
+            # TODO make it an unsplit option or move to specific off post processing
+            for fname in self.config.text_lang_fields:
+                if fname not in result:
                     continue
-
-                if field.type is FieldType.text_lang:
-                    lang_values = result.pop(field.name)
-                    for lang, text in lang_values.items():
-                        suffix = "" if lang == "main" else f"_{lang}"
-                        result[f"{field.name}{suffix}"] = text
-                elif field.type is FieldType.taxonomy:
-                    result[field.name] = result.pop(field.name)["original"]
+                # Flatten the language dict
+                lang_values = result.pop(fname)
+                for lang, text in lang_values.items():
+                    # FIXME: this reproduces OFF behaviour, but is this a good thing?
+                    suffix = "" if lang == "main" else f"_{lang}"
+                    result[f"{fname}{suffix}"] = text
 
             result = self.process_after(result)
             if projection:
