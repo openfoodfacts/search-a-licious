@@ -12,7 +12,7 @@
       </trans-unit>
       <trans-unit id="s7ae5963112a50472">
         <source>Others</source>
-        <target state="needs-translation">Others</target>
+        <target state="translated">Ostatní</target>
       </trans-unit>
       <trans-unit id="s9094c0cde8fb5058">
         <source>No results found</source>
@@ -32,19 +32,19 @@
       </trans-unit>
       <trans-unit id="s3848a805287c795d">
         <source>Show charts</source>
-        <target state="needs-translation">Show charts</target>
+        <target state="translated">Zobrazit grafy</target>
       </trans-unit>
       <trans-unit id="sd2cd02bfec5af316">
         <source>Hide charts</source>
-        <target state="needs-translation">Hide charts</target>
+        <target state="translated">Skrýt grafy</target>
       </trans-unit>
       <trans-unit id="s255857544a9d5ec0">
         <source>Reset</source>
-        <target state="needs-translation">Reset</target>
+        <target state="translated">Obnovit</target>
       </trans-unit>
       <trans-unit id="sffa721bb6aa3128d">
         <source>Search...</source>
-        <target state="needs-translation">Search...</target>
+        <target state="translated">Hledat...</target>
         <note from="lit-localize">Search bar placeholder</note>
       </trans-unit>
       <trans-unit id="s5d929ff1619ac0c9">
