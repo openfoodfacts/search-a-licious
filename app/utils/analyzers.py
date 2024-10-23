@@ -1,6 +1,8 @@
 """Defines some analyzers for the elesaticsearch fields."""
 
-from elasticsearch_dsl import Mapping, analyzer, token_filter
+from typing import Optional
+
+from elasticsearch_dsl import Mapping, analyzer, char_filter, token_filter
 
 from app._types import JSONType
 
@@ -21,6 +23,49 @@ SPECIAL_NORMALIZERS = {
 }
 
 
+# TODO: this could be provided by the taxonomy / per language
+STOP_WORDS = {
+    "ar": "_arabic_",
+    "hy": "_armenian_",
+    "eu": "_basque_",
+    "bn": "_bengali_",
+    # "pt_BR": _brazilian_
+    "bg": "_bulgarian_",
+    "ca": "_catalan_",
+    "ja": "_cjk_",
+    "zh": "_cjk_",
+    "ko": "_cjk_",
+    "cs": "_czech_",
+    "da": "_danish_",
+    "nl": "_dutch_",
+    "en": "_english_",
+    "et": "_estonian_",
+    "fi": "_finnish_",
+    "fr": "_french_",
+    "gl": "_galician_",
+    "de": "_german_",
+    "el": "_greek_",
+    "hi": "_hindi_",
+    "hu": "_hungarian_",
+    "id": "_indonesian_",
+    "ga": "_irish_",
+    "it": "_italian_",
+    "lv": "_latvian_",
+    "lt": "_lithuanian_",
+    "no": "_norwegian_",
+    "fa": "_persian_",
+    "pt": "_portuguese_",
+    "ro": "_romanian_",
+    "ru": "_russian_",
+    "sr": "_serbian_",
+    # "": "_sorani_",
+    "es": "_spanish_",
+    "sv": "_swedish_",
+    "th": "_thai_",
+    "tr": "_turkish_ ",
+}
+
+
 def get_taxonomy_synonym_filter(taxonomy: str, lang: str) -> token_filter:
     """Return the synonym filter to use for the taxonomized field analyzer"""
     return token_filter(
@@ -31,23 +76,73 @@ def get_taxonomy_synonym_filter(taxonomy: str, lang: str) -> token_filter:
     )
 
 
-def get_taxonomy_analyzer(taxonomy: str, lang: str, with_synonyms: bool) -> analyzer:
+def get_taxonomy_stop_words_filter(taxonomy: str, lang: str) -> Optional[token_filter]:
+    """Return the stop words filter to use for the taxonomized field analyzer
+
+    IMPORTANT: de-activated for now !
+    If we want to handle them, we have to remove them in synonyms, so we need the list.
+    """
+    stop_words = STOP_WORDS.get(lang)
+    # deactivate for now
+    if False and stop_words:
+        return token_filter(
+            f"taxonomy_stop_words_{lang}",
+            type="stop",
+            stopwords=stop_words,
+            remove_trailing=True,
+        )
+    return None
+
+
+TAXONOMIES_CHAR_FILTER = char_filter(
+    "taxonomies_char_filter",
+    type="mapping",
+    mappings=[
+        # hyphen to underscore
+        "- => _",
+        # and escape quotes, so that ES cut words on them
+        r"' => \\'",
+        r"’ => \\'",
+    ],
+)
+
+
+def get_taxonomy_indexing_analyzer(taxonomy: str, lang: str) -> analyzer:
+    """We want to index taxonomies terms as keywords (as we only store the id),
+    but with a specific tweak: transform hyphens into underscores,
+    """
+    # does not really depends on taxonomy and lang
+    return analyzer(
+        "taxonomy_indexing",
+        tokenizer="keyword",
+        char_filter=[TAXONOMIES_CHAR_FILTER],
+    )
+
+
+def get_taxonomy_search_analyzer(
+    taxonomy: str, lang: str, with_synonyms: bool
+) -> analyzer:
     """Return the search analyzer to use for the taxonomized field
 
     :param taxonomy: the taxonomy name
     :param lang: the language code
     :param with_synonyms: whether to add the synonym filter
     """
+    # we replace hyphen with  underscore
     filters: list[str | token_filter] = [
         "lowercase",
-        SPECIAL_NORMALIZERS.get(lang, "asciifolding"),
     ]
+    stop_words = get_taxonomy_stop_words_filter(taxonomy, lang)
+    if stop_words:
+        filters.append(stop_words)
+    filters.append(SPECIAL_NORMALIZERS.get(lang, "asciifolding"))
     if with_synonyms:
         filters.append(
             get_taxonomy_synonym_filter(taxonomy, lang),
         )
     return analyzer(
         f"search_{taxonomy}_{lang}",
+        char_filter=[TAXONOMIES_CHAR_FILTER],
         tokenizer="standard",
         filter=filters,
     )

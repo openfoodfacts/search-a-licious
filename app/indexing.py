@@ -19,7 +19,8 @@ from app.config import (
 from app.utils import load_class_object_from_string
 from app.utils.analyzers import (
     get_autocomplete_analyzer,
-    get_taxonomy_analyzer,
+    get_taxonomy_indexing_analyzer,
+    get_taxonomy_search_analyzer,
     number_of_fields,
 )
 
@@ -64,10 +65,10 @@ def generate_dsl_field(
             raise ValueError("Taxonomy field must have a taxonomy_name set in config")
         sub_fields = {
             lang: dsl_field.Text(
-                # we must use keyword analyzer as we really map synonyms to a keyword
-                analyzer="keyword",
+                # we almost use keyword analyzer as we really map synonyms to a keyword
+                analyzer=get_taxonomy_indexing_analyzer(field.taxonomy_name, lang),
                 # but on query we need to fold and match with synonyms
-                search_analyzer=get_taxonomy_analyzer(
+                search_analyzer=get_taxonomy_search_analyzer(
                     field.taxonomy_name, lang, with_synonyms=True
                 ),
             )

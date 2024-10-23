@@ -50,3 +50,16 @@ You can also use the [autocompletion API](../ref-openapi/#operation/taxonomy_aut
 
 If you defined taxonomies,
 you must import them using the [import-taxonomies command](../devs/ref-python/cli.html#python3-m-app-import-taxonomies).
+
+
+## Technical details on taxonomy fields
+
+A taxonomy field is stored in Elasticsearch as an object.
+For each language it has a specific field, but in this field we just store the taxonomy entry id (eg. for organic, we always store `en:organic`). The analyzer is almost set to `keyword` which means it won't be tokenized (but it is not completely true, as we also transform hyphen to underscore).
+
+Note that the value of this field must be considered a unique token by elasticsearch standard tokenizer.
+So you should only use letters, numbers, columns and the underscore.
+As an exception, we allow the hyphen character, transforming it to "_" before tokenization.
+
+But those field have a specific *search analyzer*, so that when you enter a search query,
+The query text is tokenized using standard analyzer, then lower cased, and we then look for synonyms in the taxonomy.

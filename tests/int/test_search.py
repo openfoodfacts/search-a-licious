@@ -157,6 +157,7 @@ def test_search_sort_by_created_t(req_type, sample_data, test_client):
 
 ALL_CODES = [s["code"] for s in search_sample()]
 ORGANIC_CODES = ["3012345670001", "3012345670002", "3012345670005"]
+NO_LACTOSE_CODES = ["3012345670001", "3012345670003"]
 BROWN_SUGAR_CODES = ["3012345670005", "3012345670006"]
 
 
@@ -186,11 +187,12 @@ def xfail_param(*args):
         ),
         # as phrase
         ({"q": '"organically grown"'}, ORGANIC_CODES),
-        # Note: we need this double escape for simple quote, I'm not sure why…
         (
-            {"q": '"issu de l\\\'agriculture biologique"', "langs": ["fr"]},
+            {"q": '"issu de l\'agriculture biologique"', "langs": ["fr"]},
             ORGANIC_CODES,
         ),
+        # handling of '-'
+        ({"q": 'labels:"en:no-lactose"', "langs": ["fr"]}, NO_LACTOSE_CODES),
         # synonyms on label field
         ({"q": 'labels:"organically grown"'}, ORGANIC_CODES),
         # search a field
@@ -200,6 +202,15 @@ def xfail_param(*args):
         ({"q": 'product_name:"Sucre roux"', "langs": ["fr"]}, BROWN_SUGAR_CODES),
         # search in multiple fields
         ({"q": '"brown sugar" organic'}, ["3012345670005"]),
+        # search can use main language as fallback
+        ({"q": "Lactose", "langs": ["fr", "main"]}, ["3012345670003"]),
+        ({"q": "product_name:Lactose", "langs": ["fr", "main"]}, ["3012345670003"]),
+        (
+            {"q": '"No Lactose Granulated Sugar"', "langs": ["fr", "main"]},
+            ["3012345670003"],
+        ),
+        # without main fallback, no result
+        ({"q": "Lactose", "langs": ["fr"]}, []),
     ],
 )
 def test_search_full_text(req_type, req, codes, sample_data, test_client):
