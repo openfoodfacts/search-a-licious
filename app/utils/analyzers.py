@@ -2,7 +2,9 @@
 
 from typing import Optional
 
-from elasticsearch_dsl import Mapping, analyzer, char_filter, token_filter
+from elasticsearch_dsl import Mapping
+from elasticsearch_dsl import analysis as dsl_analysis
+from elasticsearch_dsl import analyzer, char_filter, token_filter
 
 from app._types import JSONType
 
@@ -66,7 +68,7 @@ STOP_WORDS = {
 }
 
 
-def get_taxonomy_synonym_filter(taxonomy: str, lang: str) -> token_filter:
+def get_taxonomy_synonym_filter(taxonomy: str, lang: str) -> dsl_analysis.TokenFilter:
     """Return the synonym filter to use for the taxonomized field analyzer"""
     return token_filter(
         f"synonym_graph_{taxonomy}_{lang}",
@@ -76,7 +78,9 @@ def get_taxonomy_synonym_filter(taxonomy: str, lang: str) -> token_filter:
     )
 
 
-def get_taxonomy_stop_words_filter(taxonomy: str, lang: str) -> Optional[token_filter]:
+def get_taxonomy_stop_words_filter(
+    taxonomy: str, lang: str
+) -> Optional[dsl_analysis.TokenFilter]:
     """Return the stop words filter to use for the taxonomized field analyzer
 
     IMPORTANT: de-activated for now !
@@ -107,7 +111,9 @@ TAXONOMIES_CHAR_FILTER = char_filter(
 )
 
 
-def get_taxonomy_indexing_analyzer(taxonomy: str, lang: str) -> analyzer:
+def get_taxonomy_indexing_analyzer(
+    taxonomy: str, lang: str
+) -> dsl_analysis.CustomAnalysis:
     """We want to index taxonomies terms as keywords (as we only store the id),
     but with a specific tweak: transform hyphens into underscores,
     """
@@ -121,7 +127,7 @@ def get_taxonomy_indexing_analyzer(taxonomy: str, lang: str) -> analyzer:
 
 def get_taxonomy_search_analyzer(
     taxonomy: str, lang: str, with_synonyms: bool
-) -> analyzer:
+) -> dsl_analysis.CustomAnalysis:
     """Return the search analyzer to use for the taxonomized field
 
     :param taxonomy: the taxonomy name
@@ -148,7 +154,7 @@ def get_taxonomy_search_analyzer(
     )
 
 
-def get_autocomplete_analyzer(lang: str) -> analyzer:
+def get_autocomplete_analyzer(lang: str) -> dsl_analysis.CustomAnalysis:
     """Return the search analyzer to use for the autocomplete field"""
     return analyzer(
         f"autocomplete_{lang}",
