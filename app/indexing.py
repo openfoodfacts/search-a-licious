@@ -1,6 +1,5 @@
 import abc
 import datetime
-import logging
 import re
 from typing import Iterable
 
@@ -23,8 +22,6 @@ from app.utils.analyzers import (
     get_taxonomy_search_analyzer,
     number_of_fields,
 )
-
-log = logging.getLogger(__name__)
 
 FIELD_TYPE_TO_DSL_TYPE = {
     FieldType.keyword: dsl_field.Keyword,
@@ -53,7 +50,7 @@ def generate_dsl_field(
 
     :param field: the field to use as input
     :param supported_langs: an iterable of languages (2-letter codes),
-        used to know which sub-fields to create for `text_lang` 
+        used to know which sub-fields to create for `text_lang`
         and `taxonomy` field types
     :return: the elasticsearch_dsl field
     """
