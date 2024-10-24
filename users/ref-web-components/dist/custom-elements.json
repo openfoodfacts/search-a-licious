@@ -1221,7 +1221,7 @@
                 "text": "string"
               },
               "default": "'en'",
-              "description": "Separated list of languages",
+              "description": "Separated list of languages,\nthe first one is the main language",
               "attribute": "langs",
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
@@ -1345,7 +1345,7 @@
               "name": "name",
               "default": "DEFAULT_SEARCH_NAME",
               "attribute": "name",
-              "description": "The name of this search",
+              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
               "inheritedFrom": {
                 "name": "SearchaliciousHistoryMixin",
                 "module": "src/mixins/history.ts"
@@ -1371,8 +1371,22 @@
               "type": {
                 "text": "string | undefined"
               },
-              "description": "index to query",
+              "description": "index to query\n\nIf not specified, the default index will be used",
               "attribute": "index",
+              "inheritedFrom": {
+                "name": "SearchaliciousSearchMixin",
+                "module": "src/mixins/search-ctl.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "boostPhrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Wether to use the boost phrase heuristic.\n\nThis heuristic is used to boost nearby term in search results.\nIt can greatly improve the pertinence of the search results (only for default sort)\n\nIt defaults to false.",
+              "attribute": "boost-phrase",
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
                 "module": "src/mixins/search-ctl.ts"
@@ -1967,7 +1981,7 @@
                 "text": "string"
               },
               "default": "'en'",
-              "description": "Separated list of languages",
+              "description": "Separated list of languages,\nthe first one is the main language",
               "fieldName": "langs",
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
@@ -1981,7 +1995,7 @@
                 "module": "/src/utils/constants"
               },
               "fieldName": "name",
-              "description": "The name of this search",
+              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
               "inheritedFrom": {
                 "name": "SearchaliciousHistoryMixin",
                 "module": "src/mixins/history.ts"
@@ -1992,8 +2006,21 @@
               "type": {
                 "text": "string | undefined"
               },
-              "description": "index to query",
+              "description": "index to query\n\nIf not specified, the default index will be used",
               "fieldName": "index",
+              "inheritedFrom": {
+                "name": "SearchaliciousSearchMixin",
+                "module": "src/mixins/search-ctl.ts"
+              }
+            },
+            {
+              "name": "boost-phrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Wether to use the boost phrase heuristic.\n\nThis heuristic is used to boost nearby term in search results.\nIt can greatly improve the pertinence of the search results (only for default sort)\n\nIt defaults to false.",
+              "fieldName": "boostPhrase",
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
                 "module": "src/mixins/search-ctl.ts"
@@ -7511,7 +7538,7 @@
               "name": "name",
               "default": "DEFAULT_SEARCH_NAME",
               "attribute": "name",
-              "description": "The name of this search",
+              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
               "inheritedFrom": {
                 "name": "SearchaliciousHistoryMixin",
                 "module": "src/mixins/history.ts"
@@ -7534,7 +7561,7 @@
                 "text": "string"
               },
               "default": "'en'",
-              "description": "Separated list of languages",
+              "description": "Separated list of languages,\nthe first one is the main language",
               "attribute": "langs"
             },
             {
@@ -7543,8 +7570,18 @@
               "type": {
                 "text": "string | undefined"
               },
-              "description": "index to query",
+              "description": "index to query\n\nIf not specified, the default index will be used",
               "attribute": "index"
+            },
+            {
+              "kind": "field",
+              "name": "boostPhrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Wether to use the boost phrase heuristic.\n\nThis heuristic is used to boost nearby term in search results.\nIt can greatly improve the pertinence of the search results (only for default sort)\n\nIt defaults to false.",
+              "attribute": "boost-phrase"
             },
             {
               "kind": "field",
@@ -7981,7 +8018,7 @@
                 "module": "/src/utils/constants"
               },
               "fieldName": "name",
-              "description": "The name of this search",
+              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
               "inheritedFrom": {
                 "name": "SearchaliciousHistoryMixin",
                 "module": "src/mixins/history.ts"
@@ -8002,7 +8039,7 @@
                 "text": "string"
               },
               "default": "'en'",
-              "description": "Separated list of languages",
+              "description": "Separated list of languages,\nthe first one is the main language",
               "fieldName": "langs"
             },
             {
@@ -8010,8 +8047,17 @@
               "type": {
                 "text": "string | undefined"
               },
-              "description": "index to query",
+              "description": "index to query\n\nIf not specified, the default index will be used",
               "fieldName": "index"
+            },
+            {
+              "name": "boost-phrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "description": "Wether to use the boost phrase heuristic.\n\nThis heuristic is used to boost nearby term in search results.\nIt can greatly improve the pertinence of the search results (only for default sort)\n\nIt defaults to false.",
+              "fieldName": "boostPhrase"
             },
             {
               "name": "page-size",

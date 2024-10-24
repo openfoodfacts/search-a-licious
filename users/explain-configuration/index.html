@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.36">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.41">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.06209087.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.0253249f.min.css">
       
       
 
@@ -494,6 +494,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../explain-taxonomies/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Explain taxonomies
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../ref-config/" class="md-nav__link">
         
   
@@ -879,12 +900,48 @@ which fields will be searchable, and how.</p>
 <p>Think well about:</p>
 <ul>
 <li>fields you want to search and how you want to search them</li>
-<li>which informations you need to display in search results</li>
+<li>which information you need to display in search results</li>
 <li>what you need to sort on</li>
 <li>which facets you want to display</li>
 <li>which charts you need to build</li>
 </ul>
 <p>Changing this section will probably involve a full re-indexing of all your items.</p>
+<p>Some typical configurations for fields:</p>
+<p>A tags field that as values that are searched as an exact value (aka keyword), eg. a tag:
+<div class="highlight"><pre><span></span><code><span class="nt">tags</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyword</span>
+</code></pre></div></p>
+<p>An ingredients field that is used for full text search when no field is specified:
+<div class="highlight"><pre><span></span><code><span class="nt">ingredients</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span>
+<span class="w">    </span><span class="nt">full_text_search</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div></p>
+<p>A field <code>product_name</code> that is used for full text search, but with multilingual support:
+<div class="highlight"><pre><span></span><code><span class="nt">product_name</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">full_text_search</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text_lang</span>
+</code></pre></div></p>
+<p>A scans_n field is an integer field:
+<div class="highlight"><pre><span></span><code><span class="nt">scans_n</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">integer</span>
+</code></pre></div></p>
+<p>A <code>specific_warnings</code> field that is used for full text search,
+but only when you specify the field:
+<div class="highlight"><pre><span></span><code><span class="nt">specific_warnings</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">text</span>
+</code></pre></div></p>
+<p>A field brands_tags that needs to be split in multiple values (according to <code>split_separator</code> option):
+<div class="highlight"><pre><span></span><code><span class="nt">brands_tags</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyword</span>
+<span class="w">    </span><span class="nt">split</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div></p>
+<p>A field labels_tags, that is used for exact match but with support of a taxonomy,
+and that can be used for faceting, and bar graph generation:
+<div class="highlight"><pre><span></span><code><span class="nt">labels_tags</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">keyword</span>
+<span class="w">    </span><span class="nt">taxonomy_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">label</span>
+<span class="w">    </span><span class="nt">bucket_agg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div></p>
 <p>Read more in the <a href="../ref-config/searchalicious-config-schema.html#fields">reference documentation</a>.</p>
 <h2 id="document-fetcher-pre-processors-and-post-processors">Document fetcher, pre-processors and post-processors<a class="headerlink" href="#document-fetcher-pre-processors-and-post-processors" title="Permanent link">#</a></h2>
 <p>It is not always straight forward to index an item.</p>
@@ -946,7 +1003,7 @@ which fields will be searchable, and how.</p>
     <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.56dfad97.min.js"></script>
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>

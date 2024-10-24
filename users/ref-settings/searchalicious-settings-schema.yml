@@ -88,6 +88,13 @@ properties:
     description: User-Agent used when fetching resources (taxonomies) or documents
     title: User Agent
     type: string
+  synonyms_path:
+    default: /opt/search/synonyms
+    description: Path of the directory that will contain synonyms for ElasticSearch
+      instances
+    format: path
+    title: Synonyms Path
+    type: string
 title: JSON schema for search-a-licious settings
 type: object
 $schema: https://json-schema.org/draft/2020-12/schema

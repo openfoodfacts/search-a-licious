@@ -90,9 +90,10 @@ $defs:
           \ but with different values in different languages.\n      Tokenization\
           \ will use analyzers specific to each languages.\n    * taxonomy: a field\
           \ akin to keyword but\n      with support for matching using taxonomy synonyms\
-          \ and translations\n    * disabled: a field that is not stored nor searchable\n\
-          \      (see [Elasticsearch help])\n    * object: this field contains a dict\
-          \ with sub-fields.\n    \n\n[Elasticsearch help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
+          \ and translations\n      (and in fact also a text mapping possibility)\n\
+          \    * disabled: a field that is not stored nor searchable\n      (see [Elasticsearch\
+          \ help])\n    * object: this field contains a dict with sub-fields.\n  \
+          \  \n\n[Elasticsearch help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
       required:
         default: false
         description: 'if required=True, the field is required in the input data
@@ -152,7 +153,7 @@ $defs:
           or to generate bar charts.
 
 
-          Only valid for keyword or numeric field types.'
+          Only valid for keyword, taxonomy or numeric field types.'
         title: Bucket Agg
         type: boolean
       taxonomy_name:
@@ -165,13 +166,6 @@ $defs:
 
           It must only be provided for taxonomy field type.'
         title: Taxonomy Name
-      add_taxonomy_synonyms:
-        default: true
-        description: 'if True, add all synonyms of the taxonomy values to the index.
-
-          The flag is ignored if the field type is not `taxonomy`.'
-        title: Add Taxonomy Synonyms
-        type: boolean
     required:
     - type
     title: FieldConfig
@@ -187,9 +181,10 @@ $defs:
       \    * text_lang: like text, but with different values in different languages.\n\
       \      Tokenization will use analyzers specific to each languages.\n    * taxonomy:\
       \ a field akin to keyword but\n      with support for matching using taxonomy\
-      \ synonyms and translations\n    * disabled: a field that is not stored nor\
-      \ searchable\n      (see [Elasticsearch help])\n    * object: this field contains\
-      \ a dict with sub-fields.\n    \n\n[Elasticsearch help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
+      \ synonyms and translations\n      (and in fact also a text mapping possibility)\n\
+      \    * disabled: a field that is not stored nor searchable\n      (see [Elasticsearch\
+      \ help])\n    * object: this field contains a dict with sub-fields.\n    \n\n\
+      [Elasticsearch help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
     enum:
     - keyword
     - date
@@ -276,9 +271,12 @@ $defs:
         allOf:
         - $ref: '#/$defs/TaxonomyConfig'
         description: "Configuration of taxonomies,\n    that is collections of entries\
-          \ with synonyms in multiple languages.\n\n    Field may be linked to taxonomies.\n\
-          \n    It enables enriching search with synonyms,\n    as well as providing\
-          \ suggestions,\n    or informative facets.\n    "
+          \ with synonyms in multiple languages.\n\n    See [Explain taxonomies](../explain-taxonomies)\n\
+          \n    Field may be linked to taxonomies.\n\n    It enables enriching search\
+          \ with synonyms,\n    as well as providing suggestions,\n    or informative\
+          \ facets.\n\n    Note: if you define taxonomies, you must import them using\n\
+          \    [import-taxonomies command](../ref-python/cli.html#python3-m-app-import-taxonomies)\n\
+          \    "
       supported_langs:
         description: A list of all supported languages, it is used to build index
           mapping
@@ -363,12 +361,47 @@ $defs:
         title: Scripts
       match_phrase_boost:
         default: 2.0
-        description: 'How much we boost exact matches on individual fields
+        description: 'How much we boost exact matches on consecutive words
 
 
-          This only makes sense when using "best match" order.'
+          That is, if you search "Dark Chocolate",
+
+          it will boost entries that have the "Dark Chocolate" phrase (in the same
+          field).
+
+
+          It only applies to free text search.
+
+
+          This only makes sense when using
+
+          "boost_phrase" request parameters and "best match" order.
+
+
+          Note: this field accept float of string,
+
+          because using float might generate rounding problems.
+
+          The string must represent a float.'
         title: Match Phrase Boost
         type: number
+      match_phrase_boost_proximity:
+        anyOf:
+        - type: integer
+        - type: 'null'
+        default: null
+        description: 'How much we allow proximity for `match_phrase_boost`.
+
+
+          If unspecified we will just match word to word.
+
+          Otherwise it will allow some gap between words matching
+
+
+          This only makes sense when using
+
+          "boost_phrase" request parameters and "best match" order.'
+        title: Match Phrase Boost Proximity
       document_denylist:
         description: 'list of documents IDs to ignore.
 
@@ -445,6 +478,9 @@ $defs:
       that is collections of entries with synonyms in multiple languages.
 
 
+      See [Explain taxonomies](../explain-taxonomies)
+
+
       Field may be linked to taxonomies.
 
 
@@ -452,34 +488,18 @@ $defs:
 
       as well as providing suggestions,
 
-      or informative facets.'
+      or informative facets.
+
+
+      Note: if you define taxonomies, you must import them using
+
+      [import-taxonomies command](../ref-python/cli.html#python3-m-app-import-taxonomies)'
     properties:
       sources:
         description: Configurations of taxonomies that this project will use.
         items:
           $ref: '#/$defs/TaxonomySourceConfig'
         title: Sources
-        type: array
-      exported_langs:
-        description: 'a list of languages for which
-
-          we want taxonomized fields to be always exported during indexing.
-
-
-          During indexing, we use the taxonomy to translate every taxonomized field
-
-          in a language-specific subfield.
-
-
-          The list of language depends on the value defined here and on the optional
-
-          `taxonomy_langs` field that can be defined in each document.
-
-
-          Beware that providing many language might inflate the index size.'
-        items:
-          type: string
-        title: Exported Langs
         type: array
       index:
         allOf:
@@ -490,7 +510,6 @@ $defs:
           \    as well as enrichment of requests with synonyms.\n    "
     required:
     - sources
-    - exported_langs
     - index
     title: TaxonomyConfig
     type: object
@@ -557,6 +576,14 @@ $defs:
         title: Name
         type: string
       url:
+        anyOf:
+        - format: uri
+          minLength: 1
+          type: string
+        - format: uri
+          maxLength: 2083
+          minLength: 1
+          type: string
         description: "URL of the taxonomy.\n\nThe target file must be in JSON format\n\
           and follows Open Food Facts JSON taxonomy format.\n\nThis is a dict where\
           \ each key correspond to a taxonomy entry id,\nvalues are dict with following\
@@ -566,11 +593,7 @@ $defs:
           \ a list of direct parent ids (taxonomy is a directed acyclic graph)\n\n\
           Other keys correspond to properties associated to this entry (eg. wikidata\
           \ id)."
-        format: uri
-        maxLength: 2083
-        minLength: 1
         title: Url
-        type: string
     required:
     - name
     - url

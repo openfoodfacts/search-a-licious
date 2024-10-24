@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://openfoodfacts.github.io/search-a-licious/users/how-to-update-index/">
+        <link rel="canonical" href="https://openfoodfacts.github.io/search-a-licious/users/explain-taxonomies/">
       
       
-        <link rel="prev" href="../how-to-install/">
+        <link rel="prev" href="../explain-query-language/">
       
       
-        <link rel="next" href="../how-to-use-scripts/">
+        <link rel="next" href="../ref-config/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -22,7 +22,7 @@
     
     
       
-        <title>How to update the index - Search-a-licious documentation</title>
+        <title>Explain taxonomies - Search-a-licious documentation</title>
       
     
     
@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#how-to-update-the-index" class="md-skip">
+        <a href="#explain-taxonomies" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              How to update the index
+              Explain taxonomies
             
           </span>
         </div>
@@ -313,30 +313,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    How to update the index
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../how-to-update-index/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -345,62 +325,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#first-import" class="md-nav__link">
-    <span class="md-ellipsis">
-      First import
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#continuous-updates" class="md-nav__link">
-    <span class="md-ellipsis">
-      Continuous updates
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#updating-the-index-from-time-to-time-with-an-export" class="md-nav__link">
-    <span class="md-ellipsis">
-      Updating the index from time to time with an export
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#document-fetcher-and-pre-processing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Document fetcher and pre-processing
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -473,10 +397,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../explain-taxonomies/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Explain taxonomies
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -485,6 +429,71 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#listing-taxonomies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Listing taxonomies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#taxonomy-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Taxonomy fields
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#autocompletion-with-taxonomies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Autocompletion with taxonomies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#importing-taxonomies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Importing taxonomies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-details-on-taxonomy-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical details on taxonomy fields
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -776,36 +785,45 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#first-import" class="md-nav__link">
+  <a href="#listing-taxonomies" class="md-nav__link">
     <span class="md-ellipsis">
-      First import
+      Listing taxonomies
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#continuous-updates" class="md-nav__link">
+  <a href="#taxonomy-fields" class="md-nav__link">
     <span class="md-ellipsis">
-      Continuous updates
+      Taxonomy fields
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#updating-the-index-from-time-to-time-with-an-export" class="md-nav__link">
+  <a href="#autocompletion-with-taxonomies" class="md-nav__link">
     <span class="md-ellipsis">
-      Updating the index from time to time with an export
+      Autocompletion with taxonomies
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#document-fetcher-and-pre-processing" class="md-nav__link">
+  <a href="#importing-taxonomies" class="md-nav__link">
     <span class="md-ellipsis">
-      Document fetcher and pre-processing
+      Importing taxonomies
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-details-on-taxonomy-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical details on taxonomy fields
     </span>
   </a>
   
@@ -829,51 +847,55 @@
   
 
 
-<h1 id="how-to-update-the-index">How to update the index<a class="headerlink" href="#how-to-update-the-index" title="Permanent link">#</a></h1>
-<p>As you use search-a-licious, you will first import the data,
-but then, you might need to update the index to keep it up to date with the latest data.</p>
-<p>There are two strategies to update the index:</p>
+<h1 id="explain-taxonomies">Explain taxonomies<a class="headerlink" href="#explain-taxonomies" title="Permanent link">#</a></h1>
+<p>Taxonomies are a way to organize categorization of items.</p>
+<p>Normally, a taxonomy is about a specific field.
+For each possible values, it defines translations in different languages, and also possible synonyms (in each language).
+For each entry we have a canonical identifier.</p>
+<p>A taxonomy also organizes the entries within a direct acyclic graph (a hierarchy but with possibility of multiple parents, though always avoiding cycles).
+For example it may help describe that a salmon is a marine fish as well as a freshwater fish, and a oily fish.</p>
+<p>It can be used to help users find items using a specific field, in their language, even if they use a synonym for it.</p>
+<h2 id="listing-taxonomies">Listing taxonomies<a class="headerlink" href="#listing-taxonomies" title="Permanent link">#</a></h2>
+<p>If you plan to use taxonomies, you should first list them, in the <a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_taxonomy">taxonomy section of the configuration</a>.</p>
+<p>Taxonomies must come in a JSON format, that can be downloaded at a particular URL.</p>
+<p>The data in the JSON must contain an object, where:</p>
 <ul>
-<li>either you push events to the redis stream, and search-a-licious update the index continuously</li>
-<li>either you update the index from time to time using a new import of whole dataset</li>
+<li>each key correspond to the id of the taxonomy entries</li>
+<li>the value is an Object, with the following fields (none are mandatory):<ul>
+<li><code>name</code>: an Object associating language code,
+  with the entry name in the language (useful for translating the entry)</li>
+<li><code>synonyms</code>: an Object associating language code,
+  with an array of synonyms for this entry in this language</li>
 </ul>
-<h2 id="first-import">First import<a class="headerlink" href="#first-import" title="Permanent link">#</a></h2>
-<p>First import will populate Elasticsearch index with all the data.</p>
-<p>See <a href="../tutorial/#initial-import"><em>initial import</em> section in tutorial</a>
-and <a href="../../devs/ref-python/cli.html#python3-m-app-import"><code>import</code> reference documentation</a></p>
-<p>It's important to note that if you don't use the <em>continous updates</em> strategy,
-you need to use <code>--skip-updates</code> option.</p>
-<h2 id="continuous-updates">Continuous updates<a class="headerlink" href="#continuous-updates" title="Permanent link">#</a></h2>
-<p>To have continuous updates, you need to push events to the redis stream.</p>
-<p>Normally this will be done by your application.</p>
-<p>On each update/removal/etc. it must push events with at least:</p>
+</li>
+</ul>
+<h2 id="taxonomy-fields">Taxonomy fields<a class="headerlink" href="#taxonomy-fields" title="Permanent link">#</a></h2>
+<p>As you define your <a href="../explain-configuration/#fields">fields in the configuration</a>,
+you can specify that a field is a taxonomy field (<code>type: taxonomy</code>).</p>
+<p>In this case, you also have to provide the following fields:</p>
 <ul>
-<li>the document id</li>
-<li>and eventually more info (if you need them to filter out items, for example).</li>
+<li>taxonomy_name: the name of the taxonomy (as defined in the configuration)</li>
 </ul>
-<p>Of course you can also imagine to push events from another service,
-if you have another way of getting changes, but this part is up to you.</p>
-<p>Then you just have to run the <code>updater</code> container that comes in the docker-compose configuration.
-<div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>updater
-</code></pre></div></p>
-<p>This will continuously fetch updates from the event stream, and update the index accordingly.</p>
-<p>At start it will compute last update time using
-the <a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name"><code>last_modified_field_name</code> from the configuration</a>
-to know from where to start processing the event stream.</p>
-<h2 id="updating-the-index-from-time-to-time-with-an-export">Updating the index from time to time with an export<a class="headerlink" href="#updating-the-index-from-time-to-time-with-an-export" title="Permanent link">#</a></h2>
-<p>Another way to update the index is to periodically re-import the all the data, or changed data.</p>
-<p>This is less compelling to your users, but this might be the best way
-if you are using an external database publishing changes on a regular bases.</p>
-<p>For that you can use the <a href="../../devs/ref-python/cli.html#python3-m-app-import"><code>import</code> command</a>,
-with the <code>--skip-updates</code> option, and with the <code>--partial</code> option if you are importing only changed data
-(otherwise it is advised to use the normal import process, which can be rolled-back (it create a new index)).</p>
-<h2 id="document-fetcher-and-pre-processing">Document fetcher and pre-processing<a class="headerlink" href="#document-fetcher-and-pre-processing" title="Permanent link">#</a></h2>
-<p>In the configuration, you can define a
-<a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_document_fetcher"><code>document_fetcher</code></a>
-and a <a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_preprocessor"><code>preprocessor</code></a> to transform the data.</p>
-<p>Those are fully qualified dotted names to python classes.</p>
-<p><code>document_fetcher</code> is only used on continuous updates,
-while <code>preprocessor</code> is used both on continuous updates and on initial import.</p>
+<ul>
+<li>synonyms_search: if true,
+  this will add a full text subfield that will enable using synonyms and translations to match this term.</li>
+</ul>
+<h2 id="autocompletion-with-taxonomies">Autocompletion with taxonomies<a class="headerlink" href="#autocompletion-with-taxonomies" title="Permanent link">#</a></h2>
+<p>When you import taxonomies, they can be used to provide autocompletion in multiple ways.</p>
+<p>The webcomponents can use them to add values to facets,
+or to provide suggestions in the search bar.</p>
+<p>You can also use the <a href="../ref-openapi/#operation/taxonomy_autocomplete_autocomplete_get">autocompletion API</a></p>
+<h2 id="importing-taxonomies">Importing taxonomies<a class="headerlink" href="#importing-taxonomies" title="Permanent link">#</a></h2>
+<p>If you defined taxonomies,
+you must import them using the <a href="../../devs/ref-python/cli.html#python3-m-app-import-taxonomies">import-taxonomies command</a>.</p>
+<h2 id="technical-details-on-taxonomy-fields">Technical details on taxonomy fields<a class="headerlink" href="#technical-details-on-taxonomy-fields" title="Permanent link">#</a></h2>
+<p>A taxonomy field is stored in Elasticsearch as an object.
+For each language it has a specific field, but in this field we just store the taxonomy entry id (eg. for organic, we always store <code>en:organic</code>). The analyzer is almost set to <code>keyword</code> which means it won't be tokenized (but it is not completely true, as we also transform hyphen to underscore).</p>
+<p>Note that the value of this field must be considered a unique token by elasticsearch standard tokenizer.
+So you should only use letters, numbers, columns and the underscore.
+As an exception, we allow the hyphen character, transforming it to "_" before tokenization.</p>
+<p>But those field have a specific <em>search analyzer</em>, so that when you enter a search query,
+The query text is tokenized using standard analyzer, then lower cased, and we then look for synonyms in the taxonomy.</p>
 
 
 
