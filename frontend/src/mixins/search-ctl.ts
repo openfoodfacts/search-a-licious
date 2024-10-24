@@ -37,6 +37,7 @@ import {isTheSameSearchName} from '../utils/search';
 
 export interface SearchParameters extends SortParameters {
   q: string;
+  boost_phrase: Boolean;
   langs: string[];
   page_size: string;
   page?: string;
@@ -86,6 +87,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
 
     /**
      * The name of this search
+     *
+     * It enables having multiple search on the same page,
+     * if you specify it, your components must specify the attribute search-name
      */
     @property()
     override name = DEFAULT_SEARCH_NAME;
@@ -97,16 +101,30 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     baseUrl = '/';
 
     /**
-     * Separated list of languages
+     * Separated list of languages,
+     * the first one is the main language
      */
     @property()
     langs = 'en';
 
     /**
      * index to query
+     *
+     * If not specified, the default index will be used
      */
     @property()
     index?: string;
+
+    /**
+     * Wether to use the boost phrase heuristic.
+     *
+     * This heuristic is used to boost nearby term in search results.
+     * It can greatly improve the pertinence of the search results (only for default sort)
+     *
+     * It defaults to false.
+     */
+    @property({type: Boolean, attribute: 'boost-phrase'})
+    boostPhrase = false;
 
     /**
      * Number of result per page
@@ -359,11 +377,15 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _paramsToQueryStr(params: SearchParameters): string {
       return Object.entries(params)
         .map(([key, value]) => {
+          if (value === false) {
+            return null;
+          }
           if (value.constructor === Array) {
             value = value.join(API_LIST_DIVIDER);
           }
           return `${encodeURIComponent(key)}=${encodeURIComponent(value!)}`;
         })
+        .filter((val) => val !== null)
         .sort() // for perdictability in tests !
         .join('&');
     }
@@ -463,6 +485,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       }
       const params: SearchParameters = {
         q: queryParts.join(' '),
+        boost_phrase: this.boostPhrase,
         langs: this.langs
           .split(PROPERTY_LIST_DIVIDER)
           .map((lang) => lang.trim()),

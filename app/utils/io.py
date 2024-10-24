@@ -1,4 +1,5 @@
 import gzip
+import shutil
 from pathlib import Path
 from typing import Callable, Iterable
 
@@ -54,3 +55,27 @@ def dump_json(path: str | Path, item: JSONType, **kwargs):
     open_fn = get_open_fn(path)
     with open_fn(str(path), "wb") as f:
         f.write(orjson.dumps(item, **kwargs))
+
+
+def safe_replace_dir(target: Path, new_target: Path):
+    """Replace a directory atomically"""
+    # a temporary place for the target dir
+    old_target = target.with_suffix(target.suffix + ".old")
+    # move target to old_target
+    if old_target.exists():
+        shutil.rmtree(old_target)
+    if target.exists():
+        shutil.move(target, old_target)
+    # move our file
+    try:
+        shutil.move(new_target, target)
+    except Exception:
+        # if something went wrong, we restore the old target
+        if old_target.exists():
+            shutil.move(old_target, target)
+        # reraise
+        raise
+    else:
+        # cleanup
+        if old_target.exists():
+            shutil.rmtree(old_target)
