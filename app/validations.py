@@ -1,6 +1,4 @@
-from typing import cast
-
-from .config import CONFIG, Config
+from .config import Config, get_config
 
 
 def check_index_id_is_defined(index_id: str | None, config: Config) -> None:
@@ -31,7 +29,7 @@ def check_all_values_are_fields_agg(
     errors: list[str] = []
     if values is None:
         return errors
-    global_config = cast(Config, CONFIG)
+    global_config = get_config()
     index_id, index_config = global_config.get_index_config(index_id)
     if index_config is None:
         raise ValueError(f"Cannot get index config for index_id {index_id}")
@@ -55,7 +53,7 @@ def check_fields_are_numeric(
     if values is None:
         return errors
 
-    global_config = cast(Config, CONFIG)
+    global_config = get_config()
     index_id, index_config = global_config.get_index_config(index_id)
     if index_config is None:
         raise ValueError(f"Cannot get index config for index_id {index_id}")

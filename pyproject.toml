@@ -5,11 +5,12 @@ description = ""
 authors = ["Open Food Facts team"]
 license = "AGPL-3.0 licence"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
 elasticsearch-dsl = "~8.9.0"
-fastapi = "~0.109.1"
+fastapi = "~0.115.0"
 requests = "~2.32.2"
 redis = "~5.0.0"
 uvicorn = "~0.23.2"
@@ -34,6 +35,8 @@ types-cachetools = "^5.3.0.7"
 types-requests = "^2.31.0.10"
 types-pyyaml = "^6.0.12.12"
 pre-commit = "^3.5.0"
+factory-boy = "^3.3.1"
+httpx = "^0.27.1"
 
 [build-system]
 requires = ["poetry-core"]
