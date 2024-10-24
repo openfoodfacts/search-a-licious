@@ -27,7 +27,7 @@ def test_off_config():
 
 @pytest.fixture(scope="session")
 def index_config(test_off_config):
-    """Fiytures that return the IndexConfig corresponding to test_off"""
+    """Fixture that returns the IndexConfig corresponding to test_off."""
     return test_off_config.get_index_config("test_off")[1]
 
 
