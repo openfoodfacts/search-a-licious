@@ -94,10 +94,10 @@ def create_synonyms_files(taxonomy: Taxonomy, langs: list[str], target_dir: Path
 
 
 def create_synonyms(index_config: IndexConfig, target_dir: Path):
-    for name, taxonomy in iter_taxonomies(index_config.taxonomy):
-        target = target_dir / name
+    for taxonomy in iter_taxonomies(index_config.taxonomy):
+        target = target_dir / taxonomy.name
         # a temporary directory, we move at the end
-        target_tmp = target_dir / f"{name}.tmp"
+        target_tmp = target_dir / f"{taxonomy.name}.tmp"
         shutil.rmtree(target_tmp, ignore_errors=True)
         # ensure directory
         os.makedirs(target_tmp, mode=0o775, exist_ok=True)

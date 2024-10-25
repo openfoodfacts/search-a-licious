@@ -12,8 +12,9 @@ from elasticsearch_dsl import Index, Search
 from redis import Redis
 
 from app._types import FetcherResult, FetcherStatus, JSONType
-from app.config import Config, IndexConfig, TaxonomyConfig, settings
+from app.config import Config, IndexConfig, settings
 from app.indexing import (
+    BaseTaxonomyPreprocessor,
     DocumentProcessor,
     generate_index_object,
     generate_taxonomy_index_object,
@@ -252,7 +253,7 @@ def gen_documents(
 
 
 def gen_taxonomy_documents(
-    taxonomy_config: TaxonomyConfig, next_index: str, supported_langs: set[str]
+    config: IndexConfig, next_index: str, supported_langs: set[str]
 ):
     """Generator for taxonomy documents in Elasticsearch.
 
@@ -261,26 +262,49 @@ def gen_taxonomy_documents(
     :param supported_langs: a set of supported languages
     :yield: a dict with the document to index, compatible with ES bulk API
     """
-    for taxonomy_name, taxonomy in tqdm.tqdm(iter_taxonomies(taxonomy_config)):
+    taxonomy_config = config.taxonomy
+    preprocessor: BaseTaxonomyPreprocessor | None = None
+    if taxonomy_config.preprocessor:
+        preprocessor_cls = load_class_object_from_string(taxonomy_config.preprocessor)
+        preprocessor = preprocessor_cls(config)
+    for taxonomy in tqdm.tqdm(iter_taxonomies(taxonomy_config)):
         for node in taxonomy.iter_nodes():
+            if preprocessor:
+                result = preprocessor.preprocess(taxonomy, node)
+                if result.status != FetcherStatus.FOUND or result.node is None:
+                    continue  # skip this entry
+                node = result.node
             names = {
                 lang: lang_names
                 for lang, lang_names in node.names.items()
                 if lang in supported_langs
             }
-            synonyms = {
-                lang: lang_names
-                for lang, lang_names in node.synonyms.items()
+            synonyms: dict[str, set[str]] = {
+                lang: set(node.synonyms.get(lang) or [])
+                for lang in node.synonyms
                 if lang in supported_langs
             }
+            for lang, lang_names in names.items():
+                if lang_names:
+                    if not isinstance(lang_names, str):
+                        import pdb
+
+                        pdb.set_trace()
+                    synonyms.setdefault(lang, set()).add(lang_names)
 
             yield {
                 "_index": next_index,
                 "_source": {
                     "id": node.id,
-                    "taxonomy_name": taxonomy_name,
+                    "taxonomy_name": taxonomy.name,
                     "name": names,
-                    "synonyms": synonyms,
+                    "synonyms": {
+                        lang: {
+                            "input": list(lang_synonyms),
+                            "weight": max(100 - len(node.id), 0),
+                        }
+                        for lang, lang_synonyms in synonyms.items()
+                    },
                 },
             }
 
@@ -370,7 +394,7 @@ def import_taxonomies(config: IndexConfig, next_index: str):
     success, errors = bulk(
         es,
         gen_taxonomy_documents(
-            config.taxonomy, next_index, supported_langs=set(config.supported_langs)
+            config, next_index, supported_langs=set(config.supported_langs)
         ),
         raise_on_error=False,
     )

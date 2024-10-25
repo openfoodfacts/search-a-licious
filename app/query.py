@@ -322,7 +322,7 @@ def build_es_query(
 def build_completion_query(
     q: str,
     taxonomy_names: list[str],
-    lang: str,
+    langs: list[str],
     size: int,
     config: IndexConfig,
     fuzziness: int | None = 2,
@@ -331,28 +331,31 @@ def build_completion_query(
 
     :param q: the user autocomplete query
     :param taxonomy_names: a list of taxonomies we want to search in
-    :param lang: the language we want search in
+    :param langs: the language we want search in
     :param size: number of results to return
     :param config: the index configuration to use
     :param fuzziness: fuzziness parameter for completion query
     :return: the built Query
     """
-
-    completion_clause = {
-        "field": f"synonyms.{lang}",
-        "size": size,
-        "contexts": {"taxonomy_name": taxonomy_names},
-    }
-
-    if fuzziness is not None:
-        completion_clause["fuzzy"] = {"fuzziness": fuzziness}
-
     query = Search(index=config.taxonomy.index.name)
-    query = query.suggest(
-        "taxonomy_suggest",
-        q,
-        completion=completion_clause,
-    )
+    # import pdb;pdb.set_trace();
+    for lang in langs:
+        completion_clause = {
+            "field": f"synonyms.{lang}",
+            "size": size,
+            "contexts": {"taxonomy_name": taxonomy_names},
+            "skip_duplicates": True,
+        }
+        if fuzziness is not None:
+            completion_clause["fuzzy"] = {"fuzziness": fuzziness}
+
+        query = query.suggest(
+            f"taxonomy_suggest_{lang}",
+            q,
+            completion=completion_clause,
+        )
+    # limit returned fields
+    # query.source(fields=["id", "taxonomy_name"])
     return query
 
 

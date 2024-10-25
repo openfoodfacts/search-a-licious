@@ -7,8 +7,9 @@ import requests
 
 from app._import import BaseDocumentFetcher
 from app._types import FetcherResult, FetcherStatus, JSONType
-from app.indexing import BaseDocumentPreprocessor
+from app.indexing import BaseDocumentPreprocessor, BaseTaxonomyPreprocessor
 from app.postprocessing import BaseResultProcessor
+from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
 from app.utils.download import http_session
 from app.utils.log import get_logger
 
@@ -85,6 +86,37 @@ def generate_image_url(code: str, image_id: str) -> str:
 
 # This is not part of search-a-licious, so we don't use the settings object
 OFF_API_URL = os.environ.get("OFF_API_URL", "https://world.openfoodfacts.org")
+
+
+class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
+    """Preprocessor for Open Food Facts taxonomies."""
+
+    def preprocess(self, taxonomy: Taxonomy, node: TaxonomyNode) -> TaxonomyNodeResult:
+        """Preprocess a taxonomy node,
+
+        We add the main language, and we also have specificities for some taxonomies
+        """
+        if taxonomy.name == "brands":
+            # brands are english only, put them in "main lang"
+            node.names.update(main=node.names["en"])
+            if node.synonyms and (synonyms_en := list(node.synonyms.get("en", []))):
+                node.synonyms.update(main=synonyms_en)
+        else:
+            # main language is entry id prefix + eventual xx entries
+            id_lang = node.id.split(":")[0]
+            if node_names := node.names.get(id_lang):
+                node.names.update(main=node_names)
+            node.synonyms.update(main=list(node.synonyms.get(id_lang, [])))
+            # add eventual xx entries as synonyms to all languages
+            xx_name = node.names.get("xx")
+            xx_names = [xx_name] if xx_name else []
+            xx_names += node.synonyms.get("xx", [])
+            if xx_names:
+                for lang in self.config.supported_langs:
+                    node.names.setdefault(lang, xx_names[0])
+                    lang_synonyms = node.synonyms.setdefault(lang, [])
+                    lang_synonyms += xx_names
+        return TaxonomyNodeResult(status=FetcherStatus.FOUND, node=node)
 
 
 class DocumentFetcher(BaseDocumentFetcher):

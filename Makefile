@@ -176,6 +176,10 @@ build-translations:
 	@echo "🔎 Building translations …"
 	${DOCKER_COMPOSE} run --rm search_nodejs npm run translations:build
 
+cleanup-indexes:
+	@echo "🔎 Cleaning indexes …"
+	${DOCKER_COMPOSE} run --rm api python3 -m app cleanup-indexes ${args}
+
 generate-openapi: _ensure_network
 	@echo "🔎 Generating OpenAPI spec …"
 	${DOCKER_COMPOSE} run --rm api python3 -m app export-openapi /opt/search/data/searchalicious-openapi.yml

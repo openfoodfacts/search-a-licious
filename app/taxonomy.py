@@ -9,8 +9,9 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
 import cachetools
 import requests
+from pydantic import BaseModel, ConfigDict
 
-from app._types import JSONType
+from app._types import FetcherStatus, JSONType
 from app.config import TaxonomyConfig, settings
 from app.utils import get_logger
 from app.utils.download import download_file, http_session, should_download_file
@@ -157,8 +158,9 @@ class Taxonomy:
     node identifier to a `TaxonomyNode`.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
         self.nodes: Dict[str, TaxonomyNode] = {}
+        self.name = name
 
     def add(self, key: str, node: TaxonomyNode) -> None:
         """Add a node to the taxonomy under the id `key`.
@@ -263,13 +265,13 @@ class Taxonomy:
         return export
 
     @classmethod
-    def from_dict(cls, data: JSONType) -> "Taxonomy":
+    def from_dict(cls, name: str, data: JSONType) -> "Taxonomy":
         """Create a Taxonomy from `data`.
 
         :param data: the taxonomy as a dict
         :return: a Taxonomy
         """
-        taxonomy = Taxonomy()
+        taxonomy = Taxonomy(name)
 
         for key, key_data in data.items():
             if key not in taxonomy:
@@ -293,17 +295,21 @@ class Taxonomy:
         return taxonomy
 
     @classmethod
-    def from_path(cls, file_path: Union[str, Path]) -> "Taxonomy":
+    def from_path(cls, name: str, file_path: Union[str, Path]) -> "Taxonomy":
         """Create a Taxonomy from a JSON file.
 
         :param file_path: a JSON file, gzipped (.json.gz) files are supported
         :return: a Taxonomy
         """
-        return cls.from_dict(load_json(file_path))  # type: ignore
+        return cls.from_dict(name, load_json(file_path))  # type: ignore
 
     @classmethod
     def from_url(
-        cls, url: str, session: Optional[requests.Session] = None, timeout: int = 120
+        cls,
+        name: str,
+        url: str,
+        session: Optional[requests.Session] = None,
+        timeout: int = 120,
     ) -> "Taxonomy":
         """Create a Taxonomy from a taxonomy file hosted at `url`.
 
@@ -315,7 +321,7 @@ class Taxonomy:
         session = http_session if session is None else session
         r = session.get(url, timeout=timeout)
         data = r.json()
-        return cls.from_dict(data)
+        return cls.from_dict(name, data)
 
 
 @cachetools.cached(cachetools.TTLCache(maxsize=100, ttl=3600))
@@ -345,7 +351,7 @@ def get_taxonomy(
         fpath = taxonomy_url[len("file://") :]
         if not fpath.startswith("/"):
             raise RuntimeError("Relative path (not yet) supported for taxonomy url")
-        return Taxonomy.from_path(fpath.rstrip("/"))
+        return Taxonomy.from_path(taxonomy_name, fpath.rstrip("/"))
     filename = f"{taxonomy_name}.json"
 
     cache_dir = DEFAULT_CACHE_DIR if cache_dir is None else cache_dir
@@ -354,16 +360,26 @@ def get_taxonomy(
     if not should_download_file(
         taxonomy_url, taxonomy_path, force_download, download_newer
     ):
-        return Taxonomy.from_path(taxonomy_path)
+        return Taxonomy.from_path(taxonomy_name, taxonomy_path)
 
     cache_dir.mkdir(parents=True, exist_ok=True)
     logger.info("Downloading taxonomy, saving it in %s", taxonomy_path)
     download_file(taxonomy_url, taxonomy_path)
-    return Taxonomy.from_path(taxonomy_path)
+    return Taxonomy.from_path(taxonomy_name, taxonomy_path)
 
 
-def iter_taxonomies(taxonomy_config: TaxonomyConfig) -> Iterator[tuple[str, Taxonomy]]:
+def iter_taxonomies(taxonomy_config: TaxonomyConfig) -> Iterator[Taxonomy]:
     for taxonomy_source_config in taxonomy_config.sources:
-        yield taxonomy_source_config.name, get_taxonomy(
-            taxonomy_source_config.name, str(taxonomy_source_config.url)
-        )
+        yield get_taxonomy(taxonomy_source_config.name, str(taxonomy_source_config.url))
+
+
+class TaxonomyNodeResult(BaseModel):
+    """Result for a taxonomy node transformation.
+
+    This is used to eventually skip entry after preprocessing
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    status: FetcherStatus
+    node: TaxonomyNode | None

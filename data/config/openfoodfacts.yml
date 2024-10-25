@@ -160,6 +160,7 @@ indices:
     primary_color: "#341100"
     accent_color: "#ff8714"
     taxonomy:
+      preprocessor: app.openfoodfacts.TaxonomyPreprocessor
       sources:
       - name: categories
         url: https://static.openfoodfacts.org/data/taxonomies/categories.full.json
