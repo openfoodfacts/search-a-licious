@@ -3,10 +3,13 @@ import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
 import {setLocale} from './localization/main';
-import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
+import {
+  SearchaliciousSuggester,
+  SuggestOption,
+  SuggestersSelector,
+} from './search-suggester';
 import {classMap} from 'lit/directives/class-map.js';
-import {removeLangFromTermId} from './utils/taxonomies';
 import {searchBarInputAndButtonStyle} from './css/header';
 import {SearchaliciousEvents} from './utils/enums';
 import {isTheSameSearchName} from './utils/search';
@@ -20,7 +23,7 @@ import {isTheSameSearchName} from './utils/search';
 @customElement('searchalicious-bar')
 @localized()
 export class SearchaliciousBar extends SuggestionSelectionMixin(
-  SearchaliciousTermsMixin(SearchaliciousSearchMixin(LitElement))
+  SearchaliciousSearchMixin(LitElement)
 ) {
   static override styles = [
     searchBarInputAndButtonStyle,
@@ -84,17 +87,18 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   ];
 
   /**
+   * The options for the suggestion.
+   *
+   * We redefine them to use SuggestOption
+   */
+  @property({attribute: false, type: Array})
+  override options: SuggestOption[] = [];
+  /**
    * Placeholder attribute is stored in a private variable to be able to use the msg() function
    * it stores the placeholder attribute value if it is set
    * @private
    */
   private _placeholder?: string;
-
-  /**
-   * Taxonomies we want to use for suggestions
-   */
-  @property({type: String, attribute: 'suggestions'})
-  suggestions = '';
 
   /**
    * Place holder in search bar
@@ -117,13 +121,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     return this.isQueryChanged || this.isFacetsChanged;
   }
 
-  /**
-   * It parses the string suggestions attribute and returns an array
-   */
-  get parsedSuggestions() {
-    return this.suggestions.split(',');
-  }
-
   constructor() {
     super();
 
@@ -132,22 +129,44 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     window.setLocale = setLocale;
   }
 
+  /** Return the list of suggesters contained in the search bar */
+  get suggesters() {
+    const suggesters: SearchaliciousSuggester[] = [];
+    this.querySelectorAll(SuggestersSelector).forEach((element) => {
+      suggesters.push(element as SearchaliciousSuggester);
+    });
+    return suggesters;
+  }
+
+  /** Ask suggesters for suggested options */
+  async getSuggestions(value: string) {
+    return Promise.allSettled(
+      this.suggesters.map((suggester) => {
+        return suggester.getSuggestions(value);
+      })
+    ).then((optionsLists) => {
+      const options: SuggestOption[] = [];
+      optionsLists.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value != null) {
+          options.push(...(result.value as SuggestOption[]));
+        }
+      });
+      return options;
+    });
+  }
+
   /**
    * Handle the input event
    * It will update the query and call the getTaxonomiesTerms method to show suggestions
    * @param value
    */
   override handleInput(value: string) {
-    this.value = value;
     this.query = value;
 
     this.updateSearchSignals();
     this.debounce(() => {
-      this.getTaxonomiesTerms(value, this.parsedSuggestions).then(() => {
-        this.options = this.terms.map((term) => ({
-          value: term.text,
-          label: term.text,
-        }));
+      this.getSuggestions(value).then((options) => {
+        this.options = options;
       });
     });
   }
@@ -155,17 +174,15 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   /**
    * Submit - might either be selecting a suggestion or submitting a search expression
    */
-  override submit(isSuggestion?: boolean) {
+  override submitSuggestion(isSuggestion?: boolean) {
     // If the value is a suggestion, select the term and reset the input otherwise search
     if (isSuggestion) {
-      this.selectTermByTaxonomy(
-        this.terms[this.getOptionIndex].taxonomy_name,
-        removeLangFromTermId(this.terms[this.getOptionIndex].id)
-      );
-      this.resetInput();
-      this.query = '';
+      const selectedOption = this.selectedOption as SuggestOption;
+      selectedOption!.source.selectSuggestion(selectedOption);
+      this.resetInput(this.selectedOption);
+      this.query = ''; // not sure if we should instead put the value of remaining input
     } else {
-      this.query = this.value;
+      this.query = this.selectedOption?.value || '';
       this.blurInput();
     }
     this.search();
@@ -176,21 +193,19 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
    */
   renderSuggestions() {
     // Don't show suggestions if the input is not focused or the value is empty or there are no suggestions
-    if (!this.visible || !this.value || this.terms.length === 0) {
+    if (!this.visible || !this.selectedOption || this.options.length === 0) {
       return html``;
     }
 
     return html`
       <ul>
-        ${this.terms.map(
-          (term, index) => html`
+        ${this.options.map(
+          (option, index) => html`
             <li
               class=${classMap({selected: index + 1 === this.currentIndex})}
-              @click=${this.onClick(index)}
+              @click=${this.onClick(option)}
             >
-              <searchalicious-suggestion-entry
-                .term=${term}
-              ></searchalicious-suggestion-entry>
+              ${option.source.renderSuggestion(option, index)}
             </li>
           `
         )}

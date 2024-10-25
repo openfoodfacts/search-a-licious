@@ -67,7 +67,6 @@ export interface SearchaliciousSearchInterface
   _facetsNodes(): SearchaliciousFacets[];
   _facetsFilters(): string;
   resetFacets(launchSearch?: boolean): void;
-  selectTermByTaxonomy(taxonomy: string, term: string): void;
 }
 
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
@@ -206,23 +205,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       return document.querySelectorAll(
         `searchalicious-facets[search-name=${this.name}]`
       );
-    }
-
-    /**
-     * Select a term by taxonomy in all facets
-     * It will update the selected terms in facets
-     * @param taxonomy
-     * @param term
-     */
-    selectTermByTaxonomy(taxonomy: string, term: string) {
-      for (const facets of this._facetsParentNode()) {
-        // if true, the facets has been updated
-        if (
-          (facets as SearchaliciousFacets).selectTermByTaxonomy(taxonomy, term)
-        ) {
-          return;
-        }
-      }
     }
 
     /**

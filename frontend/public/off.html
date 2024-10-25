@@ -286,7 +286,9 @@
               <section class="top-bar-section">
                 <ul class="left" style="margin-right: 2rem">
                   <li class="search-li">
-                    <searchalicious-bar name="off" boost-phrase page-size="24" langs="en,main" suggestions="brands,categories"></searchalicious-bar>
+                    <searchalicious-bar name="off" boost-phrase page-size="24" langs="en,main">
+                      <searchalicious-taxonomy-suggest taxonomies="brands,categories"></searchalicious-taxonomy-suggest>
+                    </searchalicious-bar>
                     <searchalicious-button search-name="off"></searchalicious-button>
                     <searchalicious-reset-button search-name="off"></searchalicious-reset-button>
                   </li>

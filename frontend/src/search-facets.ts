@@ -382,6 +382,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       return {
         value: removeLangFromTermId(term.id),
         label: term.text,
+        id: term.id,
+        input: term.text,
       };
     });
 

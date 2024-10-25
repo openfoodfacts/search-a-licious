@@ -72,7 +72,7 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
      */
     _termsUrl(q: string, taxonomyNames: string[]) {
       const baseUrl = this.taxonomiesBaseUrl.replace(/\/+$/, '');
-      return `${baseUrl}/autocomplete?q=${q}&lang=${this.langs}&taxonomy_names=${taxonomyNames}&size=5`;
+      return `${baseUrl}/autocomplete?q=${q}&langs=${this.langs}&taxonomy_names=${taxonomyNames}&size=5`;
     }
 
     /**

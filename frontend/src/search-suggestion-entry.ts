@@ -1,5 +1,6 @@
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {SuggestionSelectionOption} from './mixins/suggestion-selection';
 
 /**
  * This component represent a suggestion to the user as he types his search.
@@ -28,24 +29,10 @@ export class SearchaliciousSuggestionEntry extends LitElement {
       --img-size: var(--searchalicious-suggestion-entry-img-size, 2rem);
     }
 
-    .suggestion-entry .suggestion-entry-img-wrapper {
-      width: var(--img-size);
-      height: var(--img-size);
-      overflow: hidden;
-    }
-
     .suggestion-entry .suggestion-entry-text-wrapper {
       --margin-left: 1rem;
       margin-left: var(--margin-left);
       width: calc(100% - var(--img-size) - var(--margin-left));
-    }
-
-    .suggestion-entry-img-wrapper > * {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-      background-color: var(--img-background-color, #d9d9d9);
     }
 
     .suggestion-entry-text {
@@ -58,12 +45,7 @@ export class SearchaliciousSuggestionEntry extends LitElement {
   `;
 
   @property({type: Object, attribute: 'term'})
-  term?: {
-    imageUrl?: string;
-    id: string;
-    text: string;
-    taxonomy_name: string;
-  };
+  term?: SuggestionSelectionOption;
 
   /**
    * We display the taxonomy term and corresponding filter name
@@ -71,15 +53,8 @@ export class SearchaliciousSuggestionEntry extends LitElement {
   override render() {
     return html`
       <div class="suggestion-entry">
-        <div class="suggestion-entry-img-wrapper">
-          <!-- if no imageUrl show empty circle -->
-          ${this.term?.imageUrl
-            ? html`<img src=${this.term?.imageUrl} />`
-            : html`<div></div>`}
-        </div>
         <div class="suggestion-entry-text-wrapper">
-          <div class="suggestion-entry-text">${this.term?.text}</div>
-          <div>${this.term?.taxonomy_name}</div>
+          <div class="suggestion-entry-text">${this.term?.label}</div>
         </div>
       </div>
     `;
