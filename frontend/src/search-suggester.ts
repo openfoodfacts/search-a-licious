@@ -3,50 +3,20 @@
  * It indicates some suggestion that the search bar should apply
  *
  */
-import {LitElement, PropertyValues, TemplateResult, html} from 'lit';
+import {LitElement, TemplateResult, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-import {consume} from '@lit/context';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {SearchaliciousSearchInterface} from './interfaces/search-ctl-interfaces';
 import {
   SuggestionSelectionOption,
   SuggestOption,
 } from './interfaces/suggestion-interfaces';
-import {
-  SuggesterRegistryInterface,
-  suggesterRegistryContext,
-} from './interfaces/search-bar-interfaces';
 import {SearchaliciousFacetsInterface} from './interfaces/facets-interfaces';
 import {removeLangFromTermId} from './utils/taxonomies';
-//import {Constructor} from './mixins/utils';
 
 export class SearchaliciousSuggester extends LitElement {
-  //suggesterRegistry: SuggesterRegistryInterface;
-
-  //constructor(suggesterRegistry: SuggesterRegistryInterface) {
-  //  super();
-  //  this.suggesterRegistry = suggesterRegistry;
-  //}
-
-  @consume({context: suggesterRegistryContext})
-  suggesterRegistry!: SuggesterRegistryInterface;
-
-  //override connectedCallback() {
-  //  super.connectedCallback();
-  //  // this is the good time to register
-  //  this.suggesterRegistry?.registerSuggester(this);
-  //}
-
-  override firstUpdated(changedProperties: PropertyValues<this>) {
-    super.firstUpdated(changedProperties);
-    // this is the good time to register
-    this.suggesterRegistry?.registerSuggester(this);
-  }
-
-  // override render() {
-  //   this.suggesterRegistry?.registerSuggester(this);
-  //   return html``;
-  // }
+  @property({attribute: false})
+  searchCtl: SearchaliciousSearchInterface | undefined;
 
   /**
    * Query for options to suggest for value and return them
@@ -69,6 +39,13 @@ export class SearchaliciousSuggester extends LitElement {
     throw new Error('Not implemented, implement in child class');
   }
 }
+
+type taxonomySelectionOption = SuggestionSelectionOption & {
+  /**
+   * taxonomy related to this suggestion
+   */
+  taxonomy: string;
+};
 
 /**
  * An element to be used inside a searchalicious-bar component.
@@ -108,7 +85,7 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
    * @param term
    */
   selectTermByTaxonomy(taxonomy: string, term: string) {
-    for (const facets of this.suggesterRegistry.searchCtl!.relatedFacets()) {
+    for (const facets of this.searchCtl!.relatedFacets()) {
       // if true, the facets has been updated
       if (
         (facets as SearchaliciousFacetsInterface).selectTermByTaxonomy(
@@ -133,12 +110,16 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
         id: term.taxonomy_name + '-' + term.id,
         source: this,
         input: value,
+        taxonomy: term.taxonomy_name,
       }));
     });
   }
 
   override async selectSuggestion(selected: SuggestionSelectionOption) {
-    this.selectTermByTaxonomy(this.taxonomies, selected.value);
+    this.selectTermByTaxonomy(
+      (selected as taxonomySelectionOption).taxonomy,
+      selected.value
+    );
   }
 
   override renderSuggestion(
@@ -154,31 +135,5 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
 declare global {
   interface HTMLElementTagNameMap {
     'searchalicious-taxonomy-suggest': SearchaliciousTaxonomySuggester;
-  }
-}
-
-/**
- * An expression to be able to get all suggesters using a querySelectorAll
- */
-//export const SuggestersToClass: Record<
-//  string,
-//  Constructor<SearchaliciousSuggester>
-//> = {
-//  'searchalicious-taxonomy-suggest': SearchaliciousTaxonomySuggester,
-//};
-
-export class SuggesterRegistry implements SuggesterRegistryInterface {
-  suggesters: SearchaliciousSuggester[];
-  searchCtl: SearchaliciousSearchInterface;
-
-  constructor(searchCtl: SearchaliciousSearchInterface) {
-    this.searchCtl = searchCtl;
-    this.suggesters = [];
-  }
-
-  registerSuggester(suggester: SearchaliciousSuggester): void {
-    if (!this.suggesters.includes(suggester)) {
-      this.suggesters.push(suggester);
-    }
   }
 }

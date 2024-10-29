@@ -1,17 +1,17 @@
-import {LitElement, html, css} from 'lit';
+import {LitElement, html, css, PropertyValues} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
-import {provide} from '@lit/context';
 import {setLocale} from './localization/main';
 import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
 import {SuggestOption} from './interfaces/suggestion-interfaces';
-import {SearchaliciousSuggester, SuggesterRegistry} from './search-suggester';
+import {
+  SearchaliciousSuggester /*SuggesterRegistry*/,
+} from './search-suggester';
 import {classMap} from 'lit/directives/class-map.js';
 import {searchBarInputAndButtonStyle} from './css/header';
 import {SearchaliciousEvents} from './utils/enums';
 import {isTheSameSearchName} from './utils/search';
-import {suggesterRegistryContext} from './interfaces/search-bar-interfaces';
 
 /**
  * The search bar element
@@ -99,9 +99,8 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
    */
   private _placeholder?: string;
 
-  @provide({context: suggesterRegistryContext})
   @state()
-  public suggesterRegistry: SuggesterRegistry;
+  suggesters?: SearchaliciousSuggester[] = [];
 
   /**
    * Place holder in search bar
@@ -126,8 +125,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
 
   constructor() {
     super();
-    // create registry
-    this.suggesterRegistry = new SuggesterRegistry(this);
     // @ts-ignore
     if (!window.setLocale) {
       // allow to set the locale from the browser
@@ -136,19 +133,24 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     }
   }
 
-  /** Ask suggesters for suggested options */
-  async getSuggestions(value: string) {
-    const suggesters = [
+  override firstUpdated(changedProperties: PropertyValues<this>) {
+    super.firstUpdated(changedProperties);
+    // this is the good time to register
+    this.suggesters = [
       ...this.querySelectorAll('searchalicious-taxonomy-suggest'),
     ];
+    this.suggesters.forEach((suggester) => (suggester.searchCtl = this));
+  }
+
+  /** Ask suggesters for suggested options */
+  async getSuggestions(value: string) {
+    if (this.suggesters === undefined) {
+      throw new Error('No suggesters registered');
+    }
     return Promise.allSettled(
-      // FIXME
-      suggesters.map((suggester) => {
+      this.suggesters.map((suggester) => {
         return (suggester as SearchaliciousSuggester).getSuggestions(value);
       })
-      //(this.suggesterRegistry.suggesters || []).map((suggester) => {
-      //  return suggester.getSuggestions(value);
-      //})
     ).then((optionsLists) => {
       const options: SuggestOption[] = [];
       optionsLists.forEach((result) => {
@@ -244,15 +246,6 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
         this.onReset();
       }
     });
-
-    // instanciate the suggesters
-    //const selector = Object.keys(SuggestersToClass).join(',');
-    //this.querySelectorAll(selector).forEach((suggesterElement) => {
-    //  const suggesterClass =
-    //    SuggestersToClass[suggesterElement.tagName.toLowerCase()];
-    //  const suggester = new suggesterClass(this.suggesterRegistry);
-    //  this.suggesterRegistry.registerSuggester(suggester);
-    //});
   }
 
   override disconnectedCallback() {
