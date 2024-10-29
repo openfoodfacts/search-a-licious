@@ -40,6 +40,9 @@ export class SearchaliciousSuggester extends LitElement {
   }
 }
 
+/**
+ * Selection Option for taxonomy suggestions
+ */
 type taxonomySelectionOption = SuggestionSelectionOption & {
   /**
    * taxonomy related to this suggestion
