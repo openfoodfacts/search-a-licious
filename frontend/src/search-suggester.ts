@@ -3,26 +3,50 @@
  * It indicates some suggestion that the search bar should apply
  *
  */
-import {LitElement, TemplateResult, html} from 'lit';
+import {LitElement, PropertyValues, TemplateResult, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {consume} from '@lit/context';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
 import {SearchaliciousSearchInterface} from './interfaces/search-ctl-interfaces';
 import {
   SuggestionSelectionOption,
   SuggestOption,
 } from './interfaces/suggestion-interfaces';
-import {SuggesterRegistryInterface} from './interfaces/search-bar-interfaces';
+import {
+  SuggesterRegistryInterface,
+  suggesterRegistryContext,
+} from './interfaces/search-bar-interfaces';
 import {SearchaliciousFacetsInterface} from './interfaces/facets-interfaces';
 import {removeLangFromTermId} from './utils/taxonomies';
-import {Constructor} from './mixins/utils';
+//import {Constructor} from './mixins/utils';
 
 export class SearchaliciousSuggester extends LitElement {
-  suggesterRegistry: SuggesterRegistryInterface;
+  //suggesterRegistry: SuggesterRegistryInterface;
 
-  constructor(suggesterRegistry: SuggesterRegistryInterface) {
-    super();
-    this.suggesterRegistry = suggesterRegistry;
+  //constructor(suggesterRegistry: SuggesterRegistryInterface) {
+  //  super();
+  //  this.suggesterRegistry = suggesterRegistry;
+  //}
+
+  @consume({context: suggesterRegistryContext})
+  suggesterRegistry!: SuggesterRegistryInterface;
+
+  //override connectedCallback() {
+  //  super.connectedCallback();
+  //  // this is the good time to register
+  //  this.suggesterRegistry?.registerSuggester(this);
+  //}
+
+  override firstUpdated(changedProperties: PropertyValues<this>) {
+    super.firstUpdated(changedProperties);
+    // this is the good time to register
+    this.suggesterRegistry?.registerSuggester(this);
   }
+
+  // override render() {
+  //   this.suggesterRegistry?.registerSuggester(this);
+  //   return html``;
+  // }
 
   /**
    * Query for options to suggest for value and return them
@@ -71,12 +95,6 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   fuzziness = 2;
 
   /**
-   * Search bar associated to this suggester
-   */
-  @property({attribute: false})
-  searchBar?: SearchaliciousSearchInterface;
-
-  /**
    * taxonomies attribute but as an array of String
    */
   get taxonomiesList() {
@@ -90,7 +108,7 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
    * @param term
    */
   selectTermByTaxonomy(taxonomy: string, term: string) {
-    for (const facets of this.searchBar!.relatedFacets()) {
+    for (const facets of this.suggesterRegistry.searchCtl!.relatedFacets()) {
       // if true, the facets has been updated
       if (
         (facets as SearchaliciousFacetsInterface).selectTermByTaxonomy(
@@ -142,12 +160,12 @@ declare global {
 /**
  * An expression to be able to get all suggesters using a querySelectorAll
  */
-export const SuggestersToClass: Record<
-  string,
-  Constructor<SearchaliciousSuggester>
-> = {
-  'searchalicious-taxonomy-suggest': SearchaliciousTaxonomySuggester,
-};
+//export const SuggestersToClass: Record<
+//  string,
+//  Constructor<SearchaliciousSuggester>
+//> = {
+//  'searchalicious-taxonomy-suggest': SearchaliciousTaxonomySuggester,
+//};
 
 export class SuggesterRegistry implements SuggesterRegistryInterface {
   suggesters: SearchaliciousSuggester[];
@@ -159,8 +177,8 @@ export class SuggesterRegistry implements SuggesterRegistryInterface {
   }
 
   registerSuggester(suggester: SearchaliciousSuggester): void {
-    if (!this.suggesters!.includes(suggester)) {
-      this.suggesters!.push(suggester);
+    if (!this.suggesters.includes(suggester)) {
+      this.suggesters.push(suggester);
     }
   }
 }

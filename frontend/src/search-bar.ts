@@ -1,12 +1,12 @@
 import {LitElement, html, css} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {customElement, property, state} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
 import {provide} from '@lit/context';
 import {setLocale} from './localization/main';
 import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
 import {SuggestOption} from './interfaces/suggestion-interfaces';
-import {SuggesterRegistry, SuggestersToClass} from './search-suggester';
+import {SearchaliciousSuggester, SuggesterRegistry} from './search-suggester';
 import {classMap} from 'lit/directives/class-map.js';
 import {searchBarInputAndButtonStyle} from './css/header';
 import {SearchaliciousEvents} from './utils/enums';
@@ -100,6 +100,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   private _placeholder?: string;
 
   @provide({context: suggesterRegistryContext})
+  @state()
   public suggesterRegistry: SuggesterRegistry;
 
   /**
@@ -137,10 +138,17 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
 
   /** Ask suggesters for suggested options */
   async getSuggestions(value: string) {
+    const suggesters = [
+      ...this.querySelectorAll('searchalicious-taxonomy-suggest'),
+    ];
     return Promise.allSettled(
-      (this.suggesterRegistry.suggesters || []).map((suggester) => {
-        return suggester.getSuggestions(value);
+      // FIXME
+      suggesters.map((suggester) => {
+        return (suggester as SearchaliciousSuggester).getSuggestions(value);
       })
+      //(this.suggesterRegistry.suggesters || []).map((suggester) => {
+      //  return suggester.getSuggestions(value);
+      //})
     ).then((optionsLists) => {
       const options: SuggestOption[] = [];
       optionsLists.forEach((result) => {
@@ -190,7 +198,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
    */
   renderSuggestions() {
     // Don't show suggestions if the input is not focused or the value is empty or there are no suggestions
-    if (!this.visible || !this.selectedOption || this.options.length === 0) {
+    if (!this.visible || !this.query || this.options.length === 0) {
       return html``;
     }
 
@@ -238,13 +246,13 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     });
 
     // instanciate the suggesters
-    const selector = Object.keys(SuggestersToClass).join(',');
-    this.querySelectorAll(selector).forEach((suggesterElement) => {
-      const suggesterClass =
-        SuggestersToClass[suggesterElement.tagName.toLowerCase()];
-      const suggester = new suggesterClass(this.suggesterRegistry);
-      this.suggesterRegistry.registerSuggester(suggester);
-    });
+    //const selector = Object.keys(SuggestersToClass).join(',');
+    //this.querySelectorAll(selector).forEach((suggesterElement) => {
+    //  const suggesterClass =
+    //    SuggestersToClass[suggesterElement.tagName.toLowerCase()];
+    //  const suggester = new suggesterClass(this.suggesterRegistry);
+    //  this.suggesterRegistry.registerSuggester(suggester);
+    //});
   }
 
   override disconnectedCallback() {
