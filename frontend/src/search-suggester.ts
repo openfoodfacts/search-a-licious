@@ -107,7 +107,7 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
       return this.terms.map((term) => ({
         value: removeLangFromTermId(term.id),
         label: term.text,
-        id: term.taxonomy_name + '-' + term.id,
+        id: term.id,
         source: this,
         input: value,
         taxonomy: term.taxonomy_name,
@@ -118,7 +118,7 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   override async selectSuggestion(selected: SuggestionSelectionOption) {
     this.selectTermByTaxonomy(
       (selected as taxonomySelectionOption).taxonomy,
-      selected.value
+      selected.id
     );
   }
 

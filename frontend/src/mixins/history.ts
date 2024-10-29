@@ -53,17 +53,27 @@ const HISTORY_VALUES: Record<
       sortOptionId: history.sort_by,
     };
   },
+  // NOTE: this approach is a bit brittle,
+  // shan't we instead store selected facets in the URL directly?
   [HistorySearchParams.FACETS_FILTERS]: (history) => {
     if (!history.facetsFilters) {
       return {};
     }
     // we split back the facetsFilters expression to its sub components
     // parameter value is facet1:(value1 OR value2) AND facet2:(value3 OR value4)
+    // but beware quotes: facet1:"en:value1"
     const selectedTermsByFacet = history.facetsFilters
       .split(QueryOperator.AND)
       .reduce((acc, filter) => {
-        const [key, value] = filter.split(':');
-        acc[key] = removeParenthesis(value).split(QueryOperator.OR);
+        const [key, ...values] = filter.split(':');
+        // keep last parts
+        let value = values.join(':');
+        // remove parenthesis if any
+        value = value.replace(/^\((.*)\)$/, '$1');
+        acc[key] = acc[key] || [];
+        value.split(QueryOperator.OR).forEach((value) => {
+          acc[key].push(removeParenthesis(value));
+        });
         return acc;
       }, {} as Record<string, string[]>);
 
