@@ -2,17 +2,16 @@ import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousSearchMixin} from './mixins/search-ctl';
 import {localized, msg} from '@lit/localize';
+import {provide} from '@lit/context';
 import {setLocale} from './localization/main';
 import {SuggestionSelectionMixin} from './mixins/suggestion-selection';
-import {
-  SearchaliciousSuggester,
-  SuggestOption,
-  SuggestersSelector,
-} from './search-suggester';
+import {SuggestOption} from './interfaces/suggestion-interfaces';
+import {SuggesterRegistry, SuggestersToClass} from './search-suggester';
 import {classMap} from 'lit/directives/class-map.js';
 import {searchBarInputAndButtonStyle} from './css/header';
 import {SearchaliciousEvents} from './utils/enums';
 import {isTheSameSearchName} from './utils/search';
+import {suggesterRegistryContext} from './interfaces/search-bar-interfaces';
 
 /**
  * The search bar element
@@ -100,6 +99,9 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
    */
   private _placeholder?: string;
 
+  @provide({context: suggesterRegistryContext})
+  public suggesterRegistry: SuggesterRegistry;
+
   /**
    * Place holder in search bar
    */
@@ -123,25 +125,20 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
 
   constructor() {
     super();
-
-    // allow to set the locale from the browser
+    // create registry
+    this.suggesterRegistry = new SuggesterRegistry(this);
     // @ts-ignore
-    window.setLocale = setLocale;
-  }
-
-  /** Return the list of suggesters contained in the search bar */
-  get suggesters() {
-    const suggesters: SearchaliciousSuggester[] = [];
-    this.querySelectorAll(SuggestersSelector).forEach((element) => {
-      suggesters.push(element as SearchaliciousSuggester);
-    });
-    return suggesters;
+    if (!window.setLocale) {
+      // allow to set the locale from the browser
+      // @ts-ignore
+      window.setLocale = setLocale;
+    }
   }
 
   /** Ask suggesters for suggested options */
   async getSuggestions(value: string) {
     return Promise.allSettled(
-      this.suggesters.map((suggester) => {
+      (this.suggesterRegistry.suggesters || []).map((suggester) => {
         return suggester.getSuggestions(value);
       })
     ).then((optionsLists) => {
@@ -238,6 +235,15 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
       if (isTheSameSearchName(this.name, event)) {
         this.onReset();
       }
+    });
+
+    // instanciate the suggesters
+    const selector = Object.keys(SuggestersToClass).join(',');
+    this.querySelectorAll(selector).forEach((suggesterElement) => {
+      const suggesterClass =
+        SuggestersToClass[suggesterElement.tagName.toLowerCase()];
+      const suggester = new suggesterClass(this.suggesterRegistry);
+      this.suggesterRegistry.registerSuggester(suggester);
     });
   }
 

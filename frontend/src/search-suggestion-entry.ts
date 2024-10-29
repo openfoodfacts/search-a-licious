@@ -1,6 +1,6 @@
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-import {SuggestionSelectionOption} from './mixins/suggestion-selection';
+import {SuggestionSelectionOption} from './interfaces/suggestion-interfaces';
 
 /**
  * This component represent a suggestion to the user as he types his search.

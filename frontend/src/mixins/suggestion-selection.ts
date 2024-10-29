@@ -2,6 +2,7 @@ import {LitElement} from 'lit';
 import {Constructor} from './utils';
 import {property, state} from 'lit/decorators.js';
 import {DebounceMixin, DebounceMixinInterface} from './debounce';
+import {SuggestionSelectionOption} from '../interfaces/suggestion-interfaces';
 
 /**
  * Interface for the Suggestion Selection mixin.
@@ -28,32 +29,6 @@ export interface SuggestionSelectionMixinInterface
   onFocus(): void;
   onBlur(): void;
 }
-
-/**
- * Type for suggestion option.
- */
-export type SuggestionSelectionOption = {
-  /**
-   * value assigned to this suggestion
-   */
-  value: string;
-  /**
-   * Label to display this suggestion
-   */
-  label: string;
-  /**
-   * Unique id for this suggestion
-   *
-   * It is important when we have multiple suggestions sources
-   */
-  id: string;
-  /**
-   * text that gave the suggestion
-   *
-   * It is important because we might do a suggestion on part of the searched terms
-   */
-  input: string;
-};
 
 /**
  * Type for suggestion result.

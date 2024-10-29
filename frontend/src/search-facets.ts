@@ -10,6 +10,7 @@ import {QueryOperator, SearchaliciousEvents} from './utils/enums';
 import {getPluralTranslation} from './localization/translations';
 import {msg, localized} from '@lit/localize';
 import {WHITE_PANEL_STYLE} from './styles';
+import {SearchaliciousFacetsInterface} from './interfaces/facets-interfaces';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 
 interface FacetsInfos {
@@ -46,9 +47,10 @@ function stringGuard(s: string | undefined): s is string {
  */
 @customElement('searchalicious-facets')
 @localized()
-export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
-  SearchActionMixin(LitElement)
-) {
+export class SearchaliciousFacets
+  extends SearchaliciousResultCtlMixin(SearchActionMixin(LitElement))
+  implements SearchaliciousFacetsInterface
+{
   static override styles = css`
     .reset-button-wrapper {
       display: flex;

@@ -6,22 +6,24 @@
 import {LitElement, TemplateResult, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
-import {SearchaliciousSearchInterface} from './mixins/search-ctl';
-import {SuggestionSelectionOption} from './mixins/suggestion-selection';
-import {SearchaliciousFacets} from './search-facets';
+import {SearchaliciousSearchInterface} from './interfaces/search-ctl-interfaces';
+import {
+  SuggestionSelectionOption,
+  SuggestOption,
+} from './interfaces/suggestion-interfaces';
+import {SuggesterRegistryInterface} from './interfaces/search-bar-interfaces';
+import {SearchaliciousFacetsInterface} from './interfaces/facets-interfaces';
 import {removeLangFromTermId} from './utils/taxonomies';
-
-/**
- * Type for a suggested option
- */
-export type SuggestOption = SuggestionSelectionOption & {
-  /**
-   * source of this suggestion
-   */
-  source: SearchaliciousSuggester;
-};
+import {Constructor} from './mixins/utils';
 
 export class SearchaliciousSuggester extends LitElement {
+  suggesterRegistry: SuggesterRegistryInterface;
+
+  constructor(suggesterRegistry: SuggesterRegistryInterface) {
+    super();
+    this.suggesterRegistry = suggesterRegistry;
+  }
+
   /**
    * Query for options to suggest for value and return them
    */
@@ -48,7 +50,7 @@ export class SearchaliciousSuggester extends LitElement {
  * An element to be used inside a searchalicious-bar component.
  * It enables giving suggestions that are based upon taxonomies
  */
-@customElement('searchalicious-taxonomy-suggester')
+@customElement('searchalicious-taxonomy-suggest')
 export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   SearchaliciousSuggester
 ) {
@@ -69,30 +71,16 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   fuzziness = 2;
 
   /**
+   * Search bar associated to this suggester
+   */
+  @property({attribute: false})
+  searchBar?: SearchaliciousSearchInterface;
+
+  /**
    * taxonomies attribute but as an array of String
    */
   get taxonomiesList() {
     return this.taxonomies.split(',');
-  }
-
-  /**
-   * Return the search bar this element is contained in
-   */
-  get searchBar(): SearchaliciousSearchInterface {
-    const searchBar = this.closest('searchalicious-bar');
-    if (searchBar == null) {
-      throw new Error(
-        'Taxonomy suggester must be contained in a searchalicious-bar'
-      );
-    }
-    return searchBar;
-  }
-
-  /** list of facets containers */
-  _facetsParentNode() {
-    return document.querySelectorAll(
-      `searchalicious-facets[search-name=${this.searchBar.name}]`
-    );
   }
 
   /**
@@ -102,10 +90,13 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
    * @param term
    */
   selectTermByTaxonomy(taxonomy: string, term: string) {
-    for (const facets of this._facetsParentNode()) {
+    for (const facets of this.searchBar!.relatedFacets()) {
       // if true, the facets has been updated
       if (
-        (facets as SearchaliciousFacets).selectTermByTaxonomy(taxonomy, term)
+        (facets as SearchaliciousFacetsInterface).selectTermByTaxonomy(
+          taxonomy,
+          term
+        )
       ) {
         return;
       }
@@ -151,4 +142,25 @@ declare global {
 /**
  * An expression to be able to get all suggesters using a querySelectorAll
  */
-export const SuggestersSelector = 'searchalicious-taxonomy-suggest';
+export const SuggestersToClass: Record<
+  string,
+  Constructor<SearchaliciousSuggester>
+> = {
+  'searchalicious-taxonomy-suggest': SearchaliciousTaxonomySuggester,
+};
+
+export class SuggesterRegistry implements SuggesterRegistryInterface {
+  suggesters: SearchaliciousSuggester[];
+  searchCtl: SearchaliciousSearchInterface;
+
+  constructor(searchCtl: SearchaliciousSearchInterface) {
+    this.searchCtl = searchCtl;
+    this.suggesters = [];
+  }
+
+  registerSuggester(suggester: SearchaliciousSuggester): void {
+    if (!this.suggesters!.includes(suggester)) {
+      this.suggesters!.push(suggester);
+    }
+  }
+}

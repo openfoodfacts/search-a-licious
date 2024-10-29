@@ -1,15 +1,14 @@
 import {css, LitElement, html, nothing} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 
+import {
+  SortParameters,
+  SearchaliciousSortInterface,
+} from './interfaces/sort-interfaces';
 import {SearchActionMixin} from './mixins/search-action';
 import {EventRegistrationMixin} from './event-listener-setup';
 import {SearchaliciousEvents} from './utils/enums';
 
-export interface SortParameters {
-  sort_by?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sort_params?: Record<string, any>;
-}
 /**
  * A component to enable user to choose a search order.
  *
@@ -21,9 +20,10 @@ export interface SortParameters {
  * @cssproperty --sort-options-background-color - The background color of the options.t
  */
 @customElement('searchalicious-sort')
-export class SearchaliciousSort extends SearchActionMixin(
-  EventRegistrationMixin(LitElement)
-) {
+export class SearchaliciousSort
+  extends SearchActionMixin(EventRegistrationMixin(LitElement))
+  implements SearchaliciousSortInterface
+{
   static override styles = css`
     .options {
       list-style: none;
