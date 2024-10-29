@@ -20,11 +20,11 @@
       </trans-unit>
       <trans-unit id="sb074d20f9b64aa31">
         <source>results found</source>
-        <target state="needs-translation">results found</target>
+        <target state="translated">nalezeny výsledky</target>
       </trans-unit>
       <trans-unit id="h4a560de48c98b38f">
         <source>More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</source>
-        <target state="needs-translation">More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</target>
+        <target state="translated">Bylo nalezeno více než <x id="0" equiv-text="${this.searchResultDetail.count}"/> výsledků</target>
       </trans-unit>
       <trans-unit id="s49730f3d5751a433">
         <source>Loading...</source>
