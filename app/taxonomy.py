@@ -23,7 +23,7 @@ DEFAULT_CACHE_DIR = settings.taxonomy_cache_dir.expanduser()
 logger = get_logger(__name__)
 
 
-class TaxonomyNode:
+class TaxonomyNode(BaseModel):
     """A taxonomy element.
 
     Each node has 0+ parents and 0+ children. Each node has the following
@@ -39,25 +39,12 @@ class TaxonomyNode:
       for this language
     """
 
-    __slots__ = ("id", "names", "parents", "children", "synonyms", "properties")
-
-    def __init__(
-        self,
-        identifier: str,
-        names: Dict[str, str],
-        synonyms: Optional[Dict[str, List[str]]],
-        properties: Optional[Dict[str, Any]] = None,
-    ):
-        self.id: str = identifier
-        self.names: Dict[str, str] = names
-        self.parents: List["TaxonomyNode"] = []
-        self.children: List["TaxonomyNode"] = []
-        self.properties = properties or {}
-
-        if synonyms:
-            self.synonyms = synonyms
-        else:
-            self.synonyms = {}
+    id: str
+    names: Dict[str, str]
+    parents: List["TaxonomyNode"] = []
+    children: List["TaxonomyNode"] = []
+    synonyms: Dict[str, List[str]] = {}
+    properties: Dict[str, Any] = {}
 
     def is_child_of(self, item: "TaxonomyNode") -> bool:
         """Return True if `item` is a child of `self` in the taxonomy."""
@@ -276,7 +263,7 @@ class Taxonomy:
         for key, key_data in data.items():
             if key not in taxonomy:
                 node = TaxonomyNode(
-                    identifier=key,
+                    id=key,
                     names=key_data.get("name", {}),
                     synonyms=key_data.get("synonyms", None),
                     properties={
