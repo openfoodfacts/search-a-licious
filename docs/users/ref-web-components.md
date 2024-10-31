@@ -39,6 +39,10 @@ You'll need it if you mix multiple search bars in the same page.
 
 <api-viewer src="./dist/custom-elements.json" only="searchalicious-pages">
 
+### searchalicious-taxonomy-suggest
+
+<api-viewer src="./dist/custom-elements.json" only="searchalicious-suggest"></api-viewer>
+
 ### searchalicious-facets
 
 <api-viewer src="./dist/custom-elements.json" only="searchalicious-sort">
