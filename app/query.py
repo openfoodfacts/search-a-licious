@@ -331,7 +331,7 @@ def build_completion_query(
 
     :param q: the user autocomplete query
     :param taxonomy_names: a list of taxonomies we want to search in
-    :param langs: the language we want search in
+    :param langs: the languages we want search in
     :param size: number of results to return
     :param config: the index configuration to use
     :param fuzziness: fuzziness parameter for completion query
