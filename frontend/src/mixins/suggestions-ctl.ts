@@ -102,6 +102,9 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
       q: string,
       taxonomyNames: string[]
     ): Promise<TaxomiesTermsResponse> {
+      if (!q) {
+        return Promise.resolve({options: []});
+      }
       this.isTermsLoading = true;
       // get the version of the terms for each taxonomy
       const version = this.incrementVersion();
