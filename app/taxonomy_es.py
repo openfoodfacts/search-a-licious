@@ -23,18 +23,40 @@ def get_taxonomy_names(
 ) -> dict[tuple[str, str], dict[str, str]]:
     """Given a set of terms in different taxonomies, return their names"""
     filters = []
+    no_lang_prefix_ids = {id_ for id_, _ in items if ":" not in id_}
     for id, taxonomy_name in items:
+        # we may not have lang prefix, in this case blind match them
+        id_term = (
+            Q("term", id=id)
+            if id not in no_lang_prefix_ids
+            else Q("wildcard", id={"value": f"*:{id}"})
+        )
         # match one term
-        filters.append(Q("term", id=id) & Q("term", taxonomy_name=taxonomy_name))
+        filters.append(id_term & Q("term", taxonomy_name=taxonomy_name))
     query = (
         Search(index=config.taxonomy.index.name)
         .filter("bool", should=filters, minimum_should_match=1)
         .params(size=len(filters))
     )
-    return {
-        (result.id, result.taxonomy_name): result.name.to_dict()
-        for result in query.execute().hits
+    results = query.execute().hits
+    # some id needs to be replaced by a value
+    no_lang_prefix = {
+        result.id: result.id.split(":", 1)[-1]
+        for result in results
+        if result.id.split(":", 1)[-1] in no_lang_prefix_ids
     }
+    translations = {
+        (result.id, result.taxonomy_name): result.name.to_dict() for result in results
+    }
+    # add values without prefix, because we may have some
+    translations.update(
+        {
+            (no_lang_prefix[result.id], result.taxonomy_name): result.name.to_dict()
+            for result in results
+            if no_lang_prefix[result.id] in no_lang_prefix_ids
+        }
+    )
+    return translations
 
 
 def _normalize_synonym(token: str) -> str:
