@@ -187,6 +187,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
       const selectedOption = this.selectedOption as SuggestOption;
       selectedOption!.source.selectSuggestion(selectedOption);
       this.resetInput(this.selectedOption);
+      this.selectedOption = undefined;
       this.query = ''; // not sure if we should instead put the value of remaining input
     } else {
       this.query = this.selectedOption?.value || '';

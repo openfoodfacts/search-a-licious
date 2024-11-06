@@ -62,7 +62,7 @@ def load_result_processor(config: IndexConfig) -> BaseResultProcessor | None:
     return result_processor_cls(config)
 
 
-def process_taxonomy_completion_response(response: Response) -> JSONType:
+def process_taxonomy_completion_response(response: Response, input: str) -> JSONType:
     output = {"took": response.took, "timed_out": response.timed_out}
     options = []
     ids = set()
@@ -78,6 +78,7 @@ def process_taxonomy_completion_response(response: Response) -> JSONType:
                     "id": option._source["id"],
                     "text": option.text,
                     "score": option._score,
+                    "input": input,
                     "taxonomy_name": option._source["taxonomy_name"],
                 }
                 options.append(result)

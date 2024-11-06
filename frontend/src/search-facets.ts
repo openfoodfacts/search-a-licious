@@ -404,7 +404,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
         value: removeLangFromTermId(term.id),
         label: term.text,
         id: term.id,
-        input: term.text,
+        input: term.input,
       };
     });
 

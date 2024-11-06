@@ -136,6 +136,7 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
     );
     this.dispatchEvent(inputEvent);
     this.resetInput(selectedOption);
+    this.selectedOption = undefined;
   }
 
   /**

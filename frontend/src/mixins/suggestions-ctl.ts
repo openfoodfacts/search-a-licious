@@ -9,6 +9,7 @@ import {VersioningMixin, VersioningMixinInterface} from './versioning';
 export type TermOption = {
   id: string;
   text: string;
+  input: string;
   taxonomy_name: string;
 };
 

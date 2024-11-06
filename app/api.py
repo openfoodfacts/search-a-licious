@@ -183,7 +183,7 @@ def taxonomy_autocomplete(
             detail="taxonomy index not found, taxonomies need to be imported first",
         )
 
-    response = process_taxonomy_completion_response(es_response)
+    response = process_taxonomy_completion_response(es_response, q)
 
     return {
         **response,
