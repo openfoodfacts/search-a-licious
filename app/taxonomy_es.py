@@ -40,11 +40,7 @@ def get_taxonomy_names(
     )
     results = query.execute().hits
     # some id needs to be replaced by a value
-    no_lang_prefix = {
-        result.id: result.id.split(":", 1)[-1]
-        for result in results
-        if result.id.split(":", 1)[-1] in no_lang_prefix_ids
-    }
+    no_lang_prefix = {result.id: result.id.split(":", 1)[-1] for result in results}
     translations = {
         (result.id, result.taxonomy_name): result.name.to_dict() for result in results
     }
