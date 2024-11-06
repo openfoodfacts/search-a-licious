@@ -402,7 +402,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     const options = (this.terms || []).map((term) => {
       return {
         value: removeLangFromTermId(term.id),
-        label: term.text,
+        label: this.termLabel(term),
         id: term.id,
         input: term.input,
       };

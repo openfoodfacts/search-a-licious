@@ -120,7 +120,7 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
       return this.terms.map((term) => ({
         // we need to remove lang for some pseudo taxonomy fields don't have them…
         value: removeLangFromTermId(term.id),
-        label: term.text,
+        label: this.termLabel(term),
         id: term.id,
         source: this,
         input: value,

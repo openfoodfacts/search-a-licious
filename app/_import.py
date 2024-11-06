@@ -275,23 +275,25 @@ def gen_taxonomy_documents(
                     continue  # skip this entry
                 node = result.node
             names = {
-                lang: lang_names
-                for lang, lang_names in node.names.items()
-                if lang in supported_langs
+                lang: lang_name
+                for lang, lang_name in node.names.items()
+                if lang in supported_langs and lang_name
             }
             synonyms: dict[str, set[str]] = {
                 lang: set(node.synonyms.get(lang) or [])
                 for lang in node.synonyms
                 if lang in supported_langs
             }
-            for lang, lang_names in names.items():
-                if lang_names:
-                    if not isinstance(lang_names, str):
-                        import pdb
-
-                        pdb.set_trace()
-                    synonyms.setdefault(lang, set()).add(lang_names)
-
+            for lang, lang_name in names.items():
+                if lang_name:
+                    synonyms.setdefault(lang, set()).add(lang_name)
+            # put the name as first synonym and order  by length
+            synonyms_list: dict[str, list[str]] = {}
+            for lang, lang_synonyms in synonyms.items():
+                filtered_synonyms = filter(lambda s: s, lang_synonyms)
+                synonyms_list[lang] = sorted(
+                    filtered_synonyms, key=lambda s: 0 if s == names[lang] else len(s)
+                )
             yield {
                 "_index": next_index,
                 "_source": {
@@ -300,10 +302,10 @@ def gen_taxonomy_documents(
                     "name": names,
                     "synonyms": {
                         lang: {
-                            "input": list(lang_synonyms),
+                            "input": lang_synonyms,
                             "weight": max(100 - len(node.id), 0),
                         }
-                        for lang, lang_synonyms in synonyms.items()
+                        for lang, lang_synonyms in synonyms_list.items()
                     },
                 },
             }

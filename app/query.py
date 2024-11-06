@@ -355,7 +355,7 @@ def build_completion_query(
             completion=completion_clause,
         )
     # limit returned fields
-    # query.source(fields=["id", "taxonomy_name"])
+    query.source(fields=["id", "taxonomy_name", "name"])
     return query
 
 

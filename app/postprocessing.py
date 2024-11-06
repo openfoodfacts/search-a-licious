@@ -62,10 +62,13 @@ def load_result_processor(config: IndexConfig) -> BaseResultProcessor | None:
     return result_processor_cls(config)
 
 
-def process_taxonomy_completion_response(response: Response, input: str) -> JSONType:
+def process_taxonomy_completion_response(
+    response: Response, input: str, langs: list[str]
+) -> JSONType:
     output = {"took": response.took, "timed_out": response.timed_out}
     options = []
     ids = set()
+    lang = langs[0]
     for suggestion_id in dir(response.suggest):
         if not suggestion_id.startswith("taxonomy_suggest_"):
             continue
@@ -77,6 +80,7 @@ def process_taxonomy_completion_response(response: Response, input: str) -> JSON
                 result = {
                     "id": option._source["id"],
                     "text": option.text,
+                    "name": getattr(option._source["name"], lang, ""),
                     "score": option._score,
                     "input": input,
                     "taxonomy_name": option._source["taxonomy_name"],

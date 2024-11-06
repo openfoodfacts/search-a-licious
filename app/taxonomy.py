@@ -135,6 +135,11 @@ class TaxonomyNode(BaseModel):
         return "<TaxonomyNode %s>" % self.id
 
 
+def purge_none_values(d: Dict[str, str | None]) -> Dict[str, str]:
+    """Remove None values from a dict."""
+    return {k: v for k, v in d.items() if v is not None}
+
+
 class Taxonomy:
     """A class representing a taxonomy.
 
@@ -264,8 +269,8 @@ class Taxonomy:
             if key not in taxonomy:
                 node = TaxonomyNode(
                     id=key,
-                    names=key_data.get("name", {}),
-                    synonyms=key_data.get("synonyms", None),
+                    names=purge_none_values(key_data.get("name", {})),
+                    synonyms=key_data.get("synonyms", {}),
                     properties={
                         k: v
                         for k, v in key_data.items()

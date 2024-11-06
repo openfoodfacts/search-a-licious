@@ -10,6 +10,7 @@ export type TermOption = {
   id: string;
   text: string;
   input: string;
+  name: string;
   taxonomy_name: string;
 };
 
@@ -29,6 +30,8 @@ export interface SearchaliciousTaxonomiesInterface
   isTermsLoading: boolean;
   taxonomiesBaseUrl: string;
   langs: string;
+
+  termLabel(term: TermOption): string;
 
   /**
    * Method to get taxonomies terms.
@@ -69,6 +72,13 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
      */
     get langs(): string {
       throw new Error('langs must be defined in child class');
+    }
+
+    termLabel(term: TermOption): string {
+      return (
+        term.text +
+        (term.name && term.name != term.text ? ` (${term.name})` : '')
+      );
     }
 
     /**
