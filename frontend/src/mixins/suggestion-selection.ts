@@ -12,6 +12,7 @@ export interface SuggestionSelectionMixinInterface
   inputName: string;
   options: SuggestionSelectionOption[];
   selectedOption: SuggestionSelectionOption | undefined;
+  inputValue: string;
   visible: boolean;
   isLoading: boolean;
   currentIndex: number;

@@ -75,6 +75,16 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   fuzziness = 2;
 
   /**
+   * language in which suggestions are to be found
+   */
+  override get langs(): string {
+    if (!this.searchCtl) {
+      throw Error('Asking for langs while searchCtl is not yet registered');
+    }
+    return this.searchCtl.langs;
+  }
+
+  /**
    * taxonomies attribute but as an array of String
    */
   get taxonomiesList() {

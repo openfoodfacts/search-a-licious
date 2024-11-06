@@ -158,7 +158,7 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
         />
         <ul
           class=${classMap({
-            visible: this.visible && !!this.selectedOption?.value.length,
+            visible: this.visible && !!this.inputValue.length,
           })}
         >
           ${this.isLoading

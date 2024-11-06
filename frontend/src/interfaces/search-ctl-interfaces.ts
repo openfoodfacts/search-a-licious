@@ -25,3 +25,10 @@ export interface SearchaliciousSearchInterface
   _facetsFilters(): string;
   resetFacets(launchSearch?: boolean): void;
 }
+
+/**
+ * An interface to be able to get the search controller corresponding to a component
+ */
+export interface SearchCtlGetInterface {
+  getSearchCtl(): SearchaliciousSearchInterface;
+}

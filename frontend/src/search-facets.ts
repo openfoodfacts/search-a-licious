@@ -16,6 +16,7 @@ import {msg, localized} from '@lit/localize';
 import {WHITE_PANEL_STYLE} from './styles';
 import {SearchaliciousFacetsInterface} from './interfaces/facets-interfaces';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
+import {SearchCtlGetMixin} from './mixins/search-ctl-getter';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -248,7 +249,9 @@ export class SearchaliciousFacet extends LitElement {
 @customElement('searchalicious-facet-terms')
 @localized()
 export class SearchaliciousTermsFacet extends SearchActionMixin(
-  SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
+  SearchaliciousTermsMixin(
+    SearchCtlGetMixin(DebounceMixin(SearchaliciousFacet))
+  )
 ) {
   static override styles = [
     WHITE_PANEL_STYLE,
@@ -290,6 +293,15 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
 
   @property({attribute: 'show-other', type: Boolean})
   showOther = false;
+
+  /**
+   * Interrogation language for suggestion
+   *
+   * We use the same as the search-bar
+   */
+  override get langs() {
+    return this.getSearchCtl().langs;
+  }
 
   _launchSearchWithDebounce = () =>
     this.debounce(() => {

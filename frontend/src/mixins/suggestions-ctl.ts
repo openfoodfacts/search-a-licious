@@ -61,8 +61,14 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
     @property({attribute: 'base-url'})
     taxonomiesBaseUrl = '/';
 
-    @property()
-    langs = 'en';
+    /**
+     * langs to get suggestion from.
+     *
+     * Must be implementetd in  child class
+     */
+    get langs(): string {
+      throw new Error('langs must be defined in child class');
+    }
 
     /**
      * build URL to search taxonomies terms from input
