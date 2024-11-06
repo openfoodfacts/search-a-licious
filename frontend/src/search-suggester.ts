@@ -118,6 +118,7 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   override async getSuggestions(value: string): Promise<SuggestOption[]> {
     return this.getTaxonomiesTerms(value, this.taxonomiesList).then(() => {
       return this.terms.map((term) => ({
+        // we need to remove lang for some pseudo taxonomy fields don't have them…
         value: removeLangFromTermId(term.id),
         label: term.text,
         id: term.id,
@@ -131,7 +132,7 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   override async selectSuggestion(selected: SuggestionSelectionOption) {
     this.selectTermByTaxonomy(
       (selected as taxonomySelectionOption).taxonomy,
-      selected.id
+      selected.value
     );
   }
 
