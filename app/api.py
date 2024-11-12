@@ -149,8 +149,11 @@ def taxonomy_autocomplete(
             description="Name(s) of the taxonomy to search in, as a comma-separated value."
         ),
     ],
-    lang: Annotated[
-        str, Query(description="Language to search in, defaults to 'en'.")
+    langs: Annotated[
+        str,
+        Query(
+            description="Languages to search in (as a comma separated list), defaults to 'en'."
+        ),
     ] = "en",
     size: Annotated[int, Query(description="Number of results to return.")] = 10,
     fuzziness: Annotated[
@@ -167,7 +170,7 @@ def taxonomy_autocomplete(
     query = build_completion_query(
         q=q,
         taxonomy_names=taxonomy_names_list,
-        lang=lang,
+        langs=langs.split(","),
         size=size,
         config=index_config,
         fuzziness=fuzziness,
@@ -180,7 +183,7 @@ def taxonomy_autocomplete(
             detail="taxonomy index not found, taxonomies need to be imported first",
         )
 
-    response = process_taxonomy_completion_response(es_response)
+    response = process_taxonomy_completion_response(es_response, q, langs.split(","))
 
     return {
         **response,

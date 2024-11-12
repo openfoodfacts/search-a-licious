@@ -2,6 +2,8 @@
 # Build config documentation in markdown
 # Use it before using mkdocs
 
+echo "::group::{build_schema $1}"
+
 # Parameter is the schema type: config / settings
 SCHEMA=$1
 
@@ -32,3 +34,5 @@ docker run --rm --user user \
 mv build/ref-$SCHEMA/* gh_pages/users/ref-$SCHEMA/
 # also source
 cp data/searchalicious-$SCHEMA-schema.yml gh_pages/users/ref-$SCHEMA/
+
+echo "::endgroup::"

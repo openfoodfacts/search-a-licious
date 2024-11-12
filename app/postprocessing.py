@@ -62,16 +62,32 @@ def load_result_processor(config: IndexConfig) -> BaseResultProcessor | None:
     return result_processor_cls(config)
 
 
-def process_taxonomy_completion_response(response: Response) -> JSONType:
+def process_taxonomy_completion_response(
+    response: Response, input: str, langs: list[str]
+) -> JSONType:
     output = {"took": response.took, "timed_out": response.timed_out}
     options = []
-    suggestion = response.suggest["taxonomy_suggest"][0]
-    for option in suggestion.options:
-        result = {
-            "id": option._source["id"],
-            "text": option.text,
-            "taxonomy_name": option._source["taxonomy_name"],
-        }
-        options.append(result)
-    output["options"] = options
+    ids = set()
+    lang = langs[0]
+    for suggestion_id in dir(response.suggest):
+        if not suggestion_id.startswith("taxonomy_suggest_"):
+            continue
+        for suggestion in getattr(response.suggest, suggestion_id):
+            for option in suggestion.options:
+                if option._source["id"] in ids:
+                    continue
+                ids.add(option._source["id"])
+                result = {
+                    "id": option._source["id"],
+                    "text": option.text,
+                    "name": getattr(option._source["name"], lang, ""),
+                    "score": option._score,
+                    "input": input,
+                    "taxonomy_name": option._source["taxonomy_name"],
+                }
+                options.append(result)
+    # highest score first
+    output["options"] = sorted(
+        options, key=lambda option: option["score"], reverse=True
+    )
     return output

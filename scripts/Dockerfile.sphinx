@@ -1,5 +1,5 @@
 # in your Dockerfile
-FROM sphinxdoc/sphinx:latest
+FROM sphinxdoc/sphinx:7.4.7
 
 ARG USER_UID=1000
 ARG USER_GID=1000
@@ -11,12 +11,12 @@ RUN addgroup --gid $USER_GID user && adduser --uid $USER_UID --ingroup user --no
 RUN mkdir -p /docs/build  && mkdir -p /docs/source && chown user:user /docs
 # install poetry, and export dependencies as a requirement.txt
 COPY poetry.lock  pyproject.toml ./
-RUN apt update && apt install -y curl
+RUN apt update && apt install -y curl cargo
 RUN ( curl -sSL https://install.python-poetry.org | python3 - ) && \
     /root/.local/bin/poetry self add poetry-plugin-export  && \
     /root/.local/bin/poetry export --output requirements.txt
 # install those dependencies
-RUN pip install -r requirements.txt
+RUN pip install -U pip && pip install -r requirements.txt
 # install some useful plugin for sphinx
 RUN pip install autodoc_pydantic sphinxcontrib-typer
 USER user

@@ -87,7 +87,7 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
       ? this.options.map(
           (option, index) => html` <li
             class=${classMap({selected: index + 1 === this.currentIndex})}
-            @click=${this.onClick(index)}
+            @click=${this.onClick(option)}
           >
             ${option.label}
           </li>`
@@ -118,23 +118,25 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
    * It is used to submit the input value after selecting an option.
    * @param {boolean} isSuggestion - A boolean value to check if the value is a suggestion or a free input from the user.
    */
-  override submit(isSuggestion = false) {
-    if (!this.value) return;
+  override submitSuggestion(isSuggestion = false) {
+    const selectedOption = this.selectedOption;
+    if (!selectedOption) return;
 
     const inputEvent = new CustomEvent(
       SearchaliciousEvents.AUTOCOMPLETE_SUBMIT,
       {
         // we send both value and label
         detail: {
-          value: this.value,
-          label: isSuggestion ? this.currentOption!.label : undefined,
+          value: selectedOption.value,
+          label: isSuggestion ? selectedOption!.label : undefined,
         } as SuggestionSelectionResult,
         bubbles: true,
         composed: true,
       }
     );
     this.dispatchEvent(inputEvent);
-    this.resetInput();
+    this.resetInput(selectedOption);
+    this.selectedOption = undefined;
   }
 
   /**
@@ -148,14 +150,18 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
           type="text"
           name="${this.inputName}"
           id="${this.inputName}"
-          .value=${this.value}
+          .value=${this.selectedOption?.value || ''}
           @input=${this.onInput}
           @keydown=${this.onKeyDown}
           autocomplete="off"
           @focus=${this.onFocus}
           @blur=${this.onBlur}
         />
-        <ul class=${classMap({visible: this.visible && this.value.length})}>
+        <ul
+          class=${classMap({
+            visible: this.visible && !!this.inputValue.length,
+          })}
+        >
           ${this.isLoading
             ? html`<li>${msg('Loading...')}</li>`
             : this._renderSuggestions()}

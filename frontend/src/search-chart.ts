@@ -4,16 +4,8 @@ import {customElement, property} from 'lit/decorators.js';
 import {WHITE_PANEL_STYLE} from './styles';
 import {SearchResultDetail} from './signals';
 
+import {ChartSearchParam} from './interfaces/chart-interfaces';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-
-interface ChartSearchParamPOST {
-  chart_type: string;
-  field?: string;
-  x?: string;
-  y?: string;
-}
-
-export type ChartSearchParam = ChartSearchParamPOST | string;
 
 // eslint raises error due to :any
 // eslint-disable-next-line

@@ -50,6 +50,7 @@ indices:
     primary_color: "#341100"
     accent_color: "#ff8714"
     taxonomy:
+      preprocessor: tests.int.helpers.TestTaxonomyPreprocessor
       sources:
       - name: categories
         url: file:///opt/search/tests/int/data/test_categories.full.json

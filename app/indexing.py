@@ -9,12 +9,12 @@ from elasticsearch_dsl import field as dsl_field
 from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import (
     ANALYZER_LANG_MAPPING,
-    Config,
     FieldConfig,
     FieldType,
     IndexConfig,
     TaxonomyConfig,
 )
+from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
 from app.utils import load_class_object_from_string
 from app.utils.analyzers import (
     get_autocomplete_analyzer,
@@ -104,8 +104,41 @@ def preprocess_field_value(
     return input_value
 
 
+class BaseTaxonomyPreprocessor(abc.ABC):
+    """Base class for taxonomy entries preprocessors.
+
+    Classes referenced in index configuration `preprocess` field,
+    has to be derived from it.
+    """
+
+    def __init__(self, config: IndexConfig) -> None:
+        self.config = config
+
+    @abc.abstractmethod
+    def preprocess(self, taxonomy: Taxonomy, node: TaxonomyNode) -> TaxonomyNodeResult:
+        """Preprocess the taxonomy entry before ingestion in Elasticsearch,
+        and before synonyms generation
+
+        This can be used to make document schema compatible with the project
+        schema or to add custom fields.
+
+        :return: a TaxonomyNodeResult object:
+
+        * the status can be used to pilot wether
+          to index or not the entry (even delete it)
+        * the entry is the transformed entry
+        """
+        pass
+
+
 class BaseDocumentPreprocessor(abc.ABC):
-    def __init__(self, config: Config) -> None:
+    """Base class for document preprocessors.
+
+    Classes referenced in index configuration `preprocess` field,
+    has to be derived from it.
+    """
+
+    def __init__(self, config: IndexConfig) -> None:
         self.config = config
 
     @abc.abstractmethod
@@ -119,7 +152,7 @@ class BaseDocumentPreprocessor(abc.ABC):
 
         * the status can be used to pilot wether
           to index or not the document (even delete it)
-        * the document is the document transformed document
+        * the document is the transformed document
 
         """
         pass
@@ -379,6 +412,7 @@ def generate_taxonomy_mapping_object(config: IndexConfig) -> Mapping:
                             "type": "category",
                         }
                     ],
+                    preserve_separators=False,  # help match plurals
                 )
                 for lang in supported_langs
             },

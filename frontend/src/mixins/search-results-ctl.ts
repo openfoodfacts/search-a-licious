@@ -5,10 +5,8 @@ import {Constructor} from './utils';
 import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 import {SearchResultDetail, searchResultDetail} from '../signals';
 import {Signal, SignalWatcher} from '@lit-labs/preact-signals';
-import {
-  EventRegistrationInterface,
-  EventRegistrationMixin,
-} from '../event-listener-setup';
+import {EventRegistrationInterface} from '../interfaces/events-interfaces';
+import {EventRegistrationMixin} from '../event-listener-setup';
 
 export interface SearchaliciousResultsCtlInterface
   extends EventRegistrationInterface {

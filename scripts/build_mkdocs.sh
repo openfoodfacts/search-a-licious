@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+echo '::group::{build_mkdocs}'
+
 set -e
 # Renders markdown doc in docs to html in gh_pages
 
@@ -13,3 +15,5 @@ docker run --rm \
   -e USER_ID=$UID -e GROUP_ID=$GID \
   -v $(pwd):/app -w /app \
   mkdocs-builder build --strict
+
+echo "::endgroup::"

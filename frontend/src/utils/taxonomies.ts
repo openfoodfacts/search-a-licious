@@ -14,3 +14,8 @@ export const getTaxonomyName = (taxonomy: string): string => {
 export const removeLangFromTermId = (termId: string): string => {
   return termId.replace(/^[a-z]{2}:/, '');
 };
+
+/** unquote a term */
+export const unquoteTerm = (term: string): string => {
+  return term.replace(/^"(.*)"$/, '$1');
+};

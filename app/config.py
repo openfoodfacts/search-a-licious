@@ -510,6 +510,26 @@ class TaxonomyConfig(BaseModel):
         TaxonomyIndexConfig,
         Field(description=TaxonomyIndexConfig.__doc__),
     ]
+    preprocessor: (
+        Annotated[
+            str,
+            Field(
+                description=cd_(
+                    """The full qualified reference to the preprocessor
+                    to use before taxonomy entry import.
+
+                    This class must inherit `app.indexing.BaseTaxonomyPreprocessor`
+                    and specialize the `preprocess` method.
+
+                    This is used to adapt the taxonomy schema
+                    or to add specific fields for example.
+                    """
+                ),
+                examples=["app.openfoodfacts.TaxonomyPreprocessor"],
+            ),
+        ]
+        | None
+    ) = None
 
 
 class ScriptConfig(BaseModel):

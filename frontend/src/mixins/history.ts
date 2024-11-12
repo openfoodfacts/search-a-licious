@@ -5,55 +5,23 @@ import {
   removeParenthesis,
 } from '../utils/url';
 import {isNullOrUndefined} from '../utils';
-import {SearchParameters} from './search-ctl';
+import {SearchParameters} from '../interfaces/search-params-interfaces';
 import {property} from 'lit/decorators.js';
 import {QueryOperator} from '../utils/enums';
+import {
+  HistoryOutput,
+  HistoryParams,
+  HistorySearchParams,
+  SearchaliciousHistoryInterface,
+} from '../interfaces/history-interfaces';
 import {SearchaliciousSort} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {Constructor} from './utils';
 import {DEFAULT_SEARCH_NAME} from '../utils/constants';
 
-export type SearchaliciousHistoryInterface = {
-  query: string;
-  name: string;
-  _currentPage?: number;
-  _facetsNodes: () => SearchaliciousFacets[];
-  _facetsFilters: () => string;
-  _sortElement: () => SearchaliciousSort | null;
-  convertHistoryParamsToValues: (params: URLSearchParams) => HistoryOutput;
-  setValuesFromHistory: (values: HistoryOutput) => void;
-  buildHistoryParams: (params: SearchParameters) => HistoryParams;
-  setParamFromUrl: () => {launchSearch: boolean; values: HistoryOutput};
-};
-
-/**
- * A set of values that can be deduced from parameters,
- * and are easy to use to set search components to corresponding values
- */
-export type HistoryOutput = {
-  query?: string;
-  page?: number;
-  sortOptionId?: string;
-  selectedTermsByFacet?: Record<string, string[]>;
-  history: HistoryParams;
-};
-/**
- * Parameters we need to put in URL to be able to deep link the search
- */
-export enum HistorySearchParams {
-  QUERY = 'q',
-  FACETS_FILTERS = 'facetsFilters',
-  PAGE = 'page',
-  SORT_BY = 'sort_by',
-}
-
 // name of search params as an array (to ease iteration)
 export const SEARCH_PARAMS = Object.values(HistorySearchParams);
 
-// type of object containing search parameters
-export type HistoryParams = {
-  [key in HistorySearchParams]?: string;
-};
 /**
  * Object to convert the URL params to the original values
  *
@@ -85,17 +53,27 @@ const HISTORY_VALUES: Record<
       sortOptionId: history.sort_by,
     };
   },
+  // NOTE: this approach is a bit brittle,
+  // shan't we instead store selected facets in the URL directly?
   [HistorySearchParams.FACETS_FILTERS]: (history) => {
     if (!history.facetsFilters) {
       return {};
     }
     // we split back the facetsFilters expression to its sub components
     // parameter value is facet1:(value1 OR value2) AND facet2:(value3 OR value4)
+    // but beware quotes: facet1:"en:value1"
     const selectedTermsByFacet = history.facetsFilters
       .split(QueryOperator.AND)
       .reduce((acc, filter) => {
-        const [key, value] = filter.split(':');
-        acc[key] = removeParenthesis(value).split(QueryOperator.OR);
+        const [key, ...values] = filter.split(':');
+        // keep last parts
+        let value = values.join(':');
+        // remove parenthesis if any
+        value = value.replace(/^\((.*)\)$/, '$1');
+        acc[key] = acc[key] || [];
+        value.split(QueryOperator.OR).forEach((value) => {
+          acc[key].push(removeParenthesis(value));
+        });
         return acc;
       }, {} as Record<string, string[]>);
 
@@ -107,7 +85,7 @@ const HISTORY_VALUES: Record<
 /**
  * Mixin to handle the history of the search
  * It exists to have the logic of the history in a single place
- * It has to be inherited by SearchaliciousSearchMixin to implement _facetsNodes and _facetsFilters functionss
+ * It has to be inherited by SearchaliciousSearchMixin to implement relatedFacets and _facetsFilters functionss
  * @param superClass
  * @constructor
  */
@@ -125,7 +103,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
     _sortElement = (): SearchaliciousSort | null => {
       throw new Error('Method not implemented.');
     };
-    _facetsNodes = (): SearchaliciousFacets[] => {
+    relatedFacets = (): SearchaliciousFacets[] => {
       throw new Error('Method not implemented.');
     };
     _facetsFilters = (): string => {
@@ -161,7 +139,7 @@ export const SearchaliciousHistoryMixin = <T extends Constructor<LitElement>>(
       this._sortElement()?.setSortOptionById(values.sortOptionId);
       // set facets terms using linked facets nodes
       if (values.selectedTermsByFacet) {
-        this._facetsNodes().forEach((facets) =>
+        this.relatedFacets().forEach((facets) =>
           facets.setSelectedTermsByFacet(values.selectedTermsByFacet!)
         );
       }

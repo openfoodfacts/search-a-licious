@@ -5,7 +5,9 @@ import os
 from app._import import BaseDocumentFetcher
 from app._types import FetcherResult, FetcherStatus, JSONType
 from app.indexing import BaseDocumentPreprocessor
+from app.openfoodfacts import TaxonomyPreprocessor
 from app.postprocessing import BaseResultProcessor
+from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
 
 
 class CallRegistration:
@@ -39,6 +41,13 @@ class CallRegistration:
             if line.strip()
         ]
         return calls
+
+
+class TestTaxonomyPreprocessor(TaxonomyPreprocessor, CallRegistration):
+
+    def preprocess(self, taxonomy: Taxonomy, node: TaxonomyNode) -> TaxonomyNodeResult:
+        self.register_call((taxonomy.name, node.id))
+        return super().preprocess(taxonomy, node)
 
 
 class TestDocumentFetcher(BaseDocumentFetcher, CallRegistration):

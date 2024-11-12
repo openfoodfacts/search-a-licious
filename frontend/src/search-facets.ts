@@ -1,16 +1,22 @@
-import {LitElement, html, nothing, css} from 'lit';
+import {LitElement, html, nothing, css, PropertyValues} from 'lit';
 import {customElement, property, queryAssignedNodes} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
 import {DebounceMixin} from './mixins/debounce';
 import {SearchaliciousTermsMixin} from './mixins/suggestions-ctl';
-import {getTaxonomyName, removeLangFromTermId} from './utils/taxonomies';
+import {
+  getTaxonomyName,
+  removeLangFromTermId,
+  unquoteTerm,
+} from './utils/taxonomies';
 import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
 import {QueryOperator, SearchaliciousEvents} from './utils/enums';
 import {getPluralTranslation} from './localization/translations';
 import {msg, localized} from '@lit/localize';
 import {WHITE_PANEL_STYLE} from './styles';
+import {SearchaliciousFacetsInterface} from './interfaces/facets-interfaces';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
+import {SearchCtlGetMixin} from './mixins/search-ctl-getter';
 
 interface FacetsInfos {
   [key: string]: FacetInfo;
@@ -29,6 +35,7 @@ interface FacetItem {
 
 interface FacetTerm extends FacetItem {
   count: number;
+  selected: boolean;
 }
 
 interface PresenceInfo {
@@ -46,9 +53,10 @@ function stringGuard(s: string | undefined): s is string {
  */
 @customElement('searchalicious-facets')
 @localized()
-export class SearchaliciousFacets extends SearchaliciousResultCtlMixin(
-  SearchActionMixin(LitElement)
-) {
+export class SearchaliciousFacets
+  extends SearchaliciousResultCtlMixin(SearchActionMixin(LitElement))
+  implements SearchaliciousFacetsInterface
+{
   static override styles = css`
     .reset-button-wrapper {
       display: flex;
@@ -183,7 +191,7 @@ export class SearchaliciousFacet extends LitElement {
   @property()
   name = '';
 
-  // the last search infor for my facet
+  // the last search infos for my facet
   @property({attribute: false})
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   infos?: FacetInfo;
@@ -241,7 +249,9 @@ export class SearchaliciousFacet extends LitElement {
 @customElement('searchalicious-facet-terms')
 @localized()
 export class SearchaliciousTermsFacet extends SearchActionMixin(
-  SearchaliciousTermsMixin(DebounceMixin(SearchaliciousFacet))
+  SearchaliciousTermsMixin(
+    SearchCtlGetMixin(DebounceMixin(SearchaliciousFacet))
+  )
 ) {
   static override styles = [
     WHITE_PANEL_STYLE,
@@ -284,6 +294,15 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   @property({attribute: 'show-other', type: Boolean})
   showOther = false;
 
+  /**
+   * Interrogation language for suggestion
+   *
+   * We use the same as the search-bar
+   */
+  override get langs() {
+    return this.getSearchCtl().langs;
+  }
+
   _launchSearchWithDebounce = () =>
     this.debounce(() => {
       this._launchSearch();
@@ -292,6 +311,8 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
    * Set wether a term is selected or not
    */
   override setTermSelected(checked: boolean, name: string) {
+    // remove quotes if needed
+    name = unquoteTerm(name);
     this.selectedTerms = {
       ...this.selectedTerms,
       ...{[name]: checked},
@@ -324,7 +345,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
   override setSelectedTerms(terms?: string[]) {
     this.selectedTerms = {};
     for (const term of terms ?? []) {
-      this.selectedTerms[term] = true;
+      this.selectedTerms[unquoteTerm(term)] = true;
     }
   }
 
@@ -335,9 +356,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     let values = Object.keys(this.selectedTerms).filter(
       (key) => this.selectedTerms[key]
     );
-    // add quotes if we have ":" in values
+    // add quotes if we have ":" or "-" in values
     values = values.map((value) =>
-      value.includes(':') ? `"${value}"` : value
+      !value.match(/^\w+$/) ? `"${value}"` : value
     );
     if (values.length === 0) {
       return undefined;
@@ -381,7 +402,9 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     const options = (this.terms || []).map((term) => {
       return {
         value: removeLangFromTermId(term.id),
-        label: term.text,
+        label: this.termLabel(term),
+        id: term.id,
+        input: term.input,
       };
     });
 
@@ -423,7 +446,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
       <div>
         <searchalicious-checkbox
           .name=${term.key}
-          .checked=${this.selectedTerms[term.key]}
+          .checked=${this.selectedTerms[unquoteTerm(term.key)]}
           @change=${this.onCheckboxChange}
         >
           <!--     "display: contents;" is used to avoid the wrapping of the span in a div cf https://lit.dev/docs/frameworks/react/#using-slots -->
@@ -450,6 +473,21 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
     this.requestUpdate('selectedTerms');
     search && this._launchSearchWithDebounce();
   };
+
+  protected override willUpdate(_changedProperties: PropertyValues): void {
+    super.willUpdate(_changedProperties);
+    if (_changedProperties.has('infos')) {
+      // recompute selectedTerms
+      this.selectedTerms = {};
+      if (this.infos) {
+        this.infos.items.forEach((item) => {
+          if ((item as FacetTerm).selected) {
+            this.selectedTerms[item.key] = true;
+          }
+        });
+      }
+    }
+  }
 
   /**
    * Renders the facet content

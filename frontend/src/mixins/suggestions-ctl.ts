@@ -9,6 +9,8 @@ import {VersioningMixin, VersioningMixinInterface} from './versioning';
 export type TermOption = {
   id: string;
   text: string;
+  input: string;
+  name: string;
   taxonomy_name: string;
 };
 
@@ -28,6 +30,8 @@ export interface SearchaliciousTaxonomiesInterface
   isTermsLoading: boolean;
   taxonomiesBaseUrl: string;
   langs: string;
+
+  termLabel(term: TermOption): string;
 
   /**
    * Method to get taxonomies terms.
@@ -61,8 +65,21 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
     @property({attribute: 'base-url'})
     taxonomiesBaseUrl = '/';
 
-    @property()
-    langs = 'en';
+    /**
+     * langs to get suggestion from.
+     *
+     * Must be implementetd in  child class
+     */
+    get langs(): string {
+      throw new Error('langs must be defined in child class');
+    }
+
+    termLabel(term: TermOption): string {
+      return (
+        term.text +
+        (term.name && term.name != term.text ? ` (${term.name})` : '')
+      );
+    }
 
     /**
      * build URL to search taxonomies terms from input
@@ -72,7 +89,7 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
      */
     _termsUrl(q: string, taxonomyNames: string[]) {
       const baseUrl = this.taxonomiesBaseUrl.replace(/\/+$/, '');
-      return `${baseUrl}/autocomplete?q=${q}&lang=${this.langs}&taxonomy_names=${taxonomyNames}&size=5`;
+      return `${baseUrl}/autocomplete?q=${q}&langs=${this.langs}&taxonomy_names=${taxonomyNames}&size=5`;
     }
 
     /**
@@ -85,6 +102,9 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
       q: string,
       taxonomyNames: string[]
     ): Promise<TaxomiesTermsResponse> {
+      if (!q) {
+        return Promise.resolve({options: []});
+      }
       this.isTermsLoading = true;
       // get the version of the terms for each taxonomy
       const version = this.incrementVersion();
