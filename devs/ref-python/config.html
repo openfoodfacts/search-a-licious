@@ -7,8 +7,7 @@
 
     <title>Configuration &#8212; Search-a-licious  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
-    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -521,6 +520,22 @@ that must satisfy this schema.</p>
 <span class="w">                  </span><span class="p">}</span>
 <span class="w">               </span><span class="p">],</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This is the configuration of\n    the ElasticSearch index storing the taxonomies.\n\n    All taxonomies are stored within the same index.\n\n    It enables functions like auto-completion, or field suggestions\n    as well as enrichment of requests with synonyms.\n    &quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;preprocessor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The full qualified reference to the preprocessor\nto use before taxonomy entry import.\n\nThis class must inherit `app.indexing.BaseTaxonomyPreprocessor`\nand specialize the `preprocess` method.\n\nThis is used to adapt the taxonomy schema\nor to add specific fields for example.&quot;</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;examples&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                        </span><span class="s2">&quot;app.openfoodfacts.TaxonomyPreprocessor&quot;</span>
+<span class="w">                     </span><span class="p">],</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Preprocessor&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1475,6 +1490,22 @@ with support for matching using taxonomy synonyms and translations
 <span class="w">                  </span><span class="p">}</span>
 <span class="w">               </span><span class="p">],</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This is the configuration of\n    the ElasticSearch index storing the taxonomies.\n\n    All taxonomies are stored within the same index.\n\n    It enables functions like auto-completion, or field suggestions\n    as well as enrichment of requests with synonyms.\n    &quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;preprocessor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The full qualified reference to the preprocessor\nto use before taxonomy entry import.\n\nThis class must inherit `app.indexing.BaseTaxonomyPreprocessor`\nand specialize the `preprocess` method.\n\nThis is used to adapt the taxonomy schema\nor to add specific fields for example.&quot;</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;examples&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                        </span><span class="s2">&quot;app.openfoodfacts.TaxonomyPreprocessor&quot;</span>
+<span class="w">                     </span><span class="p">],</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Preprocessor&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -2171,6 +2202,22 @@ or informative facets.</p>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">],</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This is the configuration of\n    the ElasticSearch index storing the taxonomies.\n\n    All taxonomies are stored within the same index.\n\n    It enables functions like auto-completion, or field suggestions\n    as well as enrichment of requests with synonyms.\n    &quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;preprocessor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The full qualified reference to the preprocessor\nto use before taxonomy entry import.\n\nThis class must inherit `app.indexing.BaseTaxonomyPreprocessor`\nand specialize the `preprocess` method.\n\nThis is used to adapt the taxonomy schema\nor to add specific fields for example.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;examples&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="s2">&quot;app.openfoodfacts.TaxonomyPreprocessor&quot;</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Preprocessor&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -2246,6 +2293,7 @@ or informative facets.</p>
 <dt class="field-odd">Fields<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><a class="reference internal" href="#app.config.TaxonomyConfig.index" title="app.config.TaxonomyConfig.index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">index</span> <span class="pre">(app.config.TaxonomyIndexConfig)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#app.config.TaxonomyConfig.preprocessor" title="app.config.TaxonomyConfig.preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preprocessor</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#app.config.TaxonomyConfig.sources" title="app.config.TaxonomyConfig.sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span> <span class="pre">(list[app.config.TaxonomySourceConfig])</span></code></a></p></li>
 </ul>
 </dd>
@@ -2259,6 +2307,11 @@ the ElasticSearch index storing the taxonomies.</p>
 <p>It enables functions like auto-completion, or field suggestions
 as well as enrichment of requests with synonyms.</p>
 </dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="app.config.TaxonomyConfig.preprocessor">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">preprocessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Annotated</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="pre">NoneType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="s"><span class="pre">'The</span> <span class="pre">full</span> <span class="pre">qualified</span> <span class="pre">reference</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">preprocessor\nto</span> <span class="pre">use</span> <span class="pre">before</span> <span class="pre">taxonomy</span> <span class="pre">entry</span> <span class="pre">import.\n\nThis</span> <span class="pre">class</span> <span class="pre">must</span> <span class="pre">inherit</span> <span class="pre">`app.indexing.BaseTaxonomyPreprocessor`\nand</span> <span class="pre">specialize</span> <span class="pre">the</span> <span class="pre">`preprocess`</span> <span class="pre">method.\n\nThis</span> <span class="pre">is</span> <span class="pre">used</span> <span class="pre">to</span> <span class="pre">adapt</span> <span class="pre">the</span> <span class="pre">taxonomy</span> <span class="pre">schema\nor</span> <span class="pre">to</span> <span class="pre">add</span> <span class="pre">specific</span> <span class="pre">fields</span> <span class="pre">for</span> <span class="pre">example.'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">examples</span></span><span class="o"><span class="pre">=</span></span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'app.openfoodfacts.TaxonomyPreprocessor'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/config.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.config.TaxonomyConfig.preprocessor" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="app.config.TaxonomyConfig.sources">
@@ -2420,16 +2473,7 @@ in various languages (keys are language codes)</p></li>
 
 
 
-
-<search id="searchbox" style="display: none" role="search">
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
@@ -2458,6 +2502,16 @@ in various languages (keys are language codes)</p></li>
   </ul></li>
 </ul>
 </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -2474,8 +2528,8 @@ in various languages (keys are language codes)</p></li>
       &#169;2024, Open Food Facts.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/config.rst.txt"
@@ -2484,7 +2538,7 @@ in various languages (keys are language codes)</p></li>
 
     
     <a href="https://github.com/openfoodfacts/search-a-licious" class="github">
-        <img src="_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
     </a>
     
 

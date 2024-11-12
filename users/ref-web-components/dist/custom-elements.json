@@ -318,6 +318,14 @@
         },
         {
           "kind": "js",
+          "name": "SearchaliciousTaxonomySuggester",
+          "declaration": {
+            "name": "SearchaliciousTaxonomySuggester",
+            "module": "./search-suggester"
+          }
+        },
+        {
+          "kind": "js",
           "name": "SearchaliciousButton",
           "declaration": {
             "name": "SearchaliciousButton",
@@ -530,7 +538,7 @@
             },
             {
               "kind": "method",
-              "name": "submit",
+              "name": "submitSuggestion",
               "parameters": [
                 {
                   "name": "isSuggestion",
@@ -575,12 +583,12 @@
             },
             {
               "kind": "field",
-              "name": "value",
+              "name": "currentIndex",
               "type": {
-                "text": "string"
+                "text": "number"
               },
-              "default": "''",
-              "attribute": "value",
+              "default": "0",
+              "description": "index of suggestion about to be selected\n\nIt mainly tracks current focused suggestion\nwhen navigating with arrow keys",
               "inheritedFrom": {
                 "name": "SuggestionSelectionMixin",
                 "module": "src/mixins/suggestion-selection.ts"
@@ -588,11 +596,23 @@
             },
             {
               "kind": "field",
-              "name": "currentIndex",
+              "name": "inputValue",
               "type": {
-                "text": "number"
+                "text": "string"
               },
-              "default": "0",
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SuggestionSelectionMixin",
+                "module": "src/mixins/suggestion-selection.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "selectedOption",
+              "type": {
+                "text": "SuggestionSelectionOption | undefined"
+              },
+              "description": "The option that was selected\n\nNote that it might be from outside the options list (for specific inputs)",
               "inheritedFrom": {
                 "name": "SuggestionSelectionMixin",
                 "module": "src/mixins/suggestion-selection.ts"
@@ -623,28 +643,6 @@
               }
             },
             {
-              "kind": "field",
-              "name": "getOptionIndex",
-              "description": "This method is used to get the current index.\nIt remove the offset of 1 because the currentIndex is 1-based.",
-              "return": {
-                "type": {
-                  "text": "number"
-                }
-              },
-              "inheritedFrom": {
-                "name": "SuggestionSelectionMixin",
-                "module": "src/mixins/suggestion-selection.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "currentOption",
-              "inheritedFrom": {
-                "name": "SuggestionSelectionMixin",
-                "module": "src/mixins/suggestion-selection.ts"
-              }
-            },
-            {
               "kind": "method",
               "name": "getInput",
               "inheritedFrom": {
@@ -664,7 +662,7 @@
                   "description": "The input event."
                 }
               ],
-              "description": "Handles the input event on the suggestion and dispatch custom event : \"suggestion-input\".",
+              "description": "Handles the input event on the suggestion, that is when the option is suggested\nand dispatch to handleInput",
               "inheritedFrom": {
                 "name": "SuggestionSelectionMixin",
                 "module": "src/mixins/suggestion-selection.ts"
@@ -682,6 +680,15 @@
             {
               "kind": "method",
               "name": "resetInput",
+              "parameters": [
+                {
+                  "name": "selectedOption",
+                  "optional": true,
+                  "type": {
+                    "text": "SuggestionSelectionOption"
+                  }
+                }
+              ],
               "description": "This method is used to reset the input value and blur it.\nIt is used to reset the input after a search.",
               "inheritedFrom": {
                 "name": "SuggestionSelectionMixin",
@@ -754,10 +761,11 @@
               "name": "onClick",
               "parameters": [
                 {
-                  "name": "index",
+                  "name": "option",
                   "type": {
-                    "text": "number"
-                  }
+                    "text": "SuggestionSelectionOption"
+                  },
+                  "description": "chosen option"
                 }
               ],
               "description": "On a click on the suggestion option, we select it as value and submit it.",
@@ -809,18 +817,6 @@
                 "name": "SuggestionSelectionMixin",
                 "module": "src/mixins/suggestion-selection.ts"
               }
-            },
-            {
-              "name": "value",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "fieldName": "value",
-              "inheritedFrom": {
-                "name": "SuggestionSelectionMixin",
-                "module": "src/mixins/suggestion-selection.ts"
-              }
             }
           ]
         }
@@ -855,6 +851,19 @@
           "members": [
             {
               "kind": "field",
+              "name": "options",
+              "type": {
+                "text": "SuggestionSelectionOption[]"
+              },
+              "default": "[]",
+              "description": "The options for the suggestion.\n\nWe redefine them to use SuggestOption",
+              "inheritedFrom": {
+                "name": "SuggestionSelectionMixin",
+                "module": "src/mixins/suggestion-selection.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "_placeholder",
               "type": {
                 "text": "string | undefined"
@@ -864,13 +873,11 @@
             },
             {
               "kind": "field",
-              "name": "suggestions",
+              "name": "suggesters",
               "type": {
-                "text": "string"
+                "text": "SearchaliciousSuggester[] | undefined"
               },
-              "default": "''",
-              "description": "Taxonomies we want to use for suggestions",
-              "attribute": "suggestions"
+              "default": "[]"
             },
             {
               "kind": "field",
@@ -884,9 +891,17 @@
               "description": "Check if the search button text should be displayed"
             },
             {
-              "kind": "field",
-              "name": "parsedSuggestions",
-              "description": "It parses the string suggestions attribute and returns an array"
+              "kind": "method",
+              "name": "getSuggestions",
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ],
+              "description": "Ask suggesters for suggested options"
             },
             {
               "kind": "method",
@@ -907,7 +922,7 @@
             },
             {
               "kind": "method",
-              "name": "submit",
+              "name": "submitSuggestion",
               "parameters": [
                 {
                   "name": "isSuggestion",
@@ -940,11 +955,6 @@
             },
             {
               "kind": "field",
-              "name": "setLocale",
-              "default": "setLocale"
-            },
-            {
-              "kind": "field",
               "name": "inputName",
               "type": {
                 "text": "string"
@@ -958,37 +968,36 @@
             },
             {
               "kind": "field",
-              "name": "options",
-              "type": {
-                "text": "SuggestionSelectionOption[]"
-              },
-              "default": "[]",
-              "description": "The options for the suggestion.\nIt is provided by the parent component.",
-              "inheritedFrom": {
-                "name": "SuggestionSelectionMixin",
-                "module": "src/mixins/suggestion-selection.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "value",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "attribute": "value",
-              "inheritedFrom": {
-                "name": "SuggestionSelectionMixin",
-                "module": "src/mixins/suggestion-selection.ts"
-              }
-            },
-            {
-              "kind": "field",
               "name": "currentIndex",
               "type": {
                 "text": "number"
               },
               "default": "0",
+              "description": "index of suggestion about to be selected\n\nIt mainly tracks current focused suggestion\nwhen navigating with arrow keys",
+              "inheritedFrom": {
+                "name": "SuggestionSelectionMixin",
+                "module": "src/mixins/suggestion-selection.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "inputValue",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SuggestionSelectionMixin",
+                "module": "src/mixins/suggestion-selection.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "selectedOption",
+              "type": {
+                "text": "SuggestionSelectionOption | undefined"
+              },
+              "description": "The option that was selected\n\nNote that it might be from outside the options list (for specific inputs)",
               "inheritedFrom": {
                 "name": "SuggestionSelectionMixin",
                 "module": "src/mixins/suggestion-selection.ts"
@@ -1019,28 +1028,6 @@
               }
             },
             {
-              "kind": "field",
-              "name": "getOptionIndex",
-              "description": "This method is used to get the current index.\nIt remove the offset of 1 because the currentIndex is 1-based.",
-              "return": {
-                "type": {
-                  "text": "number"
-                }
-              },
-              "inheritedFrom": {
-                "name": "SuggestionSelectionMixin",
-                "module": "src/mixins/suggestion-selection.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "currentOption",
-              "inheritedFrom": {
-                "name": "SuggestionSelectionMixin",
-                "module": "src/mixins/suggestion-selection.ts"
-              }
-            },
-            {
               "kind": "method",
               "name": "getInput",
               "inheritedFrom": {
@@ -1060,7 +1047,7 @@
                   "description": "The input event."
                 }
               ],
-              "description": "Handles the input event on the suggestion and dispatch custom event : \"suggestion-input\".",
+              "description": "Handles the input event on the suggestion, that is when the option is suggested\nand dispatch to handleInput",
               "inheritedFrom": {
                 "name": "SuggestionSelectionMixin",
                 "module": "src/mixins/suggestion-selection.ts"
@@ -1078,6 +1065,15 @@
             {
               "kind": "method",
               "name": "resetInput",
+              "parameters": [
+                {
+                  "name": "selectedOption",
+                  "optional": true,
+                  "type": {
+                    "text": "SuggestionSelectionOption"
+                  }
+                }
+              ],
               "description": "This method is used to reset the input value and blur it.\nIt is used to reset the input after a search.",
               "inheritedFrom": {
                 "name": "SuggestionSelectionMixin",
@@ -1150,10 +1146,11 @@
               "name": "onClick",
               "parameters": [
                 {
-                  "name": "index",
+                  "name": "option",
                   "type": {
-                    "text": "number"
-                  }
+                    "text": "SuggestionSelectionOption"
+                  },
+                  "description": "chosen option"
                 }
               ],
               "description": "On a click on the suggestion option, we select it as value and submit it.",
@@ -1178,153 +1175,6 @@
               "inheritedFrom": {
                 "name": "SuggestionSelectionMixin",
                 "module": "src/mixins/suggestion-selection.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "terms",
-              "type": {
-                "text": "TermOption[]"
-              },
-              "default": "[]",
-              "inheritedFrom": {
-                "name": "SearchaliciousTermsMixin",
-                "module": "src/mixins/suggestions-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "isTermsLoading",
-              "default": "{}",
-              "inheritedFrom": {
-                "name": "SearchaliciousTermsMixin",
-                "module": "src/mixins/suggestions-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "taxonomiesBaseUrl",
-              "type": {
-                "text": "string"
-              },
-              "default": "'/'",
-              "attribute": "base-url",
-              "inheritedFrom": {
-                "name": "SearchaliciousTermsMixin",
-                "module": "src/mixins/suggestions-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "langs",
-              "type": {
-                "text": "string"
-              },
-              "default": "'en'",
-              "description": "Separated list of languages,\nthe first one is the main language",
-              "attribute": "langs",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_termsUrl",
-              "parameters": [
-                {
-                  "name": "q",
-                  "type": {
-                    "text": "string"
-                  },
-                  "description": "The query string."
-                },
-                {
-                  "name": "taxonomyNames",
-                  "type": {
-                    "text": "string[]"
-                  },
-                  "description": "The taxonomy names."
-                }
-              ],
-              "description": "build URL to search taxonomies terms from input",
-              "return": {
-                "type": {
-                  "text": "string"
-                }
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousTermsMixin",
-                "module": "src/mixins/suggestions-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "getTaxonomiesTerms",
-              "return": {
-                "type": {
-                  "text": "Promise<TaxomiesTermsResponse>"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "q",
-                  "type": {
-                    "text": "string"
-                  },
-                  "description": "The query string."
-                },
-                {
-                  "name": "taxonomyNames",
-                  "type": {
-                    "text": "string[]"
-                  },
-                  "description": "The taxonomy names."
-                }
-              ],
-              "description": "Method to get taxonomies terms.",
-              "inheritedFrom": {
-                "name": "SearchaliciousTermsMixin",
-                "module": "src/mixins/suggestions-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "version",
-              "type": {
-                "text": "number"
-              },
-              "default": "0",
-              "description": "The version of the object",
-              "inheritedFrom": {
-                "name": "VersioningMixin",
-                "module": "src/mixins/versioning.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "incrementVersion",
-              "description": "Increment the version of the object",
-              "inheritedFrom": {
-                "name": "VersioningMixin",
-                "module": "src/mixins/versioning.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "isLatestVersion",
-              "parameters": [
-                {
-                  "name": "version",
-                  "type": {
-                    "text": "number"
-                  }
-                }
-              ],
-              "description": "Check if the version is the latest",
-              "inheritedFrom": {
-                "name": "VersioningMixin",
-                "module": "src/mixins/versioning.ts"
               }
             },
             {
@@ -1360,6 +1210,20 @@
               "default": "'/'",
               "description": "The base api url",
               "attribute": "base-url",
+              "inheritedFrom": {
+                "name": "SearchaliciousSearchMixin",
+                "module": "src/mixins/search-ctl.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "default": "'en'",
+              "description": "Separated list of languages,\nthe first one is the main language",
+              "attribute": "langs",
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
                 "module": "src/mixins/search-ctl.ts"
@@ -1525,38 +1389,6 @@
               }
             },
             {
-              "kind": "method",
-              "name": "_facetsParentNode",
-              "description": "list of facets containers",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "selectTermByTaxonomy",
-              "parameters": [
-                {
-                  "name": "taxonomy",
-                  "type": {
-                    "text": "string"
-                  }
-                },
-                {
-                  "name": "term",
-                  "type": {
-                    "text": "string"
-                  }
-                }
-              ],
-              "description": "Select a term by taxonomy in all facets\nIt will update the selected terms in facets",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
               "kind": "field",
               "name": "_sortElement",
               "return": {
@@ -1594,7 +1426,7 @@
             },
             {
               "kind": "field",
-              "name": "_facetsNodes",
+              "name": "relatedFacets",
               "return": {
                 "type": {
                   "text": ""
@@ -1607,7 +1439,7 @@
             },
             {
               "kind": "method",
-              "name": "_facets",
+              "name": "_facetsNames",
               "return": {
                 "type": {
                   "text": "string[]"
@@ -1925,15 +1757,6 @@
           ],
           "attributes": [
             {
-              "name": "suggestions",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "description": "Taxonomies we want to use for suggestions",
-              "fieldName": "suggestions"
-            },
-            {
               "name": "placeholder",
               "description": "Place holder in search bar",
               "fieldName": "placeholder"
@@ -1951,15 +1774,16 @@
               }
             },
             {
-              "name": "value",
-              "type": {
-                "text": "string"
+              "name": "name",
+              "default": "DEFAULT_SEARCH_NAME",
+              "resolveInitializer": {
+                "module": "/src/utils/constants"
               },
-              "default": "''",
-              "fieldName": "value",
+              "fieldName": "name",
+              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
               "inheritedFrom": {
-                "name": "SuggestionSelectionMixin",
-                "module": "src/mixins/suggestion-selection.ts"
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
               }
             },
             {
@@ -1969,7 +1793,7 @@
               },
               "default": "'/'",
               "description": "The base api url",
-              "fieldName": "taxonomiesBaseUrl",
+              "fieldName": "baseUrl",
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
                 "module": "src/mixins/search-ctl.ts"
@@ -1986,19 +1810,6 @@
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
                 "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "name": "name",
-              "default": "DEFAULT_SEARCH_NAME",
-              "resolveInitializer": {
-                "module": "/src/utils/constants"
-              },
-              "fieldName": "name",
-              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
               }
             },
             {
@@ -2057,10 +1868,6 @@
             {
               "name": "SuggestionSelectionMixin",
               "module": "/src/mixins/suggestion-selection"
-            },
-            {
-              "name": "SearchaliciousTermsMixin",
-              "module": "/src/mixins/suggestions-ctl"
             },
             {
               "name": "SearchaliciousSearchMixin",
@@ -3784,6 +3591,18 @@
             },
             {
               "kind": "field",
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "description": "Interrogation language for suggestion\n\nWe use the same as the search-bar",
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "_launchSearchWithDebounce"
             },
             {
@@ -3932,12 +3751,15 @@
             {
               "kind": "field",
               "name": "searchName",
+              "type": {
+                "text": "string"
+              },
               "default": "DEFAULT_SEARCH_NAME",
               "description": "The name of the search bar this sort applies to.\n\nIt must correspond to the `name` property of the corresponding `search-bar` component.\n\nIt enable having multiple search bars on the same page.\n\nIt defaults to `searchalicious`",
               "attribute": "search-name",
               "inheritedFrom": {
-                "name": "SearchActionMixin",
-                "module": "src/mixins/search-action.ts"
+                "name": "SearchCtlGetMixin",
+                "module": "src/mixins/search-ctl-getter.ts"
               }
             },
             {
@@ -3984,13 +3806,21 @@
               }
             },
             {
-              "kind": "field",
-              "name": "langs",
-              "type": {
-                "text": "string"
+              "kind": "method",
+              "name": "termLabel",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
               },
-              "default": "'en'",
-              "attribute": "langs",
+              "parameters": [
+                {
+                  "name": "term",
+                  "type": {
+                    "text": "TermOption"
+                  }
+                }
+              ],
               "inheritedFrom": {
                 "name": "SearchaliciousTermsMixin",
                 "module": "src/mixins/suggestions-ctl.ts"
@@ -4097,6 +3927,31 @@
             },
             {
               "kind": "field",
+              "name": "_searchCtl_cache",
+              "type": {
+                "text": "SearchaliciousSearchInterface | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchCtlGetMixin",
+                "module": "src/mixins/search-ctl-getter.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getSearchCtl",
+              "return": {
+                "type": {
+                  "text": "SearchaliciousSearchInterface"
+                }
+              },
+              "description": "get corresponding search bar instance",
+              "inheritedFrom": {
+                "name": "SearchCtlGetMixin",
+                "module": "src/mixins/search-ctl-getter.ts"
+              }
+            },
+            {
+              "kind": "field",
               "name": "name",
               "type": {
                 "text": "string"
@@ -4179,18 +4034,6 @@
               }
             },
             {
-              "name": "langs",
-              "type": {
-                "text": "string"
-              },
-              "default": "'en'",
-              "fieldName": "langs",
-              "inheritedFrom": {
-                "name": "SearchaliciousTermsMixin",
-                "module": "src/mixins/suggestions-ctl.ts"
-              }
-            },
-            {
               "name": "name",
               "type": {
                 "text": "string"
@@ -4212,6 +4055,10 @@
             {
               "name": "SearchaliciousTermsMixin",
               "module": "/src/mixins/suggestions-ctl"
+            },
+            {
+              "name": "SearchCtlGetMixin",
+              "module": "/src/mixins/search-ctl-getter"
             },
             {
               "name": "DebounceMixin",
@@ -6088,6 +5935,451 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/search-suggester.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "SearchaliciousSuggester",
+          "members": [
+            {
+              "kind": "field",
+              "name": "searchCtl",
+              "type": {
+                "text": "SearchaliciousSearchInterface | undefined"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getSuggestions",
+              "return": {
+                "type": {
+                  "text": "Promise<SuggestOption[]>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "_value",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ],
+              "description": "Query for options to suggest for value and return them"
+            },
+            {
+              "kind": "method",
+              "name": "selectSuggestion",
+              "parameters": [
+                {
+                  "name": "_selected",
+                  "type": {
+                    "text": "SuggestionSelectionOption"
+                  }
+                }
+              ],
+              "description": "Select a suggestion"
+            },
+            {
+              "kind": "method",
+              "name": "renderSuggestion",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "_suggestion",
+                  "type": {
+                    "text": "SuggestOption"
+                  }
+                },
+                {
+                  "name": "_index",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Render a suggestion"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "customElement": true
+        },
+        {
+          "kind": "class",
+          "description": "An element to be used inside a searchalicious-bar component.\nIt enables giving suggestions that are based upon taxonomies",
+          "name": "SearchaliciousTaxonomySuggester",
+          "members": [
+            {
+              "kind": "field",
+              "name": "taxonomies",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Taxonomies we want to use for suggestions",
+              "attribute": "taxonomies"
+            },
+            {
+              "kind": "field",
+              "name": "fuzziness",
+              "type": {
+                "text": "number"
+              },
+              "default": "2",
+              "description": "Fuzziness level for suggestions",
+              "attribute": "fuzziness"
+            },
+            {
+              "kind": "field",
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "description": "language in which suggestions are to be found",
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "taxonomiesList",
+              "description": "taxonomies attribute but as an array of String"
+            },
+            {
+              "kind": "method",
+              "name": "selectTermByTaxonomy",
+              "parameters": [
+                {
+                  "name": "taxonomy",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "term",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ],
+              "description": "Select a term by taxonomy in all facets\nIt will update the selected terms in facets"
+            },
+            {
+              "kind": "method",
+              "name": "getSuggestions",
+              "return": {
+                "type": {
+                  "text": "Promise<SuggestOption[]>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "value",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ],
+              "description": "Query for options to suggest",
+              "inheritedFrom": {
+                "name": "SearchaliciousSuggester",
+                "module": "src/search-suggester.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "selectSuggestion",
+              "parameters": [
+                {
+                  "name": "selected",
+                  "type": {
+                    "text": "SuggestionSelectionOption"
+                  }
+                }
+              ],
+              "description": "Select a suggestion",
+              "inheritedFrom": {
+                "name": "SearchaliciousSuggester",
+                "module": "src/search-suggester.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "renderSuggestion",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "suggestion",
+                  "type": {
+                    "text": "SuggestOption"
+                  }
+                },
+                {
+                  "name": "_index",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Render a suggestion",
+              "inheritedFrom": {
+                "name": "SearchaliciousSuggester",
+                "module": "src/search-suggester.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "terms",
+              "type": {
+                "text": "TermOption[]"
+              },
+              "default": "[]",
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isTermsLoading",
+              "default": "{}",
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "taxonomiesBaseUrl",
+              "type": {
+                "text": "string"
+              },
+              "default": "'/'",
+              "attribute": "base-url",
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "termLabel",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "term",
+                  "type": {
+                    "text": "TermOption"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_termsUrl",
+              "parameters": [
+                {
+                  "name": "q",
+                  "type": {
+                    "text": "string"
+                  },
+                  "description": "The query string."
+                },
+                {
+                  "name": "taxonomyNames",
+                  "type": {
+                    "text": "string[]"
+                  },
+                  "description": "The taxonomy names."
+                }
+              ],
+              "description": "build URL to search taxonomies terms from input",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getTaxonomiesTerms",
+              "return": {
+                "type": {
+                  "text": "Promise<TaxomiesTermsResponse>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "q",
+                  "type": {
+                    "text": "string"
+                  },
+                  "description": "The query string."
+                },
+                {
+                  "name": "taxonomyNames",
+                  "type": {
+                    "text": "string[]"
+                  },
+                  "description": "The taxonomy names."
+                }
+              ],
+              "description": "Method to get taxonomies terms.",
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "version",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "The version of the object",
+              "inheritedFrom": {
+                "name": "VersioningMixin",
+                "module": "src/mixins/versioning.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "incrementVersion",
+              "description": "Increment the version of the object",
+              "inheritedFrom": {
+                "name": "VersioningMixin",
+                "module": "src/mixins/versioning.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "isLatestVersion",
+              "parameters": [
+                {
+                  "name": "version",
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "description": "Check if the version is the latest",
+              "inheritedFrom": {
+                "name": "VersioningMixin",
+                "module": "src/mixins/versioning.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "searchCtl",
+              "type": {
+                "text": "SearchaliciousSearchInterface | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousSuggester",
+                "module": "src/search-suggester.ts"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "taxonomies",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Taxonomies we want to use for suggestions",
+              "fieldName": "taxonomies"
+            },
+            {
+              "name": "fuzziness",
+              "type": {
+                "text": "number"
+              },
+              "default": "2",
+              "description": "Fuzziness level for suggestions",
+              "fieldName": "fuzziness"
+            },
+            {
+              "name": "base-url",
+              "type": {
+                "text": "string"
+              },
+              "default": "'/'",
+              "fieldName": "taxonomiesBaseUrl",
+              "inheritedFrom": {
+                "name": "SearchaliciousTermsMixin",
+                "module": "src/mixins/suggestions-ctl.ts"
+              }
+            }
+          ],
+          "mixins": [
+            {
+              "name": "SearchaliciousTermsMixin",
+              "module": "/src/mixins/suggestions-ctl"
+            }
+          ],
+          "superclass": {
+            "name": "SearchaliciousSuggester",
+            "module": "src/search-suggester.ts"
+          },
+          "tagName": "searchalicious-taxonomy-suggest",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SearchaliciousSuggester",
+          "declaration": {
+            "name": "SearchaliciousSuggester",
+            "module": "src/search-suggester.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "SearchaliciousTaxonomySuggester",
+          "declaration": {
+            "name": "SearchaliciousTaxonomySuggester",
+            "module": "src/search-suggester.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "searchalicious-taxonomy-suggest",
+          "declaration": {
+            "name": "SearchaliciousTaxonomySuggester",
+            "module": "src/search-suggester.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/search-suggestion-entry.ts",
       "declarations": [
         {
@@ -6099,7 +6391,7 @@
               "kind": "field",
               "name": "term",
               "type": {
-                "text": "{\n    imageUrl?: string;\n    id: string;\n    text: string;\n    taxonomy_name: string;\n  } | undefined"
+                "text": "SuggestionSelectionOption | undefined"
               },
               "attribute": "term"
             }
@@ -6108,7 +6400,7 @@
             {
               "name": "term",
               "type": {
-                "text": "{\n    imageUrl?: string;\n    id: string;\n    text: string;\n    taxonomy_name: string;\n  } | undefined"
+                "text": "SuggestionSelectionOption | undefined"
               },
               "fieldName": "term"
             }
@@ -6756,6 +7048,60 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/interfaces/chart-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/events-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/facets-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/history-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/search-bar-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/search-ctl-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/search-params-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/sort-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/suggestion-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/layouts/search-layout-page.ts",
       "declarations": [
         {
@@ -7352,7 +7698,7 @@
         },
         {
           "kind": "mixin",
-          "description": "Mixin to handle the history of the search\nIt exists to have the logic of the history in a single place\nIt has to be inherited by SearchaliciousSearchMixin to implement _facetsNodes and _facetsFilters functionss",
+          "description": "Mixin to handle the history of the search\nIt exists to have the logic of the history in a single place\nIt has to be inherited by SearchaliciousSearchMixin to implement relatedFacets and _facetsFilters functionss",
           "name": "SearchaliciousHistoryMixin",
           "members": [
             {
@@ -7375,7 +7721,7 @@
             },
             {
               "kind": "field",
-              "name": "_facetsNodes"
+              "name": "relatedFacets"
             },
             {
               "kind": "field",
@@ -7507,6 +7853,61 @@
           "declaration": {
             "name": "SearchActionMixin",
             "module": "src/mixins/search-action.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/mixins/search-ctl-getter.ts",
+      "declarations": [
+        {
+          "kind": "mixin",
+          "description": "Some component may want to refer to the corresponding search controller instance\n\nThis mixin provides a getter to get the corresponding search controller instance",
+          "name": "SearchCtlGetMixin",
+          "members": [
+            {
+              "kind": "field",
+              "name": "searchName",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_searchCtl_cache",
+              "type": {
+                "text": "SearchaliciousSearchInterface | undefined"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "getSearchCtl",
+              "return": {
+                "type": {
+                  "text": "SearchaliciousSearchInterface"
+                }
+              },
+              "description": "get corresponding search bar instance"
+            }
+          ],
+          "parameters": [
+            {
+              "name": "superClass",
+              "type": {
+                "text": "T"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SearchCtlGetMixin",
+          "declaration": {
+            "name": "SearchCtlGetMixin",
+            "module": "src/mixins/search-ctl-getter.ts"
           }
         }
       ]
@@ -7668,30 +8069,6 @@
               "name": "updateSearchSignals"
             },
             {
-              "kind": "method",
-              "name": "_facetsParentNode",
-              "description": "list of facets containers"
-            },
-            {
-              "kind": "method",
-              "name": "selectTermByTaxonomy",
-              "parameters": [
-                {
-                  "name": "taxonomy",
-                  "type": {
-                    "text": "string"
-                  }
-                },
-                {
-                  "name": "term",
-                  "type": {
-                    "text": "string"
-                  }
-                }
-              ],
-              "description": "Select a term by taxonomy in all facets\nIt will update the selected terms in facets"
-            },
-            {
               "kind": "field",
               "name": "_sortElement",
               "return": {
@@ -7721,7 +8098,7 @@
             },
             {
               "kind": "field",
-              "name": "_facetsNodes",
+              "name": "relatedFacets",
               "return": {
                 "type": {
                   "text": ""
@@ -7734,7 +8111,7 @@
             },
             {
               "kind": "method",
-              "name": "_facets",
+              "name": "_facetsNames",
               "return": {
                 "type": {
                   "text": "string[]"
@@ -8294,20 +8671,28 @@
             },
             {
               "kind": "field",
-              "name": "value",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "attribute": "value"
-            },
-            {
-              "kind": "field",
               "name": "currentIndex",
               "type": {
                 "text": "number"
               },
-              "default": "0"
+              "default": "0",
+              "description": "index of suggestion about to be selected\n\nIt mainly tracks current focused suggestion\nwhen navigating with arrow keys"
+            },
+            {
+              "kind": "field",
+              "name": "inputValue",
+              "type": {
+                "text": "string"
+              },
+              "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "selectedOption",
+              "type": {
+                "text": "SuggestionSelectionOption | undefined"
+              },
+              "description": "The option that was selected\n\nNote that it might be from outside the options list (for specific inputs)"
             },
             {
               "kind": "field",
@@ -8326,20 +8711,6 @@
               "default": "false"
             },
             {
-              "kind": "field",
-              "name": "getOptionIndex",
-              "description": "This method is used to get the current index.\nIt remove the offset of 1 because the currentIndex is 1-based.",
-              "return": {
-                "type": {
-                  "text": "number"
-                }
-              }
-            },
-            {
-              "kind": "field",
-              "name": "currentOption"
-            },
-            {
               "kind": "method",
               "name": "getInput"
             },
@@ -8355,7 +8726,7 @@
                   "description": "The input event."
                 }
               ],
-              "description": "Handles the input event on the suggestion and dispatch custom event : \"suggestion-input\"."
+              "description": "Handles the input event on the suggestion, that is when the option is suggested\nand dispatch to handleInput"
             },
             {
               "kind": "method",
@@ -8365,9 +8736,11 @@
                   "name": "value",
                   "type": {
                     "text": "string"
-                  }
+                  },
+                  "description": "the current input value"
                 }
-              ]
+              ],
+              "description": "React on changing input\n\nThis method is to be implemented by the component to ask for new suggestions based on the input value."
             },
             {
               "kind": "method",
@@ -8377,11 +8750,20 @@
             {
               "kind": "method",
               "name": "resetInput",
+              "parameters": [
+                {
+                  "name": "selectedOption",
+                  "optional": true,
+                  "type": {
+                    "text": "SuggestionSelectionOption"
+                  }
+                }
+              ],
               "description": "This method is used to reset the input value and blur it.\nIt is used to reset the input after a search."
             },
             {
               "kind": "method",
-              "name": "submit",
+              "name": "submitSuggestion",
               "parameters": [
                 {
                   "name": "isSuggestion",
@@ -8444,10 +8826,11 @@
               "name": "onClick",
               "parameters": [
                 {
-                  "name": "index",
+                  "name": "option",
                   "type": {
-                    "text": "number"
-                  }
+                    "text": "SuggestionSelectionOption"
+                  },
+                  "description": "chosen option"
                 }
               ],
               "description": "On a click on the suggestion option, we select it as value and submit it."
@@ -8471,14 +8854,6 @@
               },
               "default": "'suggestion'",
               "fieldName": "inputName"
-            },
-            {
-              "name": "value",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "fieldName": "value"
             }
           ],
           "mixins": [
@@ -8545,8 +8920,24 @@
               "type": {
                 "text": "string"
               },
-              "default": "'en'",
-              "attribute": "langs"
+              "description": "langs to get suggestion from.\n\nMust be implementetd in  child class"
+            },
+            {
+              "kind": "method",
+              "name": "termLabel",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "term",
+                  "type": {
+                    "text": "TermOption"
+                  }
+                }
+              ]
             },
             {
               "kind": "method",
@@ -8648,14 +9039,6 @@
               },
               "default": "'/'",
               "fieldName": "taxonomiesBaseUrl"
-            },
-            {
-              "name": "langs",
-              "type": {
-                "text": "string"
-              },
-              "default": "'en'",
-              "fieldName": "langs"
             }
           ],
           "mixins": [
@@ -9072,6 +9455,24 @@
             }
           ],
           "description": "Remove the language from the term id\nFor exemple: en:termId => termId"
+        },
+        {
+          "kind": "function",
+          "name": "unquoteTerm",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "term",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "unquote a term"
         }
       ],
       "exports": [
@@ -9088,6 +9489,14 @@
           "name": "removeLangFromTermId",
           "declaration": {
             "name": "removeLangFromTermId",
+            "module": "src/utils/taxonomies.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "unquoteTerm",
+          "declaration": {
+            "name": "unquoteTerm",
             "module": "src/utils/taxonomies.ts"
           }
         }

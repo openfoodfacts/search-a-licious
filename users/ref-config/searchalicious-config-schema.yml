@@ -508,6 +508,27 @@ $defs:
           \ the taxonomies.\n\n    All taxonomies are stored within the same index.\n\
           \n    It enables functions like auto-completion, or field suggestions\n\
           \    as well as enrichment of requests with synonyms.\n    "
+      preprocessor:
+        anyOf:
+        - description: 'The full qualified reference to the preprocessor
+
+            to use before taxonomy entry import.
+
+
+            This class must inherit `app.indexing.BaseTaxonomyPreprocessor`
+
+            and specialize the `preprocess` method.
+
+
+            This is used to adapt the taxonomy schema
+
+            or to add specific fields for example.'
+          examples:
+          - app.openfoodfacts.TaxonomyPreprocessor
+          type: string
+        - type: 'null'
+        default: null
+        title: Preprocessor
     required:
     - sources
     - index

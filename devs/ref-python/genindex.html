@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; Search-a-licious  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
-    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=c058f7c8" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
@@ -73,6 +72,8 @@
 </li>
       <li><a href="searching.html#app.query.add_languages_suffix">add_languages_suffix() (in module app.query)</a>
 </li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.add_parents">add_parents() (app.taxonomy.TaxonomyNode method)</a>
+</li>
       <li><a href="types.html#app._types.SearchResponseDebug.aggregations">aggregations (app._types.SearchResponseDebug attribute)</a>
 
       <ul>
@@ -121,6 +122,8 @@
         <li><a href="searching.html#module-app.es_scripts">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     app.facets
 
@@ -128,8 +131,6 @@
         <li><a href="searching.html#module-app.facets">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     app.health
 
@@ -201,6 +202,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.indexing.BaseDocumentPreprocessor">BaseDocumentPreprocessor (class in app.indexing)</a>
 </li>
+      <li><a href="searching.html#app.indexing.BaseTaxonomyPreprocessor">BaseTaxonomyPreprocessor (class in app.indexing)</a>
+</li>
       <li><a href="types.html#app._types.QuerySearchParameters.boost_phrase">boost_phrase (app._types.QuerySearchParameters attribute)</a>
 </li>
       <li><a href="searching.html#app.query.boost_phrases">boost_phrases() (in module app.query)</a>
@@ -209,10 +212,10 @@
 </li>
       <li><a href="config.html#app.config.FieldConfig.bucket_agg_should_be_used_for_keyword_and_numeric_types_only">bucket_agg_should_be_used_for_keyword_and_numeric_types_only() (app.config.FieldConfig method)</a>
 </li>
-      <li><a href="searching.html#app.charts.build_charts">build_charts() (in module app.charts)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="searching.html#app.charts.build_charts">build_charts() (in module app.charts)</a>
+</li>
       <li><a href="searching.html#app.query.build_completion_query">build_completion_query() (in module app.query)</a>
 </li>
       <li><a href="searching.html#app.charts.build_distribution_chart">build_distribution_chart() (in module app.charts)</a>
@@ -261,6 +264,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.children">children (app.taxonomy.TaxonomyNode attribute)</a>
+</li>
       <li><a href="cli.html#app.cli.main.cleanup_indexes">cleanup_indexes() (in module app.cli.main)</a>
 </li>
       <li><a href="types.html#app._types.QueryAnalysis.clone">clone() (app._types.QueryAnalysis method)</a>
@@ -449,6 +454,8 @@
 </li>
       <li><a href="searching.html#app.es_scripts.get_script_prefix">get_script_prefix() (in module app.es_scripts)</a>
 </li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.get_synonyms">get_synonyms() (app.taxonomy.TaxonomyNode method)</a>
+</li>
       <li><a href="misc.html#app.taxonomy.get_taxonomy">get_taxonomy() (in module app.taxonomy)</a>
 </li>
       <li><a href="searching.html#app.utils.analyzers.get_taxonomy_indexing_analyzer">get_taxonomy_indexing_analyzer() (in module app.utils.analyzers)</a>
@@ -483,6 +490,8 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.id">id (app.taxonomy.TaxonomyNode attribute)</a>
+</li>
       <li><a href="config.html#app.config.ESIndexConfig.id_field_name">id_field_name (app.config.ESIndexConfig attribute)</a>
 </li>
       <li><a href="cli.html#app.cli.main.import_data">import_data() (in module app.cli.main)</a>
@@ -503,10 +512,10 @@
 </li>
       <li><a href="config.html#app.config.FieldConfig.input_field">input_field (app.config.FieldConfig attribute)</a>
 </li>
-      <li><a href="searching.html#app.indexing.DocumentProcessor.inputs_from_data">inputs_from_data() (app.indexing.DocumentProcessor method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="searching.html#app.indexing.DocumentProcessor.inputs_from_data">inputs_from_data() (app.indexing.DocumentProcessor method)</a>
+</li>
       <li><a href="misc.html#app.taxonomy.TaxonomyNode.is_child_of">is_child_of() (app.taxonomy.TaxonomyNode method)</a>
 </li>
       <li><a href="types.html#app._types.SuccessSearchResponse.is_count_exact">is_count_exact (app._types.SuccessSearchResponse attribute)</a>
@@ -648,7 +657,11 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.names">names (app.taxonomy.TaxonomyNode attribute)</a>
+</li>
       <li><a href="types.html#app._types.GetSearchParameters.no_sort_by_scripts_on_get">no_sort_by_scripts_on_get() (app._types.GetSearchParameters method)</a>
+</li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNodeResult.node">node (app.taxonomy.TaxonomyNodeResult attribute)</a>
 </li>
       <li><a href="searching.html#app.utils.analyzers.number_of_fields">number_of_fields() (in module app.utils.analyzers)</a>
 </li>
@@ -686,29 +699,43 @@
       </ul></li>
       <li><a href="config.html#app.config.ScriptConfig.params">params (app.config.ScriptConfig attribute)</a>
 </li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.parents">parents (app.taxonomy.TaxonomyNode attribute)</a>
+</li>
       <li><a href="types.html#app._types.GetSearchParameters.parse_charts_str">parse_charts_str() (app._types.GetSearchParameters class method)</a>
 </li>
       <li><a href="types.html#app._types.QuerySearchParameters.parse_langs_str">parse_langs_str() (app._types.QuerySearchParameters class method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.query.parse_query">parse_query() (in module app.query)</a>
 </li>
       <li><a href="searching.html#app.query.parse_sort_by_field">parse_sort_by_field() (in module app.query)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.query.parse_sort_by_script">parse_sort_by_script() (in module app.query)</a>
 </li>
       <li><a href="types.html#app._types.GetSearchParameters.parse_value_str">parse_value_str() (app._types.GetSearchParameters class method)</a>
 </li>
       <li><a href="searching.html#app.indexing.BaseDocumentPreprocessor.preprocess">preprocess() (app.indexing.BaseDocumentPreprocessor method)</a>
+
+      <ul>
+        <li><a href="searching.html#app.indexing.BaseTaxonomyPreprocessor.preprocess">(app.indexing.BaseTaxonomyPreprocessor method)</a>
 </li>
+      </ul></li>
       <li><a href="config.html#app.config.IndexConfig.preprocessor">preprocessor (app.config.IndexConfig attribute)</a>
+
+      <ul>
+        <li><a href="config.html#app.config.TaxonomyConfig.preprocessor">(app.config.TaxonomyConfig attribute)</a>
 </li>
+      </ul></li>
       <li><a href="config.html#app.config.IndexConfig.primary_color">primary_color (app.config.IndexConfig attribute)</a>
 </li>
       <li><a href="searching.html#app.indexing.process_taxonomy_field">process_taxonomy_field() (in module app.indexing)</a>
 </li>
       <li><a href="searching.html#app.indexing.process_text_lang_field">process_text_lang_field() (in module app.indexing)</a>
+</li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.properties">properties (app.taxonomy.TaxonomyNode attribute)</a>
+</li>
+      <li><a href="misc.html#app.taxonomy.purge_none_values">purge_none_values() (in module app.taxonomy)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -778,10 +805,10 @@
 </li>
       <li><a href="types.html#app._types.PostSearchParameters.sort_by_scripts_needs_params">sort_by_scripts_needs_params() (app._types.PostSearchParameters method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="types.html#app._types.PostSearchParameters.sort_params">sort_params (app._types.PostSearchParameters attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.ScriptConfig.source">source (app.config.ScriptConfig attribute)</a>
 </li>
       <li><a href="config.html#app.config.TaxonomyConfig.sources">sources (app.config.TaxonomyConfig attribute)</a>
@@ -793,7 +820,11 @@
       <li><a href="config.html#app.config.ScriptConfig.static_params">static_params (app.config.ScriptConfig attribute)</a>
 </li>
       <li><a href="types.html#app._types.FetcherResult.status">status (app._types.FetcherResult attribute)</a>
+
+      <ul>
+        <li><a href="misc.html#app.taxonomy.TaxonomyNodeResult.status">(app.taxonomy.TaxonomyNodeResult attribute)</a>
 </li>
+      </ul></li>
       <li><a href="config.html#app.config.IndexConfig.supported_langs">supported_langs (app.config.IndexConfig attribute)</a>
 </li>
       <li><a href="config.html#app.config.IndexConfig.supported_langs_set">supported_langs_set (app.config.IndexConfig property)</a>
@@ -804,6 +835,8 @@
         <li><a href="searching.html#app.es_scripts.sync_scripts">(in module app.es_scripts)</a>
 </li>
       </ul></li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.synonyms">synonyms (app.taxonomy.TaxonomyNode attribute)</a>
+</li>
       <li><a href="config.html#app.config.Settings.synonyms_path">synonyms_path (app.config.Settings attribute)</a>
 </li>
   </ul></td>
@@ -824,14 +857,12 @@
 </li>
       <li><a href="config.html#app.config.IndexConfig.taxonomy_name_should_be_defined">taxonomy_name_should_be_defined() (app.config.IndexConfig method)</a>
 </li>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode">TaxonomyNode (class in app.taxonomy)</a>
-</li>
       <li><a href="misc.html#app.health.test_connect_es">test_connect_es() (in module app.health)</a>
+</li>
+      <li><a href="misc.html#app.health.test_connect_redis">test_connect_redis() (in module app.health)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="misc.html#app.health.test_connect_redis">test_connect_redis() (in module app.health)</a>
-</li>
       <li><a href="config.html#app.config.IndexConfig.text_lang_fields">text_lang_fields (app.config.IndexConfig property)</a>
 </li>
       <li><a href="types.html#app._types.QueryAnalysis.text_query">text_query (app._types.QueryAnalysis attribute)</a>
@@ -841,7 +872,11 @@
       <li><a href="types.html#app._types.SearchResponseError.title">title (app._types.SearchResponseError attribute)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.to_dict">to_dict() (app.taxonomy.Taxonomy method)</a>
+
+      <ul>
+        <li><a href="misc.html#app.taxonomy.TaxonomyNode.to_dict">(app.taxonomy.TaxonomyNode method)</a>
 </li>
+      </ul></li>
       <li><a href="types.html#app._types.SuccessSearchResponse.took">took (app._types.SuccessSearchResponse attribute)</a>
 </li>
       <li><a href="searching.html#app.facets.translate_facets_values">translate_facets_values() (in module app.facets)</a>
@@ -927,16 +962,7 @@
 
 
 
-
-<search id="searchbox" style="display: none" role="search">
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<h3>Navigation</h3>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
@@ -960,6 +986,16 @@
   </ul></li>
 </ul>
 </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -976,14 +1012,14 @@
       &#169;2024, Open Food Facts.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.0.2</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
     </div>
 
     
     <a href="https://github.com/openfoodfacts/search-a-licious" class="github">
-        <img src="_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
     </a>
     
 
