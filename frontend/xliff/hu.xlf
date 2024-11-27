@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="sde0081b1dc3582d3">
         <source>Reset filters</source>
-        <target state="needs-translation">Reset filters</target>
+        <target state="translated">Szűrők visszaállítása</target>
       </trans-unit>
       <trans-unit id="sc9e494c8346b7cb5">
         <source>Other</source>
