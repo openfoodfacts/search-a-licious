@@ -194,9 +194,9 @@ def taxonomy_autocomplete(
 
 
 @app.get("/", response_class=HTMLResponse)
-def off_demo():
-    """Redirects to the off.html page"""
-    return RedirectResponse(url="/static/off.html", status_code=status.HTTP_302_FOUND)
+def serve_index():
+    """Redirects to the index.html page"""
+    return RedirectResponse(url="/static/index.html", status_code=status.HTTP_302_FOUND)
 
 
 @app.get("/off-test", response_class=HTMLResponse)
