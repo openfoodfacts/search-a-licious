@@ -543,7 +543,15 @@ def run_items_import(
     # run in parallel
     num_errors = 0
     with Pool(num_processes) as pool:
-        for i, success, errors in pool.starmap(import_parallel, args):
+        if num_processes > 1:
+            logger.info("Running in parallel with %d processes", num_processes)
+            result_iter = iter(pool.starmap(import_parallel, args))
+        else:
+            # run sequentially, it's easier to debug if we need it
+            # we won't use the pool in this case
+            logger.info("Running in a single processes")
+            result_iter = iter(map(lambda a: import_parallel(*a), args))
+        for i, success, errors in result_iter:
             # Note: we log here instead of in sub-process because
             # it's easier to avoid mixing logs, and it works better for pytest
             logger.info("[%d] Indexed %d documents", i, success)
