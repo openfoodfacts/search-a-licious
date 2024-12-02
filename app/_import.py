@@ -1,10 +1,12 @@
 import abc
 import math
+import time
 from datetime import datetime
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Iterator, cast
 
+import elasticsearch
 import tqdm
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk, parallel_bulk
@@ -523,6 +525,16 @@ def run_items_import(
         index = generate_index_object(next_index, config)
         # create the index
         index.save(using=es_client)
+        # it may take some time to create the index
+        for i in range(60):
+            try:
+                index.refresh()
+                break
+            except elasticsearch.NotFoundError:
+                logger.info("Index not ready, waiting 10 seconds")
+                time.sleep(10)
+        else:
+            raise RuntimeError("Index not ready after 600 seconds")
     else:
         # use current index
         next_index = config.index.name
