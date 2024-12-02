@@ -311,13 +311,6 @@ class DocumentProcessor:
         if data is None:
             # unexpected !
             return FetcherResult(status=FetcherStatus.OTHER, document=None)
-        id_field_name = self.config.index.id_field_name
-
-        _id = data.get(id_field_name)
-        if _id is None or _id in self.config.document_denylist:
-            # We don't process the document if it has no ID or if it's in the
-            # denylist
-            return FetcherResult(status=FetcherStatus.SKIP, document=None)
 
         processed_result = (
             self.preprocessor.preprocess(data)
@@ -326,6 +319,8 @@ class DocumentProcessor:
             else result
         )
 
+        id_field_name = self.config.index.id_field_name
+        _id = data.get(id_field_name)
         if processed_result.status == FetcherStatus.REMOVED:
             return FetcherResult(
                 status=FetcherStatus.REMOVED,
@@ -336,6 +331,10 @@ class DocumentProcessor:
             or processed_result.document is None
         ):
             return processed_result
+        elif _id is None or _id in self.config.document_denylist:
+            # We don't add the document if it has no ID or if it's in the
+            # denylist
+            return FetcherResult(status=FetcherStatus.SKIP, document={"_id": _id})
 
         processed_data = processed_result.document
 
