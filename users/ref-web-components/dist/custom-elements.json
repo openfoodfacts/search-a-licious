@@ -7432,6 +7432,86 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/localization/main.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "getBrowserLocale",
+          "description": "Get the browser locale, it will keep only the language part"
+        },
+        {
+          "kind": "variable",
+          "name": "{getLocale, setLocale}",
+          "description": "Configure the localization, it will load the locale files and set the source and target locales"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "getBrowserLocale",
+          "declaration": {
+            "name": "getBrowserLocale",
+            "module": "src/localization/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "{getLocale, setLocale}",
+          "declaration": {
+            "name": "{getLocale, setLocale}",
+            "module": "src/localization/main.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/localization/translations.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "getPluralTranslation",
+          "parameters": [
+            {
+              "name": "value",
+              "type": {
+                "text": "number | undefined | null"
+              }
+            },
+            {
+              "name": "singleTranslation",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "pluralTranslation",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Utility functions to take the appropriate translation based on the value\nIf value is <= 1 or null or undefined, it will return the singleTranslation, otherwise the pluralTranslation",
+          "return": {
+            "type": {
+              "text": ""
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "getPluralTranslation",
+          "declaration": {
+            "name": "getPluralTranslation",
+            "module": "src/localization/translations.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/mixins/checked-input.ts",
       "declarations": [
         {
@@ -9049,86 +9129,6 @@
           "declaration": {
             "name": "VersioningMixin",
             "module": "src/mixins/versioning.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/localization/main.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "getBrowserLocale",
-          "description": "Get the browser locale, it will keep only the language part"
-        },
-        {
-          "kind": "variable",
-          "name": "{getLocale, setLocale}",
-          "description": "Configure the localization, it will load the locale files and set the source and target locales"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "getBrowserLocale",
-          "declaration": {
-            "name": "getBrowserLocale",
-            "module": "src/localization/main.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "{getLocale, setLocale}",
-          "declaration": {
-            "name": "{getLocale, setLocale}",
-            "module": "src/localization/main.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/localization/translations.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "getPluralTranslation",
-          "parameters": [
-            {
-              "name": "value",
-              "type": {
-                "text": "number | undefined | null"
-              }
-            },
-            {
-              "name": "singleTranslation",
-              "type": {
-                "text": "string"
-              }
-            },
-            {
-              "name": "pluralTranslation",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Utility functions to take the appropriate translation based on the value\nIf value is <= 1 or null or undefined, it will return the singleTranslation, otherwise the pluralTranslation",
-          "return": {
-            "type": {
-              "text": ""
-            }
-          }
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "getPluralTranslation",
-          "declaration": {
-            "name": "getPluralTranslation",
-            "module": "src/localization/translations.ts"
           }
         }
       ]
