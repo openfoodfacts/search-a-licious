@@ -320,7 +320,7 @@ class DocumentProcessor:
         )
 
         id_field_name = self.config.index.id_field_name
-        _id = data.get(id_field_name)
+        _id = (processed_result.document or {}).get(id_field_name)
         if processed_result.status == FetcherStatus.REMOVED:
             return FetcherResult(
                 status=FetcherStatus.REMOVED,
