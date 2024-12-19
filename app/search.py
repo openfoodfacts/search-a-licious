@@ -9,11 +9,14 @@ from ._types import (
     SearchResponse,
     SearchResponseDebug,
     SuccessSearchResponse,
+    ErrorSearchResponse,
+    SearchResponseError,
 )
 from .charts import build_charts
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
+from .exceptions import QueryCheckError
 
 logger = logging.getLogger(__name__)
 
@@ -79,12 +82,18 @@ def search(
         params.charts,
     )
     index_config = params.index_config
-    query = build_search_query(
-        params,
-        # ES query builder is generated from elasticsearch mapping and
-        # takes ~40ms to generate, build-it before hand to avoid this delay
-        es_query_builder=get_es_query_builder(params.valid_index_id),
-    )
+    try:
+        query = build_search_query(
+            params,
+            # ES query builder is generated from elasticsearch mapping and
+            # takes ~40ms to generate, build-it before hand to avoid this delay
+            es_query_builder=get_es_query_builder(params.valid_index_id),
+        )
+    except QueryCheckError as e:
+        return ErrorSearchResponse(
+            debug=None,
+            errors=[SearchResponseError(title="QueryCheckError", description=str(e))]
+        )
     (
         logger.debug(
             "Luqum query: %s\nElasticsearch query: %s",
