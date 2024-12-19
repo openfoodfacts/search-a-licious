@@ -112,7 +112,7 @@ def status_for_response(result: SearchResponse):
 @app.post("/search")
 def search(
     response: Response, search_parameters: Annotated[PostSearchParameters, Body()]
-):
+) -> SearchResponse:
     """This is the main search endpoint.
 
     It uses POST request to ensure privacy.
