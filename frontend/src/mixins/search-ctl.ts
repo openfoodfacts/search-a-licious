@@ -1,13 +1,10 @@
 import {LitElement} from 'lit';
 import {property, state} from 'lit/decorators.js';
-import {
-  EventRegistrationInterface,
-  EventRegistrationMixin,
-} from '../event-listener-setup';
+import {EventRegistrationMixin} from '../event-listener-setup';
 import {QueryOperator, SearchaliciousEvents} from '../utils/enums';
 import {ChangePageEvent} from '../events';
 import {Constructor} from './utils';
-import {SearchaliciousSort, SortParameters} from '../search-sort';
+import {SearchaliciousSort} from '../search-sort';
 import {SearchaliciousFacets} from '../search-facets';
 import {setCurrentURLHistory} from '../utils/url';
 import {isNullOrUndefined} from '../utils';
@@ -16,15 +13,14 @@ import {
   DEFAULT_SEARCH_NAME,
   PROPERTY_LIST_DIVIDER,
 } from '../utils/constants';
-import {
-  HistorySearchParams,
-  SearchaliciousHistoryInterface,
-  SearchaliciousHistoryMixin,
-} from './history';
+import {SearchaliciousSearchInterface} from '../interfaces/search-ctl-interfaces';
+import {HistorySearchParams} from '../interfaces/history-interfaces';
+import {SearchParameters} from '../interfaces/search-params-interfaces';
+import {ChartSearchParam} from '../interfaces/chart-interfaces';
+import {SearchaliciousHistoryMixin} from './history';
 import {
   SearchaliciousDistributionChart,
   SearchaliciousScatterChart,
-  ChartSearchParam,
 } from '../search-chart';
 import {
   canResetSearch,
@@ -34,40 +30,6 @@ import {
 } from '../signals';
 import {SignalWatcher} from '@lit-labs/preact-signals';
 import {isTheSameSearchName} from '../utils/search';
-
-export interface SearchParameters extends SortParameters {
-  q: string;
-  langs: string[];
-  page_size: string;
-  page?: string;
-  index_id?: string;
-  facets?: string[];
-  params?: string[];
-  charts?: string | ChartSearchParam[];
-}
-export interface SearchaliciousSearchInterface
-  extends EventRegistrationInterface,
-    SearchaliciousHistoryInterface {
-  query: string;
-  name: string;
-  baseUrl: string;
-  langs: string;
-  index: string;
-  pageSize: number;
-  lastQuery?: string;
-  lastFacetsFilters?: string;
-  isQueryChanged: boolean;
-  isFacetsChanged: boolean;
-  isSearchChanged: boolean;
-  canReset: boolean;
-
-  updateSearchSignals(): void;
-  search(): Promise<void>;
-  _facetsNodes(): SearchaliciousFacets[];
-  _facetsFilters(): string;
-  resetFacets(launchSearch?: boolean): void;
-  selectTermByTaxonomy(taxonomy: string, term: string): void;
-}
 
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
@@ -86,6 +48,9 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
 
     /**
      * The name of this search
+     *
+     * It enables having multiple search on the same page,
+     * if you specify it, your components must specify the attribute search-name
      */
     @property()
     override name = DEFAULT_SEARCH_NAME;
@@ -97,16 +62,30 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     baseUrl = '/';
 
     /**
-     * Separated list of languages
+     * Separated list of languages,
+     * the first one is the main language
      */
     @property()
     langs = 'en';
 
     /**
      * index to query
+     *
+     * If not specified, the default index will be used
      */
     @property()
     index?: string;
+
+    /**
+     * Wether to use the boost phrase heuristic.
+     *
+     * This heuristic is used to boost nearby term in search results.
+     * It can greatly improve the pertinence of the search results (only for default sort)
+     *
+     * It defaults to false.
+     */
+    @property({type: Boolean, attribute: 'boost-phrase'})
+    boostPhrase = false;
 
     /**
      * Number of result per page
@@ -183,30 +162,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       isSearchChanged(this.name).value = this.isSearchChanged;
     }
 
-    /** list of facets containers */
-    _facetsParentNode() {
-      return document.querySelectorAll(
-        `searchalicious-facets[search-name=${this.name}]`
-      );
-    }
-
-    /**
-     * Select a term by taxonomy in all facets
-     * It will update the selected terms in facets
-     * @param taxonomy
-     * @param term
-     */
-    selectTermByTaxonomy(taxonomy: string, term: string) {
-      for (const facets of this._facetsParentNode()) {
-        // if true, the facets has been updated
-        if (
-          (facets as SearchaliciousFacets).selectTermByTaxonomy(taxonomy, term)
-        ) {
-          return;
-        }
-      }
-    }
-
     /**
      * @returns the sort element linked to this search ctl
      */
@@ -259,10 +214,11 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * @returns all searchalicious-facets elements linked to this search ctl
      */
-    override _facetsNodes = (): SearchaliciousFacets[] => {
+    override relatedFacets = (): SearchaliciousFacets[] => {
       const allNodes: SearchaliciousFacets[] = [];
-      // search facets elements, we can't filter on search-name because of default value…
-      this._facetsParentNode()?.forEach((item) => {
+      // search facets elements,
+      // we can't directly filter on search-name in selector because of default value
+      document.querySelectorAll(`searchalicious-facets`).forEach((item) => {
         const facetElement = item as SearchaliciousFacets;
         if (facetElement.searchName == this.name) {
           allNodes.push(facetElement);
@@ -274,8 +230,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     /**
      * Get the list of facets we want to request
      */
-    _facets(): string[] {
-      const names = this._facetsNodes()
+    _facetsNames(): string[] {
+      const names = this.relatedFacets()
         .map((facets) => facets.getFacetsNames())
         .flat();
       return [...new Set(names)];
@@ -319,14 +275,14 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
      * @returns an expression to be added to query
      */
     override _facetsFilters = (): string => {
-      const allFilters: string[] = this._facetsNodes()
+      const allFilters: string[] = this.relatedFacets()
         .map((facets) => facets.getSearchFilters())
         .flat();
       return allFilters.join(QueryOperator.AND);
     };
 
     resetFacets(launchSearch = true) {
-      this._facetsNodes().forEach((facets) => facets.reset(launchSearch));
+      this.relatedFacets().forEach((facets) => facets.reset(launchSearch));
     }
 
     /*
@@ -359,11 +315,15 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     _paramsToQueryStr(params: SearchParameters): string {
       return Object.entries(params)
         .map(([key, value]) => {
+          if (value === false) {
+            return null;
+          }
           if (value.constructor === Array) {
             value = value.join(API_LIST_DIVIDER);
           }
           return `${encodeURIComponent(key)}=${encodeURIComponent(value!)}`;
         })
+        .filter((val) => val !== null)
         .sort() // for perdictability in tests !
         .join('&');
     }
@@ -463,6 +423,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       }
       const params: SearchParameters = {
         q: queryParts.join(' '),
+        boost_phrase: this.boostPhrase,
         langs: this.langs
           .split(PROPERTY_LIST_DIVIDER)
           .map((lang) => lang.trim()),
@@ -483,8 +444,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         params.page = page.toString();
       }
       // facets
-      if (this._facets().length > 0) {
-        params.facets = this._facets();
+      if (this._facetsNames().length > 0) {
+        params.facets = this._facetsNames();
       }
 
       const charts = this._chartParams(!needsPOST);

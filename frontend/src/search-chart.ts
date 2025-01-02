@@ -4,21 +4,16 @@ import {customElement, property} from 'lit/decorators.js';
 import {WHITE_PANEL_STYLE} from './styles';
 import {SearchResultDetail} from './signals';
 
+import {ChartSearchParam} from './interfaces/chart-interfaces';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
-
-interface ChartSearchParamPOST {
-  chart_type: string;
-  field?: string;
-  x?: string;
-  y?: string;
-}
-
-export type ChartSearchParam = ChartSearchParamPOST | string;
 
 // eslint raises error due to :any
 // eslint-disable-next-line
 declare const vega: any;
 
+/**
+ * Base class for chart elements
+ */
 export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
@@ -119,6 +114,11 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   }
 }
 
+/**
+ * Distribution chart.
+ *
+ * This will draw bars for each value of the field, reflecting the number of elements.
+ */
 @customElement('searchalicious-distribution-chart')
 export class SearchaliciousDistributionChart extends SearchaliciousChart {
   static override styles = [WHITE_PANEL_STYLE];
@@ -134,11 +134,18 @@ export class SearchaliciousDistributionChart extends SearchaliciousChart {
     if (isGetRequest) return this.field;
     else
       return {
-        chart_type: 'DistributionChartType',
+        chart_type: 'DistributionChart',
         field: this.field,
       };
   }
 }
+
+/**
+ * Scatter plot chart.
+ *
+ * This will plot a point to each element at the corresponding coordinates,
+ * giving a sense of the distribution of the data.
+ */
 @customElement('searchalicious-scatter-chart')
 export class SearchaliciousScatterChart extends SearchaliciousChart {
   static override styles = [WHITE_PANEL_STYLE];
@@ -157,7 +164,7 @@ export class SearchaliciousScatterChart extends SearchaliciousChart {
     if (isGetRequest) return `${this.x}:${this.y}`;
     else
       return {
-        chart_type: 'ScatterChartType',
+        chart_type: 'ScatterChart',
         x: this.x,
         y: this.y,
       };

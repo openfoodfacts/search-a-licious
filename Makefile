@@ -1,5 +1,4 @@
 MOUNT_POINT ?= /mnt
-DOCKER_LOCAL_DATA ?= /srv/off/docker_data
 ENV_FILE ?= .env
 # for dev we need to align user uid with the one in the container
 # this is handled through build args
@@ -23,22 +22,20 @@ endif
 DOCKER_COMPOSE=docker compose --env-file=${ENV_FILE}
 DOCKER_COMPOSE_TEST=COMPOSE_PROJECT_NAME=search_test docker compose --env-file=${ENV_FILE}
 
+.PHONY: build create_external_volumes livecheck up down test test_front test_front_watch test_api import-dataset import-taxonomies sync-scripts build-translations generate-openapi check check_front check_translations lint lint_back lint_front
 #------------#
 # Production #
 #------------#
 
 create_external_volumes:
 	@echo "🔎 Creating external volumes (production only) …"
-	@for vol_name in esdata01 esdata02; \
+	@for vol_name in esdata01 esdata02 es_synonyms; \
 	do \
 		vol_name=${COMPOSE_PROJECT_NAME}_$$vol_name; \
-		vol_path=${DOCKER_LOCAL_DATA}/$$vol_name; \
-		echo creating docker volume $$vol_name at $$vol_path; \
-		# ensure directory \
-		mkdir -p -v "$$vol_path"; \
+		echo creating docker volume $$vol_name \
 		# create volume \
 		# this bind mount a folder, it will happen when volume will be used \
-		docker volume create --driver=local -o type=none -o o=bind -o device="$$vol_path" "$$vol_name" ; \
+		docker volume create --driver=local "$$vol_name" ; \
 	done;
 
 livecheck:
@@ -62,7 +59,7 @@ livecheck:
 
 build:
 	@echo "🔎 building docker (for dev)"
-	${DOCKER_COMPOSE} build --progress=plain
+	${DOCKER_COMPOSE} build --progress=plain ${args}
 
 
 up: _ensure_network
@@ -111,15 +108,34 @@ tsc_watch:
 	@echo "🔎 Running front-end tsc in watch mode..."
 	${DOCKER_COMPOSE} run --rm search_nodejs npm run build:watch
 
+update_poetry_lock:
+	@echo "🔎 Updating poetry.lock"
+	${DOCKER_COMPOSE} run --rm api poetry lock --no-update
+
 #-------#
 # Tests #
 #-------#
 
-test: _ensure_network test_api test_front
+test: _ensure_network check_poetry_lock test_api test_front
 
-test_api:
-	@echo "🔎 Running API tests..."
-	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/
+check_poetry_lock:
+	@echo "🔎 Checking poetry.lock"
+# we have to mount whole project folder for pyproject will be checked
+	${DOCKER_COMPOSE} run -v $$(pwd):/project -w /project --rm api poetry check --lock
+
+test_api: test_api_unit test_api_integration
+
+test_api_unit:
+	@echo "🔎 Running API unit tests..."
+	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/int
+
+# you can use keep_es=1 to avoid stopping elasticsearch after tests (useful during development)
+test_api_integration:
+	@echo "🔎 Running API integration tests..."
+	${DOCKER_COMPOSE_TEST} up -d es01 es02 elasticvue
+	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/unit
+	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop es01 es02 elasticvue || true
+
 
 test_front:
 	@echo "🔎 Running front-end tests..."
@@ -128,6 +144,10 @@ test_front:
 test_front_watch:
 	@echo "🔎 Running front-end tests..."
 	${DOCKER_COMPOSE_TEST} run --rm search_nodejs npm run test:watch
+
+test_clean:
+	@echo "🔎 Cleaning tests instances..."
+	${DOCKER_COMPOSE_TEST} down -v
 
 #-----------#
 # Utilities #
@@ -155,6 +175,10 @@ sync-scripts:
 build-translations:
 	@echo "🔎 Building translations …"
 	${DOCKER_COMPOSE} run --rm search_nodejs npm run translations:build
+
+cleanup-indexes:
+	@echo "🔎 Cleaning indexes …"
+	${DOCKER_COMPOSE} run --rm api python3 -m app cleanup-indexes ${args}
 
 generate-openapi: _ensure_network
 	@echo "🔎 Generating OpenAPI spec …"

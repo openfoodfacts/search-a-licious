@@ -13,8 +13,12 @@ For `general documentation about search-a-licious Follow this link`__
 .. note: this only work on github pages
 .. __: /search-a-licious
 
+The backend is built using FastAPI_ and a lot of tiangolo_ packages
 
-Contents:
+.. _FastAPI: https://fastapi.tiangolo.com/
+.. _tiangolo: https://tiangolo.com/projects/
+
+Here is the documentation of main modules, by topics:
 
 .. toctree::
    :maxdepth: 2

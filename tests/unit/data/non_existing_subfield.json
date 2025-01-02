@@ -1,0 +1,36 @@
+{
+  "text_query": "Milk AND nutriments:(nonexisting:>=3)",
+  "luqum_tree": "Milk AND nutriments:(nonexisting:[3 TO *])",
+  "es_query": {
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "multi_match": {
+              "query": "Milk",
+              "zero_terms_query": "all",
+              "fields": [
+                "product_name.en",
+                "generic_name.en",
+                "categories.en",
+                "labels.en",
+                "brands.en"
+              ],
+              "type": "best_fields"
+            }
+          },
+          {
+            "range": {
+              "nutriments.nonexisting": {
+                "gte": "3"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "size": 25,
+    "from": 25
+  },
+  "facets_filters": {}
+}

@@ -78,14 +78,13 @@ suite('searchalicious-bar', () => {
     );
     const input = el.shadowRoot!.querySelector('input');
     input!.value = 'test';
-    console.log(input);
-    console.log('input', input!.value);
     input!.dispatchEvent(new Event('input'));
     const bar = el as SearchaliciousBar;
     const searchParams = (bar as any)['_searchUrl']();
-    console.log('input', input);
     assert.equal(searchParams.searchUrl, '/search');
+    console.log(searchParams.params);
     assert.deepEqual(searchParams.params, {
+      boost_phrase: false,
       index_id: 'foo',
       langs: ['en'],
       page_size: '10',
@@ -94,6 +93,30 @@ suite('searchalicious-bar', () => {
     assert.equal(
       (bar as any)._paramsToQueryStr(searchParams.params),
       'index_id=foo&langs=en&page_size=10&q=test'
+    );
+  });
+
+  test('_searchUrl computation boost phrase', async () => {
+    const el = await fixture(
+      html` <searchalicious-bar index="foo" boost-phrase></searchalicious-bar>`
+    );
+    const input = el.shadowRoot!.querySelector('input');
+    input!.value = 'test';
+    input!.dispatchEvent(new Event('input'));
+    const bar = el as SearchaliciousBar;
+    const searchParams = (bar as any)['_searchUrl']();
+    assert.equal(searchParams.searchUrl, '/search');
+    assert.deepEqual(searchParams.params, {
+      boost_phrase: true,
+      index_id: 'foo',
+      langs: ['en'],
+      page_size: '10',
+      q: 'test',
+    });
+    // not present in search query string
+    assert.equal(
+      (bar as any)._paramsToQueryStr(searchParams.params),
+      'boost_phrase=true&index_id=foo&langs=en&page_size=10&q=test'
     );
   });
 });

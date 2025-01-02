@@ -9,16 +9,19 @@ from elasticsearch_dsl import field as dsl_field
 from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import (
     ANALYZER_LANG_MAPPING,
-    Config,
     FieldConfig,
     FieldType,
     IndexConfig,
     TaxonomyConfig,
-    TaxonomySourceConfig,
 )
-from app.taxonomy import get_taxonomy
+from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
 from app.utils import load_class_object_from_string
-from app.utils.analyzers import AUTOCOMPLETE_ANALYZERS
+from app.utils.analyzers import (
+    get_autocomplete_analyzer,
+    get_taxonomy_indexing_analyzer,
+    get_taxonomy_search_analyzer,
+    number_of_fields,
+)
 
 FIELD_TYPE_TO_DSL_TYPE = {
     FieldType.keyword: dsl_field.Keyword,
@@ -37,46 +40,46 @@ FIELD_TYPE_TO_DSL_TYPE = {
 
 
 def generate_dsl_field(
-    field: FieldConfig, supported_langs: Iterable[str], taxonomy_langs: Iterable[str]
+    field: FieldConfig, supported_langs: Iterable[str]
 ) -> dsl_field.Field:
     """Generate Elasticsearch DSL field from a FieldConfig.
 
+    This will be used to generate the Elasticsearch mapping.
+
+    This is an important part, because it will define the behavior of each field.
+
     :param field: the field to use as input
     :param supported_langs: an iterable of languages (2-letter codes),
-        used to know which sub-fields to create for `text_lang` field types
-    :param taxonomy_langs: an iterabl of languages (2-letter codes),
-        used to know which sub-fields to create for `taxonomy` field types
+        used to know which sub-fields to create for `text_lang`
+        and `taxonomy` field types
     :return: the elasticsearch_dsl field
     """
     if field.type is FieldType.taxonomy:
-        # in `other`, we store the text of all languages that don't have a
-        # built-in ES analyzer. By using a single field, we don't create as
-        # many subfields as there are supported languages
-        properties = {"other": dsl_field.Text(analyzer=analyzer("standard"))}
-        for lang in taxonomy_langs:
-            if lang in ANALYZER_LANG_MAPPING:
-                properties[lang] = dsl_field.Text(
-                    analyzer=analyzer(ANALYZER_LANG_MAPPING[lang])
-                )
-        return dsl_field.Object(
-            required=field.required, dynamic=False, properties=properties
-        )
-
+        # We will store the taxonomy identifier as keyword
+        # And also store it in subfields with query analyzers for each language,
+        # that will activate synonyms and specific normalizations
+        if field.taxonomy_name is None:
+            raise ValueError("Taxonomy field must have a taxonomy_name set in config")
+        sub_fields = {
+            lang: dsl_field.Text(
+                # we almost use keyword analyzer as we really map synonyms to a keyword
+                analyzer=get_taxonomy_indexing_analyzer(field.taxonomy_name, lang),
+                # but on query we need to fold and match with synonyms
+                search_analyzer=get_taxonomy_search_analyzer(
+                    field.taxonomy_name, lang, with_synonyms=True
+                ),
+            )
+            for lang in supported_langs
+        }
+        return dsl_field.Keyword(required=field.required, fields=sub_fields)
     elif field.type is FieldType.text_lang:
         properties = {
-            # we use `other` field for the same reason as for the `taxonomy`
-            # type
-            "other": dsl_field.Text(analyzer=analyzer("standard")),
-            # Add subfield used to save main language version for `text_lang`
-            "main": dsl_field.Text(analyzer=analyzer("standard")),
+            lang: dsl_field.Text(
+                analyzer=analyzer(ANALYZER_LANG_MAPPING.get(lang, "standard")),
+            )
+            for lang in supported_langs
         }
-        for lang in supported_langs:
-            if lang in ANALYZER_LANG_MAPPING:
-                properties[lang] = dsl_field.Text(
-                    analyzer=analyzer(ANALYZER_LANG_MAPPING[lang])
-                )
         return dsl_field.Object(dynamic=False, properties=properties)
-
     elif field.type == FieldType.object:
         return dsl_field.Object(dynamic=True)
     elif field.type == FieldType.disabled:
@@ -101,8 +104,41 @@ def preprocess_field_value(
     return input_value
 
 
+class BaseTaxonomyPreprocessor(abc.ABC):
+    """Base class for taxonomy entries preprocessors.
+
+    Classes referenced in index configuration `preprocess` field,
+    has to be derived from it.
+    """
+
+    def __init__(self, config: IndexConfig) -> None:
+        self.config = config
+
+    @abc.abstractmethod
+    def preprocess(self, taxonomy: Taxonomy, node: TaxonomyNode) -> TaxonomyNodeResult:
+        """Preprocess the taxonomy entry before ingestion in Elasticsearch,
+        and before synonyms generation
+
+        This can be used to make document schema compatible with the project
+        schema or to add custom fields.
+
+        :return: a TaxonomyNodeResult object:
+
+        * the status can be used to pilot wether
+          to index or not the entry (even delete it)
+        * the entry is the transformed entry
+        """
+        pass
+
+
 class BaseDocumentPreprocessor(abc.ABC):
-    def __init__(self, config: Config) -> None:
+    """Base class for document preprocessors.
+
+    Classes referenced in index configuration `preprocess` field,
+    has to be derived from it.
+    """
+
+    def __init__(self, config: IndexConfig) -> None:
         self.config = config
 
     @abc.abstractmethod
@@ -116,7 +152,7 @@ class BaseDocumentPreprocessor(abc.ABC):
 
         * the status can be used to pilot wether
           to index or not the document (even delete it)
-        * the document is the document transformed document
+        * the document is the transformed document
 
         """
         pass
@@ -170,12 +206,7 @@ def process_text_lang_field(
         else:
             # here key is the lang 2-letters code
             key = target_field.rsplit(lang_separator, maxsplit=1)[-1]
-            # Here we check whether the language is supported, otherwise
-            # we use the default "other" field, that aggregates texts
-            # from all unsupported languages
-            # it's the only subfield that is a list instead of a string
             if key not in supported_langs:
-                field_input.setdefault("other", []).append(input_value)
                 continue
 
         field_input[key] = input_value
@@ -188,82 +219,25 @@ def process_taxonomy_field(
     field: FieldConfig,
     taxonomy_config: TaxonomyConfig,
     split_separator: str,
-    taxonomy_langs: set[str],
 ) -> JSONType | None:
     """Process data for a `taxonomy` field type.
 
-    Generates a dict ready to be indexed by Elasticsearch, with a subfield for
-    each language. Two other subfields are added:
-
-    - `original`: the original value of the field. For example, if the field
-       name is `categories` and `categories` already exist in the document,
-       we will save its value in the `original` subfield. This subfield is
-       only added if the field is present in the input data.
-
-    - `other`: the value of the field for languages that are not supported by
-       the project (no elasticsearch specific analyzers)
+    There is not much to be done here,
+    as the magic of synonyms etc. happens by ES itself,
+    thanks to our mapping definition,
+    and a bit at query time.
 
     :param data: input data, as a dict
     :param field: the field config
-    :param taxonomy_config: the taxonomy config
     :param split_separator: the separator used to split the input field value,
         in case of multi-valued input (if `field.split` is True)
-    :param taxonomy_langs: a set of supported languages (2-letter codes), used
-        to know which sub-fields to create.
-    :return: the processed data, as a dict
+    :return: the processed value
     """
-    field_input: JSONType = {}
     input_field = field.get_input_field()
     input_value = preprocess_field_value(
         data, input_field, split=field.split, split_separator=split_separator
     )
-    if input_value is None:
-        return None
-
-    taxonomy_sources_by_name = {
-        source.name: source for source in taxonomy_config.sources
-    }
-    taxonomy_source_config: TaxonomySourceConfig = taxonomy_sources_by_name[
-        field.taxonomy_name  # type: ignore
-    ]
-    taxonomy = get_taxonomy(
-        taxonomy_source_config.name, str(taxonomy_source_config.url)
-    )
-
-    # to know in which language we should translate the tags using the
-    # taxonomy, we use:
-    # - the language list defined in the taxonomy config: for every item, we
-    #   translate the tags for this list of languages
-    # - a custom list of supported languages for the item (`taxonomy_langs`
-    # field), this is used to allow indexing tags for an item that is available
-    # in specific countries
-    langs = taxonomy_langs | set(data.get("taxonomy_langs", []))
-    for lang in langs:
-        for single_tag in input_value:
-            if single_tag not in taxonomy:
-                continue
-
-            node = taxonomy[single_tag]
-            values = {node.get_localized_name(lang)}
-
-            if field.add_taxonomy_synonyms:
-                values |= set(node.get_synonyms(lang))
-
-                # Add international version of the name
-                if "xx" in node.names:
-                    values |= set(node.get_synonyms("xx"))
-
-            for value in values:
-                if value is not None:
-                    # If language is not supported (=no elasticsearch specific
-                    # analyzers), we store the data in a "other" field
-                    key = lang if lang in ANALYZER_LANG_MAPPING else "other"
-                    field_input.setdefault(key, []).append(value)
-
-    if field.name in data:
-        field_input["original"] = data[field.name]
-
-    return field_input if field_input else None
+    return input_value if input_value else None
 
 
 class DocumentProcessor:
@@ -273,8 +247,7 @@ class DocumentProcessor:
 
     def __init__(self, config: IndexConfig) -> None:
         self.config = config
-        self.supported_langs = config.get_supported_langs()
-        self.taxonomy_langs = config.get_taxonomy_langs()
+        self.supported_langs_set = config.supported_langs_set
         self.preprocessor: BaseDocumentPreprocessor | None
 
         if config.preprocessor is not None:
@@ -282,6 +255,47 @@ class DocumentProcessor:
             self.preprocessor = preprocessor_cls(config)
         else:
             self.preprocessor = None
+
+    def inputs_from_data(self, id_, processed_data: JSONType) -> JSONType:
+        """Generate a dict with the data to be indexed in ES"""
+        inputs = {
+            "last_indexed_datetime": datetime.datetime.utcnow().isoformat(),
+            "_id": id_,
+        }
+        for field in self.config.fields.values():
+            input_field = field.get_input_field()
+
+            if field.type == FieldType.text_lang:
+                # dispath languages in a sub-dictionary
+                field_input = process_text_lang_field(
+                    processed_data,
+                    input_field=field.get_input_field(),
+                    split=field.split,
+                    lang_separator=self.config.lang_separator,
+                    split_separator=self.config.split_separator,
+                    supported_langs=self.supported_langs_set,
+                )
+            # nothing to do, all the magic of subfield is done thanks to ES
+            elif field.type == FieldType.taxonomy:
+                field_input = process_taxonomy_field(
+                    data=processed_data,
+                    field=field,
+                    taxonomy_config=self.config.taxonomy,
+                    split_separator=self.config.split_separator,
+                )
+
+            else:
+                field_input = preprocess_field_value(
+                    processed_data,
+                    input_field,
+                    split=field.split,
+                    split_separator=self.config.split_separator,
+                )
+
+            if field_input:
+                inputs[field.name] = field_input
+
+        return inputs
 
     def from_result(self, result: FetcherResult) -> FetcherResult:
         """Generate an item ready to be indexed by elasticsearch-dsl
@@ -297,13 +311,6 @@ class DocumentProcessor:
         if data is None:
             # unexpected !
             return FetcherResult(status=FetcherStatus.OTHER, document=None)
-        id_field_name = self.config.index.id_field_name
-
-        _id = data.get(id_field_name)
-        if _id is None or _id in self.config.document_denylist:
-            # We don't process the document if it has no ID or if it's in the
-            # denylist
-            return FetcherResult(status=FetcherStatus.SKIP, document=None)
 
         processed_result = (
             self.preprocessor.preprocess(data)
@@ -312,6 +319,8 @@ class DocumentProcessor:
             else result
         )
 
+        id_field_name = self.config.index.id_field_name
+        _id = (processed_result.document or {}).get(id_field_name)
         if processed_result.status == FetcherStatus.REMOVED:
             return FetcherResult(
                 status=FetcherStatus.REMOVED,
@@ -322,90 +331,79 @@ class DocumentProcessor:
             or processed_result.document is None
         ):
             return processed_result
+        elif _id is None or _id in self.config.document_denylist:
+            # We don't add the document if it has no ID or if it's in the
+            # denylist
+            return FetcherResult(status=FetcherStatus.SKIP, document={"_id": _id})
 
         processed_data = processed_result.document
 
-        inputs = {
-            "last_indexed_datetime": datetime.datetime.utcnow().isoformat(),
-            "_id": _id,
-        }
-        for field in self.config.fields.values():
-            input_field = field.get_input_field()
-
-            if field.type == FieldType.text_lang:
-                field_input = process_text_lang_field(
-                    processed_data,
-                    input_field=field.get_input_field(),
-                    split=field.split,
-                    lang_separator=self.config.lang_separator,
-                    split_separator=self.config.split_separator,
-                    supported_langs=self.supported_langs,
-                )
-
-            elif field.type == FieldType.taxonomy:
-                field_input = process_taxonomy_field(
-                    data=processed_data,
-                    field=field,
-                    taxonomy_config=self.config.taxonomy,
-                    split_separator=self.config.split_separator,
-                    taxonomy_langs=self.taxonomy_langs,
-                )
-
-            else:
-                field_input = preprocess_field_value(
-                    processed_data,
-                    input_field,
-                    split=field.split,
-                    split_separator=self.config.split_separator,
-                )
-
-            if field_input:
-                inputs[field.name] = field_input
+        inputs = self.inputs_from_data(_id, processed_data)
 
         return FetcherResult(status=processed_result.status, document=inputs)
 
 
 def generate_mapping_object(config: IndexConfig) -> Mapping:
+    """ES Mapping for project index, that will contain the data"""
     mapping = Mapping()
     supported_langs = config.supported_langs
-    taxonomy_langs = config.taxonomy.exported_langs
+    # note: when we reference new analyzers in the mapping as analyzers objects,
+    # Elasticsearch DSL will reference them in the analyzer section by itself
     for field in config.fields.values():
         mapping.field(
             field.name,
-            generate_dsl_field(
-                field, supported_langs=supported_langs, taxonomy_langs=taxonomy_langs
-            ),
+            generate_dsl_field(field, supported_langs=supported_langs),
         )
 
     # date of last index for the purposes of search
+    # this is a field internal to Search-a-licious and independent of the project
     mapping.field("last_indexed_datetime", dsl_field.Date(required=True))
     return mapping
 
 
 def generate_index_object(index_name: str, config: IndexConfig) -> Index:
+    """Index configuration for project index, that will contain the data"""
     index = Index(index_name)
-    index.settings(
-        number_of_shards=config.index.number_of_shards,
-        number_of_replicas=config.index.number_of_replicas,
-    )
+    settings = {
+        "number_of_shards": config.index.number_of_shards,
+        "number_of_replicas": config.index.number_of_replicas,
+    }
     mapping = generate_mapping_object(config)
+    num_fields = number_of_fields(mapping)
+    # add 25% margin
+    num_fields = int(num_fields * 1.25)
+    if num_fields > 1000:
+        # default limit is 1000 fields, set a specific one
+        settings["index.mapping.total_fields.limit"] = num_fields
+    index.settings(**settings)
     index.mapping(mapping)
     return index
 
 
 def generate_taxonomy_mapping_object(config: IndexConfig) -> Mapping:
+    """ES Mapping for indexes containing taxonomies entries"""
     mapping = Mapping()
     supported_langs = config.supported_langs
     mapping.field("id", dsl_field.Keyword(required=True))
     mapping.field("taxonomy_name", dsl_field.Keyword(required=True))
     mapping.field(
-        "names",
+        "name",
+        dsl_field.Object(
+            required=True,
+            dynamic=False,
+            properties={
+                lang: dsl_field.Keyword(required=False) for lang in supported_langs
+            },
+        ),
+    ),
+    mapping.field(
+        "synonyms",
         dsl_field.Object(
             required=True,
             dynamic=False,
             properties={
                 lang: dsl_field.Completion(
-                    analyzer=AUTOCOMPLETE_ANALYZERS.get(lang, "simple"),
+                    analyzer=get_autocomplete_analyzer(lang),
                     contexts=[
                         {
                             "name": "taxonomy_name",
@@ -413,6 +411,7 @@ def generate_taxonomy_mapping_object(config: IndexConfig) -> Mapping:
                             "type": "category",
                         }
                     ],
+                    preserve_separators=False,  # help match plurals
                 )
                 for lang in supported_langs
             },
@@ -422,6 +421,9 @@ def generate_taxonomy_mapping_object(config: IndexConfig) -> Mapping:
 
 
 def generate_taxonomy_index_object(index_name: str, config: IndexConfig) -> Index:
+    """
+    Index configuration for indexes containing taxonomies entries
+    """
     index = Index(index_name)
     taxonomy_index_config = config.taxonomy.index
     index.settings(

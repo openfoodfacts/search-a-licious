@@ -7,9 +7,9 @@ import requests
 
 from app._import import BaseDocumentFetcher
 from app._types import FetcherResult, FetcherStatus, JSONType
-from app.indexing import BaseDocumentPreprocessor
+from app.indexing import BaseDocumentPreprocessor, BaseTaxonomyPreprocessor
 from app.postprocessing import BaseResultProcessor
-from app.taxonomy import get_taxonomy
+from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
 from app.utils.download import http_session
 from app.utils.log import get_logger
 
@@ -88,6 +88,37 @@ def generate_image_url(code: str, image_id: str) -> str:
 OFF_API_URL = os.environ.get("OFF_API_URL", "https://world.openfoodfacts.org")
 
 
+class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
+    """Preprocessor for Open Food Facts taxonomies."""
+
+    def preprocess(self, taxonomy: Taxonomy, node: TaxonomyNode) -> TaxonomyNodeResult:
+        """Preprocess a taxonomy node,
+
+        We add the main language, and we also have specificities for some taxonomies
+        """
+        if taxonomy.name == "brands":
+            # brands are english only, put them in "main lang"
+            node.names.update(main=node.names["en"])
+            if node.synonyms and (synonyms_en := list(node.synonyms.get("en", []))):
+                node.synonyms.update(main=synonyms_en)
+        else:
+            # main language is entry id prefix + eventual xx entries
+            id_lang = node.id.split(":")[0]
+            if node_names := node.names.get(id_lang):
+                node.names.update(main=node_names)
+            node.synonyms.update(main=list(node.synonyms.get(id_lang, [])))
+            # add eventual xx entries as synonyms to all languages
+            xx_name = node.names.get("xx")
+            xx_names = [xx_name] if xx_name else []
+            xx_names += node.synonyms.get("xx", [])
+            if xx_names:
+                for lang in self.config.supported_langs:
+                    node.names.setdefault(lang, xx_names[0])
+                    lang_synonyms = node.synonyms.setdefault(lang, [])
+                    lang_synonyms += xx_names
+        return TaxonomyNodeResult(status=FetcherStatus.FOUND, node=node)
+
+
 class DocumentFetcher(BaseDocumentFetcher):
     def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
         if item.get("action") == "deleted":
@@ -121,42 +152,29 @@ class DocumentFetcher(BaseDocumentFetcher):
 
 
 class DocumentPreprocessor(BaseDocumentPreprocessor):
+
     def preprocess(self, document: JSONType) -> FetcherResult:
         # no need to have a deep-copy here
         document = copy.copy(document)
         # convert obsolete field into bool
         document["obsolete"] = bool(document.get("obsolete"))
-        document["taxonomy_langs"] = self.get_taxonomy_langs(document)
+        # add "main" language to text_lang fields
+        self.add_main_language(document)
         # Don't keep all nutriment values
         self.select_nutriments(document)
         return FetcherResult(status=FetcherStatus.FOUND, document=document)
 
-    def get_taxonomy_langs(self, document: JSONType) -> list[str]:
-        # We add `taxonomy_langs` field to index taxonomized fields in
-        # the language of the product. To determine the list of
-        # `taxonomy_langs`, we check:
-        # - `languages_code`
-        # - `countries_tags`: we add every official language of the countries
-        #   where the product can be found.
-        taxonomy_langs = set(document.get("languages_codes", []))
-        countries_tags = document.get("countries_tags", [])
-        country_taxonomy = get_taxonomy("country", COUNTRIES_TAXONOMY_URL)
+    def add_main_language(self, document: JSONType) -> None:
+        """We add a "main" language to translated fields (text_lang and taxonomies)
 
-        for country_tag in countries_tags:
-            # Check that `country_tag` is in taxonomy
-            if (country_node := country_taxonomy[country_tag]) is not None:
-                # Get all official languages of the country, and add them to
-                # `taxonomy_langs`
-                if (
-                    lang_codes := country_node.properties.get("language_codes", {}).get(
-                        "en"
-                    )
-                ) is not None:
-                    taxonomy_langs |= set(
-                        lang_code for lang_code in lang_codes.split(",") if lang_code
-                    )
-
-        return list(taxonomy_langs)
+        This enables searching in the main language of the product.
+        This is important because most of the time,
+        products have no entry for a lot of language,
+        so this is an interesting fall-back.
+        """
+        for field in self.config.text_lang_fields:
+            if field in document:
+                document[field + "_main"] = document[field]
 
     def select_nutriments(self, document: JSONType):
         """Only selected interesting nutriments, as there are hundreds of
@@ -191,6 +209,9 @@ class ResultProcessor(BaseResultProcessor):
 
     @staticmethod
     def build_image_fields(product: JSONType):
+        """Images are stored in a weird way in Open Food Facts,
+        We want to make it far more simple to use in results.
+        """
         # Python copy of the code from
         # https://github.com/openfoodfacts/openfoodfacts-server/blob/b297ed858d526332649562cdec5f1d36be184984/lib/ProductOpener/Display.pm#L10128
         code = product["code"]

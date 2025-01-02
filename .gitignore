@@ -102,9 +102,6 @@ venv.bak/
 # mkdocs documentation
 /gh_pages
 
-# github pages
-gh_pages/
-
 # mypy
 .mypy_cache/
 .dmypy.json

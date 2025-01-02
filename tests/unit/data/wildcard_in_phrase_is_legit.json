@@ -1,0 +1,53 @@
+{
+  "text_query": "Milk AND \"*\" AND categories:\"*\"",
+  "luqum_tree": "Milk AND \"*\" AND categories.en:\"*\"",
+  "es_query": {
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "multi_match": {
+              "query": "Milk",
+              "zero_terms_query": "all",
+              "fields": [
+                "product_name.en",
+                "generic_name.en",
+                "categories.en",
+                "labels.en",
+                "brands.en"
+              ],
+              "type": "best_fields"
+            }
+          },
+          {
+            "multi_match": {
+              "query": "*",
+              "fields": [
+                "product_name.en",
+                "generic_name.en",
+                "categories.en",
+                "labels.en",
+                "brands.en"
+              ],
+              "type": "phrase"
+            }
+          },
+          {
+            "match_phrase": {
+              "categories.en": {
+                "query": "*"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "size": 25,
+    "from": 25
+  },
+  "facets_filters": {
+    "categories": [
+      "*"
+    ]
+  }
+}

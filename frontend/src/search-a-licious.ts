@@ -4,6 +4,7 @@ export {SearchaliciousCheckbox} from './search-checkbox';
 export {SearchaliciousRadio} from './search-radio';
 export {SearchaliciousToggle} from './search-toggle';
 export {SearchaliciousBar} from './search-bar';
+export {SearchaliciousTaxonomySuggester} from './search-suggester';
 export {SearchaliciousButton} from './search-button';
 export {SearchaliciousPages} from './search-pages';
 export {SearchaliciousFacets} from './search-facets';

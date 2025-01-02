@@ -1,7 +1,8 @@
 import {LitElement} from 'lit';
 import {Constructor} from './utils';
-import {property} from 'lit/decorators.js';
+import {property, state} from 'lit/decorators.js';
 import {DebounceMixin, DebounceMixinInterface} from './debounce';
+import {SuggestionSelectionOption} from '../interfaces/suggestion-interfaces';
 
 /**
  * Interface for the Suggestion Selection mixin.
@@ -10,39 +11,33 @@ export interface SuggestionSelectionMixinInterface
   extends DebounceMixinInterface {
   inputName: string;
   options: SuggestionSelectionOption[];
-  value: string;
-  currentIndex: number;
-  getOptionIndex: number;
+  selectedOption: SuggestionSelectionOption | undefined;
+  inputValue: string;
   visible: boolean;
   isLoading: boolean;
-  currentOption: SuggestionSelectionOption | undefined;
+  currentIndex: number;
 
   onInput(event: InputEvent): void;
   handleInput(value: string): void;
   blurInput(): void;
-  resetInput(): void;
-  submit(isSuggestion?: boolean): void;
+  resetInput(selectedOption?: SuggestionSelectionOption): void;
+  submitSuggestion(isSuggestion?: boolean): void;
   handleArrowKey(direction: 'up' | 'down'): void;
   handleEnter(event: KeyboardEvent): void;
   handleEscape(): void;
   onKeyDown(event: KeyboardEvent): void;
-  onClick(index: number): () => void;
+  onClick(option: SuggestionSelectionOption): () => void;
   onFocus(): void;
   onBlur(): void;
 }
-/**
- * Type for suggestion option.
- */
-export type SuggestionSelectionOption = {
-  value: string;
-  label: string;
-};
+
 /**
  * Type for suggestion result.
  */
 export type SuggestionSelectionResult = {
   value: string;
   label?: string;
+  id: string;
 };
 
 /**
@@ -65,12 +60,25 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
     @property({attribute: false, type: Array})
     options: SuggestionSelectionOption[] = [];
 
-    // selected values
-    @property()
-    value = '';
-
-    @property({attribute: false})
+    /**
+     * index of suggestion about to be selected
+     *
+     * It mainly tracks current focused suggestion
+     * when navigating with arrow keys
+     */
+    @state()
     currentIndex = 0;
+
+    // track current input value
+    @state()
+    inputValue = '';
+
+    /**
+     * The option that was selected
+     *
+     * Note that it might be from outside the options list (for specific inputs)
+     */
+    selectedOption: SuggestionSelectionOption | undefined;
 
     @property({attribute: false})
     visible = false;
@@ -78,38 +86,33 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
     @property({attribute: false})
     isLoading = false;
 
-    /**
-     * This method is used to get the current index.
-     * It remove the offset of 1 because the currentIndex is 1-based.
-     * @returns {number} The current index.
-     */
-    get getOptionIndex() {
-      return this.currentIndex - 1;
-    }
-
-    get currentOption() {
-      return this.options[this.getOptionIndex];
-    }
-
     getInput() {
       return this.shadowRoot!.querySelector('input');
     }
 
     /**
-     * Handles the input event on the suggestion and dispatch custom event : "suggestion-input".
+     * Handles the input event on the suggestion, that is when the option is suggested
+     * and dispatch to handleInput
      * @param {InputEvent} event - The input event.
      */
     onInput(event: InputEvent) {
       const value = (event.target as HTMLInputElement).value;
-      this.value = value;
+      this.inputValue = value;
       this.handleInput(value);
     }
 
+    /**
+     * React on changing input
+     *
+     * This method is to be implemented by the component to ask for new suggestions based on the input value.
+     * @param value the current input value
+     */
     handleInput(value: string) {
       throw new Error(
         `handleInput method must be implemented for ${this} with ${value}`
       );
     }
+
     /**
      * This method is used to remove focus from the input element.
      * It is used to quit after selecting an option.
@@ -125,14 +128,18 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
      * This method is used to reset the input value and blur it.
      * It is used to reset the input after a search.
      */
-    resetInput() {
-      this.value = '';
+    resetInput(selectedOption?: SuggestionSelectionOption) {
       this.currentIndex = 0;
       const input = this.getInput();
       if (!input) {
         return;
       }
-      input.value = '';
+      // remove part of the text that generates the selection
+      if (selectedOption) {
+        input.value = input.value.replace(selectedOption?.input || '', '');
+      } else {
+        input.value = '';
+      }
       this.blurInput();
     }
 
@@ -141,7 +148,7 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
      * It is used to submit the input value after selecting an option.
      * @param {boolean} isSuggestion - A boolean value to check if the value is a suggestion.
      */
-    submit(isSuggestion = false) {
+    submitSuggestion(isSuggestion = false) {
       throw new Error(
         `submit method must be implemented for ${this} with ${isSuggestion}`
       );
@@ -168,12 +175,18 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
       let isSuggestion = false;
       if (this.currentIndex) {
         isSuggestion = true;
-        this.value = this.currentOption!.value;
+        this.selectedOption = this.options[this.currentIndex - 1];
       } else {
+        // direct suggestion
         const value = (event.target as HTMLInputElement).value;
-        this.value = value;
+        this.selectedOption = {
+          value: value,
+          label: value,
+          id: '--direct-suggestion--' + value,
+          input: value,
+        };
       }
-      this.submit(isSuggestion);
+      this.submitSuggestion(isSuggestion);
     }
 
     /**
@@ -206,14 +219,13 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
 
     /**
      * On a click on the suggestion option, we select it as value and submit it.
-     * @param index
+     * @param option - chosen option
      */
-    onClick(index: number) {
+    onClick(option: SuggestionSelectionOption) {
       return () => {
-        this.value = this.options[index].value;
-        // we need to increment the index because currentIndex is 1-based
-        this.currentIndex = index + 1;
-        this.submit(true);
+        this.selectedOption = option;
+        this.currentIndex = 0;
+        this.submitSuggestion(true);
       };
     }
 
