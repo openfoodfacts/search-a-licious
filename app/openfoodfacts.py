@@ -123,7 +123,7 @@ class DocumentFetcher(BaseDocumentFetcher):
     def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
         if item.get("action") == "deleted":
             # this is a deleted product, no need to fetch
-            return FetcherResult(status=FetcherStatus.REMOVED, data=None)
+            return FetcherResult(status=FetcherStatus.REMOVED, document=None)
 
         code = item["code"]
         url = f"{OFF_API_URL}/api/v2/product/{code}"
@@ -144,7 +144,7 @@ class DocumentFetcher(BaseDocumentFetcher):
             or not json_response.get("product")
         ):
             # consider it removed
-            return FetcherResult(status=FetcherStatus.REMOVED, data=None)
+            return FetcherResult(status=FetcherStatus.REMOVED, document=None)
 
         return FetcherResult(
             status=FetcherStatus.FOUND, document=json_response["product"]

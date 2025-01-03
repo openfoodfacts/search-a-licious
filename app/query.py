@@ -12,6 +12,7 @@ from luqum.utils import OpenRangeTransformer, UnknownOperationResolver
 from ._types import (
     ErrorSearchResponse,
     JSONType,
+    PostSearchParameters,
     QueryAnalysis,
     SearchParameters,
     SearchResponse,
@@ -303,7 +304,11 @@ def build_es_query(
         es_query.aggs.bucket(agg_name, agg)
 
     sort_by: JSONType | str | None = None
-    if params.uses_sort_script and params.sort_by is not None:
+    if (
+        isinstance(params, PostSearchParameters)
+        and params.uses_sort_script
+        and params.sort_by is not None
+    ):
         sort_by = parse_sort_by_script(
             params.sort_by, params.sort_params, config, params.valid_index_id
         )
@@ -367,7 +372,7 @@ def execute_query(
     projection: set[str] | None = None,
 ) -> SearchResponse:
     errors = []
-    debug = SearchResponseDebug(query=query.to_dict())
+    debug = SearchResponseDebug(es_query=query.to_dict())
     try:
         results = query.execute()
     except elasticsearch.ApiError as e:
