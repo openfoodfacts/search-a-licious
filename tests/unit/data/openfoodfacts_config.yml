@@ -133,6 +133,13 @@ indices:
         type: disabled
       nutriments:
         type: object
+        fields:
+          energy-kcal_100g:
+            type: float
+          energy-kj_100g:
+            type: float
+          fat_100g:
+            type: float
       nutriscore_data:
         type: disabled
       nutriscore_grade:
