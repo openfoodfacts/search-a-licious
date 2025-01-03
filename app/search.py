@@ -92,7 +92,7 @@ def search(
     except QueryCheckError as e:
         return ErrorSearchResponse(
             debug=None,
-            errors=[SearchResponseError(title="QueryCheckError", description=str(e))]
+            errors=[SearchResponseError(title="QueryCheckError", description=str(e))],
         )
     (
         logger.debug(
