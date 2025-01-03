@@ -199,11 +199,6 @@ If None (default) no facets are returned.</p>
 <dd><p>Check that the facets names are valid.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="app._types.AggregateSearchParameters.sign_sort_by">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sign_sort_by</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'+'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'-'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.AggregateSearchParameters.sign_sort_by" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py data">
@@ -924,7 +919,7 @@ separated by ‘,’ for Distribution and Scatter charts.</p>
 
 <dl class="py method pydantic_validator">
 <dt class="sig sig-object py" id="app._types.GetSearchParameters.parse_value_str">
-<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parse_value_str</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">fields</span></em><em class="property"><span class="pre">,</span> </em><em class="xref py py-obj"><span class="pre">facets</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.GetSearchParameters.parse_value_str" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parse_value_str</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">facets</span></em><em class="property"><span class="pre">,</span> </em><em class="xref py py-obj"><span class="pre">fields</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.GetSearchParameters.parse_value_str" title="Link to this definition">¶</a></dt>
 <dd><p>Parse for get params ‘langs’</p>
 </dd></dl>
 
@@ -1556,6 +1551,11 @@ If a script needs parameters, you can only use the POST method.</p>
 <em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sort_by_is_field_or_script</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">all</span> <span class="pre">fields</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.ResultSearchParameters.sort_by_is_field_or_script" title="Link to this definition">¶</a></dt>
 <dd><p>Verify sort_by is a valid field or script name</p>
 </dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="app._types.ResultSearchParameters.sign_sort_by">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sign_sort_by</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'+'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'-'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.ResultSearchParameters.sign_sort_by" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="app._types.ResultSearchParameters.uses_sort_script">
