@@ -256,6 +256,7 @@ class FieldType(StrEnum):
     * disabled: a field that is not stored nor searchable
       (see [Elasticsearch help])
     * object: this field contains a dict with sub-fields.
+    * nested: this field contains an array of objects.
     """
 
     keyword = auto()
@@ -276,6 +277,7 @@ class FieldType(StrEnum):
     # https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html
     disabled = auto()
     object = auto()
+    nested = auto()
 
     def is_numeric(self):
         """Return wether this field type can be considered numeric"""
@@ -371,6 +373,25 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = None
+    fields: Annotated[
+        dict[str, "FieldConfig"] | None,
+        Field(
+            description=cd_(
+                """Sub fields configuration
+
+                This is valid only for "object" and "nested" fields,
+                and must be provided in this case.
+
+                Keys are field names,
+                values contain the field configuration.
+
+                Note: that although dynamic fields are supported in Elasticsearch,
+                we don't support them in Search-a-licious,
+                because they lead to nasty bugs, and are not meant for production use.
+                """
+            )
+        ),
+    ] = None
 
     @model_validator(mode="after")
     def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
@@ -385,6 +406,19 @@ class FieldConfig(BaseModel):
             )
         return self
 
+    @model_validator(mode="after")
+    def subfields_only_if_object_or_nested(self):
+        """If we have an object or nested field, and only in these cases,
+        we need a fields object
+        """
+        if self.type in (FieldType.object, FieldType.nested):
+            if not self.fields:
+                raise ValueError("(sub) fields must be provided for object type")
+        else:
+            if self.fields is not None:
+                raise ValueError("(sub) fields are only valid for object type")
+        return self
+
     def get_input_field(self):
         """Return the name of the field to use in input data."""
         return self.input_field or self.name
@@ -393,6 +427,15 @@ class FieldConfig(BaseModel):
         """Return wether this field type is supposed to have different values
         per languages"""
         return self.type in (FieldType.taxonomy, FieldType.text_lang)
+
+    @field_validator("fields")
+    @classmethod
+    def add_field_name_to_each_field(cls, fields: dict[str, "FieldConfig"]):
+        """It's handy to have the name of the field in the field definition"""
+        if fields:
+            for field_name, field_item in fields.items():
+                field_item.name = field_name
+        return fields
 
 
 class BaseESIndexConfig(BaseModel):

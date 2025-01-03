@@ -28,6 +28,14 @@ indices:
                 required: true
                 type: keyword
                 bucket_agg: true
+            myobj:
+                type: object
+                fields:
+                    sub_float:
+                        type: float
+                    sub_kw:
+                        type: keyword
+
             # more fields
         supported_langs: ["en", "fr"]
         taxonomy:

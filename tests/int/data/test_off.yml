@@ -37,6 +37,13 @@ indices:
         type: date
       nutriments:
         type: object
+        fields:
+          energy-kcal_100g:
+            type: float
+          energy-kj_100g:
+            type: float
+          fat_100g:
+            type: float
       completeness:
         type: float
     lang_separator: _

@@ -7,7 +7,11 @@ from app.config import (
     TaxonomyIndexConfig,
     TaxonomySourceConfig,
 )
-from app.indexing import process_taxonomy_field, process_text_lang_field
+from app.indexing import (
+    generate_mapping_object,
+    process_taxonomy_field,
+    process_text_lang_field,
+)
 
 
 @pytest.mark.parametrize(
@@ -125,3 +129,10 @@ def test_process_taxonomy_field(data, field, taxonomy_config, expected):
         assert output is None
     else:
         assert set(output) == set(expected)
+
+
+def test_create_mapping(default_config, load_expected_result):
+    mapping = generate_mapping_object(default_config)
+    data = mapping.to_dict()
+    expected_result = load_expected_result("test_mapping", data)
+    assert data == expected_result
