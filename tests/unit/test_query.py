@@ -1,7 +1,5 @@
-from pathlib import Path
 from typing import Any
 
-import orjson
 import pytest
 from luqum.parser import parser
 
@@ -10,13 +8,6 @@ from app.config import IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
 from app.exceptions import QueryAnalysisError
 from app.query import boost_phrases, build_search_query, resolve_unknown_operation
-from app.utils.io import dump_json, load_json
-
-DATA_DIR = Path(__file__).parent / "data"
-
-
-def load_elasticsearch_query_result(id_: str):
-    return load_json(DATA_DIR / f"{id_}.json")
 
 
 def test_boost_phrases_none():
@@ -184,7 +175,7 @@ def test_build_search_query(
     facets: list[str] | None,
     boost_phrase: bool,
     # fixtures
-    update_results: bool,
+    load_expected_result,
     default_config: IndexConfig,
     default_filter_query_builder: FullTextQueryBuilder,
 ):
@@ -201,14 +192,10 @@ def test_build_search_query(
         params,
         es_query_builder=default_filter_query_builder,
     )
+    data = query._dict_dump()
 
-    if update_results:
-        dump_json(
-            DATA_DIR / f"{id_}.json", query._dict_dump(), option=orjson.OPT_INDENT_2
-        )
-
-    expected_result = load_elasticsearch_query_result(id_)
-    assert query._dict_dump() == expected_result
+    expected_result = load_expected_result(id_, data)
+    assert data == expected_result
 
 
 @pytest.mark.parametrize(
