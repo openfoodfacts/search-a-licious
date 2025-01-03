@@ -5,7 +5,7 @@ import orjson
 import pytest
 from luqum.parser import parser
 
-from app._types import QueryAnalysis, SearchParameters
+from app._types import JSONType, QueryAnalysis, SearchParameters
 from app.config import IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
 from app.exceptions import QueryAnalysisError
@@ -72,11 +72,11 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
 @pytest.mark.parametrize(
     "id_,q,langs,size,page,sort_by,facets,boost_phrase",
     [
-        ("simple_full_text_query", "flocons d'avoine", {"fr"}, 10, 1, None, None, True),
+        ("simple_full_text_query", "flocons d'avoine", ["fr"], 10, 1, None, None, True),
         (
             "simple_full_text_query_facets",
             "flocons d'avoine",
-            {"fr"},
+            ["fr"],
             10,
             1,
             None,
@@ -87,7 +87,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
         (
             "sort_by_query",
             "flocons d'avoine",
-            {"fr"},
+            ["fr"],
             10,
             1,
             "-unique_scans_n",
@@ -98,7 +98,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
         (
             "simple_filter_query",
             'countries:"en:italy"',
-            {"en"},
+            ["en"],
             25,
             2,
             None,
@@ -109,7 +109,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
             "complex_query",
             'bacon de boeuf (countries:italy AND (categories:"en:beef" AND '
             "(nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
-            {"en"},
+            ["en"],
             25,
             2,
             None,
@@ -119,7 +119,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
         (
             "empty_query_with_sort_by",
             None,
-            {"en"},
+            ["en"],
             25,
             2,
             "unique_scans_n",
@@ -129,7 +129,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
         (
             "empty_query_with_sort_by_and_facets",
             None,
-            {"en"},
+            ["en"],
             25,
             2,
             "unique_scans_n",
@@ -139,7 +139,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
         (
             "open_range",
             "(unique_scans_n:>2 AND unique_scans_n:<3) OR unique_scans_n:>=10",
-            {"en"},
+            ["en"],
             25,
             2,
             None,
@@ -150,7 +150,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
             # it should be ok for now, until we implement subfields
             "non_existing_subfield",
             "Milk AND nutriments:(nonexisting:>=3)",
-            {"en"},
+            ["en"],
             25,
             2,
             None,
@@ -161,7 +161,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
             # * in a phrase is legit, it does not have the wildcard meaning
             "wildcard_in_phrase_is_legit",
             'Milk AND "*" AND categories:"*"',
-            {"en"},
+            ["en"],
             25,
             2,
             None,
@@ -177,7 +177,7 @@ def test_build_search_query(
     # parameters
     id_: str,
     q: str,
-    langs: set[str],
+    langs: list[str],
     size: int,
     page: int,
     sort_by: str | None,
@@ -244,7 +244,7 @@ def test_build_search_query_failure(
     default_filter_query_builder: FullTextQueryBuilder,
 ):
     # base search params
-    params = {
+    params: JSONType = {
         "q": "Milk",
         "langs": ["fr", "en"],
         "page_size": 5,

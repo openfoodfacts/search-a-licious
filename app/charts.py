@@ -50,15 +50,15 @@ def build_distribution_chart(
     Return the vega structure for a Bar Chart
     Inspiration: https://vega.github.io/vega/examples/bar-chart/
     """
-    chart = empty_chart(chart.field)
-    chart["data"] = [
+    vega_chart = empty_chart(chart.field)
+    vega_chart["data"] = [
         {
             "name": "table",
             "values": values,
             "transform": [{"type": "filter", "expr": "datum['category'] != 'unknown'"}],
         },
     ]
-    chart["signals"].append(
+    vega_chart["signals"].append(
         {
             "name": "tooltip",
             "value": {},
@@ -68,7 +68,7 @@ def build_distribution_chart(
             ],
         }
     )
-    chart["scales"] = [
+    vega_chart["scales"] = [
         {
             "name": "xscale",
             "type": "band",
@@ -86,10 +86,10 @@ def build_distribution_chart(
     ]
     # How to hide vertical axis: do not add { scale: yscale, ...}
     # in axes section
-    chart["axes"] = [
+    vega_chart["axes"] = [
         {"orient": "bottom", "scale": "xscale", "domain": False, "ticks": False}
     ]
-    chart["marks"] = [
+    vega_chart["marks"] = [
         {
             "type": "rect",
             "from": {"data": "table"},
@@ -135,7 +135,7 @@ def build_distribution_chart(
             },
         },
     ]
-    return chart
+    return vega_chart
 
 
 def build_scatter_chart(

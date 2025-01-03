@@ -367,6 +367,14 @@ class ResultSearchParameters(BaseModel):
         _, sort_by = self.sign_sort_by
         return index_config.scripts and sort_by in index_config.scripts.keys()
 
+    @cached_property
+    def sign_sort_by(self) -> Tuple[str_utils.BoolOperator, str | None]:
+        return (
+            ("+", None)
+            if self.sort_by is None
+            else str_utils.split_sort_by_sign(self.sort_by)
+        )
+
 
 class AggregateSearchParameters(BaseModel):
 
@@ -433,14 +441,6 @@ class AggregateSearchParameters(BaseModel):
             raise ValueError(errors)
         return self
 
-    @cached_property
-    def sign_sort_by(self) -> Tuple[str_utils.BoolOperator, str | None]:
-        return (
-            ("+", None)
-            if self.sort_by is None
-            else str_utils.split_sort_by_sign(self.sort_by)
-        )
-
 
 def _prepare_str_list(item: Any) -> str | None:
     if isinstance(item, str):
@@ -503,19 +503,19 @@ class GetSearchParameters(SearchParameters):
         """
         str_charts = _prepare_str_list(charts)
         if str_charts:
-            charts = []
+            parsed_charts: list[DistributionChart | ScatterChart] = []
             charts_list = str_charts.split(",")
             for c in charts_list:
                 if ":" in c:
                     [x, y] = c.split(":")
-                    charts.append(ScatterChart(x=x, y=y))
+                    parsed_charts.append(ScatterChart(x=x, y=y))
                 else:
-                    charts.append(DistributionChart(field=c))
-        if charts is not None:
+                    parsed_charts.append(DistributionChart(field=c))
+        if parsed_charts is not None:
             # we already know because of code logic that charts is the right type
             # but we need to cast for mypy type checking
-            charts = cast(list[ChartType], charts)
-        return charts
+            result_charts = cast(list[ChartType], charts)
+        return result_charts
 
     @model_validator(mode="after")
     def validate_q_or_sort_by(self):

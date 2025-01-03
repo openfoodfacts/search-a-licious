@@ -1,13 +1,13 @@
 repos:
   # Note for all linters: do not forget to update pyproject.toml when updating version.
   - repo: https://github.com/python-poetry/poetry
-    rev: 1.8.4
+    rev: 1.8.0
     hooks:
       - id: poetry-lock
         args: ["--check"]
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.8.0
+    rev: 24.10.0
     hooks:
       - id: black
         language_version: python3
@@ -23,7 +23,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.1
+    rev: v1.14.1
     hooks:
     -   id: mypy
         additional_dependencies: [types-all-v2]
