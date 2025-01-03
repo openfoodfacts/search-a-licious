@@ -514,7 +514,7 @@ class GetSearchParameters(SearchParameters):
         if parsed_charts is not None:
             # we already know because of code logic that charts is the right type
             # but we need to cast for mypy type checking
-            result_charts = cast(list[ChartType], charts)
+            result_charts = cast(list[ChartType], parsed_charts)
         return result_charts
 
     @model_validator(mode="after")
