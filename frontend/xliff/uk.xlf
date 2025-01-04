@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="h4a560de48c98b38f">
         <source>More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</source>
-        <target state="needs-translation">More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</target>
+        <target state="translated">Знайдено понад <x id="0" equiv-text="${this.searchResultDetail.count}"/> результатів</target>
       </trans-unit>
       <trans-unit id="s49730f3d5751a433">
         <source>Loading...</source>
