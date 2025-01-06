@@ -413,10 +413,14 @@ class FieldConfig(BaseModel):
         """
         if self.type in (FieldType.object, FieldType.nested):
             if not self.fields:
-                raise ValueError("(sub) fields must be provided for object type")
+                raise ValueError(
+                    "(sub) fields must be provided for object and nested type"
+                )
         else:
             if self.fields is not None:
-                raise ValueError("(sub) fields are only valid for object type")
+                raise ValueError(
+                    "(sub) fields are only valid for object and nested type"
+                )
         return self
 
     def get_input_field(self):
