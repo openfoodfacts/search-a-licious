@@ -93,7 +93,8 @@ $defs:
           \ and translations\n      (and in fact also a text mapping possibility)\n\
           \    * disabled: a field that is not stored nor searchable\n      (see [Elasticsearch\
           \ help])\n    * object: this field contains a dict with sub-fields.\n  \
-          \  \n\n[Elasticsearch help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
+          \  * nested: this field contains an array of objects.\n    \n\n[Elasticsearch\
+          \ help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
       required:
         default: false
         description: 'if required=True, the field is required in the input data
@@ -166,6 +167,32 @@ $defs:
 
           It must only be provided for taxonomy field type.'
         title: Taxonomy Name
+      fields:
+        anyOf:
+        - additionalProperties:
+            $ref: '#/$defs/FieldConfig'
+          type: object
+        - type: 'null'
+        default: null
+        description: 'Sub fields configuration
+
+
+          This is valid only for "object" and "nested" fields,
+
+          and must be provided in this case.
+
+
+          Keys are field names,
+
+          values contain the field configuration.
+
+
+          Note: that although dynamic fields are supported in Elasticsearch,
+
+          we don''t support them in Search-a-licious,
+
+          because they lead to nasty bugs, and are not meant for production use.'
+        title: Fields
     required:
     - type
     title: FieldConfig
@@ -183,8 +210,8 @@ $defs:
       \ a field akin to keyword but\n      with support for matching using taxonomy\
       \ synonyms and translations\n      (and in fact also a text mapping possibility)\n\
       \    * disabled: a field that is not stored nor searchable\n      (see [Elasticsearch\
-      \ help])\n    * object: this field contains a dict with sub-fields.\n    \n\n\
-      [Elasticsearch help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
+      \ help])\n    * object: this field contains a dict with sub-fields.\n    * nested:\
+      \ this field contains an array of objects.\n    \n\n[Elasticsearch help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
     enum:
     - keyword
     - date
@@ -202,6 +229,7 @@ $defs:
     - taxonomy
     - disabled
     - object
+    - nested
     title: FieldType
     type: string
   IndexConfig:
