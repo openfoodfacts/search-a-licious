@@ -80,8 +80,20 @@ def generate_dsl_field(
             for lang in supported_langs
         }
         return dsl_field.Object(dynamic=False, properties=properties)
-    elif field.type == FieldType.object:
-        return dsl_field.Object(dynamic=True)
+    elif field.type in (FieldType.object, FieldType.nested):
+        if not field.fields:
+            # this should not happen by construction of FieldConfig
+            raise ValueError("Object fields must have fields")
+        properties = {
+            sub_field.name: generate_dsl_field(
+                sub_field, supported_langs=supported_langs
+            )
+            for sub_field in field.fields.values()
+        }
+        if field.type == FieldType.nested:
+            return dsl_field.Nested(properties=properties)
+        else:
+            return dsl_field.Object(dynamic=False, properties=properties)
     elif field.type == FieldType.disabled:
         return dsl_field.Object(enabled=False)
     else:

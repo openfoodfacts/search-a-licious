@@ -133,6 +133,29 @@ indices:
         type: disabled
       nutriments:
         type: object
+        fields:
+          energy-kcal_100g:
+            type: float
+          energy-kj_100g:
+            type: float
+          fat_100g:
+            type: float
+          saturated-fat_100g:
+            type: float
+          carbohydrates_100g:
+            type: float
+          sugars_100g:
+            type: float
+          proteins_100g:
+            type: float
+          fiber_100g:
+            type: float
+          salt_100g:
+            type: float
+          sodium_100g:
+            type: float
+          alcohol_100g:
+            type: float
       nutriscore_data:
         type: disabled
       nutriscore_grade:
