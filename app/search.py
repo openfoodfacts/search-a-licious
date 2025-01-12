@@ -4,19 +4,19 @@ from typing import cast
 from . import config
 from ._types import (
     DebugInfo,
+    ErrorSearchResponse,
     QueryAnalysis,
     SearchParameters,
     SearchResponse,
     SearchResponseDebug,
-    SuccessSearchResponse,
-    ErrorSearchResponse,
     SearchResponseError,
+    SuccessSearchResponse,
 )
 from .charts import build_charts
+from .exceptions import QueryCheckError
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
-from .exceptions import QueryCheckError
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ def search(
         )
     except QueryCheckError as e:
         return ErrorSearchResponse(
-            debug=None,
+            debug=SearchResponseDebug(),
             errors=[SearchResponseError(title="QueryCheckError", description=str(e))],
         )
     (
