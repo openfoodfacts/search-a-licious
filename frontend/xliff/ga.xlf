@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
-  <file target-language="en-GB" source-language="en" original="lit-localize-inputs" datatype="plaintext">
+  <file target-language="ga-IE" source-language="en" original="lit-localize-inputs" datatype="plaintext">
     <body>
       <trans-unit id="sde0081b1dc3582d3">
         <source>Reset filters</source>
-        <target state="translated">Reset filters</target>
+        <target state="needs-translation">Reset filters</target>
       </trans-unit>
-      <trans-unit id="sc9e494c8346b7cb5" approved="yes">
+      <trans-unit id="sc9e494c8346b7cb5">
         <source>Other</source>
-        <target state="final">Other</target>
+        <target state="needs-translation">Other</target>
       </trans-unit>
       <trans-unit id="s7ae5963112a50472">
         <source>Others</source>
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="s5d929ff1619ac0c9">
         <source>Search</source>
-        <target state="translated">Search</target>
+        <target state="translated">Cuardaigh</target>
         <note from="lit-localize">Search button</note>
       </trans-unit>
     </body>
