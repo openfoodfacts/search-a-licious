@@ -1,55 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
-  <file target-language="en-GB" source-language="en" original="lit-localize-inputs" datatype="plaintext">
+  <file target-language="pt-BR" source-language="en" original="lit-localize-inputs" datatype="plaintext">
     <body>
       <trans-unit id="sde0081b1dc3582d3">
         <source>Reset filters</source>
-        <target state="translated">Reset filters</target>
+        <target state="translated">Limpar filtros</target>
       </trans-unit>
-      <trans-unit id="sc9e494c8346b7cb5" approved="yes">
+      <trans-unit id="sc9e494c8346b7cb5">
         <source>Other</source>
-        <target state="final">Other</target>
+        <target state="translated">Outros</target>
       </trans-unit>
       <trans-unit id="s7ae5963112a50472">
         <source>Others</source>
-        <target state="needs-translation">Others</target>
+        <target state="translated">Outros</target>
       </trans-unit>
       <trans-unit id="s9094c0cde8fb5058">
         <source>No results found</source>
-        <target state="needs-translation">No results found</target>
+        <target state="translated">Nenhum resultado encontrado</target>
       </trans-unit>
       <trans-unit id="sb074d20f9b64aa31">
         <source>results found</source>
-        <target state="needs-translation">results found</target>
+        <target state="translated">resultados encontrados</target>
       </trans-unit>
       <trans-unit id="h4a560de48c98b38f">
         <source>More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</source>
-        <target state="needs-translation">More than <x id="0" equiv-text="${this.searchResultDetail.count}"/> results found</target>
+        <target state="translated">Mais de <x id="0" equiv-text="${this.searchResultDetail.count}"/> resultados encontrados</target>
       </trans-unit>
       <trans-unit id="s49730f3d5751a433">
         <source>Loading...</source>
-        <target state="needs-translation">Loading...</target>
+        <target state="translated">Carregando...</target>
       </trans-unit>
       <trans-unit id="s3848a805287c795d">
         <source>Show charts</source>
-        <target state="needs-translation">Show charts</target>
+        <target state="translated">Mostrar gráficos</target>
       </trans-unit>
       <trans-unit id="sd2cd02bfec5af316">
         <source>Hide charts</source>
-        <target state="needs-translation">Hide charts</target>
+        <target state="translated">Ocultar gráficos</target>
       </trans-unit>
       <trans-unit id="s255857544a9d5ec0">
         <source>Reset</source>
-        <target state="needs-translation">Reset</target>
+        <target state="translated">Restaurar</target>
       </trans-unit>
       <trans-unit id="sffa721bb6aa3128d">
         <source>Search...</source>
-        <target state="needs-translation">Search...</target>
+        <target state="translated">Pesquisar...</target>
         <note from="lit-localize">Search bar placeholder</note>
       </trans-unit>
       <trans-unit id="s5d929ff1619ac0c9">
         <source>Search</source>
-        <target state="translated">Search</target>
+        <target state="translated">Procurar</target>
         <note from="lit-localize">Search button</note>
       </trans-unit>
     </body>
