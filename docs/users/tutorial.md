@@ -203,12 +203,12 @@ docker compose up -d es01 es02 elasticvue
 There is an export of all the openfoodfacts data in JSONL available on at 
 https://static.openfoodfacts.org/data . But it's a very big file ! 
 For this tutorial we will prefer to use a sample of products
-at https://static.openfoodfacts.org/data/products.random-modulo-10000.jsonl.gz
+at https://static.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz
 
 Put this file in the data/ directory which is bind mounted in the container.
 On linux we can do it with:
 ```bash
-wget https://static.openfoodfacts.org/data/products.random-modulo-10000.jsonl.gz -O data/products.random-modulo-10000.jsonl.gz
+wget https://static.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz -O data/products.random-modulo-10000.jsonl.gz
 ```
 
 ### Import the data
