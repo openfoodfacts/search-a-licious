@@ -1437,10 +1437,10 @@ we will also start the ElasticVue service to be able to look at what happens:
 <p>There is an export of all the openfoodfacts data in JSONL available on at 
 https://static.openfoodfacts.org/data . But it's a very big file ! 
 For this tutorial we will prefer to use a sample of products
-at https://static.openfoodfacts.org/data/products.random-modulo-10000.jsonl.gz</p>
+at https://static.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz</p>
 <p>Put this file in the data/ directory which is bind mounted in the container.
 On linux we can do it with:
-<div class="highlight"><pre><span></span><code>wget<span class="w"> </span>https://static.openfoodfacts.org/data/products.random-modulo-10000.jsonl.gz<span class="w"> </span>-O<span class="w"> </span>data/products.random-modulo-10000.jsonl.gz
+<div class="highlight"><pre><span></span><code>wget<span class="w"> </span>https://static.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz<span class="w"> </span>-O<span class="w"> </span>data/products.random-modulo-10000.jsonl.gz
 </code></pre></div></p>
 <h3 id="import-the-data">Import the data<a class="headerlink" href="#import-the-data" title="Permanent link">#</a></h3>
 <p>We will then import this file in our index, we have a specific command for that:</p>
