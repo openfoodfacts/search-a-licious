@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.5.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.4.0...v1.5.0) (2025-04-12)
+
+
+### Features
+
+* adding sub fields to object ([#271](https://github.com/openfoodfacts/search-a-licious/issues/271)) ([33368c7](https://github.com/openfoodfacts/search-a-licious/commit/33368c7d7c1e0ff086502c9ac5dc197d8ca741c0))
+* better import ([#228](https://github.com/openfoodfacts/search-a-licious/issues/228)) ([ab75a96](https://github.com/openfoodfacts/search-a-licious/commit/ab75a966884350216fbcbea21b02bc62a042b16c))
+* enhanced completion ([#259](https://github.com/openfoodfacts/search-a-licious/issues/259)) ([5e05aef](https://github.com/openfoodfacts/search-a-licious/commit/5e05aef7d92e2a01272553f6fd530076912912c1))
+* handling synonyms and text fields more efficiently ([#234](https://github.com/openfoodfacts/search-a-licious/issues/234)) ([f427a5e](https://github.com/openfoodfacts/search-a-licious/commit/f427a5e7a9bfa4c6d91153e1910018f818964b1f))
+* prepare crowdin usage to make the app translatable ([#244](https://github.com/openfoodfacts/search-a-licious/issues/244)) ([a321cd2](https://github.com/openfoodfacts/search-a-licious/commit/a321cd251cf07b27c33e496a2ead278f04180a69))
+
+
+### Bug Fixes
+
+* check document id after pre-processing ([#263](https://github.com/openfoodfacts/search-a-licious/issues/263)) ([d363b41](https://github.com/openfoodfacts/search-a-licious/commit/d363b41dc98452b788b84e672a021f63db41d5db))
+* do not create docker volume on a specific place ([51a2450](https://github.com/openfoodfacts/search-a-licious/commit/51a2450ee84854686b593213bd74eae7794461a7))
+* fix broken pre-commit dependency ([0e7a8cf](https://github.com/openfoodfacts/search-a-licious/commit/0e7a8cf3a1537ee4decd8de2d008de6ff146d992))
+* handle invalid lucene query term values gracefully ([#268](https://github.com/openfoodfacts/search-a-licious/issues/268)) ([7644c29](https://github.com/openfoodfacts/search-a-licious/commit/7644c295a7cb737ddc6cc2ddce0f54191f3f402e)), closes [#253](https://github.com/openfoodfacts/search-a-licious/issues/253)
+* on getting _id in indexing ([#266](https://github.com/openfoodfacts/search-a-licious/issues/266)) ([f792240](https://github.com/openfoodfacts/search-a-licious/commit/f79224052bcfb98dbeb2182f90609c242eedca7b))
+* type hints after pre-commit update ([#269](https://github.com/openfoodfacts/search-a-licious/issues/269)) ([acd55a1](https://github.com/openfoodfacts/search-a-licious/commit/acd55a178c26f16d7904d4b2e03a0b7dfc5b4405))
+
 ## [1.4.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.3.0...v1.4.0) (2024-07-25)
 
 
