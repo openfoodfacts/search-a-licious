@@ -1,7 +1,6 @@
 import copy
 import os
 import re
-from typing import Any
 
 import requests
 
@@ -84,6 +83,106 @@ def generate_image_url(code: str, image_id: str) -> str:
     )
 
 
+# The two following functions are copied from openfoodfacts-python
+# SDK. We don't use the SDK directly as we don't want to add it as a
+# dependency.
+
+
+def convert_to_legacy_schema(images: JSONType) -> JSONType:
+    """Convert the images dictionary to the legacy schema.
+
+    We've improved the schema of the `images` field, but the new
+    schema is not compatible with the legacy schema. This function
+    converts the new schema to the legacy schema.
+
+    It can be used while migrating the existing Python codebase to the
+    new schema.
+
+    The new `images` schema is the following:
+
+    - the `images` field contains the uploaded images under the `uploaded`
+        key and the selected images under the `selected` key
+    - `uploaded` contains the images that are uploaded, and maps the
+        image ID to the detail about the image:
+        - `uploaded_t`: the upload timestamp
+        - `uploader`: the username of the uploader
+        - `sizes`: dictionary mapping image size (`100`, `200`, `400`, `full`)
+            to the information about each resized image:
+            - `h`: the height of the image
+            - `w`: the width of the image
+            - `url`: the URL of the image
+    - `selected` contains the images that are selected, and maps the
+        image key (`nutrition`, `ingredients`, `packaging`, or `front`) to
+        a dictionary mapping the language to the selected image details.
+        The selected image details are the following fields:
+        - `imgid`: the image ID
+        - `rev`: the revision ID
+        - `sizes`: dictionary mapping image size (`100`, `200`, `400`, `full`)
+            to the information about each resized image:
+            - `h`: the height of the image
+            - `w`: the width of the image
+            - `url`: the URL of the image
+        - `generation`: information about how to generate the selected image
+            from the uploaded image:
+            - `x1`, `y1`, `x2`, `y2`: the coordinates of the crop
+            - `angle`: the rotation angle of the selected image
+            - `coordinates_image_size`: 400 or "full", indicates if the
+                geometry coordinates are relative to the full image, or to a
+                resized version (max width and max height=400)
+            - `normalize`: indicates if colors should be normalized
+            - `white_magic`: indicates if the background is white and should
+                be removed (e.g. photo on a white sheet of paper)
+
+    See https://github.com/openfoodfacts/openfoodfacts-server/pull/11818
+    for more details.
+    """
+
+    if not is_new_image_schema(images):
+        return images
+
+    images_with_legacy_schema = {}
+
+    for image_id, image_data in images["uploaded"].items():
+        images_with_legacy_schema[image_id] = {
+            "sizes": {
+                # remove URL field
+                size: {k: v for k, v in image_size_data.items() if k != "url"}
+                for size, image_size_data in image_data["sizes"].items()
+            },
+            "uploaded_t": image_data["uploaded_t"],
+            "uploader": image_data["uploader"],
+        }
+
+    for selected_key, image_by_lang in images["selected"].items():
+        for lang, image_data in image_by_lang.items():
+            new_image_data = {
+                "imgid": image_data["imgid"],
+                "rev": image_data["rev"],
+                "sizes": {
+                    # remove URL field
+                    size: {k: v for k, v in image_size_data.items() if k != "url"}
+                    for size, image_size_data in image_data["sizes"].items()
+                },
+                **image_data["generation"],
+            }
+            images_with_legacy_schema[f"{selected_key}_{lang}"] = new_image_data
+
+    return images_with_legacy_schema
+
+
+def is_new_image_schema(images_data: JSONType) -> bool:
+    """Return True if the `images` dictionary follows the new Product Opener
+    images schema.
+
+    See https://github.com/openfoodfacts/openfoodfacts-server/pull/11818 for
+    more information about this new schema.
+    """
+    if not images_data:
+        return False
+
+    return "selected" in images_data or "uploaded" in images_data
+
+
 # This is not part of search-a-licious, so we don't use the settings object
 OFF_API_URL = os.environ.get("OFF_API_URL", "https://world.openfoodfacts.org")
 
@@ -92,9 +191,10 @@ class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
     """Preprocessor for Open Food Facts taxonomies."""
 
     def preprocess(self, taxonomy: Taxonomy, node: TaxonomyNode) -> TaxonomyNodeResult:
-        """Preprocess a taxonomy node,
+        """Preprocess a taxonomy node.
 
-        We add the main language, and we also have specificities for some taxonomies
+        We add the main language, and we also have specificities for some
+        taxonomies.
         """
         if taxonomy.name == "brands":
             # brands are english only, put them in "main lang"
@@ -165,7 +265,8 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         return FetcherResult(status=FetcherStatus.FOUND, document=document)
 
     def add_main_language(self, document: JSONType) -> None:
-        """We add a "main" language to translated fields (text_lang and taxonomies)
+        """We add a "main" language to translated fields (text_lang and
+        taxonomies)
 
         This enables searching in the main language of the product.
         This is important because most of the time,
@@ -208,14 +309,14 @@ class ResultProcessor(BaseResultProcessor):
         return result
 
     @staticmethod
-    def build_image_fields(product: JSONType):
+    def build_image_fields(product: JSONType) -> JSONType:
         """Images are stored in a weird way in Open Food Facts,
         We want to make it far more simple to use in results.
         """
         # Python copy of the code from
         # https://github.com/openfoodfacts/openfoodfacts-server/blob/b297ed858d526332649562cdec5f1d36be184984/lib/ProductOpener/Display.pm#L10128
         code = product["code"]
-        fields: dict[str, Any] = {}
+        fields: JSONType = {}
 
         for image_type in ["front", "ingredients", "nutrition", "packaging"]:
             display_ids = []
@@ -224,7 +325,7 @@ class ResultProcessor(BaseResultProcessor):
                 display_ids.append(f"{image_type}_{lang}")
 
             display_ids.append(image_type)
-            images = product.get("images", {})
+            images = convert_to_legacy_schema(product.get("images", {}))
 
             for display_id in display_ids:
                 if display_id in images and images[display_id].get("sizes"):
@@ -276,4 +377,4 @@ class ResultProcessor(BaseResultProcessor):
                             }
                         )
 
-            return fields
+        return fields
