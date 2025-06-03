@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
-  <file target-language="sr" source-language="en" original="lit-localize-inputs" datatype="plaintext">
+  <file target-language="sr-CS" source-language="en" original="lit-localize-inputs" datatype="plaintext">
     <body>
       <trans-unit id="sde0081b1dc3582d3">
         <source>Reset filters</source>
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="s5d929ff1619ac0c9">
         <source>Search</source>
-        <target state="needs-translation">Search</target>
+        <target state="translated">Pretraživanje</target>
         <note from="lit-localize">Search button</note>
       </trans-unit>
     </body>
