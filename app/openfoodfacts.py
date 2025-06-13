@@ -124,6 +124,7 @@ def convert_to_legacy_schema(images: JSONType) -> JSONType:
             - `url`: the URL of the image
         - `generation`: information about how to generate the selected image
             from the uploaded image:
+            - `geometry`
             - `x1`, `y1`, `x2`, `y2`: the coordinates of the crop
             - `angle`: the rotation angle of the selected image
             - `coordinates_image_size`: 400 or "full", indicates if the
@@ -142,7 +143,7 @@ def convert_to_legacy_schema(images: JSONType) -> JSONType:
 
     images_with_legacy_schema = {}
 
-    for image_id, image_data in images["uploaded"].items():
+    for image_id, image_data in images.get("uploaded", {}).items():
         images_with_legacy_schema[image_id] = {
             "sizes": {
                 # remove URL field
@@ -153,7 +154,7 @@ def convert_to_legacy_schema(images: JSONType) -> JSONType:
             "uploader": image_data["uploader"],
         }
 
-    for selected_key, image_by_lang in images["selected"].items():
+    for selected_key, image_by_lang in images.get("selected", {}).items():
         for lang, image_data in image_by_lang.items():
             new_image_data = {
                 "imgid": image_data["imgid"],
@@ -163,7 +164,7 @@ def convert_to_legacy_schema(images: JSONType) -> JSONType:
                     size: {k: v for k, v in image_size_data.items() if k != "url"}
                     for size, image_size_data in image_data["sizes"].items()
                 },
-                **image_data["generation"],
+                **(image_data.get("generation", {})),
             }
             images_with_legacy_schema[f"{selected_key}_{lang}"] = new_image_data
 
