@@ -286,7 +286,7 @@ class FieldType(StrEnum):
 
 # add url to FieldType doc
 if FieldType.__doc__:
-    FieldType.__doc__ += f"\n\n[Elasticsearch help]: {ES_DOCS_URL}/enabled.html"
+    FieldType.__doc__ += f"\n\n[Elasticsearch help]({ES_DOCS_URL}/enabled.html)"
 
 
 class FieldConfig(BaseModel):
@@ -308,6 +308,18 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = False
+    index: Annotated[
+        bool,
+        Field(
+            description=cd_(
+                """if False the field is not indexed, but only stored.
+
+                That is it will be possible to retrieve it in results,
+                but not query on it.
+                """
+            )
+        ),
+    ] = True
     input_field: Annotated[
         str | None,
         Field(
