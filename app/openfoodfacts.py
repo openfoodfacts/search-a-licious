@@ -227,7 +227,7 @@ class DocumentFetcher(BaseDocumentFetcher):
             return FetcherResult(status=FetcherStatus.REMOVED, document=None)
 
         code = item["code"]
-        url = f"{OFF_API_URL}/api/v2/product/{code}"
+        url = f"{OFF_API_URL}/api/v3.3/product/{code}"
         try:
             response = http_session.get(url)
         except requests.exceptions.RequestException as exc:
@@ -263,6 +263,9 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         self.add_main_language(document)
         # Don't keep all nutriment values
         self.select_nutriments(document)
+        # make nova_groups_markers a list
+        self.transform_nova_groups_markers(document)
+        self.transform_images(document)
         return FetcherResult(status=FetcherStatus.FOUND, document=document)
 
     def add_main_language(self, document: JSONType) -> None:
@@ -302,6 +305,57 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                 "sodium_100g",
             ):
                 nutriments.pop(key)
+
+    def transform_nova_groups_markers(self, document: JSONType):
+        """Transform Nova Groups markers into a list"""
+        if "nova_groups_markers" not in document:
+            return
+        nova_groups_markers = document["nova_groups_markers"]
+        document["nova_groups_markers"] = [
+            {
+                "id": nova_group,
+                "marker": [{"type": marker[0], "id": marker[1]} for marker in markers],
+            }
+            for nova_group, markers in nova_groups_markers.items()
+        ]
+
+    def transform_images(self, document: JSONType):
+        if "images" not in document:
+            return
+        uploaded = document["images"]["uploaded"]
+        # create uploaded_images
+        document["uploaded_images"] = [
+            {
+                "id": key,
+                "uploaded_t": image["uploaded_t"],
+                "uploader": image["uploader"],
+                "full_size": {"h": image["h"], "w": image["w"]},
+            }
+            for key, image in uploaded.items()
+        ]
+        # selected images
+        document["selected_images"] = {}
+        for image_type, selected in document["images"]["selected"].items():
+            document["selected_images"][image_type] = [
+                {
+                    "lc": lc,
+                    "full_size": {"h": image["h"], "w": image["w"]},
+                    "rev": image["rev"],
+                }
+                for lc, image in selected.items()
+            ]
+            # add source
+            for lc, selected_image in selected.items():
+                uploaded_img = uploaded.get(selected_image["imgid"])
+                if not uploaded_img:
+                    continue
+                selected_image["source"] = {
+                    "id": selected_image["imgid"],
+                    "uploaded_t": uploaded_img["uploaded_t"],
+                    "uploader": uploaded_img["uploader"],
+                }
+            # remove images
+            del document["images"]
 
 
 class ResultProcessor(BaseResultProcessor):
