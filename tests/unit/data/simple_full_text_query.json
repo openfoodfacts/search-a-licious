@@ -1,7 +1,6 @@
 {
-  "text_query": "flocons d'avoine",
-  "luqum_tree": "((flocons AND d'avoine) OR \"flocons d'avoine\"^2)",
   "es_query": {
+    "from": 0,
     "query": {
       "bool": {
         "must": [
@@ -13,8 +12,6 @@
                     "must": [
                       {
                         "multi_match": {
-                          "query": "flocons",
-                          "zero_terms_query": "all",
                           "fields": [
                             "product_name.fr",
                             "generic_name.fr",
@@ -22,13 +19,13 @@
                             "labels.fr",
                             "brands.fr"
                           ],
-                          "type": "best_fields"
+                          "query": "flocons",
+                          "type": "best_fields",
+                          "zero_terms_query": "all"
                         }
                       },
                       {
                         "multi_match": {
-                          "query": "d'avoine",
-                          "zero_terms_query": "all",
                           "fields": [
                             "product_name.fr",
                             "generic_name.fr",
@@ -36,7 +33,9 @@
                             "labels.fr",
                             "brands.fr"
                           ],
-                          "type": "best_fields"
+                          "query": "d'avoine",
+                          "type": "best_fields",
+                          "zero_terms_query": "all"
                         }
                       }
                     ]
@@ -45,7 +44,6 @@
                 {
                   "multi_match": {
                     "boost": 2.0,
-                    "query": "flocons d'avoine",
                     "fields": [
                       "product_name.fr",
                       "generic_name.fr",
@@ -53,6 +51,7 @@
                       "labels.fr",
                       "brands.fr"
                     ],
+                    "query": "flocons d'avoine",
                     "type": "phrase"
                   }
                 }
@@ -62,8 +61,9 @@
         ]
       }
     },
-    "size": 10,
-    "from": 0
+    "size": 10
   },
-  "facets_filters": {}
+  "facets_filters": {},
+  "luqum_tree": "((flocons AND d'avoine) OR \"flocons d'avoine\"^2)",
+  "text_query": "flocons d'avoine"
 }

@@ -1,12 +1,12 @@
 {
-  "text_query": null,
-  "luqum_tree": "None",
   "es_query": {
+    "from": 25,
+    "size": 25,
     "sort": [
       "unique_scans_n"
-    ],
-    "size": 25,
-    "from": 25
+    ]
   },
-  "facets_filters": null
+  "facets_filters": null,
+  "luqum_tree": "None",
+  "text_query": null
 }

@@ -1,7 +1,6 @@
 {
-  "text_query": "countries:\"en:italy\"",
-  "luqum_tree": "countries.en:\"en:italy\"",
   "es_query": {
+    "from": 25,
     "query": {
       "match_phrase": {
         "countries.en": {
@@ -9,12 +8,13 @@
         }
       }
     },
-    "size": 25,
-    "from": 25
+    "size": 25
   },
   "facets_filters": {
     "countries": [
       "en:italy"
     ]
-  }
+  },
+  "luqum_tree": "countries.en:\"en:italy\"",
+  "text_query": "countries:\"en:italy\""
 }

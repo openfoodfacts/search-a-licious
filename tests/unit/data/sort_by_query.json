@@ -1,14 +1,11 @@
 {
-  "text_query": "flocons d'avoine",
-  "luqum_tree": "flocons AND d'avoine",
   "es_query": {
+    "from": 0,
     "query": {
       "bool": {
         "must": [
           {
             "multi_match": {
-              "query": "flocons",
-              "zero_terms_query": "all",
               "fields": [
                 "product_name.fr",
                 "generic_name.fr",
@@ -16,13 +13,13 @@
                 "labels.fr",
                 "brands.fr"
               ],
-              "type": "best_fields"
+              "query": "flocons",
+              "type": "best_fields",
+              "zero_terms_query": "all"
             }
           },
           {
             "multi_match": {
-              "query": "d'avoine",
-              "zero_terms_query": "all",
               "fields": [
                 "product_name.fr",
                 "generic_name.fr",
@@ -30,21 +27,24 @@
                 "labels.fr",
                 "brands.fr"
               ],
-              "type": "best_fields"
+              "query": "d'avoine",
+              "type": "best_fields",
+              "zero_terms_query": "all"
             }
           }
         ]
       }
     },
+    "size": 10,
     "sort": [
       {
         "unique_scans_n": {
           "order": "desc"
         }
       }
-    ],
-    "size": 10,
-    "from": 0
+    ]
   },
-  "facets_filters": {}
+  "facets_filters": {},
+  "luqum_tree": "flocons AND d'avoine",
+  "text_query": "flocons d'avoine"
 }
