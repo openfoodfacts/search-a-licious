@@ -1,7 +1,6 @@
 {
-  "text_query": "bacon de boeuf (countries:italy AND (categories:\"en:beef\" AND (nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
-  "luqum_tree": "((bacon AND de AND boeuf) OR \"bacon de boeuf\"^2) AND (countries.en:italy AND (categories.en:\"en:beef\" AND (nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
   "es_query": {
+    "from": 25,
     "query": {
       "bool": {
         "must": [
@@ -13,8 +12,20 @@
                     "must": [
                       {
                         "multi_match": {
+                          "fields": [
+                            "product_name.en",
+                            "generic_name.en",
+                            "categories.en",
+                            "labels.en",
+                            "brands.en"
+                          ],
                           "query": "bacon",
-                          "zero_terms_query": "all",
+                          "type": "best_fields",
+                          "zero_terms_query": "all"
+                        }
+                      },
+                      {
+                        "multi_match": {
                           "fields": [
                             "product_name.en",
                             "generic_name.en",
@@ -22,27 +33,13 @@
                             "labels.en",
                             "brands.en"
                           ],
-                          "type": "best_fields"
-                        }
-                      },
-                      {
-                        "multi_match": {
                           "query": "de",
-                          "zero_terms_query": "all",
-                          "fields": [
-                            "product_name.en",
-                            "generic_name.en",
-                            "categories.en",
-                            "labels.en",
-                            "brands.en"
-                          ],
-                          "type": "best_fields"
+                          "type": "best_fields",
+                          "zero_terms_query": "all"
                         }
                       },
                       {
                         "multi_match": {
-                          "query": "boeuf",
-                          "zero_terms_query": "all",
                           "fields": [
                             "product_name.en",
                             "generic_name.en",
@@ -50,7 +47,9 @@
                             "labels.en",
                             "brands.en"
                           ],
-                          "type": "best_fields"
+                          "query": "boeuf",
+                          "type": "best_fields",
+                          "zero_terms_query": "all"
                         }
                       }
                     ]
@@ -59,7 +58,6 @@
                 {
                   "multi_match": {
                     "boost": 2.0,
-                    "query": "bacon de boeuf",
                     "fields": [
                       "product_name.en",
                       "generic_name.en",
@@ -67,6 +65,7 @@
                       "labels.en",
                       "brands.en"
                     ],
+                    "query": "bacon de boeuf",
                     "type": "phrase"
                   }
                 }
@@ -107,8 +106,8 @@
                             {
                               "range": {
                                 "nutriments.salt_100g": {
-                                  "lte": "0.05",
-                                  "gte": "0"
+                                  "gte": "0",
+                                  "lte": "0.05"
                                 }
                               }
                             }
@@ -124,8 +123,9 @@
         ]
       }
     },
-    "size": 25,
-    "from": 25
+    "size": 25
   },
-  "facets_filters": {}
+  "facets_filters": {},
+  "luqum_tree": "((bacon AND de AND boeuf) OR \"bacon de boeuf\"^2) AND (countries.en:italy AND (categories.en:\"en:beef\" AND (nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
+  "text_query": "bacon de boeuf (countries:italy AND (categories:\"en:beef\" AND (nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))"
 }

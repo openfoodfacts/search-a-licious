@@ -1,34 +1,34 @@
 {
-  "text_query": null,
-  "luqum_tree": "None",
   "es_query": {
     "aggs": {
-      "lang": {
-        "terms": {
-          "field": "lang"
-        }
-      },
       "brands": {
         "terms": {
           "field": "brands"
-        }
-      },
-      "nutrition_grades": {
-        "terms": {
-          "field": "nutrition_grades"
         }
       },
       "categories": {
         "terms": {
           "field": "categories"
         }
+      },
+      "lang": {
+        "terms": {
+          "field": "lang"
+        }
+      },
+      "nutrition_grades": {
+        "terms": {
+          "field": "nutrition_grades"
+        }
       }
     },
+    "from": 25,
+    "size": 25,
     "sort": [
       "unique_scans_n"
-    ],
-    "size": 25,
-    "from": 25
+    ]
   },
-  "facets_filters": null
+  "facets_filters": null,
+  "luqum_tree": "None",
+  "text_query": null
 }

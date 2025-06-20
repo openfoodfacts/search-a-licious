@@ -5,8 +5,6 @@ from typing import Callable, Iterable
 
 import orjson
 
-from app._types import JSONType
-
 
 def load_json(filepath: str | Path) -> dict | list:
     """Load a JSON file, support gzipped JSON files.
@@ -44,17 +42,6 @@ def jsonl_iter_fp(fp) -> Iterable[dict]:
         line = line.strip("\n")
         if line:
             yield orjson.loads(line)
-
-
-def dump_json(path: str | Path, item: JSONType, **kwargs):
-    """Dump an object in a JSON file.
-
-    :param path: the path of the file
-    :param item: the item to serialize
-    """
-    open_fn = get_open_fn(path)
-    with open_fn(str(path), "wb") as f:
-        f.write(orjson.dumps(item, **kwargs))
 
 
 def safe_replace_dir(target: Path, new_target: Path):
