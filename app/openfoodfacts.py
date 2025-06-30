@@ -198,10 +198,11 @@ class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
         taxonomies.
         """
         if taxonomy.name == "brands":
-            # brands are english only, put them in "main lang"
-            node.names.update(main=node.names["en"])
-            if node.synonyms and (synonyms_en := list(node.synonyms.get("en", []))):
-                node.synonyms.update(main=synonyms_en)
+            # brands are all stored under the `xx` lang prefix, put them
+            # in "main lang"
+            node.names.update(main=node.names["xx"])
+            if node.synonyms and (synonyms_xx := list(node.synonyms.get("xx", []))):
+                node.synonyms.update(main=synonyms_xx)
         else:
             # main language is entry id prefix + eventual xx entries
             id_lang = node.id.split(":")[0]
