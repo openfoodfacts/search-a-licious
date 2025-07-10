@@ -2,11 +2,14 @@ indices:
   "off":
     index:
       id_field_name: code
+      # while last_modified_t is changed when a field change
+      # last_updated_t also change if computed attributes changes (eg after a taxonomy change)
       last_modified_field_name: last_updated_t
       name: openfoodfacts
       number_of_replicas: 1
       number_of_shards: 4
     scripts:
+      # IMPORTANT: this is a demo script, this is not the "personal score" true computation
       personal_score:
         # see https://www.elastic.co/guide/en/elasticsearch/painless/8.14/index.html
         lang: painless
@@ -15,7 +18,7 @@ indices:
           String nutri_index = (doc['nutriscore_grade'].size() != 0) ? doc['nutriscore_grade'].value : 'e';
           String environmental_index = (doc['environmental_score_grade'].size() != 0) ? doc['environmental_score_grade'].value : 'e';
           return (
-            params['nova_to_score'].getOrDefault(nova_index, 0) * params['nova_group']
+            params['nova_to_score'].getOrDefault(environmental_index, 0) * params['nova_group']
             + params['grades_to_score'].getOrDefault(nutri_index, 0) * params['nutri_score']
             + params['grades_to_score'].getOrDefault(environmental, 0) * params['environmental_score']
           );
@@ -25,7 +28,7 @@ indices:
           nova_group: 1
         static_params:
           nova_to_score: {"1": 100, "2": 100, "3": 75, "4": 0, "unknown": 0}
-          grades_to_score: {"a": 100, "b": 75, "c": 50, "d": 25, "e": 0, "unknown": 0, "not-applicable": 0}
+          grades_to_score: {"a+": 100, "a": 90, "b": 72, "c": 54, "d": 36, "e": 18, "f": 0, "unknown": 0, "not-applicable": 0}
     fields:
       code:
         full_text_search: true
@@ -65,7 +68,7 @@ indices:
         input_field: emb_codes_tags
         type: keyword
       manufacturing_places:
-        input_field:: manufacturing_places_tags
+        input_field: manufacturing_places_tags
         type: keyword
       compared_to_category:
         type: keyword
@@ -91,12 +94,10 @@ indices:
       link:
         type: keyword
       quantity:
-        index: false
         type: text
       product_quantity:
         type: float
       product_quantity_unit:
-        input_field: product_quantity_unit
         type: keyword
       countries:
         type: taxonomy
@@ -254,6 +255,8 @@ indices:
             type: nested
             fields:
               type:
+                # we could make it a taxonomy field,
+                # but we would need to merge different categories
                 type: keyword
               id:
                 type: keyword
@@ -282,10 +285,6 @@ indices:
           # FIXME what do we want more ? vegan, vegetarian, ecobalyse_code, ecobaly_proxy_code, etc ?
       ingredients_analysis_tags:
         type: keyword
-      ingredients_n:
-        type: integer
-      nova_group:
-        type: integer
       serving_quantity:
         type: float
       serving_quantity_unit:
@@ -309,7 +308,6 @@ indices:
         type: keyword
       nutrition_data_prepared_per:
         type: keyword
-      # should we rename to nutrients (maybe add a synonym) ?
       nutriments:
         type: object
         fields:
@@ -369,11 +367,9 @@ indices:
       states_tags:
         type: keyword
         bucket_agg: true
-        input_field: states_tags
       misc_tags:
         type: keyword
         bucket_agg: true
-      # FIXME: should we use taxonomy field here ? I'm not sure…
       data_quality_bugs_tags:
         type: keyword
         bucket_agg: true

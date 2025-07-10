@@ -254,6 +254,12 @@ class DocumentFetcher(BaseDocumentFetcher):
 
 class DocumentPreprocessor(BaseDocumentPreprocessor):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.selected_nutriments = frozenset(
+            self.config.fields["nutriments"].fields.keys()
+        )
+
     def preprocess(self, document: JSONType) -> FetcherResult:
         # no need to have a deep-copy here
         document = copy.copy(document)
@@ -289,25 +295,34 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         Update `document` in place.
         """
         nutriments = document.get("nutriments", {})
-
-        for key in list(nutriments):
-            # Only keep some nutriment values per 100g
-            if key not in (
-                "energy-kj_100g",
-                "energy-kcal_100g",
-                "fiber_100g",
-                "fat_100g",
-                "saturated-fat_100g",
-                "carbohydrates_100g",
-                "sugars_100g",
-                "proteins_100g",
-                "salt_100g",
-                "sodium_100g",
-            ):
-                nutriments.pop(key)
+        document["nutriments"] = {
+            k: nutriments[k] for k in self.selected_nutriments if k in nutriments
+        }
 
     def transform_nova_groups_markers(self, document: JSONType):
-        """Transform Nova Groups markers into a list"""
+        """Transform Nova Groups markers into a list
+
+        ProductOpener structure is made of lists that are to be considered like tuple,
+        it is not handy for ES indexing, where we need a list of dict.
+
+        Goes from:
+        ```
+        {
+          3: [['en:ingredient', 'en:chocolate powder']],
+          4: [['en:ingredient', 'en:vanillin'], ['en:additive', 'en:e424']],
+        }
+        ```
+        to
+        ```
+        [
+          {'id': 3, marker: [{'marker': 'en:ingredient', 'id': 'en:chocolate powder'}]},
+          {'id': 4, marker: [
+            {'marker': 'en:ingredient', , 'id': 'en:vanillin'},
+            {'marker': 'en:additive', , 'id': 'en:e424'}
+          ]},
+        ]
+        ```
+        """
         if "nova_groups_markers" not in document:
             return
         nova_groups_markers = document["nova_groups_markers"]
@@ -320,6 +335,16 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         ]
 
     def transform_images(self, document: JSONType):
+        """
+        Images field is very nested. We want to transform it
+        to fit ES indexing capability
+        and to have only the information we need.
+
+        It creates `uploaded_images` and `selected_images` fields
+        according to expected schema.
+
+        In selected_images, we also add informations from the source.
+        """
         if "images" not in document:
             return
         uploaded = document["images"]["uploaded"]
@@ -329,28 +354,37 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                 "id": key,
                 "uploaded_t": image["uploaded_t"],
                 "uploader": image["uploader"],
-                "full_size": {"h": image["h"], "w": image["w"]},
+                "full_size": {
+                    "h": image["sizes"]["full"]["h"],
+                    "w": image["sizes"]["full"]["w"],
+                },
             }
             for key, image in uploaded.items()
         ]
         # selected images
         document["selected_images"] = {}
-        for image_type, selected in document["images"]["selected"].items():
-            document["selected_images"][image_type] = [
+        for image_type, selected in document["images"].get("selected", {}).items():
+            document["selected_images"][image_type] = _images = [
                 {
                     "lc": lc,
-                    "full_size": {"h": image["h"], "w": image["w"]},
+                    "full_size": {
+                        "h": image["sizes"]["full"]["h"],
+                        "w": image["sizes"]["full"]["w"],
+                    },
                     "rev": image["rev"],
+                    # will be removed
+                    "imgid": image["imgid"],
                 }
                 for lc, image in selected.items()
             ]
             # add source
-            for lc, selected_image in selected.items():
-                uploaded_img = uploaded.get(selected_image["imgid"])
+            for selected_image in _images:
+                imgid = selected_image.pop("imgid")
+                uploaded_img = uploaded.get(imgid)
                 if not uploaded_img:
                     continue
                 selected_image["source"] = {
-                    "id": selected_image["imgid"],
+                    "id": imgid,
                     "uploaded_t": uploaded_img["uploaded_t"],
                     "uploader": uploaded_img["uploader"],
                 }
