@@ -404,12 +404,23 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
 
 
 class ResultProcessor(BaseResultProcessor):
-    def process_after(self, result: JSONType) -> JSONType:
-        result |= ResultProcessor.build_image_fields(result)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.selected_images_keys = (
+            list(self.config.fields["selected_images"].fields.keys())
+            if "selected_images" in self.config.fields
+            else []
+        )
+
+    def process_after(
+        self, result: JSONType, projection: set[str] | None = None
+    ) -> JSONType:
+        if not projection or "images" in projection:
+            result |= self.build_image_fields(result)
         return result
 
-    @staticmethod
-    def build_image_fields(product: JSONType) -> JSONType:
+    def build_image_fields(self, product: JSONType) -> JSONType:
         """Images are stored in a weird way in Open Food Facts,
         We want to make it far more simple to use in results.
         """
@@ -418,7 +429,27 @@ class ResultProcessor(BaseResultProcessor):
         code = product["code"]
         fields: JSONType = {}
 
-        for image_type in ["front", "ingredients", "nutrition", "packaging"]:
+        # recreate a structure equivalent to ProductOpener
+        _uploaded = product.get("uploaded_images", [])
+        product["images"] = {}
+        product["images"]["uploaded"] = uploaded_final = {}
+        for image_data in _uploaded:
+            imgid = image_data.pop("id")
+            image_data["sizes"] = {"full": image_data.pop("full_size")}
+            uploaded_final[imgid] = image_data
+
+        _selected = product.get("selected_images", {})
+        selected_final: dict[str, JSONType] = {}
+        for image_type, image_datas in _selected.items():
+            selected_final[image_type] = {}
+            for image_data in image_datas:
+                source = image_data.pop("source")
+                image_data["imgid"] = source["id"]
+                image_data["sizes"] = {"full": image_data.pop("full_size")}
+                selected_final[image_type][image_data.pop("lc")] = image_data
+        product["images"]["selected"] = selected_final
+
+        for image_type in self.selected_images_keys:
             display_ids = []
             lang = product.get("lang")
             if lang:
