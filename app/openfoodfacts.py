@@ -9,6 +9,7 @@ from app._types import FetcherResult, FetcherStatus, JSONType
 from app.indexing import BaseDocumentPreprocessor, BaseTaxonomyPreprocessor
 from app.postprocessing import BaseResultProcessor
 from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
+from app.utils.dict_utils import deep_get
 from app.utils.download import http_session
 from app.utils.log import get_logger
 
@@ -259,6 +260,11 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         self.selected_nutriments = frozenset(
             self.config.fields["nutriments"].fields.keys()
         )
+        self.selected_images_keys = (
+            frozenset(self.config.fields["selected_images"].fields.keys())
+            if "selected_images" in self.config.fields
+            else frozenset()
+        )
 
     def preprocess(self, document: JSONType) -> FetcherResult:
         # no need to have a deep-copy here
@@ -347,7 +353,7 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         """
         if "images" not in document:
             return
-        uploaded = document["images"]["uploaded"]
+        uploaded = deep_get(document, "images", "uploaded", default={})
         # create uploaded_images
         document["uploaded_images"] = [
             {
@@ -363,7 +369,12 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         ]
         # selected images
         document["selected_images"] = {}
-        for image_type, selected in document["images"].get("selected", {}).items():
+        orig_selected_images = deep_get(document, "images", "selected", default={})
+        for image_type, selected in orig_selected_images.items():
+            if image_type not in self.selected_images_keys:
+                continue
+            # transform selected images to fit ES indexing capability
+            # and to have only the information we need
             document["selected_images"][image_type] = _images = [
                 {
                     "lc": lc,
@@ -388,8 +399,8 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                     "uploaded_t": uploaded_img["uploaded_t"],
                     "uploader": uploaded_img["uploader"],
                 }
-            # remove images
-            del document["images"]
+        # remove images
+        document.pop("images", None)
 
 
 class ResultProcessor(BaseResultProcessor):

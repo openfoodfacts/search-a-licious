@@ -11,7 +11,6 @@ x-api-base: &api-base
   volumes:
     # mount code dynamically
     - "./app:/opt/search/app"
-    - "./data:/opt/search/data"
     - ./pyproject.toml:/opt/search/pyproject.toml
     - ./poetry.lock:/opt/search/poetry.lock
     # make tests available

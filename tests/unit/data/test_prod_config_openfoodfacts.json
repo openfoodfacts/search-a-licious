@@ -1346,6 +1346,511 @@
           "taxonomy_name": null,
           "type": "integer"
         },
+        "selected_images": {
+          "bucket_agg": false,
+          "fields": {
+            "front": {
+              "bucket_agg": false,
+              "fields": {
+                "full_size": {
+                  "bucket_agg": false,
+                  "fields": {
+                    "h": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "h",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    },
+                    "w": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "w",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    }
+                  },
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "full_size",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "object"
+                },
+                "lc": {
+                  "bucket_agg": false,
+                  "fields": null,
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "lc",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "keyword"
+                },
+                "rev": {
+                  "bucket_agg": false,
+                  "fields": null,
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "rev",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "integer"
+                },
+                "source": {
+                  "bucket_agg": false,
+                  "fields": {
+                    "id": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "id",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    },
+                    "uploaded_t": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "uploaded_t",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "date"
+                    },
+                    "uploader": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "uploader",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "keyword"
+                    }
+                  },
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "source",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "object"
+                }
+              },
+              "full_text_search": false,
+              "index": true,
+              "input_field": null,
+              "name": "front",
+              "required": false,
+              "split": false,
+              "taxonomy_name": null,
+              "type": "nested"
+            },
+            "ingredients": {
+              "bucket_agg": false,
+              "fields": {
+                "full_size": {
+                  "bucket_agg": false,
+                  "fields": {
+                    "h": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "h",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    },
+                    "w": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "w",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    }
+                  },
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "full_size",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "object"
+                },
+                "lc": {
+                  "bucket_agg": false,
+                  "fields": null,
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "lc",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "keyword"
+                },
+                "rev": {
+                  "bucket_agg": false,
+                  "fields": null,
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "rev",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "integer"
+                },
+                "source": {
+                  "bucket_agg": false,
+                  "fields": {
+                    "id": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "id",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    },
+                    "uploaded_t": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "uploaded_t",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "date"
+                    },
+                    "uploader": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "uploader",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "keyword"
+                    }
+                  },
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "source",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "object"
+                }
+              },
+              "full_text_search": false,
+              "index": true,
+              "input_field": null,
+              "name": "ingredients",
+              "required": false,
+              "split": false,
+              "taxonomy_name": null,
+              "type": "nested"
+            },
+            "nutrition": {
+              "bucket_agg": false,
+              "fields": {
+                "full_size": {
+                  "bucket_agg": false,
+                  "fields": {
+                    "h": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "h",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    },
+                    "w": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "w",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    }
+                  },
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "full_size",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "object"
+                },
+                "lc": {
+                  "bucket_agg": false,
+                  "fields": null,
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "lc",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "keyword"
+                },
+                "rev": {
+                  "bucket_agg": false,
+                  "fields": null,
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "rev",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "integer"
+                },
+                "source": {
+                  "bucket_agg": false,
+                  "fields": {
+                    "id": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "id",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    },
+                    "uploaded_t": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "uploaded_t",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "date"
+                    },
+                    "uploader": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "uploader",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "keyword"
+                    }
+                  },
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "source",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "object"
+                }
+              },
+              "full_text_search": false,
+              "index": true,
+              "input_field": null,
+              "name": "nutrition",
+              "required": false,
+              "split": false,
+              "taxonomy_name": null,
+              "type": "nested"
+            },
+            "packaging": {
+              "bucket_agg": false,
+              "fields": {
+                "full_size": {
+                  "bucket_agg": false,
+                  "fields": {
+                    "h": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "h",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    },
+                    "w": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "w",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    }
+                  },
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "full_size",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "object"
+                },
+                "lc": {
+                  "bucket_agg": false,
+                  "fields": null,
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "lc",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "keyword"
+                },
+                "rev": {
+                  "bucket_agg": false,
+                  "fields": null,
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "rev",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "integer"
+                },
+                "source": {
+                  "bucket_agg": false,
+                  "fields": {
+                    "id": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "id",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "integer"
+                    },
+                    "uploaded_t": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "uploaded_t",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "date"
+                    },
+                    "uploader": {
+                      "bucket_agg": false,
+                      "fields": null,
+                      "full_text_search": false,
+                      "index": true,
+                      "input_field": null,
+                      "name": "uploader",
+                      "required": false,
+                      "split": false,
+                      "taxonomy_name": null,
+                      "type": "keyword"
+                    }
+                  },
+                  "full_text_search": false,
+                  "index": true,
+                  "input_field": null,
+                  "name": "source",
+                  "required": false,
+                  "split": false,
+                  "taxonomy_name": null,
+                  "type": "object"
+                }
+              },
+              "full_text_search": false,
+              "index": true,
+              "input_field": null,
+              "name": "packaging",
+              "required": false,
+              "split": false,
+              "taxonomy_name": null,
+              "type": "nested"
+            }
+          },
+          "full_text_search": false,
+          "index": true,
+          "input_field": null,
+          "name": "selected_images",
+          "required": false,
+          "split": false,
+          "taxonomy_name": null,
+          "type": "object"
+        },
         "serving_quantity": {
           "bucket_agg": false,
           "fields": null,

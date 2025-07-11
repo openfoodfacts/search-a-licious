@@ -177,31 +177,31 @@ indices:
                 type: integer
               w:
                 type: integer
-        # TODO: what do we want there ? url / last_modified_t maybe and full_size ?
-        # do we need url ?
-        selected_images:
-          type: object
-          fields:
-            front: &selected_images_definition
-              type: nested
-              fields:
-                lc:
-                  type: keyword
-                full_size: *full_size_definition
-                rev:
-                  type: integer
-                source:
-                  type: object
-                  fields:
-                    id:
-                      type: integer
-                    uploader:
-                      type: keyword
-                    uploaded_t:
-                      type: date
-            ingredients: *selected_images_definition
-            nutrition: *selected_images_definition
-            packaging: *selected_images_definition
+      # TODO: what do we want there ? url / last_modified_t maybe and full_size ?
+      # do we need url ?
+      selected_images:
+        type: object
+        fields:
+          front: &selected_images_definition
+            type: nested
+            fields:
+              lc:
+                type: keyword
+              full_size: *full_size_definition
+              rev:
+                type: integer
+              source:
+                type: object
+                fields:
+                  id:
+                    type: integer
+                  uploader:
+                    type: keyword
+                  uploaded_t:
+                    type: date
+          ingredients: *selected_images_definition
+          nutrition: *selected_images_definition
+          packaging: *selected_images_definition
       # FIXME: I need a keyword_lang field for this one
       # Also do we really need display + small + thumb ?
       # We could also avoid saving the prefix ?

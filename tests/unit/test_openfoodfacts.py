@@ -99,4 +99,21 @@ def test_openfoodfacts_document_processor(load_expected_result):
     expected_document = load_expected_result(
         "test_openfoodfacts_document_preprocessor", result.document
     )
-    assert expected_document == result.document
+    assert result.document == expected_document
+
+
+def test_openfoodfacts_document_processor_no_images():
+    """We must not fail just because we lack some fields"""
+    conf = app.config.Config.from_yaml(Path("data/config/openfoodfacts.yml"))
+    processor = app.openfoodfacts.DocumentPreprocessor(
+        config=conf.indices["off"],
+    )
+    result = processor.preprocess({})
+    assert result.document == {"nutriments": {}, "obsolete": False}
+    result = processor.preprocess({"images": {}})
+    assert result.document == {
+        "nutriments": {},
+        "obsolete": False,
+        "uploaded_images": [],
+        "selected_images": {},
+    }
