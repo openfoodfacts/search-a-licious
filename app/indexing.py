@@ -54,6 +54,9 @@ def generate_dsl_field(
         and `taxonomy` field types
     :return: the elasticsearch_dsl field
     """
+    metadata = {}
+    if not field.index:
+        metadata["index"] = False
     if field.type is FieldType.taxonomy:
         # We will store the taxonomy identifier as keyword
         # And also store it in subfields with query analyzers for each language,
@@ -68,10 +71,11 @@ def generate_dsl_field(
                 search_analyzer=get_taxonomy_search_analyzer(
                     field.taxonomy_name, lang, with_synonyms=True
                 ),
+                **metadata,
             )
             for lang in supported_langs
         }
-        return dsl_field.Keyword(required=field.required, fields=sub_fields)
+        return dsl_field.Keyword(required=field.required, fields=sub_fields, **metadata)
     elif field.type is FieldType.text_lang:
         properties = {
             lang: dsl_field.Text(
@@ -79,7 +83,7 @@ def generate_dsl_field(
             )
             for lang in supported_langs
         }
-        return dsl_field.Object(dynamic=False, properties=properties)
+        return dsl_field.Object(dynamic=False, properties=properties, **metadata)
     elif field.type in (FieldType.object, FieldType.nested):
         if not field.fields:
             # this should not happen by construction of FieldConfig
@@ -93,14 +97,14 @@ def generate_dsl_field(
         if field.type == FieldType.nested:
             return dsl_field.Nested(properties=properties)
         else:
-            return dsl_field.Object(dynamic=False, properties=properties)
+            return dsl_field.Object(dynamic=False, properties=properties, **metadata)
     elif field.type == FieldType.disabled:
         return dsl_field.Object(enabled=False)
     else:
         cls_ = FIELD_TYPE_TO_DSL_TYPE.get(field.type)
         if cls_ is None:
             raise ValueError(f"unsupported field type: {field.type}")
-        return cls_()
+        return cls_(**metadata)
 
 
 def preprocess_field_value(
