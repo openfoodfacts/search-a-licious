@@ -36,12 +36,10 @@ export ALLOWED_ORIGINS='http://localhost,http://127.0.0.1'
 - **CLI tools**: `poetry run python -m app --help` -- shows available commands
 
 ### Docker Development (Full Stack)
-- **Build containers**: `make build` -- **NETWORK DEPENDENT**: fails without internet access to install Poetry. Set timeout to 60+ minutes. NEVER CANCEL.
+- **Build containers**: `make build` -- Set timeout to 60+ minutes for initial build. NEVER CANCEL.
 - **Start services**: `make up` -- starts Elasticsearch, Redis, API, and frontend services
 - **Stop services**: `make down`
 - **View logs**: `docker compose logs -f [service-name]`
-
-**CRITICAL NETWORK ISSUE**: Docker build currently fails due to Poetry installation requiring `https://install.python-poetry.org` access. If network access is limited, use local Poetry development instead.
 
 ### Testing and Quality Assurance
 - **Run all tests**: `make test` -- takes 10-15 minutes total. NEVER CANCEL. Set timeout to 30+ minutes.
@@ -81,7 +79,7 @@ Always test these scenarios after making changes:
 ## Network Dependencies and Timing
 
 ### Commands That Require Network Access
-- **Docker build** (`make build`): Fails without access to Poetry installation server
+- **Docker build** (`make build`): Downloads Poetry and Elasticsearch Docker images
 - **Playwright browser installation** (`npx playwright install`): Downloads ~100MB of browser binaries
 - **Pre-commit hook setup**: Some hooks require package downloads
 - **Poetry dependency resolution**: Initial poetry install needs PyPI access
@@ -90,7 +88,7 @@ Always test these scenarios after making changes:
 - **`npm install`**: 60 seconds (typically 33 seconds)
 - **Frontend build**: 30 seconds (typically 6 seconds)  
 - **Backend unit tests**: 30 seconds (typically 6 seconds)
-- **Docker build**: 3600 seconds (60 minutes) -- can take 30-60 minutes. NEVER CANCEL.
+- **Docker build**: 3600 seconds (60 minutes) -- can take 30-60 minutes for initial build. NEVER CANCEL.
 - **Full test suite**: 1800 seconds (30 minutes) -- integration tests can be slow. NEVER CANCEL.
 - **Pre-commit all files**: 1800 seconds (30 minutes) -- initial hook setup is slow. NEVER CANCEL.
 
@@ -147,15 +145,15 @@ Always test these scenarios after making changes:
 
 ## Limitations and Known Issues
 
-### Network Connectivity Issues
-- Docker build fails without internet access due to Poetry installation requirements
-- Playwright tests require browser download (~100MB)
-- Some pre-commit hooks fail during initial setup without network access
+### Network Connectivity Requirements
+- **Playwright tests**: Require browser download (~100MB) via `npx playwright install`
+- **Pre-commit hooks**: Some hooks require package downloads during initial setup
+- **Docker builds**: Require access to Poetry installation and Elasticsearch Docker registry
 
-### Workarounds  
-- **Local development**: Use Poetry locally instead of Docker for backend development
-- **Testing**: Run unit tests locally, skip integration tests if Elasticsearch unavailable
-- **Linting**: Use Poetry-based linting instead of pre-commit if network issues persist
+### Development Workflow Recommendations  
+- **Local development**: Use Poetry locally for faster backend iteration and testing
+- **Testing**: Run unit tests locally; integration tests require Elasticsearch running
+- **Linting**: Use both Poetry-based and pre-commit linting for comprehensive coverage
 
 ### Browser Requirements
 - **Frontend tests**: Require Chromium installation via Playwright
