@@ -1,0 +1,115 @@
+name: Auto-fix linting issues
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  auto-fix-linting:
+    # Only run on pull request comments
+    if: github.event.issue.pull_request && contains(github.event.comment.body, 'fix linting')
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            return {
+              head_ref: pr.data.head.ref,
+              head_sha: pr.data.head.sha,
+              base_ref: pr.data.base.ref
+            };
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ fromJson(steps.pr.outputs.result).head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install pre-commit and linting tools
+        run: |
+          pip install pre-commit black flake8 isort mypy
+
+      - name: Set up Docker environment
+        run: |
+          echo "" > .envrc
+          echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
+          echo OFF_API_URL=https://world.openfoodfacts.org >> .envrc
+          echo ALLOWED_ORIGINS='http://localhost,http://127.0.0.1' >> .envrc
+          echo USER_UID=$(id -u) >> .envrc
+          echo USER_GID=$(id -g) >> .envrc
+
+      - name: Build Docker containers for frontend linting
+        run: make build
+        continue-on-error: true
+
+      - name: Run backend linting fixes
+        run: |
+          # Run black to fix Python formatting
+          black app/ tests/ --line-length=88 || true
+          # Run isort to fix import ordering  
+          isort app/ tests/ --profile black || true
+        continue-on-error: true
+
+      - name: Run frontend linting fixes
+        run: |
+          # Run frontend linting if Docker is available
+          make lint_front || echo "Frontend linting skipped (Docker not available)"
+        continue-on-error: true
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          if [[ $(git status --porcelain) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "Found changes to commit"
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No changes found"
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.changes == 'true'
+        run: |
+          git add .
+          git commit -m "Auto-fix linting issues
+
+          Triggered by comment from @${{ github.event.comment.user.login }}
+          
+          Co-authored-by: ${{ github.event.comment.user.login }} <${{ github.event.comment.user.login }}@users.noreply.github.com>"
+          git push
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changes = '${{ steps.changes.outputs.changes }}';
+            const message = changes === 'true' 
+              ? '✅ Linting issues have been automatically fixed and committed to this PR!'
+              : '✅ No linting issues found that could be automatically fixed.';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
