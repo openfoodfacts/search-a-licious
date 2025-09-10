@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 from typing import Annotated, Any, cast
 
@@ -53,14 +52,12 @@ app = FastAPI(
     },
     description=API_DESCRIPTION,
 )
-ALLOWED_ORIGINS = os.environ.get(
-    "ALLOWED_ORIGINS", "http://localhost,http://127.0.0.1"
-).split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    # this is a public API
+    allow_origin_regex="https?://.*",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
