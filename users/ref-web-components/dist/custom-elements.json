@@ -7512,40 +7512,6 @@
     },
     {
       "kind": "javascript-module",
-      "path": "src/styles/index.ts",
-      "declarations": [
-        {
-          "kind": "variable",
-          "name": "WHITE_PANEL_STYLE",
-          "default": "css`\n  .white-panel {\n    margin-bottom: 1rem;\n    background-color: white;\n    padding: 0.5rem;\n    border-radius: 5px;\n  }\n`"
-        },
-        {
-          "kind": "variable",
-          "name": "HIDE_STYLE",
-          "default": "css`\n  .hidden {\n    display: none;\n  }\n`"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "WHITE_PANEL_STYLE",
-          "declaration": {
-            "name": "WHITE_PANEL_STYLE",
-            "module": "src/styles/index.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "HIDE_STYLE",
-          "declaration": {
-            "name": "HIDE_STYLE",
-            "module": "src/styles/index.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
       "path": "src/mixins/checked-input.ts",
       "declarations": [
         {
@@ -9163,6 +9129,40 @@
           "declaration": {
             "name": "VersioningMixin",
             "module": "src/mixins/versioning.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/styles/index.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "WHITE_PANEL_STYLE",
+          "default": "css`\n  .white-panel {\n    margin-bottom: 1rem;\n    background-color: white;\n    padding: 0.5rem;\n    border-radius: 5px;\n  }\n`"
+        },
+        {
+          "kind": "variable",
+          "name": "HIDE_STYLE",
+          "default": "css`\n  .hidden {\n    display: none;\n  }\n`"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "WHITE_PANEL_STYLE",
+          "declaration": {
+            "name": "WHITE_PANEL_STYLE",
+            "module": "src/styles/index.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "HIDE_STYLE",
+          "declaration": {
+            "name": "HIDE_STYLE",
+            "module": "src/styles/index.ts"
           }
         }
       ]
