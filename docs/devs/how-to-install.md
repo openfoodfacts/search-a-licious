@@ -14,6 +14,11 @@ We use pre-commit to check the code quality.
 You can follow the following [tutorial](https://pre-commit.com/#install)
 to install pre-commit on your machine.
 
+### Auto-fixing linting issues in Pull Requests
+
+For Pull Requests, you can automatically fix linting issues by commenting `/fix-linting` on the PR. 
+This will trigger a GitHub Action that runs the linting tools and commits any fixes directly to the PR branch.
+
 
 ## Installing Direnv
 

@@ -1,5 +1,4 @@
-"""Module to manage ES scripts that can be used for personalized sorting
-"""
+"""Module to manage ES scripts that can be used for personalized sorting"""
 
 import elasticsearch
 
