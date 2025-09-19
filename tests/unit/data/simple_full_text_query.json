@@ -13,11 +13,13 @@
                       {
                         "multi_match": {
                           "fields": [
+                            "code",
                             "product_name.fr",
                             "generic_name.fr",
                             "categories.fr",
                             "labels.fr",
-                            "brands.fr"
+                            "brands.fr",
+                            "emb_codes"
                           ],
                           "query": "flocons",
                           "type": "best_fields",
@@ -27,11 +29,13 @@
                       {
                         "multi_match": {
                           "fields": [
+                            "code",
                             "product_name.fr",
                             "generic_name.fr",
                             "categories.fr",
                             "labels.fr",
-                            "brands.fr"
+                            "brands.fr",
+                            "emb_codes"
                           ],
                           "query": "d'avoine",
                           "type": "best_fields",
@@ -45,11 +49,13 @@
                   "multi_match": {
                     "boost": 2.0,
                     "fields": [
+                      "code",
                       "product_name.fr",
                       "generic_name.fr",
                       "categories.fr",
                       "labels.fr",
-                      "brands.fr"
+                      "brands.fr",
+                      "emb_codes"
                     ],
                     "query": "flocons d'avoine",
                     "type": "phrase"
