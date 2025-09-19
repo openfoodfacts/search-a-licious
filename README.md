@@ -1,24 +1,27 @@
 ![Search-a-licious](./assets/RVB_HORIZONTAL_WHITE_BG_SEARCH-A-LICIOUS-50.png "Search-a-licious logo")
 
-Search-a-licious unlocks the full potential of large data collections by transforming them into easily searchable content. Users can quickly and efficiently find exactly what they need.
+Search-a-licious transforms large data collections into searchable content with powerful queries, facet exploration, and intuitive visualizations. Originally developed for [Open Food Facts](https://world.openfoodfacts.org/), it enables developers to rapidly build applications based on existing data collections.
 
-With powerful text queries, facet exploration, and intuitive visualizations, Search-a-licious empowers your users to dive deep into data effortlessly.
+## Quick Start
 
-Developers can rapidly build and deploy new applications based on existing data collections in just hours. The platform offers reusable components that adapt to various contexts, all built on best-in-class open-source tools.
+📖 **[Full Documentation](https://openfoodfacts.github.io/search-a-licious/)** - Complete guide to using Search-a-licious
 
-Search-a-licious was originally developed to power the [Open Food Facts](https://world.openfoodfacts.org/) project, helping consumers make informed choices for their health and the planet.
+🚀 **[User Tutorial](https://openfoodfacts.github.io/search-a-licious/users/tutorial/)** - Get started in minutes
 
-Its versatile architecture makes it ideal for a wide range of applications: from exposing large data collections to the public, to building decision support systems and exploratory tools. Search-a-licious is the key to unlocking the value in your data.
+🛠️ **[Developer Guide](https://openfoodfacts.github.io/search-a-licious/devs/introduction/)** - Contributing and development setup
 
-Ready to use it ? Jump to the [documentation](https://openfoodfacts.github.io/search-a-licious/)
+## Key Features
 
-This is an Open Source project and [contributions are very welcome](https://openfoodfacts.github.io/search-a-licious/#contributing) !
+- **Fast full-text search** with Elasticsearch backend
+- **Interactive facets** for result refinement  
+- **Web components** for easy UI integration
+- **Instant charts** with Vega visualizations
+- **Easy configuration** via single YAML file
+- **Docker deployment** with docker-compose
 
+## Contributing
 
-## 🎨 Design
-
-- [![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?logo=figma&logoColor=white) Search-a-Licious logo](https://www.figma.com/design/gNnI56OF91Ugdd4fBaq5F8/Search-A-Licious-Logo?m=auto&t=bEHMawF1eequkY9w-6)
-- [![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?logo=figma&logoColor=white) Wireframes & Mood board](https://www.figma.com/design/d1tuhFa0qQLqqJP2xbwBqZ/Website-%E2%80%93%3E-Search?node-id=1-2&t=bEHMawF1eequkY9w-0)
+This is an Open Source project and [contributions are very welcome](https://openfoodfacts.github.io/search-a-licious/devs/introduction/)! See our [developer documentation](https://openfoodfacts.github.io/search-a-licious/devs/) to get started.
 
 
 ## Thank you to our sponsors !
