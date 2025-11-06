@@ -134,7 +134,7 @@ def ingest_synonyms_sets(
             es.synonyms.put_synonym(
                 id=set_id,
                 synonyms_set=[
-                    {"id": id, "synonyms": f"{','.join(synonyms)} => {id}\n"}
+                    {"id": id, "synonyms": f"{','.join(synonyms)} => {id}"}
                     for id, synonyms in batched_synonyms_sets_items
                 ],
             )
