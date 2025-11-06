@@ -1,3 +1,4 @@
+import elasticsearch
 from elasticsearch_dsl.connections import connections
 from redis import Redis
 
@@ -11,7 +12,7 @@ def get_es_client(**kwargs):
     )
 
 
-def current_es_client():
+def current_es_client() -> elasticsearch.Elasticsearch:
     """Return ElasticSearch default connection"""
     return connections.get_connection()
 

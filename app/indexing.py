@@ -40,7 +40,7 @@ FIELD_TYPE_TO_DSL_TYPE = {
 
 
 def generate_dsl_field(
-    field: FieldConfig, supported_langs: Iterable[str]
+    config: IndexConfig, field: FieldConfig, supported_langs: Iterable[str]
 ) -> dsl_field.Field:
     """Generate Elasticsearch DSL field from a FieldConfig.
 
@@ -69,7 +69,7 @@ def generate_dsl_field(
                 analyzer=get_taxonomy_indexing_analyzer(field.taxonomy_name, lang),
                 # but on query we need to fold and match with synonyms
                 search_analyzer=get_taxonomy_search_analyzer(
-                    field.taxonomy_name, lang, with_synonyms=True
+                    config, field.taxonomy_name, lang, with_synonyms=True
                 ),
                 **metadata,
             )
@@ -90,7 +90,7 @@ def generate_dsl_field(
             raise ValueError("Object fields must have fields")
         properties = {
             sub_field.name: generate_dsl_field(
-                sub_field, supported_langs=supported_langs
+                config, sub_field, supported_langs=supported_langs
             )
             for sub_field in field.fields.values()
         }
@@ -368,7 +368,7 @@ def generate_mapping_object(config: IndexConfig) -> Mapping:
     for field in config.fields.values():
         mapping.field(
             field.name,
-            generate_dsl_field(field, supported_langs=supported_langs),
+            generate_dsl_field(config, field, supported_langs=supported_langs),
         )
 
     # date of last index for the purposes of search
