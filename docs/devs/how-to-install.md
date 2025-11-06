@@ -14,6 +14,11 @@ We use pre-commit to check the code quality.
 You can follow the following [tutorial](https://pre-commit.com/#install)
 to install pre-commit on your machine.
 
+### Auto-fixing linting issues in Pull Requests
+
+For Pull Requests, you can automatically fix linting issues by commenting `/fix-linting` on the PR. 
+This will trigger a GitHub Action that runs the linting tools and commits any fixes directly to the PR branch.
+
 
 ## Installing Direnv
 
@@ -42,7 +47,6 @@ export USER_UID=<your_user_uid>
 
 export CONFIG_PATH=data/config/openfoodfacts.yml
 export OFF_API_URL=https://world.openfoodfacts.org
-export ALLOWED_ORIGINS='http://localhost,http://127.0.0.1'
 ```
 
 [^winEnvrc]: For Windows users, the .envrc is only taken into account by the `make` commands.
