@@ -1,13 +1,11 @@
 import abc
 import math
-import time
 from datetime import datetime
 from inspect import cleandoc as cd_
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Iterator, cast
 
-import elasticsearch
 import tqdm
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk, parallel_bulk
@@ -22,6 +20,7 @@ from app.indexing import (
     DocumentProcessor,
     generate_index_object,
     generate_taxonomy_index_object,
+    wait_index_health,
 )
 from app.taxonomy import iter_taxonomies
 from app.taxonomy_es import check_synonyms_sets_size, refresh_synonyms
@@ -525,18 +524,14 @@ def run_items_import(
         index_date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
         next_index = f"{config.index.name}-{index_date}"
         index = generate_index_object(next_index, config)
-        # create the index
-        index.save(using=es_client)
-        # it may take some time to create the index
-        for i in range(60):
-            try:
-                index.refresh()
-                break
-            except elasticsearch.NotFoundError:
-                logger.info("Index not ready, waiting 10 seconds")
-                time.sleep(10)
-        else:
-            raise RuntimeError("Index not ready after 600 seconds")
+        # create the index, use create method instead of save
+        # because it supports additional parameters
+        # it can be very long if we have a lot of synonyms to handle
+        index.create(using=es_client, timeout=f"{3600 * 2}s")
+        # wait for it to be really available,
+        # this can take a lot of time
+        # if we have a lot of synonyms
+        wait_index_health(es_client, next_index)
     else:
         # use current index
         next_index = config.index.name

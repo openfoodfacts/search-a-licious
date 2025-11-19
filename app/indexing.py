@@ -1,8 +1,11 @@
 import abc
 import datetime
+import logging
 import re
+import time
 from typing import Iterable
 
+import elasticsearch
 from elasticsearch_dsl import Index, Mapping, analyzer
 from elasticsearch_dsl import field as dsl_field
 
@@ -22,6 +25,9 @@ from app.utils.analyzers import (
     get_taxonomy_search_analyzer,
     number_of_fields,
 )
+
+logger = logging.getLogger(__name__)
+
 
 FIELD_TYPE_TO_DSL_TYPE = {
     FieldType.keyword: dsl_field.Keyword,
@@ -449,3 +455,26 @@ def generate_taxonomy_index_object(index_name: str, config: IndexConfig) -> Inde
     mapping = generate_taxonomy_mapping_object(config)
     index.mapping(mapping)
     return index
+
+
+def wait_index_health(
+    es: elasticsearch.Elasticsearch,
+    index: str,
+    status: str | list[str] = "green",
+    wait: int = 3600,
+    poll_interval: float = 30.0,
+) -> None:
+    if not isinstance(status, list):
+        status = [status]
+    health = None
+    start_time = time.monotonic()
+    while health not in status and (start_time + wait) > time.monotonic():
+        result = es.cat.indices(index=index, h=["index", "health"], format="json")
+        if result:
+            health = result[0].get("health")
+        logger.info(
+            "Waiting for index to be healthy (%s) since %d seconds",
+            ",".join(status),
+            int(time.monotonic() - start_time),
+        )
+        time.sleep(poll_interval)

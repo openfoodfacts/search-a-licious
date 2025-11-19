@@ -454,6 +454,7 @@ indices:
       sources:
       - name: categories
         url: https://static.openfoodfacts.org/data/taxonomies/categories.full.json
+        max_synonyms_entries: 20000
       - name: labels
         url: https://static.openfoodfacts.org/data/taxonomies/labels.full.json
       - name: additives
