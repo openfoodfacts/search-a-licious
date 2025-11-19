@@ -21,6 +21,9 @@ log = logging.getLogger(__name__)
 
 ES_DOCS_URL = "https://www.elastic.co/guide/en/elasticsearch/reference/current"
 
+# this comes from ES, this is a hard limit at the time of writing
+MAX_SYNONYMS_SETS_RULES = 10000
+
 
 class LoggingLevel(StrEnum):
     """Accepted logging levels
@@ -129,12 +132,6 @@ class Settings(BaseSettings):
             description="User-Agent used when fetching resources (taxonomies) or documents"
         ),
     ] = "search-a-licious"
-    synonyms_path: Annotated[
-        Path,
-        Field(
-            description="Path of the directory that will contain synonyms for ElasticSearch instances"
-        ),
-    ] = Path("/opt/search/synonyms")
 
 
 settings = Settings()
@@ -234,6 +231,24 @@ class TaxonomySourceConfig(BaseModel):
             )
         ),
     ]
+    # there is a limitation of 10 000 synonyms rules per synonyms set in ES
+    # we must add a filter for each synonym set in ES
+    # so we must evaluate beforehand how much synonyms set we will need
+    max_synonyms_entries: Annotated[
+        int,
+        Field(
+            description=cd_(
+                f"""The maximum synonyms to account for
+                above this threshold, some synonyms will be ignored.
+
+                Using a high value might lead to performance problems
+
+                If you change this setting and go above a {MAX_SYNONYMS_SETS_RULES} slice,
+                you will have to re-import your index for it to take effect
+                """
+            )
+        ),
+    ] = MAX_SYNONYMS_SETS_RULES
 
 
 class FieldType(StrEnum):
@@ -286,7 +301,7 @@ class FieldType(StrEnum):
 
 # add url to FieldType doc
 if FieldType.__doc__:
-    FieldType.__doc__ += f"\n\n[Elasticsearch help]: {ES_DOCS_URL}/enabled.html"
+    FieldType.__doc__ += f"\n\n[Elasticsearch help]({ES_DOCS_URL}/enabled.html)"
 
 
 class FieldConfig(BaseModel):
@@ -308,6 +323,18 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = False
+    index: Annotated[
+        bool,
+        Field(
+            description=cd_(
+                """if False the field is not indexed, but only stored.
+
+                That is it will be possible to retrieve it in results,
+                but not query on it.
+                """
+            )
+        ),
+    ] = True
     input_field: Annotated[
         str | None,
         Field(
@@ -577,6 +604,10 @@ class TaxonomyConfig(BaseModel):
         ]
         | None
     ) = None
+
+    @functools.cached_property
+    def sources_by_name(self) -> dict[str, TaxonomySourceConfig]:
+        return {source.name: source for source in self.sources}
 
 
 class ScriptConfig(BaseModel):
@@ -901,6 +932,12 @@ class IndexConfig(BaseModel):
             for fname, field in self.fields.items()
             if field.full_text_search
         }
+
+    def get_synonym_set_name(self, taxonomy_name: str, lang: str) -> str:
+        """Return the prefix
+        that the synonyms set for a taxonomy and language should have
+        """
+        return f"{self.index.name}-{taxonomy_name}-{lang}"
 
 
 CONFIG_DESCRIPTION_INDICES = """

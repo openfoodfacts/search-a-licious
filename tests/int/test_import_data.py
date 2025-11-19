@@ -150,7 +150,9 @@ def test_cleanup_indexes(test_off_config, es_connection):
     assert result.exit_code == 0
     # assert we got the index with the right alias, and other indexes untouched
     aliases = es_connection.indices.get_alias(index="*")
-    assert dict(aliases) == {
+    # remove special aliases starting with .
+    aliases = {k: v for k, v in aliases.items() if not k.startswith(".")}
+    assert aliases == {
         # only aliases where kept
         "test_off_taxonomy-2024-07-25": {"aliases": {"test_off_taxonomy": {}}},
         "test_off-2024-07-25": {"aliases": {"test_off": {}}},

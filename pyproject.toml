@@ -9,7 +9,9 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
-elasticsearch-dsl = "~8.9.0"
+# TODO migrate to elasticsearch.dsl and remove elasticsearch-dsl
+elasticsearch-dsl = "~8.18.0"
+elasticsearch = "~8.19.0"
 fastapi = "~0.115.0"
 requests = "~2.32.4"
 redis = "~5.0.0"

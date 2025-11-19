@@ -17,10 +17,10 @@ indices:
           return (
             params['nova_to_score'].getOrDefault(nova_index, 0) * params['nova_group']
             + params['grades_to_score'].getOrDefault(nutri_index, 0) * params['nutri_score']
-            + params['grades_to_score'].getOrDefault(eco_index, 0) * params['eco_score']
+            + params['grades_to_score'].getOrDefault(eco_index, 0) * params['environmental_score']
           );
         params:
-          eco_score: 1
+          environmental_score: 1
           nutri_score: 1
           nova_group: 1
         static_params:
@@ -75,6 +75,7 @@ indices:
         bucket_agg: true
       quantity:
         type: text
+        index: false
       countries:
         type: taxonomy
         input_field: conutries_tags
@@ -155,6 +156,15 @@ indices:
         type: integer
       completeness:
         type: float
+      packagings:
+        type: nested
+        fields:
+          material:
+            type: taxonomy
+            taxonomy_name: packaging_materials
+            bucket_agg: true
+          weight_measured:
+            type: float
     document_denylist:
     - '8901552007122'
     lang_separator: _
