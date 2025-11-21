@@ -49,7 +49,7 @@ jobs:
             };
 
       - name: Checkout PR branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ fromJson(steps.pr.outputs.result).head_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
