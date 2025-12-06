@@ -85,7 +85,7 @@
 
 	// Lifecycle scripts
 	"postCreateCommand": "pip install pre-commit && pre-commit install && cd frontend && npm install",
-	"postStartCommand": "echo '✅ Dev container ready! All services running. Use make commands for development.'",
+	"postStartCommand": "echo 'Dev container ready! All services running. Use make commands for development.'",
 
 	// Set environment variables
 	"remoteEnv": {
