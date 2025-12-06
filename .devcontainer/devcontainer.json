@@ -1,0 +1,108 @@
+{
+	"name": "Search-a-licious Development",
+	"dockerComposeFile": [
+		"../docker-compose.yml",
+		"../docker/dev.yml"
+	],
+	"service": "api",
+	"workspaceFolder": "/opt/search",
+	"shutdownAction": "stopCompose",
+	"overrideCommand": true,
+	
+	// Use docker-outside-of-docker feature to allow running docker commands inside the container
+	"features": {
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"moby": true,
+			"installDockerBuildx": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "v2"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "lts"
+		}
+	},
+
+	// Configure tool-specific properties
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"charliermarsh.ruff",
+				"ms-azuretools.vscode-docker",
+				"esbenp.prettier-vscode",
+				"dbaeumer.vscode-eslint"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/opt/pysetup/.venv/bin/python",
+				"python.testing.pytestEnabled": true,
+				"python.testing.unittestEnabled": false,
+				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff",
+					"editor.formatOnSave": true,
+					"editor.codeActionsOnSave": {
+						"source.organizeImports": "explicit"
+					}
+				},
+				"[typescript]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode",
+					"editor.formatOnSave": true
+				},
+				"[javascript]": {
+					"editor.defaultFormatter": "esbenp.prettier-vscode",
+					"editor.formatOnSave": true
+				},
+				"files.watcherExclude": {
+					"**/node_modules/**": true,
+					"**/.venv/**": true,
+					"**/data/**": true
+				}
+			}
+		}
+	},
+
+	// Forward ports for local development
+	"forwardPorts": [
+		8000,
+		9200,
+		8080
+	],
+	
+	"portsAttributes": {
+		"8000": {
+			"label": "FastAPI Backend",
+			"onAutoForward": "notify"
+		},
+		"9200": {
+			"label": "Elasticsearch",
+			"onAutoForward": "silent"
+		},
+		"8080": {
+			"label": "ElasticVue",
+			"onAutoForward": "silent"
+		}
+	},
+
+	// Lifecycle scripts
+	"postCreateCommand": "pip install pre-commit && pre-commit install && cd frontend && npm install",
+	"postStartCommand": "echo '✅ Dev container ready! All services running. Use make commands for development.'",
+
+	// Set environment variables
+	"remoteEnv": {
+		"ELASTICSEARCH_URL": "http://es01:9200",
+		"CONFIG_PATH": "/opt/search/data/config/openfoodfacts.yml",
+		"USER_UID": "${localEnv:USER_UID}",
+		"USER_GID": "${localEnv:USER_GID}"
+	},
+
+	// Mount the workspace
+	"mounts": [
+		"source=${localWorkspaceFolder},target=/opt/search,type=bind,consistency=cached"
+	],
+
+	// Run as the same user that runs the container
+	"remoteUser": "off",
+
+	// Specify which services to start
+	"runServices": ["es01", "es02", "elasticvue", "api", "search_nodejs"]
+}

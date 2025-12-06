@@ -14,14 +14,16 @@ Ready to use it ? Jump to the [documentation](https://openfoodfacts.github.io/se
 
 This is an Open Source project and [contributions are very welcome](https://openfoodfacts.github.io/search-a-licious/#contributing) !
 
+## 🚀 Quick Start for Developers
+
+Want to contribute? Get started in minutes with our [Developer Installation Guide](https://openfoodfacts.github.io/search-a-licious/devs/how-to-install/)
 
 ## 🎨 Design
 
 - [![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?logo=figma&logoColor=white) Search-a-Licious logo](https://www.figma.com/design/gNnI56OF91Ugdd4fBaq5F8/Search-A-Licious-Logo?m=auto&t=bEHMawF1eequkY9w-6)
 - [![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?logo=figma&logoColor=white) Wireframes & Mood board](https://www.figma.com/design/d1tuhFa0qQLqqJP2xbwBqZ/Website-%E2%80%93%3E-Search?node-id=1-2&t=bEHMawF1eequkY9w-0)
 
-
-## Thank you to our sponsors !
+## Thank you to our sponsors!
 
 This project has received financial support from the NGI Search (New Generation Internet) program, funded by the 🇪🇺 European Commission. Thank you for supporting Open-Souce, Open Data, and the Commons.
 
