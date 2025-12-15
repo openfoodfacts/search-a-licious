@@ -8,7 +8,6 @@ on:
     tags:
       - v*.*.*
 
-
 # Note on secrets used for connection
 # They are configured as environment secrets
 # HOST is the internal ip of VM containing docker
@@ -19,6 +18,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.repository == 'openfoodfacts/search-a-licious'
     strategy:
       matrix:
         env:
@@ -26,219 +26,217 @@ jobs:
     environment: ${{ matrix.env }}
     concurrency: ${{ matrix.env }}
     steps:
-    - name: Set common variables
-      run: |
-        echo "SSH_PROXY_HOST=ovh1.openfoodfacts.org" >> $GITHUB_ENV
-        echo "SSH_USERNAME=off" >> $GITHUB_ENV
-    - name: Set various variable for staging (net) deployment
-      if: matrix.env == 'off-search-net'
-      run: |
-        echo "SSH_HOST=10.1.0.200" >> $GITHUB_ENV
-        # this is the network shared with Product Opener,
-        # in staging Product Opener is deployed on the same VM
-        echo "COMMON_NET_NAME=po_webnet" >> $GITHUB_ENV
-        echo "OFF_API_URL=https://world.openfoodfacts.net" >> $GITHUB_ENV
-        echo "REDIS_HOST=redis" >> $GITHUB_ENV
-    - name: Set various variable for production deployment
-      if: matrix.env == 'off-search-org'
-      run: |
-        echo "SSH_HOST=10.1.0.201" >> $GITHUB_ENV
-        # this is the network shared with Product Opener,
-        # in production Product Opener is deployed on a
-        # separate server and is not dockerized
-        echo "COMMON_NET_NAME=po_webnet" >> $GITHUB_ENV
-        echo "OFF_API_URL=https://world.openfoodfacts.org" >> $GITHUB_ENV
-        # REDIS_HOST: this is the IP address of the stunnel VM
-        echo "REDIS_HOST=10.1.0.113" >> $GITHUB_ENV
-    - name: Wait for search service image container build workflow
-      uses: tomchv/wait-my-workflow@v1.1.0
-      id: wait-build-service-image
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        checkName: build (search_service_image)
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
-        intervalSeconds: 10
-        timeoutSeconds: 600 # 10m
+      - name: Set common variables
+        run: |
+          echo "SSH_PROXY_HOST=ovh1.openfoodfacts.org" >> $GITHUB_ENV
+          echo "SSH_USERNAME=off" >> $GITHUB_ENV
+      - name: Set various variable for staging (net) deployment
+        if: matrix.env == 'off-search-net'
+        run: |
+          echo "SSH_HOST=10.1.0.200" >> $GITHUB_ENV
+          # this is the network shared with Product Opener,
+          # in staging Product Opener is deployed on the same VM
+          echo "COMMON_NET_NAME=po_webnet" >> $GITHUB_ENV
+          echo "OFF_API_URL=https://world.openfoodfacts.net" >> $GITHUB_ENV
+          echo "REDIS_HOST=redis" >> $GITHUB_ENV
+      - name: Set various variable for production deployment
+        if: matrix.env == 'off-search-org'
+        run: |
+          echo "SSH_HOST=10.1.0.201" >> $GITHUB_ENV
+          # this is the network shared with Product Opener,
+          # in production Product Opener is deployed on a
+          # separate server and is not dockerized
+          echo "COMMON_NET_NAME=po_webnet" >> $GITHUB_ENV
+          echo "OFF_API_URL=https://world.openfoodfacts.org" >> $GITHUB_ENV
+          # REDIS_HOST: this is the IP address of the stunnel VM
+          echo "REDIS_HOST=10.1.0.113" >> $GITHUB_ENV
+      - name: Wait for search service image container build workflow
+        uses: tomchv/wait-my-workflow@v1.1.0
+        id: wait-build-service-image
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: build (search_service_image)
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          intervalSeconds: 10
+          timeoutSeconds: 600 # 10m
 
-    - name: Do something if build isn't launch
-      if: steps.wait-build-service-image.outputs.conclusion == 'does not exist'
-      run: echo job does not exist && true
+      - name: Do something if build isn't launch
+        if: steps.wait-build-service-image.outputs.conclusion == 'does not exist'
+        run: echo job does not exist && true
 
-    - name: Do something if build fail
-      if: steps.wait-build-service-image.outputs.conclusion == 'failure'
-      run: echo fail && false # fail if build fail
+      - name: Do something if build fail
+        if: steps.wait-build-service-image.outputs.conclusion == 'failure'
+        run: echo fail && false # fail if build fail
 
-    - name: Do something if build timeout
-      if: steps.wait-build-service-image.outputs.conclusion == 'timed_out'
-      run: echo Timeout && false # fail if build time out
+      - name: Do something if build timeout
+        if: steps.wait-build-service-image.outputs.conclusion == 'timed_out'
+        run: echo Timeout && false # fail if build time out
 
+      - name: Wait for search front image container build workflow
+        uses: tomchv/wait-my-workflow@v1.1.0
+        id: wait-build-front-image
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: build (search_front_image)
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          intervalSeconds: 10
+          timeoutSeconds: 600 # 10m
 
-    - name: Wait for search front image container build workflow
-      uses: tomchv/wait-my-workflow@v1.1.0
-      id: wait-build-front-image
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        checkName: build (search_front_image)
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
-        intervalSeconds: 10
-        timeoutSeconds: 600 # 10m
+      - name: Do something if build isn't launch
+        if: steps.wait-build-front-image.outputs.conclusion == 'does not exist'
+        run: echo job does not exist && true
 
-    - name: Do something if build isn't launch
-      if: steps.wait-build-front-image.outputs.conclusion == 'does not exist'
-      run: echo job does not exist && true
+      - name: Do something if build fail
+        if: steps.wait-build-front-image.outputs.conclusion == 'failure'
+        run: echo fail && false # fail if build fail
 
-    - name: Do something if build fail
-      if: steps.wait-build-front-image.outputs.conclusion == 'failure'
-      run: echo fail && false # fail if build fail
+      - name: Do something if build timeout
+        if: steps.wait-build-front-image.outputs.conclusion == 'timed_out'
+        run: echo Timeout && false # fail if build time out
 
-    - name: Do something if build timeout
-      if: steps.wait-build-front-image.outputs.conclusion == 'timed_out'
-      run: echo Timeout && false # fail if build time out
+      - name: Checkout git repository
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_host: ${{ env.SSH_PROXY_HOST }}
+          proxy_username: ${{ env.SSH_USERNAME }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: false
+          script: |
+            # Clone Git repository if not already there
+            [ ! -d '${{ matrix.env }}' ] && git clone --depth 1 https://github.com/${{ github.repository }} ${{ matrix.env }} --no-single-branch 2>&1
 
+            # Go to repository directory
+            cd ${{ matrix.env }}
 
-    - name: Checkout git repository
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ env.SSH_HOST }}
-        username: ${{ env.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        proxy_host: ${{ env.SSH_PROXY_HOST }}
-        proxy_username: ${{ env.SSH_USERNAME }}
-        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script_stop: false
-        script: |
-          # Clone Git repository if not already there
-          [ ! -d '${{ matrix.env }}' ] && git clone --depth 1 https://github.com/${{ github.repository }} ${{ matrix.env }} --no-single-branch 2>&1
+            # Fetch newest commits (in case it wasn't freshly cloned)
+            git fetch --depth 1
 
-          # Go to repository directory
-          cd ${{ matrix.env }}
+            # Checkout current commit SHA
+            git checkout -qf ${{ github.sha }}
 
-          # Fetch newest commits (in case it wasn't freshly cloned)
-          git fetch --depth 1
+      - name: Set environment variables
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_host: ${{ env.SSH_PROXY_HOST }}
+          proxy_username: ${{ env.SSH_USERNAME }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: false
+          script: |
+            # Go to repository directory
+            cd ${{ matrix.env }}
 
-          # Checkout current commit SHA
-          git checkout -qf ${{ github.sha }}
+            mv .env .env-dev
+            # init .env
+            echo "# Env file generated by container-deploy action"> .env
+            # Set Docker Compose variables
+            echo "DOCKER_CLIENT_TIMEOUT=180" >> .env
+            echo "COMPOSE_HTTP_TIMEOUT=180" >> .env
+            echo "COMPOSE_PROJECT_NAME=po_search" >> .env
+            echo "COMPOSE_PATH_SEPARATOR=;" >> .env
+            echo "COMPOSE_FILE=docker-compose.yml;docker/prod.yml;docker/monitor.yml" >> .env
+            # Copy variables that are same as dev
+            grep '\(STACK_VERSION\|ES_EXPOSE\)' .env-dev >> .env
+            # Set docker variables
+            echo "TAG=sha-${{ github.sha }}" >> .env
+            echo "RESTART_POLICY=always" >> .env
+            # Set App variables
+            echo "CLUSTER_NAME=${{ matrix.env }}-es-cluster" >> .env
+            echo "SEARCH_EXPOSE=8180" >> .env
+            echo "ES_VUE_EXPOSE=8181" >> .env
+            echo "REDIS_HOST=${{ env.REDIS_HOST }}" >> .env
+            echo "REDIS_PORT=6379" >> .env
+            echo "MEM_LIMIT=4294967296" >> .env
+            # this is the network shared with productopener
+            echo "COMMON_NET_NAME=${{ env.COMMON_NET_NAME }}">> .env
+            # This secret is to be generated using htpasswd, see .env file
+            # use simple quotes to avoid interpolation of $apr1$!
+            echo 'NGINX_BASIC_AUTH_USER_PASSWD=${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}' >> .env
+            echo "SENTRY_DNS=${{ secrets.SENTRY_DSN }}" >> .env
+            echo "CONFIG_PATH=data/config/openfoodfacts.yml" >> .env
+            echo "OFF_API_URL=${{ env.OFF_API_URL }}" >> .env
 
-    - name: Set environment variables
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ env.SSH_HOST }}
-        username: ${{ env.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        proxy_host: ${{ env.SSH_PROXY_HOST }}
-        proxy_username: ${{ env.SSH_USERNAME }}
-        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script_stop: false
-        script: |
-          # Go to repository directory
-          cd ${{ matrix.env }}
+      - name: Create Docker volumes
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_host: ${{ env.SSH_PROXY_HOST }}
+          proxy_username: ${{ env.SSH_USERNAME }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: false
+          script: |
+            cd ${{ matrix.env }}
+            make create_external_volumes
 
-          mv .env .env-dev
-          # init .env
-          echo "# Env file generated by container-deploy action"> .env
-          # Set Docker Compose variables
-          echo "DOCKER_CLIENT_TIMEOUT=180" >> .env
-          echo "COMPOSE_HTTP_TIMEOUT=180" >> .env
-          echo "COMPOSE_PROJECT_NAME=po_search" >> .env
-          echo "COMPOSE_PATH_SEPARATOR=;" >> .env
-          echo "COMPOSE_FILE=docker-compose.yml;docker/prod.yml;docker/monitor.yml" >> .env
-          # Copy variables that are same as dev
-          grep '\(STACK_VERSION\|ES_EXPOSE\)' .env-dev >> .env
-          # Set docker variables
-          echo "TAG=sha-${{ github.sha }}" >> .env
-          echo "RESTART_POLICY=always" >> .env
-          # Set App variables
-          echo "CLUSTER_NAME=${{ matrix.env }}-es-cluster" >> .env
-          echo "SEARCH_EXPOSE=8180" >> .env
-          echo "ES_VUE_EXPOSE=8181" >> .env
-          echo "REDIS_HOST=${{ env.REDIS_HOST }}" >> .env
-          echo "REDIS_PORT=6379" >> .env
-          echo "MEM_LIMIT=4294967296" >> .env
-          # this is the network shared with productopener
-          echo "COMMON_NET_NAME=${{ env.COMMON_NET_NAME }}">> .env
-          # This secret is to be generated using htpasswd, see .env file
-          # use simple quotes to avoid interpolation of $apr1$!
-          echo 'NGINX_BASIC_AUTH_USER_PASSWD=${{ secrets.NGINX_BASIC_AUTH_USER_PASSWD }}' >> .env
-          echo "SENTRY_DNS=${{ secrets.SENTRY_DSN }}" >> .env
-          echo "CONFIG_PATH=data/config/openfoodfacts.yml" >> .env
-          echo "OFF_API_URL=${{ env.OFF_API_URL }}" >> .env
+      - name: Sync scripts
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_host: ${{ env.SSH_PROXY_HOST }}
+          proxy_username: ${{ env.SSH_USERNAME }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: false
+          script: |
+            cd ${{ matrix.env }}
+            make sync-scripts
 
-    - name: Create Docker volumes
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ env.SSH_HOST }}
-        username: ${{ env.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        proxy_host: ${{ env.SSH_PROXY_HOST }}
-        proxy_username: ${{ env.SSH_USERNAME }}
-        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script_stop: false
-        script: |
-          cd ${{ matrix.env }}
-          make create_external_volumes
+      - name: Start services
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_host: ${{ env.SSH_PROXY_HOST }}
+          proxy_username: ${{ env.SSH_USERNAME }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: false
+          script: |
+            cd ${{ matrix.env }}
+            make up
 
-    - name: Sync scripts
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ env.SSH_HOST }}
-        username: ${{ env.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        proxy_host: ${{ env.SSH_PROXY_HOST }}
-        proxy_username: ${{ env.SSH_USERNAME }}
-        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script_stop: false
-        script: |
-          cd ${{ matrix.env }}
-          make sync-scripts
+      - name: Check services are up
+        uses: appleboy/ssh-action@master
+        if: ${{ always() }}
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_host: ${{ env.SSH_PROXY_HOST }}
+          proxy_username: ${{ env.SSH_USERNAME }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: false
+          script: |
+            cd ${{ matrix.env }}
+            make livecheck
 
-    - name: Start services
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ env.SSH_HOST }}
-        username: ${{ env.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        proxy_host: ${{ env.SSH_PROXY_HOST }}
-        proxy_username: ${{ env.SSH_USERNAME }}
-        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script_stop: false
-        script: |
-          cd ${{ matrix.env }}
-          make up
+      - name: Cleanup obsolete Docker objects
+        uses: appleboy/ssh-action@master
+        if: ${{ always() }}
+        with:
+          host: ${{ env.SSH_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          proxy_host: ${{ env.SSH_PROXY_HOST }}
+          proxy_username: ${{ env.SSH_USERNAME }}
+          proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: false
+          script: |
+            cd ${{ matrix.env }}
+            docker system prune -af
 
-    - name: Check services are up
-      uses: appleboy/ssh-action@master
-      if: ${{ always() }}
-      with:
-        host: ${{ env.SSH_HOST }}
-        username: ${{ env.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        proxy_host: ${{ env.SSH_PROXY_HOST }}
-        proxy_username: ${{ env.SSH_USERNAME }}
-        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script_stop: false
-        script: |
-          cd ${{ matrix.env }}
-          make livecheck
-
-    - name: Cleanup obsolete Docker objects
-      uses: appleboy/ssh-action@master
-      if: ${{ always() }}
-      with:
-        host: ${{ env.SSH_HOST }}
-        username: ${{ env.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        proxy_host: ${{ env.SSH_PROXY_HOST }}
-        proxy_username: ${{ env.SSH_USERNAME }}
-        proxy_key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script_stop: false
-        script: |
-          cd ${{ matrix.env }}
-          docker system prune -af
-
-    - uses: basos9/grafana-annotation-action@v1.0.3
-      if: ${{ always() }}
-      with:
-        apiHost: https://grafana.openfoodfacts.org
-        apiToken: ${{ secrets.GRAFANA_API_TOKEN }}
-        text: <a href="https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}">Deployment ${{ steps.livecheck.outcome }} on ${{ matrix.env }}</a>
-        tags: type:deployment,origin:github,status:${{ steps.livecheck.outcome }},repo:${{ github.repository }},sha:${{ github.sha }},app:robotoff,env:${{ matrix.env }}
+      - uses: basos9/grafana-annotation-action@v1.0.3
+        if: ${{ always() }}
+        with:
+          apiHost: https://grafana.openfoodfacts.org
+          apiToken: ${{ secrets.GRAFANA_API_TOKEN }}
+          text: <a href="https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}">Deployment ${{ steps.livecheck.outcome }} on ${{ matrix.env }}</a>
+          tags: type:deployment,origin:github,status:${{ steps.livecheck.outcome }},repo:${{ github.repository }},sha:${{ github.sha }},app:robotoff,env:${{ matrix.env }}

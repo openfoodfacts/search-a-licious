@@ -6,6 +6,7 @@ on:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    if: github.repository == 'openfoodfacts/search-a-licious'
     steps:
       - uses: GoogleCloudPlatform/release-please-action@v4.4.0
         with:

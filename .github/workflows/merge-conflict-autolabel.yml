@@ -1,4 +1,4 @@
-name: '💥 Auto-Label Merge Conflicts on PRs'
+name: "💥 Auto-Label Merge Conflicts on PRs"
 on:
   push:
     branches:
@@ -11,6 +11,7 @@ concurrency:
 jobs:
   triage:
     runs-on: ubuntu-latest
+    if: github.repository == 'openfoodfacts/search-a-licious'
     steps:
       - uses: mschilde/auto-label-merge-conflicts@master
         with:
