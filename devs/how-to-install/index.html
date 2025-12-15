@@ -710,11 +710,59 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#option-1-dev-containers-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Dev Containers (Recommended)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 1: Dev Containers (Recommended)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Started
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#option-2-manual-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: Manual Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 2: Manual Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#pre-requisites" class="md-nav__link">
     <span class="md-ellipsis">
       Pre-requisites
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -908,11 +956,59 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#option-1-dev-containers-recommended" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Dev Containers (Recommended)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 1: Dev Containers (Recommended)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting Started
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#option-2-manual-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: Manual Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 2: Manual Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#pre-requisites" class="md-nav__link">
     <span class="md-ellipsis">
       Pre-requisites
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1019,7 +1115,34 @@
 
 
 <h1 id="how-to-install-for-local-development">How to install for local development<a class="headerlink" href="#how-to-install-for-local-development" title="Permanent link">#</a></h1>
-<h2 id="pre-requisites">Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permanent link">#</a></h2>
+<h2 id="option-1-dev-containers-recommended">Option 1: Dev Containers (Recommended)<a class="headerlink" href="#option-1-dev-containers-recommended" title="Permanent link">#</a></h2>
+<p>The easiest way to get started is using Dev Containers, which provides a fully-configured development environment.</p>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h3>
+<ul>
+<li><a href="https://www.docker.com/products/docker-desktop">Docker</a> installed and running</li>
+<li><a href="https://code.visualstudio.com/">VS Code</a> with the <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Dev Containers extension</a></li>
+<li>Or use <a href="https://github.com/features/codespaces">GitHub Codespaces</a> for browser-based development</li>
+</ul>
+<h3 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">#</a></h3>
+<ol>
+<li>Clone the repository</li>
+<li>Open the folder in VS Code</li>
+<li>When prompted, click "Reopen in Container" (or use the command palette: <code>Dev Containers: Reopen in Container</code>)</li>
+<li>Wait for the container to build (first time takes a few minutes)</li>
+<li>You're ready to develop! All dependencies are pre-installed.</li>
+</ol>
+<p>The dev container automatically:</p>
+<ul>
+<li>Sets up Python 3.11 with Poetry and all backend dependencies</li>
+<li>Installs Node.js LTS with npm and all frontend dependencies</li>
+<li>Configures Docker-in-Docker for running compose commands</li>
+<li>Installs helpful VS Code extensions</li>
+<li>Starts Elasticsearch, Redis, and other services</li>
+<li>Sets up pre-commit hooks</li>
+</ul>
+<p>You can now use all <code>make</code> commands and start developing immediately. Skip to the <a href="#importing-data-into-your-development-environment">Importing data</a> section to load sample data.</p>
+<h2 id="option-2-manual-installation">Option 2: Manual Installation<a class="headerlink" href="#option-2-manual-installation" title="Permanent link">#</a></h2>
+<h3 id="pre-requisites">Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permanent link">#</a></h3>
 <p>First, follow same <a href="../../users/how-to-install/#prerequisites">prerequisite as for normal installation</a>:</p>
 <ul>
 <li>configuring mmap count</li>
@@ -1030,7 +1153,7 @@
 <p>You can follow the following <a href="https://pre-commit.com/#install">tutorial</a>
 to install pre-commit on your machine.</p>
 <h3 id="auto-fixing-linting-issues-in-pull-requests">Auto-fixing linting issues in Pull Requests<a class="headerlink" href="#auto-fixing-linting-issues-in-pull-requests" title="Permanent link">#</a></h3>
-<p>For Pull Requests, you can automatically fix linting issues by commenting <code>/fix-linting</code> on the PR. 
+<p>For Pull Requests, you can automatically fix linting issues by commenting <code>/fix-linting</code> on the PR.
 This will trigger a GitHub Action that runs the linting tools and commits any fixes directly to the PR branch.</p>
 <h2 id="installing-direnv">Installing Direnv<a class="headerlink" href="#installing-direnv" title="Permanent link">#</a></h2>
 <p>Direnv is a tool to automatically set environment variables depending on the current directory.
@@ -1054,18 +1177,20 @@ The following steps are for those options, in case you edit the <code>.env</code
 <span class="nb">export</span><span class="w"> </span><span class="nv">OFF_API_URL</span><span class="o">=</span>https://world.openfoodfacts.org
 </code></pre></div>
 <h2 id="building-containers">Building containers<a class="headerlink" href="#building-containers" title="Permanent link">#</a></h2>
-<p>To build the containers, you can run the following command:
+<p>To build the containers, you can run the following command:</p>
 <div class="highlight"><pre><span></span><code>make<span class="w"> </span>build
-</code></pre></div></p>
+</code></pre></div>
 <p>Note: the Makefile will align the user id with your own uid for a smooth editing experience (having same user id in container and host, so that you have permission to edit files).</p>
 <h2 id="running">Running<a class="headerlink" href="#running" title="Permanent link">#</a></h2>
 <p>Now you can run the project with Docker <code>docker compose up</code>.</p>
 <p>After that run the following command on another shell to compile the project: <code>make tsc_watch</code>.</p>
 <p>Do this for next installation steps and to run the project.</p>
 <blockquote>
-<p>[!NOTE]
-* You may encounter a permission error if your user is not part of the <code>docker</code> group, in which case you should either <a href="https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user">add it</a> or modify the Makefile to prefix <code>sudo</code> to all docker and docker compose commands.
-* Update container crash because we are not connected to any Redis, this is not a problem</p>
+<p>[!NOTE]</p>
+<ul>
+<li>You may encounter a permission error if your user is not part of the <code>docker</code> group, in which case you should either <a href="https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user">add it</a> or modify the Makefile to prefix <code>sudo</code> to all docker and docker compose commands.</li>
+<li>Update container crash because we are not connected to any Redis, this is not a problem</li>
+</ul>
 </blockquote>
 <p>Docker spins up:</p>
 <ul>
@@ -1083,13 +1208,13 @@ The following steps are for those options, in case you edit the <code>.env</code
 </ul>
 </li>
 </ul>
-<p>Congratulations, you  have successfully installed the project !</p>
+<p>Congratulations, you have successfully installed the project !</p>
 <p>You will then need to import from a JSONL dump (see instructions below).</p>
 <h2 id="importing-data-into-your-development-environment">Importing data into your development environment<a class="headerlink" href="#importing-data-into-your-development-environment" title="Permanent link">#</a></h2>
 <ul>
 <li>Import Taxonomies: <code>make import-taxonomies</code></li>
 <li>Import products :
-   <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="c1"># get some sample data</span>
+  <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="c1"># get some sample data</span>
 <span class="w"> </span>curl<span class="w"> </span>https://world.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz<span class="w"> </span>--output<span class="w"> </span>data/products.random-modulo-10000.jsonl.gz
 <span class="w"> </span>gzip<span class="w"> </span>-d<span class="w"> </span>data/products.random-modulo-10000.jsonl.gz
 <span class="w"> </span><span class="c1"># we skip updates because we are not connected to any redis</span>
