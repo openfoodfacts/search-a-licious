@@ -33,7 +33,7 @@ jobs:
         echo "BUILD_TARGET=frontend" >> $GITHUB_ENV
         echo "BUILD_FILE=frontend/Dockerfile" >> $GITHUB_ENV
 
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 1
 
