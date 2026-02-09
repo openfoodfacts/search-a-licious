@@ -1,24 +1,56 @@
-# in your Dockerfile
-FROM sphinxdoc/sphinx:7.4.7
-
 ARG USER_UID=1000
 ARG USER_GID=1000
 
-WORKDIR /docs
-# add user with right id
-RUN addgroup --gid $USER_GID user && adduser --uid $USER_UID --ingroup user --no-create-home --disabled-password --quiet user
-# ensure directories and permisisons
-RUN mkdir -p /docs/build  && mkdir -p /docs/source && chown user:user /docs
-# install poetry, and export dependencies as a requirement.txt
+ARG PYTHON_VERSION=3.12
+
+# This first stage install Poetry and exports a requirements.txt,
+# which we will then use in the second stage to install dependencies.
+FROM python:${PYTHON_VERSION}-slim AS poetry-builder
+
+ARG POETRY_VERSION=2.3.2
+
+ENV POETRY_HOME="/opt/poetry"
+ENV PATH="$POETRY_HOME/bin:$PATH"
+
+WORKDIR /build
+
+RUN python3 -m venv /opt/poetry && \
+    /opt/poetry/bin/pip install "poetry==${POETRY_VERSION}" && \
+    poetry config virtualenvs.create false && \
+    poetry self add poetry-plugin-export
+
 COPY poetry.lock  pyproject.toml ./
-RUN apt update && apt install -y curl cargo
-RUN ( curl -sSL https://install.python-poetry.org | python3 - ) && \
-    /root/.local/bin/poetry self add poetry-plugin-export  && \
-    /root/.local/bin/poetry export --output requirements.txt
-# install those dependencies
-RUN pip install -U pip && pip install -r requirements.txt
-# install some useful plugin for sphinx
-RUN pip install autodoc_pydantic sphinxcontrib-typer
+RUN poetry export --output requirements.txt
+
+
+FROM sphinxdoc/sphinx:7.4.7 AS docs-builder
+
+ARG USER_UID
+ARG USER_GID
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y curl cargo && \
+    apt-get autoremove --purge && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /docs
+
+# add user with right id
+RUN addgroup --gid ${USER_GID} user && \
+    adduser --uid ${USER_UID} --ingroup user --disabled-password --quiet user
+
+# ensure directories and permisisons
+RUN mkdir -p /docs/build  && \
+    mkdir -p /docs/source && \
+    chown -R user:user /docs
+
 USER user
 
 
+COPY --from=poetry-builder /build/requirements.txt .
+
+# install those dependencies
+RUN pip install -U pip && pip install -r requirements.txt
