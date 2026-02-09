@@ -9,11 +9,14 @@ jobs:
     # Only run on pull request comments with the trigger phrase
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/fix-linting')
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
       pull-requests: write
-      
+
+    env:
+      COMPOSE_PROGRESS: plain
+
     steps:
       - name: Check user permissions
         id: permission
@@ -25,7 +28,7 @@ jobs:
               repo: context.repo.repo,
               username: context.payload.comment.user.login,
             });
-            
+
             const hasPermission = ['admin', 'write'].includes(collaboration.permission);
             if (!hasPermission) {
               core.setFailed('User does not have write permissions to trigger linting fixes');
@@ -57,8 +60,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          
+          python-version: "3.11"
+
       - name: Install pre-commit and linting tools
         run: |
           pip install pre-commit black flake8 isort mypy
@@ -80,7 +83,7 @@ jobs:
         run: |
           # Run black to fix Python formatting
           black app/ tests/ --line-length=88 || true
-          # Run isort to fix import ordering  
+          # Run isort to fix import ordering
           isort app/ tests/ --profile black || true
         continue-on-error: true
 
@@ -95,7 +98,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
+
           if [[ $(git status --porcelain) ]]; then
             echo "changes=true" >> $GITHUB_OUTPUT
             echo "Found changes to commit"
@@ -111,7 +114,7 @@ jobs:
           git commit -m "Auto-fix linting issues
 
           Triggered by comment from @${{ github.event.comment.user.login }}
-          
+
           Co-authored-by: ${{ github.event.comment.user.login }} <${{ github.event.comment.user.login }}@users.noreply.github.com>"
           git push
 
@@ -120,10 +123,10 @@ jobs:
         with:
           script: |
             const changes = '${{ steps.changes.outputs.changes }}';
-            const message = changes === 'true' 
+            const message = changes === 'true'
               ? '✅ Linting issues have been automatically fixed and committed to this PR!'
               : '✅ No linting issues found that could be automatically fixed.';
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
