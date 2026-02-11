@@ -51,10 +51,17 @@ You should now be able to start docker:
 docker compose up -d
 ```
 
-> [!NOTES]
-> * You may encounter a permission error if your user is not part of the `docker` group, in which case you should either [add it](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) or modify the Makefile to prefix `sudo` to all docker and docker compose commands.
-> * Update container might crash because if you are note connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See [How to update the index](./how-to-update-index.md)
+> [!NOTE]
+> You may encounter a permission error if your user is not part of the `docker` group.
+> In that case you should set the `SUDO` env variable to `sudo`:
+>
+> ```console
+> export SUDO=sudo
+> make build
+> ```
 
+> [!NOTE]
+> Update container might crash because if you are note connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See [How to update the index](./how-to-update-index.md)
 
 ## Using it
 
