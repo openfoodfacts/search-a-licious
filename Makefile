@@ -59,7 +59,7 @@ livecheck:
 
 build:
 	@echo "🔎 building docker (for dev)"
-	${DOCKER_COMPOSE} build --progress=plain ${args}
+	${DOCKER_COMPOSE} build ${args}
 
 
 up: _ensure_network
