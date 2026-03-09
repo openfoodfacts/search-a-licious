@@ -97,7 +97,7 @@ check_front:  _ensure_network
 # note: this is called by pre-commit, it will also extract translations
 check_translations:
 	@echo "🔎 Checking translations …"
-	cd frontend && npm install && npm run translations:extract
+	cd frontend && rm -rf node_modules && npm ci && npm run translations:extract
 
 lint: lint_back lint_front
 
