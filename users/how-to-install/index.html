@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="https://static.openfoodfacts.org/images/logos/off-logo-favicon-light.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
     
     
       
@@ -1142,9 +1142,14 @@ You must at the very least:</p>
 <div class="highlight"><pre><span></span><code><span class="go">docker compose up -d</span>
 </code></pre></div>
 <blockquote>
-<p>[!NOTES]
-* You may encounter a permission error if your user is not part of the <code>docker</code> group, in which case you should either <a href="https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user">add it</a> or modify the Makefile to prefix <code>sudo</code> to all docker and docker compose commands.
-* Update container might crash because if you are note connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See <a href="../how-to-update-index/">How to update the index</a></p>
+<p>[!NOTE]
+You may encounter a permission error if your user is not part of the <code>docker</code> group.
+In that case you should set the <code>SUDO</code> env variable to <code>sudo</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="go">export SUDO=sudo</span>
+<span class="go">make build</span>
+</code></pre></div>
+<p>[!NOTE]
+Update container might crash because if you are note connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See <a href="../how-to-update-index/">How to update the index</a></p>
 </blockquote>
 <h2 id="using-it">Using it<a class="headerlink" href="#using-it" title="Permanent link">#</a></h2>
 <p>To understand what you can then do, continue with the <a href="../tutorial/">tutorial</a>.</p>
