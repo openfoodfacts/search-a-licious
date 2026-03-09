@@ -11,6 +11,10 @@ export COMPOSE_DOCKER_CLI_BUILD=1
 # take it form env, or from env file
 COMPOSE_PROJECT_NAME ?= $(shell grep COMPOSE_PROJECT_NAME ${ENV_FILE} | cut -d '=' -f 2)
 
+# allows to commands with sudo if needed
+#   SUDO=sudo make up
+SUDO ?=
+
 # load env variables
 # also takes into account envrc (direnv file)
 ifneq (,$(wildcard ./${ENV_FILE}))
@@ -19,8 +23,9 @@ ifneq (,$(wildcard ./${ENV_FILE}))
     export
 endif
 
-DOCKER_COMPOSE=docker compose --env-file=${ENV_FILE}
-DOCKER_COMPOSE_TEST=COMPOSE_PROJECT_NAME=search_test docker compose --env-file=${ENV_FILE}
+DOCKER = $(SUDO) docker
+DOCKER_COMPOSE = $(DOCKER) compose --env-file=${ENV_FILE}
+DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test $(DOCKER_COMPOSE)
 
 .PHONY: build create_external_volumes livecheck up down test test_front test_front_watch test_api import-dataset import-taxonomies sync-scripts build-translations generate-openapi check check_front check_translations lint lint_back lint_front
 #------------#
@@ -35,7 +40,7 @@ create_external_volumes:
 		echo creating docker volume $$vol_name \
 		# create volume \
 		# this bind mount a folder, it will happen when volume will be used \
-		docker volume create --driver=local "$$vol_name" ; \
+		${DOCKER} volume create --driver=local "$$vol_name" ; \
 	done;
 
 livecheck:
@@ -43,7 +48,7 @@ livecheck:
 	exit_code=0; \
 	services=`${DOCKER_COMPOSE} config  --service | tr '\n' ' '`; \
 	for service in $$services; do \
-	if [ -z `docker compose ps -q $$service` ] || [ -z `docker ps -q --no-trunc | grep $$(${DOCKER_COMPOSE} ps -q $$service)` ]; then \
+	if [ -z `${DOCKER} compose ps -q $$service` ] || [ -z `${DOCKER} ps -q --no-trunc | grep $$(${DOCKER_COMPOSE} ps -q $$service)` ]; then \
 		echo "$$service: DOWN"; \
 		exit_code=1; \
 	else \
@@ -75,7 +80,7 @@ down:
 	${DOCKER_COMPOSE} down
 
 _ensure_network:
-	docker network inspect ${COMMON_NET_NAME} >/dev/null || docker network create -d bridge ${COMMON_NET_NAME}
+	${DOCKER} network inspect ${COMMON_NET_NAME} >/dev/null || ${DOCKER} network create -d bridge ${COMMON_NET_NAME}
 
 #--------#
 # Checks #
