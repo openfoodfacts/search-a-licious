@@ -61,7 +61,7 @@ docker compose up -d
 > ```
 
 > [!NOTE]
-> Update container might crash because if you are note connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See [How to update the index](./how-to-update-index.md)
+> Update container might crash because if you are not connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See [How to update the index](./how-to-update-index.md)
 
 ## Using it
 
