@@ -14,6 +14,7 @@ from ._types import (
 )
 from .charts import build_charts
 from .exceptions import QueryCheckError
+from .exceptions import QueryAnalysisError
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
@@ -89,10 +90,15 @@ def search(
             # takes ~40ms to generate, build-it before hand to avoid this delay
             es_query_builder=get_es_query_builder(params.valid_index_id),
         )
-    except QueryCheckError as e:
+    except (QueryAnalysisError, ValueError) as e:
         return ErrorSearchResponse(
             debug=SearchResponseDebug(),
-            errors=[SearchResponseError(title="QueryCheckError", description=str(e))],
+            errors=[
+                SearchResponseError(
+                    title=e.__class__.__name__,
+                    description=str(e),
+                )
+            ],
         )
     (
         logger.debug(
