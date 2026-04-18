@@ -14,6 +14,7 @@ import app.search as app_search
 from app import config
 from app._types import (
     CommonParametersQuery,
+    ErrorSearchResponse,
     GetSearchParameters,
     PostSearchParameters,
     SearchResponse,
@@ -101,9 +102,24 @@ def get_document(
 def status_for_response(result: SearchResponse):
     if isinstance(result, SuccessSearchResponse):
         return status.HTTP_200_OK
-    else:
-        # TODO: should we refine that ?
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    error_result = cast(ErrorSearchResponse, result)
+    titles = {error.title for error in error_result.errors}
+
+    if titles & {
+        "QueryCheckError",
+        "InvalidLuceneQueryError",
+        "FreeWildCardError",
+        "UnknownFieldError",
+        "UnknownScriptError",
+        "ValueError",
+    }:
+        return status.HTTP_400_BAD_REQUEST
+
+    if titles & {"es_connection_error", "es_api_error"}:
+        return status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 @app.post("/search")
