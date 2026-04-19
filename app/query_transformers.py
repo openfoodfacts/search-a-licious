@@ -178,20 +178,20 @@ class PhraseBoostTransformer(luqum.visitor.TreeTransformer):
 class QueryCheck(luqum.check.LuceneCheck):
     """Sanity checks on luqum request"""
 
-    # TODO: port to luqum
+    # TECHDEBT(SAL-TECHDEBT-007): upstream these field allowances to luqum.
     SIMPLE_EXPR_FIELDS = luqum.check.LuceneCheck.SIMPLE_EXPR_FIELDS + (
         tree.Range,
         tree.OpenRange,
     )
     FIELD_EXPR_FIELDS = SIMPLE_EXPR_FIELDS + (tree.FieldGroup,)
-    # TODO: shan't luqum should support "." in field names
+    # TECHDEBT(SAL-TECHDEBT-008): move dotted field-name support to luqum core.
     field_name_re = re.compile(r"^[\w.]+$")
 
     def __init__(self, index_config: IndexConfig, **kwargs):
         super().__init__(**kwargs)
         self.index_config = index_config
 
-    # TODO: this should be in LuceneCheck !
+    # TECHDEBT(SAL-TECHDEBT-009): upstream phrase/open-range checks to LuceneCheck.
     def check_phrase(self, item, parents):
         return iter([])
 
@@ -213,6 +213,6 @@ class QueryCheck(luqum.check.LuceneCheck):
             field_names.pop()
         is_sub_field = len(field_names) > 1
         # check field exists in config, but only for non sub-field
-        # (TODO until we implement them in config)
+        # TECHDEBT(SAL-TECHDEBT-010): validate configured sub-fields once supported.
         if not is_sub_field and (field_names[0] not in self.index_config.fields):
             yield f"Search field '{'.'.join(field_names)}' not found in index config"

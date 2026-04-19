@@ -109,7 +109,7 @@ def build_facets(
         facet_items.extend(
             FacetItem(
                 key=bucket["key"],
-                # TODO: compute value in target language if there is a taxonomy
+                # TECHDEBT(SAL-TECHDEBT-001): compute translated value when facet is taxonomy-backed.
                 name=bucket["key"],
                 count=bucket["doc_count"],
                 selected=bucket["key"] in selected_values,
@@ -120,7 +120,7 @@ def build_facets(
         facet_items.extend(
             FacetItem(
                 key=value,
-                # TODO: compute value in target language if there is a taxonomy
+                # TECHDEBT(SAL-TECHDEBT-001): compute translated value when facet is taxonomy-backed.
                 name=value,
                 count=None,  # undefined
                 selected=True,
@@ -132,7 +132,7 @@ def build_facets(
             facet_items.append(
                 FacetItem(
                     key="--other--",
-                    # TODO: translate in target language ?
+                    # TECHDEBT(SAL-TECHDEBT-002): localize built-in pseudo facet labels.
                     name="Other",
                     count=agg_data["sum_other_doc_count"],
                     selected=False,
@@ -149,11 +149,11 @@ def build_facets(
         #     facet_items.append(
         #         FacetItem(
         #             key="--none--",
-        #             # TODO: translate in target language ?
+        #             # TECHDEBT(SAL-TECHDEBT-002): localize built-in pseudo facet labels.
         #             name="None",
         #             # Note:translate_facets_values leave it to user to verify
         #             count=search_result.count - items_count,
-        #             # FIXME: compute selected !
+        #             # TECHDEBT(SAL-TECHDEBT-003): compute selected state for synthetic entries.
         #             selected=False,
         #         )
         #     )
@@ -167,7 +167,7 @@ def build_facets(
         ]
         # append our facet information
         facets[field_name] = FacetInfo(
-            # FIXME translate field name in target language
+            # TECHDEBT(SAL-TECHDEBT-004): support translated facet display names.
             name=field_name,
             items=facet_items,
             count_error_margin=count_error_margin,
