@@ -1,3 +1,4 @@
+import functools
 import logging
 from typing import cast
 
@@ -21,23 +22,34 @@ from .query import build_elasticsearch_query_builder, build_search_query, execut
 logger = logging.getLogger(__name__)
 
 
-# we cache query builder and result processor here for faster processing
-_ES_QUERY_BUILDERS = {}
-_RESULT_PROCESSORS = {}
+# cache query builder and result processor for faster processing
+# Using lru_cache with config id as part of the key acts as a versioned cache,
+# so on config update old cached items are flushed automatically due to the maxsize bound.
+@functools.lru_cache(maxsize=32)
+def _get_es_query_builder_cached(index_id: str, config_version: int):
+    logger.info("Initializing ES query builder cache for index %s (config %s)", index_id, config_version)
+    index_config = config.get_config().indices[index_id]
+    return build_elasticsearch_query_builder(index_config)
 
 
-def get_es_query_builder(index_id):
-    if index_id not in _ES_QUERY_BUILDERS:
-        index_config = config.get_config().indices[index_id]
-        _ES_QUERY_BUILDERS[index_id] = build_elasticsearch_query_builder(index_config)
-    return _ES_QUERY_BUILDERS[index_id]
+def get_es_query_builder(index_id: str):
+    return _get_es_query_builder_cached(index_id, id(config.get_config()))
 
 
-def get_result_processor(index_id):
-    if index_id not in _RESULT_PROCESSORS:
-        index_config = config.get_config().indices[index_id]
-        _RESULT_PROCESSORS[index_id] = load_result_processor(index_config)
-    return _RESULT_PROCESSORS[index_id]
+@functools.lru_cache(maxsize=32)
+def _get_result_processor_cached(index_id: str, config_version: int):
+    logger.info("Initializing result processor cache for index %s (config %s)", index_id, config_version)
+    index_config = config.get_config().indices[index_id]
+    return load_result_processor(index_config)
+
+
+def get_result_processor(index_id: str):
+    return _get_result_processor_cached(index_id, id(config.get_config()))
+
+
+def log_cache_metrics():
+    logger.info("ES Query Builder Cache Stats: %s", _get_es_query_builder_cached.cache_info())
+    logger.info("Result Processor Cache Stats: %s", _get_result_processor_cached.cache_info())
 
 
 def add_debug_info(
@@ -94,15 +106,14 @@ def search(
             debug=SearchResponseDebug(),
             errors=[SearchResponseError(title="QueryCheckError", description=str(e))],
         )
-    (
+    if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
             "Luqum query: %s\nElasticsearch query: %s",
             str(query.luqum_tree),
             query.es_query.to_dict() if query.es_query else query.es_query,
         )
-        if logger.isEnabledFor(logging.DEBUG)  # avoid processing if no debug
-        else None
-    )
+        logger.debug("ES Builder Cache Info: %s", _get_es_query_builder_cached.cache_info())
+        logger.debug("Result processor Cache Info: %s", _get_result_processor_cached.cache_info())
 
     projection = set(params.fields) if params.fields else None
     search_result = execute_query(
