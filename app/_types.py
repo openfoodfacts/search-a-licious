@@ -90,6 +90,7 @@ class SearchResponseDebug(BaseModel):
 class SearchResponseError(BaseModel):
     title: str
     description: str | None = None
+    status: int | None = None
 
 
 class ErrorSearchResponse(BaseModel):
