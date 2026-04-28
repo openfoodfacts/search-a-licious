@@ -33,23 +33,27 @@ def get_taxonomy_names(
         )
         # match one term
         filters.append(id_term & Q("term", taxonomy_name=taxonomy_name))
+    from app.utils.connection import current_es_client
+    search_client = current_es_client()
+
     query = (
         Search(index=config.taxonomy.index.name)
         .filter("bool", should=filters, minimum_should_match=1)
         .params(size=len(filters))
     )
-    results = query.execute().hits
+    results_dict = search_client.search(index=config.taxonomy.index.name, body=query.to_dict())
+    results = [hit["_source"] for hit in results_dict.get("hits", {}).get("hits", [])]
     # some id needs to be replaced by a value
-    no_lang_prefix = {result.id: result.id.split(":", 1)[-1] for result in results}
+    no_lang_prefix = {result["id"]: result["id"].split(":", 1)[-1] for result in results}
     translations = {
-        (result.id, result.taxonomy_name): result.name.to_dict() for result in results
+        (result["id"], result["taxonomy_name"]): result["name"] for result in results
     }
     # add values without prefix, because we may have some
     translations.update(
         {
-            (no_lang_prefix[result.id], result.taxonomy_name): result.name.to_dict()
+            (no_lang_prefix[result["id"]], result["taxonomy_name"]): result["name"]
             for result in results
-            if no_lang_prefix[result.id] in no_lang_prefix_ids
+            if no_lang_prefix[result["id"]] in no_lang_prefix_ids
         }
     )
     return translations
@@ -130,8 +134,8 @@ def create_synonyms(index_config: IndexConfig, target_dir: Path):
 def refresh_synonyms(index_name: str, index_config: IndexConfig, target_dir: Path):
     create_synonyms(index_config, target_dir)
     es = connection.current_es_client()
-    if es.indices.exists(index=index_name):
+    if es.exists(index=index_name):
         # trigger update of synonyms in token filters by reloading search analyzers
         # and clearing relevant cache
-        es.indices.reload_search_analyzers(index=index_name)
-        es.indices.clear_cache(index=index_name, request=True)
+        es.reload_search_analyzers(index=index_name)
+        es.clear_cache(index=index_name, request=True)
