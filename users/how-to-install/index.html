@@ -1149,7 +1149,7 @@ In that case you should set the <code>SUDO</code> env variable to <code>sudo</co
 <span class="go">make build</span>
 </code></pre></div>
 <p>[!NOTE]
-Update container might crash because if you are note connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See <a href="../how-to-update-index/">How to update the index</a></p>
+The update container may crash if it cannot connect to a Redis instance. Search-a-licious will continue to run; you only need Redis if you want continuous updates. See <a href="../how-to-update-index/">How to update the index</a></p>
 </blockquote>
 <h2 id="using-it">Using it<a class="headerlink" href="#using-it" title="Permanent link">#</a></h2>
 <p>To understand what you can then do, continue with the <a href="../tutorial/">tutorial</a>.</p>
