@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Check user permissions
         id: permission
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { data: collaboration } = await github.rest.repos.getCollaboratorPermissionLevel({
@@ -37,7 +37,7 @@ jobs:
 
       - name: Get PR details
         id: pr
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = await github.rest.pulls.get({
@@ -119,7 +119,7 @@ jobs:
           git push
 
       - name: Comment on PR
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const changes = '${{ steps.changes.outputs.changes }}';
