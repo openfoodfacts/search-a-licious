@@ -2,7 +2,8 @@ import json
 from pathlib import Path
 from typing import Annotated, Any, cast
 
-import elasticsearch
+from urllib.parse import urlencode
+
 import starlette.status as status
 from elasticsearch_dsl import Search
 from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
@@ -83,13 +84,17 @@ def get_document(
     index_id, index_config = global_config.get_index_config(index_id)
 
     id_field_name = index_config.index.id_field_name
-    results = (
+    from app.utils.connection import current_es_client
+    search_client = current_es_client()
+
+    query = (
         Search(index=index_config.index.name)
         .query("term", **{id_field_name: identifier})
         .extra(size=1)
-        .execute()
     )
-    results_dict = [r.to_dict() for r in results]
+    
+    results = search_client.search(index=index_config.index.name, body=query.to_dict())
+    results_dict = [hit["_source"] for hit in results.get("hits", {}).get("hits", [])]
 
     if not results_dict:
         raise HTTPException(status_code=404, detail="code not found")
@@ -172,9 +177,13 @@ def taxonomy_autocomplete(
         config=index_config,
         fuzziness=fuzziness,
     )
+    from app.utils.connection import current_es_client
+    search_client = current_es_client()
+
+    from app.search_client import NotFoundError
     try:
-        es_response = query.execute()
-    except elasticsearch.NotFoundError:
+        es_response = search_client.search(index=index_config.taxonomy.index.name, body=query.to_dict())
+    except NotFoundError:
         raise HTTPException(
             status_code=500,
             detail="taxonomy index not found, taxonomies need to be imported first",

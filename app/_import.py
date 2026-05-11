@@ -6,12 +6,11 @@ from multiprocessing import Pool
 from pathlib import Path
 from typing import Iterator, cast
 
-import elasticsearch
 import tqdm
-from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Index, Search
 from redis import Redis
+
+from app.search_client import SearchClient
 
 from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import Config, IndexConfig, settings
@@ -313,14 +312,14 @@ def gen_taxonomy_documents(
             }
 
 
-def update_alias(es_client: Elasticsearch, next_index: str, index_alias: str):
+def update_alias(es_client: SearchClient, next_index: str, index_alias: str):
     """Point the alias to the newly created index.
 
-    :param es_client: the Elasticsearch client
+    :param es_client: the SearchClient
     :param next_index: the index to point to
     :param index_alias: the alias to update
     """
-    es_client.indices.update_aliases(
+    es_client.update_aliases(
         actions=[
             {
                 "remove": {
@@ -333,9 +332,9 @@ def update_alias(es_client: Elasticsearch, next_index: str, index_alias: str):
     )
 
 
-def get_alias(es_client: Elasticsearch, index_name: str):
+def get_alias(es_client: SearchClient, index_name: str):
     """Get the current index pointed by the alias."""
-    resp = es_client.indices.get_alias(name=index_name)
+    resp = es_client.get_alias(name=index_name)
     resp = list(resp.keys())
     if len(resp) == 0:
         return None
@@ -366,8 +365,7 @@ def import_parallel(
     # The preprocessing in this file is non-trivial, so it's better to
     # parallelize that. If we then do parallel_bulk here, this causes queueing
     # and a lot of memory usage in the importer process.
-    success, errors = bulk(
-        es,
+    success, errors = es.bulk(
         gen_documents(
             processor,
             file_path,
@@ -395,8 +393,7 @@ def import_taxonomies(config: IndexConfig, next_index: str):
     # parallelize that. If we then do parallel_bulk
     # here, this causes queueing and a lot of memory usage in the importer
     # process.
-    success, errors = bulk(
-        es,
+    success, errors = es.bulk(
         gen_taxonomy_documents(
             config, next_index, supported_langs=set(config.supported_langs)
         ),
@@ -441,7 +438,7 @@ def get_redis_products(
     logger.info("Processed %d updates from Redis", processed)
 
 
-def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig) -> int:
+def get_redis_updates(es_client: SearchClient, index: str, config: IndexConfig) -> int:
     """Fetch updates from Redis and index them.
 
     :param index: the index to write to
@@ -455,25 +452,24 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
     processor = DocumentProcessor(config)
     fetcher = load_document_fetcher(config)
     # Ensure all documents are searchable after the import
-    Index(index, using=es_client).refresh()
+    es_client.refresh_index(index=index)
     last_modified_field_name = config.index.last_modified_field_name
     query = (
-        Search(index=index, using=es_client)
+        Search(index=index)
         .sort(f"-{last_modified_field_name}")
         .extra(size=1)
     )
     # Note that we can't use index() because we don't want to also query the
     # main alias
-    query._index = [index]
-    results = query.execute()
-    results_dict = [r.to_dict() for r in results]
+    
+    results = es_client.search(index=index, body=query.to_dict())
+    results_dict = [hit["_source"] for hit in results.get("hits", {}).get("hits", [])]
     last_updated_timestamp: int | float = results_dict[0][last_modified_field_name]
     last_updated_timestamp_ms = int(last_updated_timestamp * 1000)
     id_field_name = config.index.id_field_name
     # Since this is only done by a single process, we can use parallel_bulk
     num_errors = 0
-    for success, info in parallel_bulk(
-        es_client,
+    for success, info in es_client.parallel_bulk(
         get_redis_products(
             config.redis_stream_name,
             processor,
@@ -517,6 +513,7 @@ def run_items_import(
     """
     # we need a large timeout as index creation can take a while because of synonyms
     es_client = connection.get_es_client(request_timeout=600)
+    from app.search_client import NotFoundError
     if not partial:
         # we create a temporary index to import to
         # at the end we will change alias to point to it
@@ -524,13 +521,13 @@ def run_items_import(
         next_index = f"{config.index.name}-{index_date}"
         index = generate_index_object(next_index, config)
         # create the index
-        index.save(using=es_client)
+        es_client.create_index(index=next_index, body=index.to_dict())
         # it may take some time to create the index
         for i in range(60):
             try:
-                index.refresh()
+                es_client.refresh_index(index=next_index)
                 break
-            except elasticsearch.NotFoundError:
+            except NotFoundError:
                 logger.info("Index not ready, waiting 10 seconds")
                 time.sleep(10)
         else:
@@ -574,7 +571,7 @@ def run_items_import(
     if not skip_updates:
         num_errors += get_redis_updates(es_client, next_index, config)
     # wait for index refresh
-    es_client.indices.refresh(index=next_index)
+    es_client.refresh_index(index=next_index)
     if not partial:
         # make alias point to new index
         update_alias(es_client, next_index, config.index.name)
@@ -594,11 +591,11 @@ def perform_taxonomy_import(config: IndexConfig) -> None:
 
     index = generate_taxonomy_index_object(next_index, config)
     # create the index
-    index.save()
+    es_client.create_index(index=next_index, body=index.to_dict())
 
     import_taxonomies(config, next_index)
     # wait for index refresh
-    es_client.indices.refresh(index=next_index)
+    es_client.refresh_index(index=next_index)
 
     # make alias point to new index
     update_alias(es_client, next_index, config.taxonomy.index.name)
@@ -612,14 +609,14 @@ def perform_cleanup_indexes(config: IndexConfig) -> int:
     prefixes = [config.index.name, config.taxonomy.index.name]
     for prefix in prefixes:
         # get all indexes
-        indexes = es_client.indices.get_alias(index=f"{prefix}-*")
+        indexes = es_client.get_alias(name=f"{prefix}-*")
         # remove all index without alias
         to_remove = [
             index for index, data in indexes.items() if not data.get("aliases")
         ]
         for index in to_remove:
             logger.info("Deleting index %s", index)
-            es_client.indices.delete(index=index)
+            es_client.delete_index(index=index)
             removed += 1
     return removed
 

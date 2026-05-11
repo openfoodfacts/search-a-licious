@@ -1,5 +1,3 @@
-from elasticsearch_dsl.response import Response
-
 from app._types import JSONType
 from app.config import IndexConfig
 from app.utils import load_class_object_from_string
@@ -9,20 +7,20 @@ class BaseResultProcessor:
     def __init__(self, config: IndexConfig) -> None:
         self.config = config
 
-    def process(self, response: Response, projection: set[str] | None) -> JSONType:
+    def process(self, response: dict, projection: set[str] | None) -> JSONType:
         """Post process results to add some information,
         or transform results to flatten them
         """
         output = {
-            "took": response.took,
-            "timed_out": response.timed_out,
-            "count": response.hits.total["value"],
-            "is_count_exact": response.hits.total["relation"] == "eq",
+            "took": response["took"],
+            "timed_out": response["timed_out"],
+            "count": response["hits"]["total"]["value"],
+            "is_count_exact": response["hits"]["total"]["relation"] == "eq",
         }
         hits = []
-        for hit in response.hits:
-            result = hit.to_dict()
-            result["_score"] = hit.meta.score
+        for hit in response["hits"]["hits"]:
+            result = hit["_source"]
+            result["_score"] = hit.get("_score")
 
             # TODO make it an unsplit option or move to specific off post processing
             for fname in self.config.text_lang_fields:
@@ -40,7 +38,7 @@ class BaseResultProcessor:
                 result = dict((k, v) for k, v in result.items() if k in projection)
             hits.append(result)
         output["hits"] = hits
-        output["aggregations"] = response.aggregations.to_dict()
+        output["aggregations"] = response.get("aggregations", {})
         return output
 
     def process_after(self, result: JSONType) -> JSONType:
@@ -63,27 +61,27 @@ def load_result_processor(config: IndexConfig) -> BaseResultProcessor | None:
 
 
 def process_taxonomy_completion_response(
-    response: Response, input: str, langs: list[str]
+    response: dict, input: str, langs: list[str]
 ) -> JSONType:
-    output = {"took": response.took, "timed_out": response.timed_out}
+    output = {"took": response["took"], "timed_out": response["timed_out"]}
     options = []
     ids = set()
     lang = langs[0]
-    for suggestion_id in dir(response.suggest):
+    for suggestion_id, suggestions in response.get("suggest", {}).items():
         if not suggestion_id.startswith("taxonomy_suggest_"):
             continue
-        for suggestion in getattr(response.suggest, suggestion_id):
-            for option in suggestion.options:
-                if option._source["id"] in ids:
+        for suggestion in suggestions:
+            for option in suggestion.get("options", []):
+                if option["_source"]["id"] in ids:
                     continue
-                ids.add(option._source["id"])
+                ids.add(option["_source"]["id"])
                 result = {
-                    "id": option._source["id"],
-                    "text": option.text,
-                    "name": getattr(option._source["name"], lang, ""),
-                    "score": option._score,
+                    "id": option["_source"]["id"],
+                    "text": option["text"],
+                    "name": option["_source"]["name"].get(lang, ""),
+                    "score": option["_score"],
                     "input": input,
-                    "taxonomy_name": option._source["taxonomy_name"],
+                    "taxonomy_name": option["_source"]["taxonomy_name"],
                 }
                 options.append(result)
     # highest score first

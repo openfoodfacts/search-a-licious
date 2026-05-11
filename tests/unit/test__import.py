@@ -338,7 +338,7 @@ def test_update_alias(default_config):
 
     update_alias(es_mock, next_index, index_alias)
 
-    es_mock.indices.update_aliases.assert_called_once_with(
+    es_mock.update_aliases.assert_called_once_with(
         actions=[
             {
                 "remove": {

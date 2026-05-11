@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    profiles: ["disabled"]
+
+  opensearch:
+    image: opensearchproject/opensearch:latest
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=StrongPassword123!
+    ports:
+      - 9200:9200
+      - 9600:9600
