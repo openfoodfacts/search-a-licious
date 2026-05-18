@@ -16,7 +16,7 @@
       </trans-unit>
       <trans-unit id="s9094c0cde8fb5058">
         <source>No results found</source>
-        <target state="needs-translation">No results found</target>
+        <target state="translated">Nincs találat</target>
       </trans-unit>
       <trans-unit id="sb074d20f9b64aa31">
         <source>results found</source>
