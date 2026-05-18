@@ -28,6 +28,8 @@ def search_sample():
             product_name_fr="Sucre semoule principal",
             categories_tags=["en:sweeteners", "en:sugars", "en:granulated-sugars"],
             labels_tags=["en:no-lactose", "en:organic"],
+            serving_size="1 tsp (4 g)",
+            serving_quantity=4,
         ),
         Product(
             code="3012345670002",
@@ -452,3 +454,20 @@ def test_fields(req_type, sample_data, test_client):
     assert set(
         attributes for result in data["hits"] for attributes in result.keys()
     ) == {"code", "product_name"}
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_serving_fields(req_type, sample_data, test_client):
+    params = {
+        "sort_by": "code",
+        "langs": ["en"],
+        "fields": ["code", "serving_size", "serving_quantity"],
+    }
+    _, data = do_search(test_client, req_type, params)
+    hits_by_code = {h["code"]: h for h in data["hits"]}
+    main_sugar = hits_by_code.get("3012345670001")
+    assert main_sugar is not None, (
+        f"expected enriched product 3012345670001 in hits; got {list(hits_by_code)}"
+    )
+    assert main_sugar["serving_size"] == "1 tsp (4 g)"
+    assert main_sugar["serving_quantity"] == 4.0
