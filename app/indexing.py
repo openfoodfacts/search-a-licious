@@ -1,8 +1,11 @@
 import abc
 import datetime
+import logging
 import re
+import time
 from typing import Iterable
 
+import elasticsearch
 from elasticsearch_dsl import Index, Mapping, analyzer
 from elasticsearch_dsl import field as dsl_field
 
@@ -23,6 +26,9 @@ from app.utils.analyzers import (
     number_of_fields,
 )
 
+logger = logging.getLogger(__name__)
+
+
 FIELD_TYPE_TO_DSL_TYPE = {
     FieldType.keyword: dsl_field.Keyword,
     FieldType.date: dsl_field.Date,
@@ -40,7 +46,7 @@ FIELD_TYPE_TO_DSL_TYPE = {
 
 
 def generate_dsl_field(
-    field: FieldConfig, supported_langs: Iterable[str]
+    config: IndexConfig, field: FieldConfig, supported_langs: Iterable[str]
 ) -> dsl_field.Field:
     """Generate Elasticsearch DSL field from a FieldConfig.
 
@@ -54,6 +60,9 @@ def generate_dsl_field(
         and `taxonomy` field types
     :return: the elasticsearch_dsl field
     """
+    metadata = {}
+    if not field.index:
+        metadata["index"] = False
     if field.type is FieldType.taxonomy:
         # We will store the taxonomy identifier as keyword
         # And also store it in subfields with query analyzers for each language,
@@ -66,12 +75,13 @@ def generate_dsl_field(
                 analyzer=get_taxonomy_indexing_analyzer(field.taxonomy_name, lang),
                 # but on query we need to fold and match with synonyms
                 search_analyzer=get_taxonomy_search_analyzer(
-                    field.taxonomy_name, lang, with_synonyms=True
+                    config, field.taxonomy_name, lang, with_synonyms=True
                 ),
+                **metadata,
             )
             for lang in supported_langs
         }
-        return dsl_field.Keyword(required=field.required, fields=sub_fields)
+        return dsl_field.Keyword(required=field.required, fields=sub_fields, **metadata)
     elif field.type is FieldType.text_lang:
         properties = {
             lang: dsl_field.Text(
@@ -79,28 +89,28 @@ def generate_dsl_field(
             )
             for lang in supported_langs
         }
-        return dsl_field.Object(dynamic=False, properties=properties)
+        return dsl_field.Object(dynamic=False, properties=properties, **metadata)
     elif field.type in (FieldType.object, FieldType.nested):
         if not field.fields:
             # this should not happen by construction of FieldConfig
             raise ValueError("Object fields must have fields")
         properties = {
             sub_field.name: generate_dsl_field(
-                sub_field, supported_langs=supported_langs
+                config, sub_field, supported_langs=supported_langs
             )
             for sub_field in field.fields.values()
         }
         if field.type == FieldType.nested:
             return dsl_field.Nested(properties=properties)
         else:
-            return dsl_field.Object(dynamic=False, properties=properties)
+            return dsl_field.Object(dynamic=False, properties=properties, **metadata)
     elif field.type == FieldType.disabled:
         return dsl_field.Object(enabled=False)
     else:
         cls_ = FIELD_TYPE_TO_DSL_TYPE.get(field.type)
         if cls_ is None:
             raise ValueError(f"unsupported field type: {field.type}")
-        return cls_()
+        return cls_(**metadata)
 
 
 def preprocess_field_value(
@@ -364,7 +374,7 @@ def generate_mapping_object(config: IndexConfig) -> Mapping:
     for field in config.fields.values():
         mapping.field(
             field.name,
-            generate_dsl_field(field, supported_langs=supported_langs),
+            generate_dsl_field(config, field, supported_langs=supported_langs),
         )
 
     # date of last index for the purposes of search
@@ -445,3 +455,26 @@ def generate_taxonomy_index_object(index_name: str, config: IndexConfig) -> Inde
     mapping = generate_taxonomy_mapping_object(config)
     index.mapping(mapping)
     return index
+
+
+def wait_index_health(
+    es: elasticsearch.Elasticsearch,
+    index: str,
+    status: str | list[str] = "green",
+    wait: int = 3600,
+    poll_interval: float = 30.0,
+) -> None:
+    if not isinstance(status, list):
+        status = [status]
+    health = None
+    start_time = time.monotonic()
+    while health not in status and (start_time + wait) > time.monotonic():
+        result = es.cat.indices(index=index, h=["index", "health"], format="json")
+        if result:
+            health = result[0].get("health")
+        logger.info(
+            "Waiting for index to be healthy (%s) since %d seconds",
+            ",".join(status),
+            int(time.monotonic() - start_time),
+        )
+        time.sleep(poll_interval)

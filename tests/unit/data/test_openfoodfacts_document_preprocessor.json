@@ -1,0 +1,89 @@
+{
+  "code": "1234567890123",
+  "ingredients_text": "this should be in main",
+  "ingredients_text_en": "this should be in en",
+  "ingredients_text_main": "this should be in main",
+  "nova_groups_markers": [
+    {
+      "id": 3,
+      "marker": [
+        {
+          "id": "en:chocolate powder",
+          "type": "en:ingredient"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "marker": [
+        {
+          "id": "en:vanillin",
+          "type": "en:ingredient"
+        },
+        {
+          "id": "en:e424",
+          "type": "en:additive"
+        }
+      ]
+    }
+  ],
+  "nutriments": {
+    "energy-kcal_100g": 80.8,
+    "fat_100g": 22
+  },
+  "obsolete": false,
+  "product_name": "Test Product main",
+  "product_name_en": "Test Product EN",
+  "product_name_fr": "Test Product FR",
+  "product_name_main": "Test Product main",
+  "selected_images": {
+    "front": [
+      {
+        "full_size": {
+          "h": 928,
+          "w": 1052
+        },
+        "lc": "en",
+        "rev": "3",
+        "source": {
+          "id": "1",
+          "uploaded_t": 1750445179,
+          "uploader": "test1"
+        }
+      },
+      {
+        "full_size": {
+          "h": 60,
+          "w": 300
+        },
+        "lc": "fr",
+        "rev": "4",
+        "source": {
+          "id": "2",
+          "uploaded_t": 1750480000,
+          "uploader": "test2"
+        }
+      }
+    ]
+  },
+  "uploaded_images": [
+    {
+      "full_size": {
+        "h": 1856,
+        "w": 2104
+      },
+      "id": "1",
+      "uploaded_t": 1750445179,
+      "uploader": "test1"
+    },
+    {
+      "full_size": {
+        "h": 300,
+        "w": 300
+      },
+      "id": "2",
+      "uploaded_t": 1750480000,
+      "uploader": "test2"
+    }
+  ]
+}

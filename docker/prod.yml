@@ -9,9 +9,6 @@ volumes:
   esdata02:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_esdata02
-  es_synonyms:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_es_synonyms
 
 networks:
   common_net:

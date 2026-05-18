@@ -7,6 +7,8 @@ from elasticsearch_dsl import analysis as dsl_analysis
 from elasticsearch_dsl import analyzer, char_filter, token_filter
 
 from app._types import JSONType
+from app.config import IndexConfig
+from app.taxonomy_es import expected_synonyms_sets_ids
 
 # some normalizers existing in ES that are specific to some languages
 SPECIAL_NORMALIZERS = {
@@ -68,14 +70,17 @@ STOP_WORDS = {
 }
 
 
-def get_taxonomy_synonym_filter(taxonomy: str, lang: str) -> dsl_analysis.TokenFilter:
-    """Return the synonym filter to use for the taxonomized field analyzer"""
-    return token_filter(
-        f"synonym_graph_{taxonomy}_{lang}",
-        type="synonym_graph",
-        synonyms_path=f"synonyms/{taxonomy}/{lang}.txt",
-        updateable=True,
-    )
+def iter_taxonomy_synonyms_filters(
+    config: IndexConfig, taxonomy: str, lang: str
+) -> dsl_analysis.TokenFilter:
+    """Return the synonyms filters to use for the taxonomized field analyzer"""
+    for set_id in expected_synonyms_sets_ids(config, taxonomy, lang):
+        yield token_filter(
+            f"synonym_graph_{set_id}",
+            type="synonym_graph",
+            synonyms_set=set_id,
+            updateable=True,
+        )
 
 
 def get_taxonomy_stop_words_filter(
@@ -126,7 +131,7 @@ def get_taxonomy_indexing_analyzer(
 
 
 def get_taxonomy_search_analyzer(
-    taxonomy: str, lang: str, with_synonyms: bool
+    config: IndexConfig, taxonomy: str, lang: str, with_synonyms: bool
 ) -> dsl_analysis.CustomAnalysis:
     """Return the search analyzer to use for the taxonomized field
 
@@ -143,8 +148,8 @@ def get_taxonomy_search_analyzer(
         filters.append(stop_words)
     filters.append(SPECIAL_NORMALIZERS.get(lang, "asciifolding"))
     if with_synonyms:
-        filters.append(
-            get_taxonomy_synonym_filter(taxonomy, lang),
+        filters.extend(
+            iter_taxonomy_synonyms_filters(config, taxonomy, lang),
         )
     return analyzer(
         f"search_{taxonomy}_{lang}",

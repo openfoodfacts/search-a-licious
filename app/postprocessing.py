@@ -21,29 +21,34 @@ class BaseResultProcessor:
         }
         hits = []
         for hit in response.hits:
-            result = hit.to_dict()
+            result = self.process_result(hit.to_dict(), projection)
             result["_score"] = hit.meta.score
-
-            # TODO make it an unsplit option or move to specific off post processing
-            for fname in self.config.text_lang_fields:
-                if fname not in result:
-                    continue
-                # Flatten the language dict
-                lang_values = result.pop(fname)
-                for lang, text in lang_values.items():
-                    # FIXME: this reproduces OFF behaviour, but is this a good thing?
-                    suffix = "" if lang == "main" else f"_{lang}"
-                    result[f"{fname}{suffix}"] = text
-
-            result = self.process_after(result)
-            if projection:
-                result = dict((k, v) for k, v in result.items() if k in projection)
             hits.append(result)
         output["hits"] = hits
         output["aggregations"] = response.aggregations.to_dict()
         return output
 
-    def process_after(self, result: JSONType) -> JSONType:
+    def process_result(self, result: JSONType, projection: set[str] | None) -> JSONType:
+        """Process a single result"""
+        # TODO make it an unsplit option or move to specific off post processing
+        for fname in self.config.text_lang_fields:
+            if fname not in result:
+                continue
+            # Flatten the language dict
+            lang_values = result.pop(fname)
+            for lang, text in lang_values.items():
+                # FIXME: this reproduces OFF behaviour, but is this a good thing?
+                suffix = "" if lang == "main" else f"_{lang}"
+                result[f"{fname}{suffix}"] = text
+        # personalize the result
+        result = self.process_after(result)
+        if projection:
+            result = dict((k, v) for k, v in result.items() if k in projection)
+        return result
+
+    def process_after(
+        self, result: JSONType, projection: set[str] | None = None
+    ) -> JSONType:
         """Subclass this method to post-process documents."""
         return result
 

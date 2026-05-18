@@ -7,11 +7,13 @@
           {
             "multi_match": {
               "fields": [
+                "code",
                 "product_name.en",
                 "generic_name.en",
                 "categories.en",
                 "labels.en",
-                "brands.en"
+                "brands.en",
+                "emb_codes"
               ],
               "query": "Milk",
               "type": "best_fields",
@@ -21,11 +23,13 @@
           {
             "multi_match": {
               "fields": [
+                "code",
                 "product_name.en",
                 "generic_name.en",
                 "categories.en",
                 "labels.en",
-                "brands.en"
+                "brands.en",
+                "emb_codes"
               ],
               "query": "*",
               "type": "phrase"

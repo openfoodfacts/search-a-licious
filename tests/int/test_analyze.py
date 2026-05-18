@@ -48,11 +48,15 @@ def test_taxonomy_indexing_analyzer(es_connection, data_ingester):
     assert _tokens(result) == ["en:organic_farming_2"]
 
 
-def test_taxonomy_search_analyzer(es_connection, data_ingester):
+def test_taxonomy_search_analyzer(es_connection, index_config, data_ingester):
     # create the index, with synonyms
     data_ingester([])
-    search_en = get_taxonomy_search_analyzer("labels", "en", True).to_dict()
-    search_fr = get_taxonomy_search_analyzer("labels", "fr", True).to_dict()
+    search_en = get_taxonomy_search_analyzer(
+        index_config, "labels", "en", True
+    ).to_dict()
+    search_fr = get_taxonomy_search_analyzer(
+        index_config, "labels", "fr", True
+    ).to_dict()
     # bare term is not changed, but hyphen is replaced by underscore
     for analyzer in [search_en, search_fr]:
         result = es_connection.indices.analyze(

@@ -13,11 +13,13 @@
                       {
                         "multi_match": {
                           "fields": [
+                            "code",
                             "product_name.en",
                             "generic_name.en",
                             "categories.en",
                             "labels.en",
-                            "brands.en"
+                            "brands.en",
+                            "emb_codes"
                           ],
                           "query": "bacon",
                           "type": "best_fields",
@@ -27,11 +29,13 @@
                       {
                         "multi_match": {
                           "fields": [
+                            "code",
                             "product_name.en",
                             "generic_name.en",
                             "categories.en",
                             "labels.en",
-                            "brands.en"
+                            "brands.en",
+                            "emb_codes"
                           ],
                           "query": "de",
                           "type": "best_fields",
@@ -41,11 +45,13 @@
                       {
                         "multi_match": {
                           "fields": [
+                            "code",
                             "product_name.en",
                             "generic_name.en",
                             "categories.en",
                             "labels.en",
-                            "brands.en"
+                            "brands.en",
+                            "emb_codes"
                           ],
                           "query": "boeuf",
                           "type": "best_fields",
@@ -59,11 +65,13 @@
                   "multi_match": {
                     "boost": 2.0,
                     "fields": [
+                      "code",
                       "product_name.en",
                       "generic_name.en",
                       "categories.en",
                       "labels.en",
-                      "brands.en"
+                      "brands.en",
+                      "emb_codes"
                     ],
                     "query": "bacon de boeuf",
                     "type": "phrase"

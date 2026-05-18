@@ -6220,6 +6220,819 @@
     "owner": {
       "type": "keyword"
     },
+    "packagings": {
+      "properties": {
+        "material": {
+          "fields": {
+            "aa": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_aa",
+              "type": "text"
+            },
+            "ab": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ab",
+              "type": "text"
+            },
+            "ae": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ae",
+              "type": "text"
+            },
+            "af": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_af",
+              "type": "text"
+            },
+            "ak": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ak",
+              "type": "text"
+            },
+            "am": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_am",
+              "type": "text"
+            },
+            "ar": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ar",
+              "type": "text"
+            },
+            "as": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_as",
+              "type": "text"
+            },
+            "at": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_at",
+              "type": "text"
+            },
+            "au": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_au",
+              "type": "text"
+            },
+            "ay": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ay",
+              "type": "text"
+            },
+            "az": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_az",
+              "type": "text"
+            },
+            "be": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_be",
+              "type": "text"
+            },
+            "bg": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_bg",
+              "type": "text"
+            },
+            "bi": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_bi",
+              "type": "text"
+            },
+            "bn": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_bn",
+              "type": "text"
+            },
+            "br": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_br",
+              "type": "text"
+            },
+            "bs": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_bs",
+              "type": "text"
+            },
+            "ca": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ca",
+              "type": "text"
+            },
+            "ch": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ch",
+              "type": "text"
+            },
+            "co": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_co",
+              "type": "text"
+            },
+            "cs": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_cs",
+              "type": "text"
+            },
+            "cu": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_cu",
+              "type": "text"
+            },
+            "cy": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_cy",
+              "type": "text"
+            },
+            "da": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_da",
+              "type": "text"
+            },
+            "de": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_de",
+              "type": "text"
+            },
+            "dv": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_dv",
+              "type": "text"
+            },
+            "dz": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_dz",
+              "type": "text"
+            },
+            "el": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_el",
+              "type": "text"
+            },
+            "en": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_en",
+              "type": "text"
+            },
+            "eo": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_eo",
+              "type": "text"
+            },
+            "es": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_es",
+              "type": "text"
+            },
+            "et": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_et",
+              "type": "text"
+            },
+            "eu": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_eu",
+              "type": "text"
+            },
+            "fa": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_fa",
+              "type": "text"
+            },
+            "fi": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_fi",
+              "type": "text"
+            },
+            "fj": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_fj",
+              "type": "text"
+            },
+            "fo": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_fo",
+              "type": "text"
+            },
+            "fr": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_fr",
+              "type": "text"
+            },
+            "fy": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_fy",
+              "type": "text"
+            },
+            "ga": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ga",
+              "type": "text"
+            },
+            "gb": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_gb",
+              "type": "text"
+            },
+            "gd": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_gd",
+              "type": "text"
+            },
+            "gl": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_gl",
+              "type": "text"
+            },
+            "gn": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_gn",
+              "type": "text"
+            },
+            "gp": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_gp",
+              "type": "text"
+            },
+            "gu": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_gu",
+              "type": "text"
+            },
+            "gv": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_gv",
+              "type": "text"
+            },
+            "ha": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ha",
+              "type": "text"
+            },
+            "he": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_he",
+              "type": "text"
+            },
+            "hi": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_hi",
+              "type": "text"
+            },
+            "hk": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_hk",
+              "type": "text"
+            },
+            "ho": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ho",
+              "type": "text"
+            },
+            "hr": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_hr",
+              "type": "text"
+            },
+            "ht": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ht",
+              "type": "text"
+            },
+            "hu": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_hu",
+              "type": "text"
+            },
+            "hy": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_hy",
+              "type": "text"
+            },
+            "hz": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_hz",
+              "type": "text"
+            },
+            "id": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_id",
+              "type": "text"
+            },
+            "in": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_in",
+              "type": "text"
+            },
+            "io": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_io",
+              "type": "text"
+            },
+            "is": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_is",
+              "type": "text"
+            },
+            "it": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_it",
+              "type": "text"
+            },
+            "iw": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_iw",
+              "type": "text"
+            },
+            "ja": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ja",
+              "type": "text"
+            },
+            "jp": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_jp",
+              "type": "text"
+            },
+            "jv": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_jv",
+              "type": "text"
+            },
+            "ka": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ka",
+              "type": "text"
+            },
+            "kk": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_kk",
+              "type": "text"
+            },
+            "kl": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_kl",
+              "type": "text"
+            },
+            "km": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_km",
+              "type": "text"
+            },
+            "kn": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_kn",
+              "type": "text"
+            },
+            "ko": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ko",
+              "type": "text"
+            },
+            "ku": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ku",
+              "type": "text"
+            },
+            "ky": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ky",
+              "type": "text"
+            },
+            "la": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_la",
+              "type": "text"
+            },
+            "lb": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_lb",
+              "type": "text"
+            },
+            "lc": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_lc",
+              "type": "text"
+            },
+            "ln": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ln",
+              "type": "text"
+            },
+            "lo": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_lo",
+              "type": "text"
+            },
+            "lt": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_lt",
+              "type": "text"
+            },
+            "lu": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_lu",
+              "type": "text"
+            },
+            "lv": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_lv",
+              "type": "text"
+            },
+            "main": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_main",
+              "type": "text"
+            },
+            "mg": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_mg",
+              "type": "text"
+            },
+            "mh": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_mh",
+              "type": "text"
+            },
+            "mi": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_mi",
+              "type": "text"
+            },
+            "mk": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_mk",
+              "type": "text"
+            },
+            "ml": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ml",
+              "type": "text"
+            },
+            "mn": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_mn",
+              "type": "text"
+            },
+            "mo": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_mo",
+              "type": "text"
+            },
+            "mr": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_mr",
+              "type": "text"
+            },
+            "ms": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ms",
+              "type": "text"
+            },
+            "mt": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_mt",
+              "type": "text"
+            },
+            "my": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_my",
+              "type": "text"
+            },
+            "na": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_na",
+              "type": "text"
+            },
+            "nb": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_nb",
+              "type": "text"
+            },
+            "nd": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_nd",
+              "type": "text"
+            },
+            "ne": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ne",
+              "type": "text"
+            },
+            "nl": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_nl",
+              "type": "text"
+            },
+            "nn": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_nn",
+              "type": "text"
+            },
+            "no": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_no",
+              "type": "text"
+            },
+            "nr": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_nr",
+              "type": "text"
+            },
+            "ny": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ny",
+              "type": "text"
+            },
+            "oc": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_oc",
+              "type": "text"
+            },
+            "om": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_om",
+              "type": "text"
+            },
+            "pa": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_pa",
+              "type": "text"
+            },
+            "pl": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_pl",
+              "type": "text"
+            },
+            "ps": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ps",
+              "type": "text"
+            },
+            "pt": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_pt",
+              "type": "text"
+            },
+            "qq": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_qq",
+              "type": "text"
+            },
+            "qu": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_qu",
+              "type": "text"
+            },
+            "re": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_re",
+              "type": "text"
+            },
+            "rm": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_rm",
+              "type": "text"
+            },
+            "rn": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_rn",
+              "type": "text"
+            },
+            "ro": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ro",
+              "type": "text"
+            },
+            "rs": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_rs",
+              "type": "text"
+            },
+            "ru": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ru",
+              "type": "text"
+            },
+            "rw": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_rw",
+              "type": "text"
+            },
+            "sd": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sd",
+              "type": "text"
+            },
+            "se": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_se",
+              "type": "text"
+            },
+            "sg": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sg",
+              "type": "text"
+            },
+            "sh": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sh",
+              "type": "text"
+            },
+            "si": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_si",
+              "type": "text"
+            },
+            "sk": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sk",
+              "type": "text"
+            },
+            "sl": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sl",
+              "type": "text"
+            },
+            "sm": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sm",
+              "type": "text"
+            },
+            "sn": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sn",
+              "type": "text"
+            },
+            "so": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_so",
+              "type": "text"
+            },
+            "sq": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sq",
+              "type": "text"
+            },
+            "sr": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sr",
+              "type": "text"
+            },
+            "ss": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ss",
+              "type": "text"
+            },
+            "st": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_st",
+              "type": "text"
+            },
+            "sv": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sv",
+              "type": "text"
+            },
+            "sw": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_sw",
+              "type": "text"
+            },
+            "ta": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ta",
+              "type": "text"
+            },
+            "te": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_te",
+              "type": "text"
+            },
+            "tg": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_tg",
+              "type": "text"
+            },
+            "th": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_th",
+              "type": "text"
+            },
+            "ti": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ti",
+              "type": "text"
+            },
+            "tk": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_tk",
+              "type": "text"
+            },
+            "tl": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_tl",
+              "type": "text"
+            },
+            "tn": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_tn",
+              "type": "text"
+            },
+            "to": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_to",
+              "type": "text"
+            },
+            "tr": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_tr",
+              "type": "text"
+            },
+            "ts": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ts",
+              "type": "text"
+            },
+            "ug": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ug",
+              "type": "text"
+            },
+            "uk": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_uk",
+              "type": "text"
+            },
+            "ur": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ur",
+              "type": "text"
+            },
+            "us": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_us",
+              "type": "text"
+            },
+            "uz": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_uz",
+              "type": "text"
+            },
+            "ve": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_ve",
+              "type": "text"
+            },
+            "vi": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_vi",
+              "type": "text"
+            },
+            "wa": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_wa",
+              "type": "text"
+            },
+            "wo": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_wo",
+              "type": "text"
+            },
+            "xh": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_xh",
+              "type": "text"
+            },
+            "yi": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_yi",
+              "type": "text"
+            },
+            "yo": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_yo",
+              "type": "text"
+            },
+            "zh": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_zh",
+              "type": "text"
+            },
+            "zu": {
+              "analyzer": "taxonomy_indexing",
+              "search_analyzer": "search_packaging_materials_zu",
+              "type": "text"
+            }
+          },
+          "type": "keyword"
+        },
+        "weight_measured": {
+          "type": "float"
+        }
+      },
+      "type": "nested"
+    },
     "popularity_key": {
       "type": "long"
     },
@@ -6870,6 +7683,7 @@
       "type": "object"
     },
     "quantity": {
+      "index": false,
       "type": "text"
     },
     "scans_n": {

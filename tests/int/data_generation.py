@@ -150,3 +150,18 @@ def delete_es_indices(es_connection):
             # skip special indexes
             continue
         es_connection.indices.delete(index=index)
+
+
+def delete_es_synonyms(es_connection):
+    """Do a full cleanup of synonyms sets"""
+    all_sets = set()
+    seen = 0
+    count = 100  # we will get real count in first response
+    while seen < count:
+        infos = es_connection.synonyms.get_synonyms_sets(from_=seen, size=1000)
+        count = infos["count"]
+        all_sets.update(info["synonyms_set"] for info in infos["results"])
+        seen += len(infos["results"])
+    # clean them
+    for set_id in all_sets:
+        es_connection.synonyms.delete_synonym(id=set_id)
