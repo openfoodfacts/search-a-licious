@@ -23,7 +23,7 @@ Once [docker](https://docs.docker.com/engine/install/) and [docker compose](http
 
 ## Settings
 
-All configuration is passed through environment variables to services through the use of a `.env` file. A sample `.env` file is provided in the repository, you will need to edit this file to suit your needs.
+All configuration is passed to services via environment variables in a `.env` file. A sample `.env` file is provided in the repository, you will need to edit this file to suit your needs.
 
 The only required change is to set the `CONFIG_PATH` variable to the path of your YAML configuration file. This file is used to configure the search-a-licious indexer and search services. See the [create your configuration in tutorial](./tutorial.md#create-a-configuration-file)
 
