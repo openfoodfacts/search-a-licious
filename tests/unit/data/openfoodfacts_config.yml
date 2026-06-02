@@ -140,6 +140,10 @@ indices:
             type: float
           fat_100g:
             type: float
+      serving_size:
+        type: text
+      serving_quantity:
+        type: float
       nutriscore_data:
         type: disabled
       nutriscore_grade:
