@@ -133,6 +133,7 @@ suite('searchalicious-bar', () => {
       originalResetFacets(launchSearch);
     };
 
+    // mock search API
     (bar as any).search = () => {};
 
     (bar as any).selectedOption = {
