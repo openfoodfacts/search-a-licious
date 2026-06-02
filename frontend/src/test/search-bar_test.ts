@@ -136,6 +136,7 @@ suite('searchalicious-bar', () => {
     // mock search API
     (bar as any).search = () => {};
 
+    // mimic option selection
     (bar as any).selectedOption = {
       value: 'categories:pastas',
       label: 'categories:pastas',
