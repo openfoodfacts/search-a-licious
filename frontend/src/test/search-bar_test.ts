@@ -121,6 +121,7 @@ suite('searchalicious-bar', () => {
   });
 
   test('submitSuggestion resets facets on direct text submit', async () => {
+    // create search bar qnad get it
     const el = await fixture(html` <searchalicious-bar></searchalicious-bar>`);
     const bar = el as SearchaliciousBar;
 
