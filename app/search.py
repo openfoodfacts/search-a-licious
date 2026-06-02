@@ -97,6 +97,7 @@ def search(
                 SearchResponseError(
                     title=e.__class__.__name__,
                     description=str(e),
+                    status=400,
                 )
             ],
         )

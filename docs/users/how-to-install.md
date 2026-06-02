@@ -23,9 +23,9 @@ Once [docker](https://docs.docker.com/engine/install/) and [docker compose](http
 
 ## Settings
 
-All configuration are passed through environment variables to services through the use of a `.env` file. A sample `.env` file is provided in the repository, you will need to edit this file to suit your needs.
+All configuration is passed to services via environment variables in a `.env` file. A sample `.env` file is provided in the repository, you will need to edit this file to suit your needs.
 
-The only required change is to set the `CONFIG_PATH` variable to the path of your YAML configuration file. This file is used to configure the search-a-licious indexer and search services. See the [create your configuration, in tutorial](./tutorial.md#create-a-configuration-file)
+The only required change is to set the `CONFIG_PATH` variable to the path of your YAML configuration file. This file is used to configure the search-a-licious indexer and search services. See the [tutorial section on creating a configuration file](./tutorial.md#create-a-configuration-file).
 
 If you want to see more about applications settings, see the [Reference for Settings](./ref-settings.md)
 
@@ -61,7 +61,7 @@ docker compose up -d
 > ```
 
 > [!NOTE]
-> Update container might crash because if you are note connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See [How to update the index](./how-to-update-index.md)
+> The update container may crash if it cannot connect to a Redis instance. Search-a-licious will continue to run; you only need Redis if you want continuous updates. See [How to update the index](./how-to-update-index.md)
 
 ## Using it
 
