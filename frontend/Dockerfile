@@ -4,7 +4,7 @@ ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
 
 # builder is the node service, only used to build project in prod
-FROM node:lts-bullseye as builder
+FROM node:lts-bullseye AS builder
 ARG USER_UID
 ARG USER_GID
 RUN usermod --uid $USER_UID node && \
@@ -21,15 +21,15 @@ RUN usermod --uid $USER_UID node && \
 # so we ensure permissions while we are root
 RUN --mount=type=cache,id=search-a-licious-npm-cache,target=/home/node/.npm,mode=0777 \
   chown -R node:node /home/node/.npm
-COPY --chown=node:node package*.json /opt/search-a-licious
+COPY --chown=node:node package.json package-lock.json /opt/search-a-licious
 WORKDIR /opt/search-a-licious
 # we build playwright inside the image as it is only for dev
 ENV PLAYWRIGHT_BROWSERS_PATH=/playwright
 USER node
 # install dependencies
 RUN --mount=type=cache,id=search-a-licious-npm-cache,target=/home/node/.npm,mode=0777 \
-  npm install && \
-  npx playwright install
+  npm ci --prefer-offline --no-audit --progress=false && \
+  npx playwright install chromium
 USER root
 # Install the dependencies for playwright with chromium
 # "npx playwright install-deps chromium" is broken on some hosts
@@ -46,7 +46,7 @@ RUN --mount=type=cache,id=search-a-licious-apt-cache,target=/var/cache/apt \
   fonts-tlwg-loma-otf fonts-freefont-ttf
 USER node
 # add local binaries to path
-ENV PATH /opt/search-a-licious/node_modules/.bin:$PATH
+ENV PATH=/opt/search-a-licious/node_modules/.bin:$PATH
 
 # copy files
 COPY --chown=node:node src /opt/search-a-licious/src
@@ -63,7 +63,7 @@ RUN rm -rf public/dist/* && npm run build && npm run bundle
 CMD ["npm", "run", "serve"]
 
 # nginx
-FROM nginx:stable as frontend
+FROM nginx:stable AS frontend
 WORKDIR /opt/search-a-licious
 ARG USER_UID
 ARG USER_GID
