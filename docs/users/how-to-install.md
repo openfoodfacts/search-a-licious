@@ -34,7 +34,7 @@ You must at the very least:
 * change `RESTART_POLICY` to `always`
 * change `COMPOSE_FILE` to `docker-compose.yml;docker/prod.yml;docker/monitor.yml` (monitor is optional but recommended)
 * change `MEM_LIMIT` to set elasticsearch memory limit
-* change `NGINX_BASIC_AUTH_USER_PASSWD`
+* change `NGINX_BASIC_AUTH_USER_PASSWD` to an htpasswd-style value in the format `username:hashed_password` (not a plaintext password), for example: `admin:$apr1$example$abcdefghijklmnop`
 
 Then you can either:
 * rebuild the docker images by running `make build`
