@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: upgrade docker and docker compose
         run: |
-          sudo cat >/etc/apt/keyrings/docker.asc <<EOF
+          cat docker.asc <<EOF
           -----BEGIN PGP PUBLIC KEY BLOCK-----
 
           mQINBFit2ioBEADhWpZ8/wvZ6hUTiXOwQHXMAlaFHcPH9hAtr4F1y2+OYdbtMuth
@@ -79,8 +79,9 @@ jobs:
           =0YYh
           -----END PGP PUBLIC KEY BLOCK-----
           EOF
+          sudo cp docker.asc /etc/apt/keyrings/docker.asc
           
-          sudo cat <<EOF
+          cat >docker.sources <<EOF
           Types: deb
           URIs: https://download.docker.com/linux/ubuntu
           Suites: resolute
@@ -88,6 +89,7 @@ jobs:
           Architectures: amd64
           Signed-By: /etc/apt/keyrings/docker.asc
           EOF
+          sudo cp docker.sources /etc/apt/sources.list.d/docker.sources
 
           sudo DEBIAN_FRONTEND=noninteractive apt update
           sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
