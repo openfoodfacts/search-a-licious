@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: upgrade docker and docker compose
         run: |
-          cat docker.asc <<EOF
+          cat >docker.asc <<EOF
           -----BEGIN PGP PUBLIC KEY BLOCK-----
 
           mQINBFit2ioBEADhWpZ8/wvZ6hUTiXOwQHXMAlaFHcPH9hAtr4F1y2+OYdbtMuth
