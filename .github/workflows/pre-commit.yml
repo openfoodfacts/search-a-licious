@@ -84,7 +84,7 @@ jobs:
           cat >docker.sources <<EOF
           Types: deb
           URIs: https://download.docker.com/linux/ubuntu
-          Suites: resolute
+          Suites: $(lsb_release -c)
           Components: stable
           Architectures: amd64
           Signed-By: /etc/apt/keyrings/docker.asc
