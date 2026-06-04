@@ -93,7 +93,10 @@ jobs:
 
           sudo DEBIAN_FRONTEND=noninteractive apt update
           sudo DEBIAN_FRONTEND=noninteractive apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
+          sudo systemctl daemon-reload
+          sudo systemctl restart docker
+          echo "Docker version is now $(docker -v)"
+          echo "Docker Compose version is now $(docker compose version)"
 
       - name: install python
         uses: actions/setup-python@v5
