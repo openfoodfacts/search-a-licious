@@ -92,7 +92,8 @@ jobs:
           sudo cp docker.sources /etc/apt/sources.list.d/docker.sources
 
           sudo DEBIAN_FRONTEND=noninteractive apt update
-          sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
+          sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
 
       - name: install python
         uses: actions/setup-python@v5
