@@ -20,8 +20,13 @@ x-api-base: &api-base
 
 services:
   es01:
+    environment:
+      cluster.routing.allocation.disk.threshold_enabled: "false"
     ports:
       - "${ES_EXPOSE}:9200"
+  es02:
+    environment:
+      cluster.routing.allocation.disk.threshold_enabled: "false"
   api:
     <<: *api-base
     # uvicorn in reload mode
