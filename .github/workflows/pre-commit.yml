@@ -12,7 +12,7 @@ jobs:
       COMPOSE_PROGRESS: plain
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: install python
         uses: actions/setup-python@v6
         with:
