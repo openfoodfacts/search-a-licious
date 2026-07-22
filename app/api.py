@@ -14,11 +14,11 @@ import app.search as app_search
 from app import config
 from app._types import (
     CommonParametersQuery,
+    ErrorSearchResponse,
     GetSearchParameters,
     PostSearchParameters,
     SearchResponse,
     SuccessSearchResponse,
-    ErrorSearchResponse,
 )
 from app.config import settings
 from app.postprocessing import process_taxonomy_completion_response
@@ -102,14 +102,34 @@ def get_document(
 def status_for_response(result: SearchResponse):
     if isinstance(result, SuccessSearchResponse):
         return status.HTTP_200_OK
-    elif isinstance(result, ErrorSearchResponse) and result.errors:
-        # returns the status of the first error
-        return result.errors[0].status or status.HTTP_500_INTERNAL_SERVER_ERROR
-    else:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    if isinstance(result, ErrorSearchResponse) and result.errors:
+        first_error = result.errors[0]
+        if first_error.status:
+            return first_error.status
+
+        titles = {error.title for error in result.errors}
+
+        if titles & {
+            "QueryCheckError",
+            "InvalidLuceneQueryError",
+            "FreeWildCardError",
+            "UnknownFieldError",
+            "UnknownScriptError",
+            "ValueError",
+        }:
+            return status.HTTP_400_BAD_REQUEST
+
+        if titles & {"es_connection_error", "es_api_error"}:
+            return status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@app.post("/search", responses={400: {"model": ErrorSearchResponse}, 500: {"model": ErrorSearchResponse}})
+@app.post(
+    "/search",
+    responses={400: {"model": ErrorSearchResponse}, 500: {"model": ErrorSearchResponse}},
+)
 def search(
     response: Response, search_parameters: Annotated[PostSearchParameters, Body()]
 ) -> SearchResponse:
@@ -124,7 +144,10 @@ def search(
     return result
 
 
-@app.get("/search", responses={400: {"model": ErrorSearchResponse}, 500: {"model": ErrorSearchResponse}})
+@app.get(
+    "/search",
+    responses={400: {"model": ErrorSearchResponse}, 500: {"model": ErrorSearchResponse}},
+)
 def search_get(
     response: Response, search_parameters: Annotated[GetSearchParameters, Query()]
 ) -> SearchResponse:
