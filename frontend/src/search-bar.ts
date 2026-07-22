@@ -190,6 +190,7 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
       this.selectedOption = undefined;
       this.query = ''; // not sure if we should instead put the value of remaining input
     } else {
+      this.resetFacets(false);
       this.query = this.selectedOption?.value || '';
       this.blurInput();
     }
