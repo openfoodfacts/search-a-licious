@@ -55,7 +55,8 @@ def parse_query(q: str | None) -> QueryAnalysis:
         return analysis
     try:
         analysis.luqum_tree = parser.parse(q)
-        # FIXME: resolve UnknownFilter (to AND)
+        # TECHDEBT(SAL-TECHDEBT-006): align parser UnknownFilter handling with
+        # the UnknownOperation resolution strategy.
     except (
         luqum.exceptions.ParseError,
         luqum.exceptions.InconsistentQueryException,
