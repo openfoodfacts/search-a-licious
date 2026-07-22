@@ -503,20 +503,20 @@ class GetSearchParameters(SearchParameters):
         Directly the dictionnaries in POST request
         """
         str_charts = _prepare_str_list(charts)
-        if str_charts:
-            parsed_charts: list[DistributionChart | ScatterChart] = []
-            charts_list = str_charts.split(",")
-            for c in charts_list:
-                if ":" in c:
-                    [x, y] = c.split(":")
-                    parsed_charts.append(ScatterChart(x=x, y=y))
-                else:
-                    parsed_charts.append(DistributionChart(field=c))
-        if parsed_charts is not None:
-            # we already know because of code logic that charts is the right type
-            # but we need to cast for mypy type checking
-            result_charts = cast(list[ChartType], parsed_charts)
-        return result_charts
+        if str_charts is None:
+            return cast(list[ChartType] | None, charts)
+        if not str_charts:
+            return []
+
+        parsed_charts: list[DistributionChart | ScatterChart] = []
+        charts_list = str_charts.split(",")
+        for c in charts_list:
+            if ":" in c:
+                [x, y] = c.split(":")
+                parsed_charts.append(ScatterChart(x=x, y=y))
+            else:
+                parsed_charts.append(DistributionChart(field=c))
+        return cast(list[ChartType], parsed_charts)
 
     @model_validator(mode="after")
     def validate_q_or_sort_by(self):
