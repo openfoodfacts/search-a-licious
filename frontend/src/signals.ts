@@ -1,4 +1,5 @@
 import {Signal, signal} from '@lit-labs/preact-signals';
+import {ChartsInfos, FacetsInfos} from './interfaces/search-result-interfaces';
 
 /**
  * Signals to indicate if the search can be reset.
@@ -22,11 +23,11 @@ const _isSearchChanged: Record<string, Signal> = {} as Record<
  * Search result as returned by a search request, payload of searchResult signal
  */
 export type SearchResultDetail = {
-  charts: Record<string, object>;
+  charts: ChartsInfos;
   count: number;
   currentPage: number;
   displayTime: number;
-  facets: Object; // FIXME: we could be more precise
+  facets: FacetsInfos;
   isCountExact: boolean;
   isSearchLaunch: boolean;
   pageCount: number;

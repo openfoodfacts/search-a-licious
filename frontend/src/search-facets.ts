@@ -17,21 +17,11 @@ import {WHITE_PANEL_STYLE} from './styles';
 import {SearchaliciousFacetsInterface} from './interfaces/facets-interfaces';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
 import {SearchCtlGetMixin} from './mixins/search-ctl-getter';
-
-interface FacetsInfos {
-  [key: string]: FacetInfo;
-}
-
-interface FacetInfo {
-  name: string;
-  // TODO: add other types if needed
-  items: FacetItem[];
-}
-
-interface FacetItem {
-  key: string;
-  name: string;
-}
+import {
+  FacetInfo,
+  FacetItem,
+  FacetsInfos,
+} from './interfaces/search-result-interfaces';
 
 interface FacetTerm extends FacetItem {
   count: number;
