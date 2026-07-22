@@ -22,7 +22,7 @@ jobs:
           echo "" > .envrc
           echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
           echo OFF_API_URL=https://world.openfoodfacts.org >> .envrc
-          echo USER_IID=$(id -u) >>.envrc
+          echo USER_UID=$(id -u) >>.envrc
           echo USER_GID=$(id -g) >>.envrc
           make build
       - name: Enforce pre-commit hook server side
