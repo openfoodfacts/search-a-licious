@@ -18,8 +18,7 @@
                             "generic_name.en",
                             "categories.en",
                             "labels.en",
-                            "brands.en",
-                            "emb_codes"
+                            "brands.en"
                           ],
                           "query": "bacon",
                           "type": "best_fields",
@@ -34,8 +33,7 @@
                             "generic_name.en",
                             "categories.en",
                             "labels.en",
-                            "brands.en",
-                            "emb_codes"
+                            "brands.en"
                           ],
                           "query": "de",
                           "type": "best_fields",
@@ -50,8 +48,7 @@
                             "generic_name.en",
                             "categories.en",
                             "labels.en",
-                            "brands.en",
-                            "emb_codes"
+                            "brands.en"
                           ],
                           "query": "boeuf",
                           "type": "best_fields",
@@ -70,8 +67,7 @@
                       "generic_name.en",
                       "categories.en",
                       "labels.en",
-                      "brands.en",
-                      "emb_codes"
+                      "brands.en"
                     ],
                     "query": "bacon de boeuf",
                     "type": "phrase"

@@ -12,8 +12,7 @@
                 "generic_name.en",
                 "categories.en",
                 "labels.en",
-                "brands.en",
-                "emb_codes"
+                "brands.en"
               ],
               "query": "Milk",
               "type": "best_fields",

@@ -29,7 +29,7 @@
   ],
   "nutriments": {
     "energy-kcal_100g": 80.8,
-    "fat_100g": 22
+    "fat_100g": 22.0
   },
   "obsolete": false,
   "product_name": "Test Product main",
@@ -44,9 +44,9 @@
           "w": 1052
         },
         "lc": "en",
-        "rev": "3",
+        "rev": 3,
         "source": {
-          "id": "1",
+          "id": 1,
           "uploaded_t": 1750445179,
           "uploader": "test1"
         }
@@ -57,9 +57,9 @@
           "w": 300
         },
         "lc": "fr",
-        "rev": "4",
+        "rev": 4,
         "source": {
-          "id": "2",
+          "id": 2,
           "uploaded_t": 1750480000,
           "uploader": "test2"
         }
@@ -72,7 +72,7 @@
         "h": 1856,
         "w": 2104
       },
-      "id": "1",
+      "id": 1,
       "uploaded_t": 1750445179,
       "uploader": "test1"
     },
@@ -81,7 +81,7 @@
         "h": 300,
         "w": 300
       },
-      "id": "2",
+      "id": 2,
       "uploaded_t": 1750480000,
       "uploader": "test2"
     }

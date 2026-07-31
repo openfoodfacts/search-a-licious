@@ -12,8 +12,7 @@
                 "generic_name.fr",
                 "categories.fr",
                 "labels.fr",
-                "brands.fr",
-                "emb_codes"
+                "brands.fr"
               ],
               "query": "flocons",
               "type": "best_fields",
@@ -28,8 +27,7 @@
                 "generic_name.fr",
                 "categories.fr",
                 "labels.fr",
-                "brands.fr",
-                "emb_codes"
+                "brands.fr"
               ],
               "query": "d'avoine",
               "type": "best_fields",
