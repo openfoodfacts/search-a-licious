@@ -57,10 +57,11 @@ def _make_config(fields: dict[str, FieldConfig]) -> IndexConfig:
 
 
 def assert_types_equal(result, expected):
-    """when we test for equality of two objects in python, it does not necessarily mean they are of the same type
+    """when we test for equality of two objects in python,
+    it does not necessarily mean they are of the same type
     With this method we also ensure this
     """
-    assert type(result) == type(expected)
+    assert type(result) is type(expected)
     if isinstance(result, dict):
         assert result.keys() == expected.keys()
         for key in result:

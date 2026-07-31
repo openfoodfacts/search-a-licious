@@ -72,14 +72,15 @@ def generate_dsl_field(
             raise ValueError("Taxonomy field must have a taxonomy_name set in config")
         # we will add synonyms to search analyzers
         # only if config.synonyms_strategy is 'index'
-        with_synonyms = config.synonyms_strategy == SynonymsStrategy.index
+        with_synonyms = config.synonyms_strategy == SynonymsStrategy.INDEX
         if not with_synonyms:
             # we just need to do a keyword index
             return dsl_field.Keyword(**metadata)
         else:
             sub_fields = {
                 lang: dsl_field.Text(
-                    # we almost use keyword analyzer as we really map synonyms to a keyword
+                    # we almost use keyword analyzer
+                    # as we really map synonyms to a keyword
                     analyzer=get_taxonomy_indexing_analyzer(field.taxonomy_name, lang),
                     # but on query we need to fold and match with synonyms
                     search_analyzer=get_taxonomy_search_analyzer(
@@ -298,6 +299,7 @@ class DocumentProcessor:
             }
         for field in fields:
             input_field = field.get_input_field()
+            field_input: list[JSONType] | JSONType | None
 
             if field.type == FieldType.text_lang:
                 # dispath languages in a sub-dictionary

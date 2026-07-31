@@ -168,7 +168,7 @@ def import_taxonomies(
         logger.info("Import time: %s seconds", end_time - start_time)
     if skip_synonyms:
         logger.info("Skipping synonyms generation")
-    elif index_config.synonyms_strategy != SynonymsStrategy.index:
+    elif index_config.synonyms_strategy != SynonymsStrategy.INDEX:
         logger.warning(
             "Skipping synonyms generation because synonyms_strategy is not 'index'"
         )

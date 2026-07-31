@@ -30,18 +30,20 @@ class SynonymsStrategy(StrEnum):
 
     * index: synonyms are implemented using the ElasticSearch synonyms sets strategy.
       It can be efficient
-      but it is not well supported if you have a lot of taxonomies and a lot of languages.
-      (ElasticSearch start will be very slow)
+      but it is not well supported
+      if you have a lot of taxonomies and a lot of languages.
+      (ElasticSearch start will be very very slow)
     * none: synonyms are not automatically accounted for during requests
       (you still get the taxonomies separate indexes).
-      This means your queries have to use the taxonomy id, instead of a synonym or a translation.
+      This means your queries have to use the taxonomy id,
+      instead of a synonym or a translation.
 
     A "query" strategy might be implemented in the future,
     acting before sending the query to ElasticSearch.
     """
 
-    index = "index"
-    none = "none"
+    INDEX = "index"
+    NONE = "none"
 
 
 class LoggingLevel(StrEnum):
@@ -723,7 +725,7 @@ class IndexConfig(BaseModel):
     synonyms_strategy: Annotated[
         SynonymsStrategy,
         Field(description=SynonymsStrategy.__doc__),
-    ] = SynonymsStrategy.index
+    ] = SynonymsStrategy.INDEX
     taxonomy: Annotated[TaxonomyConfig, Field(description=TaxonomyConfig.__doc__)]
     supported_langs: Annotated[
         list[str],
@@ -942,7 +944,7 @@ class IndexConfig(BaseModel):
     def lang_fields(self) -> dict[str, FieldConfig]:
         """Fully qualified name of fields that are translated"""
         lang_fields_types = ["text_lang"]
-        if self.synonyms_strategy == SynonymsStrategy.index:
+        if self.synonyms_strategy == SynonymsStrategy.INDEX:
             lang_fields_types.append("taxonomy")
         return {
             fname: field
