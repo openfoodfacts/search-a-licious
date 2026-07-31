@@ -23,18 +23,19 @@ Once [docker](https://docs.docker.com/engine/install/) and [docker compose](http
 
 ## Settings
 
-All configuration are passed through environment variables to services through the use of a `.env` file. A sample `.env` file is provided in the repository, you will need to edit this file to suit your needs.
+All configuration is passed to services via environment variables in a `.env` file. A sample `.env` file is provided in the repository, you will need to edit this file to suit your needs.
 
-The only required change is to set the `CONFIG_PATH` variable to the path of your YAML configuration file. This file is used to configure the search-a-licious indexer and search services. See the [create your configuration, in tutorial](./tutorial.md#create-a-configuration-file)
+The only required change is to set the `CONFIG_PATH` variable to the path of your YAML configuration file. This file is used to configure the search-a-licious indexer and search services. See the [tutorial section on creating a configuration file](./tutorial.md#create-a-configuration-file).
 
 If you want to see more about applications settings, see the [Reference for Settings](./ref-settings.md)
 
 Look closely at each variable in the `.env` file.
 You must at the very least:
 * change `RESTART_POLICY` to `always`
+  (by default, containers are not automatically restarted; using `always` helps services come back after crashes or host reboots, which is recommended for production deployments)
 * change `COMPOSE_FILE` to `docker-compose.yml;docker/prod.yml;docker/monitor.yml` (monitor is optional but recommended)
 * change `MEM_LIMIT` to set elasticsearch memory limit
-* change `NGINX_BASIC_AUTH_USER_PASSWD`
+* change `NGINX_BASIC_AUTH_USER_PASSWD` to an htpasswd-style value in the format `username:hashed_password` (not a plaintext password), for example: `admin:$apr1$example$abcdefghijklmnop`
 
 Then you can either:
 * rebuild the docker images by running `make build`
@@ -51,10 +52,17 @@ You should now be able to start docker:
 docker compose up -d
 ```
 
-> [!NOTES]
-> * You may encounter a permission error if your user is not part of the `docker` group, in which case you should either [add it](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) or modify the Makefile to prefix `sudo` to all docker and docker compose commands.
-> * Update container might crash because if you are note connected to any Redis, Search-a-licious will still run. You need to connect to Redis only if you want continuous updates. See [How to update the index](./how-to-update-index.md)
+> [!NOTE]
+> You may encounter a permission error if your user is not part of the `docker` group.
+> In that case you should set the `SUDO` env variable to `sudo`:
+>
+> ```console
+> export SUDO=sudo
+> make build
+> ```
 
+> [!NOTE]
+> The update container may crash if it cannot connect to a Redis instance. Search-a-licious will continue to run; you only need Redis if you want continuous updates. See [How to update the index](./how-to-update-index.md)
 
 ## Using it
 

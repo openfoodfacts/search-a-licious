@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 from typing import Annotated, Any, cast
 
@@ -19,6 +18,7 @@ from app._types import (
     PostSearchParameters,
     SearchResponse,
     SuccessSearchResponse,
+    ErrorSearchResponse,
 )
 from app.config import settings
 from app.postprocessing import process_taxonomy_completion_response
@@ -53,14 +53,12 @@ app = FastAPI(
     },
     description=API_DESCRIPTION,
 )
-ALLOWED_ORIGINS = os.environ.get(
-    "ALLOWED_ORIGINS", "http://localhost,http://127.0.0.1"
-).split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    # this is a public API
+    allow_origin_regex="https?://.*",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
@@ -104,12 +102,14 @@ def get_document(
 def status_for_response(result: SearchResponse):
     if isinstance(result, SuccessSearchResponse):
         return status.HTTP_200_OK
+    elif isinstance(result, ErrorSearchResponse) and result.errors:
+        # returns the status of the first error
+        return result.errors[0].status or status.HTTP_500_INTERNAL_SERVER_ERROR
     else:
-        # TODO: should we refine that ?
         return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@app.post("/search")
+@app.post("/search", responses={400: {"model": ErrorSearchResponse}, 500: {"model": ErrorSearchResponse}})
 def search(
     response: Response, search_parameters: Annotated[PostSearchParameters, Body()]
 ) -> SearchResponse:
@@ -124,7 +124,7 @@ def search(
     return result
 
 
-@app.get("/search")
+@app.get("/search", responses={400: {"model": ErrorSearchResponse}, 500: {"model": ErrorSearchResponse}})
 def search_get(
     response: Response, search_parameters: Annotated[GetSearchParameters, Query()]
 ) -> SearchResponse:

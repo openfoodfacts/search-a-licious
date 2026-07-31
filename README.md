@@ -19,12 +19,13 @@ Search-a-licious transforms large data collections into searchable content with 
 - **Easy configuration** via single YAML file
 - **Docker deployment** with docker-compose
 
-## Contributing
+## 🚀 Quick Start for Developers
+
+Want to contribute? Get started in minutes with our [Developer Installation Guide](https://openfoodfacts.github.io/search-a-licious/devs/how-to-install/)
 
 This is an Open Source project and [contributions are very welcome](https://openfoodfacts.github.io/search-a-licious/devs/introduction/)! See our [developer documentation](https://openfoodfacts.github.io/search-a-licious/devs/) to get started.
 
-
-## Thank you to our sponsors !
+## Thank you to our sponsors!
 
 This project has received financial support from the NGI Search (New Generation Internet) program, funded by the 🇪🇺 European Commission. Thank you for supporting Open-Souce, Open Data, and the Commons.
 

@@ -45,7 +45,6 @@ x-api-common: &api-common
     - CONFIG_PATH
     # URL of the OFF API
     - OFF_API_URL
-    - ALLOWED_ORIGINS
   networks:
     - default
     - common_net
