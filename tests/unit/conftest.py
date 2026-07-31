@@ -12,6 +12,7 @@ from app.utils.io import load_json
 DATA_DIR = Path(__file__).parent / "data"
 DEFAULT_CONFIG_PATH = DATA_DIR / "openfoodfacts_config.yml"
 
+
 @pytest.fixture
 def default_config():
     """Fixture that returns default Open Food Facts index configuration for
@@ -42,6 +43,7 @@ def query_builder_cache_is_empty():
     before and after a test, so we don't get one from a previous test
     """
     from app.search import _ES_QUERY_BUILDERS
+
     _ES_QUERY_BUILDERS.clear()
     yield
     _ES_QUERY_BUILDERS.clear()

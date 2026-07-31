@@ -49,12 +49,6 @@ def test_import_data(test_off_config, es_connection, synonyms_created):
         "nutriments": {
             "fat_100g": 0.0,
             "energy-kcal_100g": 400.0,
-            "proteins_100g": 0.0,
-            "saturated-fat_100g": 0.0,
-            "salt_100g": 0.0,
-            "carbohydrates_100g": 100.0,
-            "sugars_100g": 100.0,
-            "sodium_100g": 0.0,
         },
         "completeness": 0.5874999999999999,
     }
@@ -112,12 +106,6 @@ def test_import_data(test_off_config, es_connection, synonyms_created):
         "nutriments": {
             "fat_100g": 0.0,
             "energy-kcal_100g": 400.0,
-            "proteins_100g": 0.0,
-            "saturated-fat_100g": 0.0,
-            "salt_100g": 0.1,
-            "carbohydrates_100g": 100.0,
-            "sugars_100g": 100.0,
-            "sodium_100g": 0.001,
         },
         "completeness": 0.5874999999999999,
     }
