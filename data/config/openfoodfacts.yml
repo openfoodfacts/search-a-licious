@@ -78,9 +78,6 @@ indices:
         bucket_agg: true
       lc:
         type: keyword
-      languages_codes:
-        type: keyword
-        bucket_agg: true
       languages:
         type: taxonomy
         input_field: languages_tags
@@ -276,6 +273,8 @@ indices:
             type: keyword
           is_in_taxonomy:
             type: bool
+          percent:
+            type: float
           percent_estimate:
             type: float
           percent_max:
@@ -449,6 +448,7 @@ indices:
     redis_stream_name: product_updates_off
     primary_color: "#341100"
     accent_color: "#ff8714"
+    synonyms_strategy: "none"
     taxonomy:
       preprocessor: app.openfoodfacts.TaxonomyPreprocessor
       sources:

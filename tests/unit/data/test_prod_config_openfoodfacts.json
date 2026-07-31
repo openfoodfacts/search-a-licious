@@ -371,6 +371,18 @@
               "taxonomy_name": null,
               "type": "bool"
             },
+            "percent": {
+              "bucket_agg": false,
+              "fields": null,
+              "full_text_search": false,
+              "index": true,
+              "input_field": null,
+              "name": "percent",
+              "required": false,
+              "split": false,
+              "taxonomy_name": null,
+              "type": "float"
+            },
             "percent_estimate": {
               "bucket_agg": false,
               "fields": null,
@@ -524,18 +536,6 @@
           "split": false,
           "taxonomy_name": "languages",
           "type": "taxonomy"
-        },
-        "languages_codes": {
-          "bucket_agg": true,
-          "fields": null,
-          "full_text_search": false,
-          "index": true,
-          "input_field": null,
-          "name": "languages_codes",
-          "required": false,
-          "split": false,
-          "taxonomy_name": null,
-          "type": "keyword"
         },
         "last_checked_t": {
           "bucket_agg": false,
@@ -2278,6 +2278,7 @@
         "zh",
         "zu"
       ],
+      "synonyms_strategy": "none",
       "taxonomy": {
         "index": {
           "name": "off_taxonomy",
@@ -2287,7 +2288,7 @@
         "preprocessor": "app.openfoodfacts.TaxonomyPreprocessor",
         "sources": [
           {
-            "max_synonyms_entries": 10000,
+            "max_synonyms_entries": 20000,
             "name": "categories",
             "url": "https://static.openfoodfacts.org/data/taxonomies/categories.full.json"
           },

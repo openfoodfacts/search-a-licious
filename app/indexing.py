@@ -15,6 +15,7 @@ from app.config import (
     FieldConfig,
     FieldType,
     IndexConfig,
+    SynonymsStrategy,
     TaxonomyConfig,
 )
 from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
@@ -69,18 +70,25 @@ def generate_dsl_field(
         # that will activate synonyms and specific normalizations
         if field.taxonomy_name is None:
             raise ValueError("Taxonomy field must have a taxonomy_name set in config")
-        sub_fields = {
-            lang: dsl_field.Text(
-                # we almost use keyword analyzer as we really map synonyms to a keyword
-                analyzer=get_taxonomy_indexing_analyzer(field.taxonomy_name, lang),
-                # but on query we need to fold and match with synonyms
-                search_analyzer=get_taxonomy_search_analyzer(
-                    config, field.taxonomy_name, lang, with_synonyms=True
-                ),
-                **metadata,
-            )
-            for lang in supported_langs
-        }
+        # we will add synonyms to search analyzers
+        # only if config.synonyms_strategy is 'index'
+        with_synonyms = config.synonyms_strategy == SynonymsStrategy.index
+        if not with_synonyms:
+            # we just need to do a keyword index
+            return dsl_field.Keyword(**metadata)
+        else:
+            sub_fields = {
+                lang: dsl_field.Text(
+                    # we almost use keyword analyzer as we really map synonyms to a keyword
+                    analyzer=get_taxonomy_indexing_analyzer(field.taxonomy_name, lang),
+                    # but on query we need to fold and match with synonyms
+                    search_analyzer=get_taxonomy_search_analyzer(
+                        config, field.taxonomy_name, lang, with_synonyms=True
+                    ),
+                    **metadata,
+                )
+                for lang in supported_langs
+            }
         return dsl_field.Keyword(required=field.required, fields=sub_fields, **metadata)
     elif field.type is FieldType.text_lang:
         properties = {
@@ -118,7 +126,7 @@ def preprocess_field_value(
 ):
     input_value = d.get(input_field)
 
-    if not input_value:
+    if input_value is None:
         return None
     if split:
         input_value = input_value.split(split_separator)
@@ -278,20 +286,24 @@ class DocumentProcessor:
         else:
             self.preprocessor = None
 
-    def inputs_from_data(self, id_, processed_data: JSONType) -> JSONType:
+    def inputs_from_data(self, id_, processed_data: JSONType, fields=None) -> JSONType:
         """Generate a dict with the data to be indexed in ES"""
-        inputs = {
-            "last_indexed_datetime": datetime.datetime.utcnow().isoformat(),
-            "_id": id_,
-        }
-        for field in self.config.fields.values():
+        inputs = {}
+        if fields is None:
+            # initial field
+            fields = self.config.fields.values()
+            inputs = {
+                "last_indexed_datetime": datetime.datetime.utcnow().isoformat(),
+                "_id": id_,
+            }
+        for field in fields:
             input_field = field.get_input_field()
 
             if field.type == FieldType.text_lang:
                 # dispath languages in a sub-dictionary
                 field_input = process_text_lang_field(
                     processed_data,
-                    input_field=field.get_input_field(),
+                    input_field=input_field,
                     split=field.split,
                     lang_separator=self.config.lang_separator,
                     split_separator=self.config.split_separator,
@@ -305,7 +317,27 @@ class DocumentProcessor:
                     taxonomy_config=self.config.taxonomy,
                     split_separator=self.config.split_separator,
                 )
-
+            elif field.type is FieldType.object:
+                # we will process the subfields recursively
+                value = processed_data.get(input_field, {})
+                field_input = self.inputs_from_data(
+                    id_, value, fields=list(field.fields.values())
+                )
+                # it can be reccursive, but only process if we have a value
+                if field.name in value:
+                    field_input[field.name] = self.inputs_from_data(
+                        id_,
+                        value[field.name],
+                        fields=[field] + list(field.fields.values()),
+                    )
+            elif field.type is FieldType.nested:
+                # we will process the subfields recursively for each item in the list
+                field_input = [
+                    self.inputs_from_data(
+                        id_, item, fields=[field] + list(field.fields.values())
+                    )
+                    for item in processed_data.get(input_field, [])
+                ]
             else:
                 field_input = preprocess_field_value(
                     processed_data,
@@ -314,7 +346,7 @@ class DocumentProcessor:
                     split_separator=self.config.split_separator,
                 )
 
-            if field_input:
+            if field_input is not None and field_input not in ([], {}, ""):
                 inputs[field.name] = field_input
 
         return inputs
@@ -340,7 +372,6 @@ class DocumentProcessor:
             and (result.status == FetcherStatus.FOUND)
             else result
         )
-
         id_field_name = self.config.index.id_field_name
         _id = (processed_result.document or {}).get(id_field_name)
         if processed_result.status == FetcherStatus.REMOVED:
@@ -462,7 +493,7 @@ def wait_index_health(
     index: str,
     status: str | list[str] = "green",
     wait: int = 3600,
-    poll_interval: float = 30.0,
+    poll_interval: float = 5.0,
 ) -> None:
     if not isinstance(status, list):
         status = [status]

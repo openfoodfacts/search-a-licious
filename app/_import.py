@@ -251,7 +251,6 @@ def gen_documents(
         )
         if not document_dict:
             continue
-
         yield document_dict
 
 

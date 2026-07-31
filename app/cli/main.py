@@ -149,6 +149,7 @@ def import_taxonomies(
     import time
 
     from app._import import perform_refresh_synonyms, perform_taxonomy_import
+    from app.config import SynonymsStrategy
     from app.utils import connection, get_logger
 
     logger = get_logger()
@@ -167,6 +168,10 @@ def import_taxonomies(
         logger.info("Import time: %s seconds", end_time - start_time)
     if skip_synonyms:
         logger.info("Skipping synonyms generation")
+    elif index_config.synonyms_strategy != SynonymsStrategy.index:
+        logger.warning(
+            "Skipping synonyms generation because synonyms_strategy is not 'index'"
+        )
     else:
         start_time = time.perf_counter()
         perform_refresh_synonyms(

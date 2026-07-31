@@ -48,7 +48,9 @@ def test_taxonomy_indexing_analyzer(es_connection, data_ingester):
     assert _tokens(result) == ["en:organic_farming_2"]
 
 
-def test_taxonomy_search_analyzer(es_connection, index_config, data_ingester):
+def test_taxonomy_search_analyzer_with_synonyms(
+    es_connection, index_config, data_ingester
+):
     # create the index, with synonyms
     data_ingester([])
     search_en = get_taxonomy_search_analyzer(
@@ -100,6 +102,42 @@ def test_taxonomy_search_analyzer(es_connection, index_config, data_ingester):
         text="issue de l'agriculture biologique",
     )
     assert _tokens(result) == ["en:organic"]
+
+
+def test_taxonomy_search_analyzer_without_synonyms(
+    es_connection, index_config, data_ingester
+):
+    # create the index, without synonyms
+    data_ingester([])
+    search_en = get_taxonomy_search_analyzer(
+        index_config, "labels", "en", False
+    ).to_dict()
+    search_fr = get_taxonomy_search_analyzer(
+        index_config, "labels", "fr", False
+    ).to_dict()
+    # bare term is not changed, but hyphen is replaced by underscore
+    for analyzer in [search_en, search_fr]:
+        result = es_connection.indices.analyze(
+            index="test_off",
+            analyzer=analyzer,
+            text="en:organic-farming_2",
+        )
+        assert _tokens(result) == ["en:organic_farming_2"]
+
+    # synonym is not replaced by the synonym
+    result = es_connection.indices.analyze(
+        index="test_off",
+        analyzer=search_en,
+        text="organically grown plants",
+    )
+    assert "en:organic" not in _tokens(result)
+    # french synonyms
+    result = es_connection.indices.analyze(
+        index="test_off",
+        analyzer=search_fr,
+        text="feuille bio",
+    )
+    assert _tokens(result) == ["feuille", "bio"]
 
 
 @pytest.mark.xfail(reason="No stop words support yet")

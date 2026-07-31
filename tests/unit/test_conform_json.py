@@ -56,6 +56,21 @@ def _make_config(fields: dict[str, FieldConfig]) -> IndexConfig:
     )
 
 
+def assert_types_equal(result, expected):
+    """when we test for equality of two objects in python, it does not necessarily mean they are of the same type
+    With this method we also ensure this
+    """
+    assert type(result) == type(expected)
+    if isinstance(result, dict):
+        assert result.keys() == expected.keys()
+        for key in result:
+            assert_types_equal(result[key], expected[key])
+    elif isinstance(result, list):
+        assert len(result) == len(expected)
+        for i in range(len(result)):
+            assert_types_equal(result[i], expected[i])
+
+
 # ---------------------------------------------------------------------------
 # bool
 # ---------------------------------------------------------------------------
@@ -87,7 +102,9 @@ def test_bool_coercion(value, expected):
     config = _make_config({"obsolete": _field("obsolete", FieldType.bool)})
     doc = {"obsolete": value}
     conform_json_to_config(doc, config)
-    assert doc == {"obsolete": expected}
+    expected = {"obsolete": expected}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_bool_none_dropped():
@@ -101,7 +118,9 @@ def test_bool_list_coercion():
     config = _make_config({"flags": _field("flags", FieldType.bool)})
     doc = {"flags": [1, 0, "true", "false", "yes"]}
     conform_json_to_config(doc, config)
-    assert doc == {"flags": [True, False, True, False, True]}
+    expected = {"flags": [True, False, True, False, True]}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_bool_list_all_dropped():
@@ -158,21 +177,27 @@ def test_numeric_bool_treated_as_int():
     config = _make_config({"v": _field("v", FieldType.integer)})
     doc = {"v": True}
     conform_json_to_config(doc, config)
-    assert doc == {"v": 1}
+    expected = {"v": 1}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_numeric_list_coercion():
     config = _make_config({"v": _field("v", FieldType.float)})
     doc = {"v": [1, 2, "3.5", 4]}
     conform_json_to_config(doc, config)
-    assert doc["v"] == [1.0, 2.0, 3.5, 4.0]
+    expected = {"v": [1.0, 2.0, 3.5, 4.0]}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_numeric_list_partial_failure():
     config = _make_config({"v": _field("v", FieldType.integer)})
     doc = {"v": ["1", "abc", 3, "4"]}
     conform_json_to_config(doc, config)
-    assert doc["v"] == [1, 3, 4]
+    expected = {"v": [1, 3, 4]}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 # ---------------------------------------------------------------------------
@@ -186,8 +211,9 @@ def test_date_stringified_epoch_to_int():
     )
     doc = {"last_modified_t": "1700000000"}
     conform_json_to_config(doc, config)
-    assert doc == {"last_modified_t": 1700000000}
-    assert isinstance(doc["last_modified_t"], int)
+    expected = {"last_modified_t": 1700000000}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_date_int_untouched():
@@ -196,7 +222,9 @@ def test_date_int_untouched():
     )
     doc = {"last_modified_t": 1700000000}
     conform_json_to_config(doc, config)
-    assert doc == {"last_modified_t": 1700000000}
+    expected = {"last_modified_t": 1700000000}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_date_iso_string_untouched():
@@ -205,7 +233,9 @@ def test_date_iso_string_untouched():
     )
     doc = {"last_modified_t": "2023-11-14T12:00:00Z"}
     conform_json_to_config(doc, config)
-    assert doc == {"last_modified_t": "2023-11-14T12:00:00Z"}
+    expected = {"last_modified_t": "2023-11-14T12:00:00Z"}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_date_float_epoch_untouched():
@@ -214,7 +244,9 @@ def test_date_float_epoch_untouched():
     )
     doc = {"last_modified_t": 1700000000.5}
     conform_json_to_config(doc, config)
-    assert doc == {"last_modified_t": 1700000000.5}
+    expected = {"last_modified_t": 1700000000.5}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_date_empty_string_dropped():
@@ -235,14 +267,18 @@ def test_keyword_untouched():
     config = _make_config({"code": _field("code", FieldType.keyword)})
     doc = {"code": "12345"}
     conform_json_to_config(doc, config)
-    assert doc == {"code": "12345"}
+    expected = {"code": "12345"}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_text_untouched():
     config = _make_config({"quantity": _field("quantity", FieldType.text)})
     doc = {"quantity": "500g"}
     conform_json_to_config(doc, config)
-    assert doc == {"quantity": "500g"}
+    expected = {"quantity": "500g"}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_disabled_untouched():
@@ -251,7 +287,9 @@ def test_disabled_untouched():
     )
     doc = {"forest_footprint": {"a": 1}}
     conform_json_to_config(doc, config)
-    assert doc == {"forest_footprint": {"a": 1}}
+    expected = {"forest_footprint": {"a": 1}}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 # ---------------------------------------------------------------------------
@@ -274,10 +312,55 @@ def test_object_subfields_coerced():
     )
     doc = {"nutriments": {"fat_100g": "12", "salt_100g": 0.5, "untouched": "x"}}
     conform_json_to_config(doc, config)
-    assert doc == {"nutriments": {"fat_100g": 12.0, "salt_100g": 0.5, "untouched": "x"}}
+    expected = {"nutriments": {"fat_100g": 12.0, "salt_100g": 0.5, "untouched": "x"}}
+    assert doc == expected
+    assert_types_equal(doc, expected)
+
+
+def test_nested_subfields_with_recursion():
+    config = _make_config(
+        {
+            "ingredients": _field(
+                "ingredients",
+                FieldType.nested,
+                fields={
+                    "percent": _field("percent", FieldType.float),
+                    "is_in_taxonomy": _field("is_in_taxonomy", FieldType.bool),
+                },
+            )
+        }
+    )
+    doc = {
+        "ingredients": [
+            {
+                "percent": "10",
+                "is_in_taxonomy": 1,
+                "ingredients": [
+                    {"percent": 5, "is_in_taxonomy": 0},
+                    {"percent": 2, "is_in_taxonomy": 1},
+                ],
+            },
+        ]
+    }
+    conform_json_to_config(doc, config)
+    expected = {
+        "ingredients": [
+            {
+                "percent": 10.0,
+                "is_in_taxonomy": True,
+                "ingredients": [
+                    {"percent": 5.0, "is_in_taxonomy": False},
+                    {"percent": 2.0, "is_in_taxonomy": True},
+                ],
+            }
+        ]
+    }
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_nested_subfields_coerced_in_list():
+    # the case of a nested field that has a subfield with the same name as itself
     config = _make_config(
         {
             "ingredients": _field(
@@ -297,12 +380,14 @@ def test_nested_subfields_coerced_in_list():
         ]
     }
     conform_json_to_config(doc, config)
-    assert doc == {
+    expected = {
         "ingredients": [
             {"percent": 10.0, "is_in_taxonomy": True},
             {"percent": 5.0, "is_in_taxonomy": False},
         ]
     }
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_nested_subfield_dropped_on_failure():
@@ -319,7 +404,9 @@ def test_nested_subfield_dropped_on_failure():
     )
     doc = {"ingredients": [{"percent": "abc"}, {"percent": "2"}]}
     conform_json_to_config(doc, config)
-    assert doc == {"ingredients": [{}, {"percent": 2.0}]}
+    expected = {"ingredients": [{}, {"percent": 2.0}]}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_nested_present_as_dict_handled():
@@ -337,7 +424,9 @@ def test_nested_present_as_dict_handled():
     )
     doc = {"ingredients": {"percent": "10"}}
     conform_json_to_config(doc, config)
-    assert doc == {"ingredients": {"percent": 10.0}}
+    expected = {"ingredients": {"percent": 10.0}}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_deeply_nested_recursion():
@@ -365,11 +454,13 @@ def test_deeply_nested_recursion():
         ]
     }
     conform_json_to_config(doc, config)
-    assert doc == {
+    expected = {
         "packagings": [
             {"weight_measured": 12.5, "source": {"uploaded_t": 1700}},
         ]
     }
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 # ---------------------------------------------------------------------------
@@ -381,18 +472,22 @@ def test_unknown_keys_left_as_is():
     config = _make_config({"obsolete": _field("obsolete", FieldType.bool)})
     doc = {"obsolete": 1, "unknown_field": "value", "another": [1, 2]}
     conform_json_to_config(doc, config)
-    assert doc == {
+    expected = {
         "obsolete": True,
         "unknown_field": "value",
         "another": [1, 2],
     }
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_missing_field_skipped():
     config = _make_config({"obsolete": _field("obsolete", FieldType.bool)})
     doc = {"other": 1}
     conform_json_to_config(doc, config)
-    assert doc == {"other": 1}
+    expected = {"other": 1}
+    assert doc == expected
+    assert_types_equal(doc, expected)
 
 
 def test_empty_document():

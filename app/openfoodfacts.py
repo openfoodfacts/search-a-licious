@@ -9,6 +9,7 @@ from app._types import FetcherResult, FetcherStatus, JSONType
 from app.indexing import BaseDocumentPreprocessor, BaseTaxonomyPreprocessor
 from app.postprocessing import BaseResultProcessor
 from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
+from app.utils.conform_json import conform_json_to_config
 from app.utils.dict_utils import deep_get
 from app.utils.download import http_session
 from app.utils.log import get_logger
@@ -261,6 +262,8 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         super().__init__(*args, **kwargs)
         self.selected_nutriments = frozenset(
             self.config.fields["nutriments"].fields.keys()
+            if "nutriments" in self.config.fields
+            else []
         )
         self.selected_images_keys = (
             frozenset(self.config.fields["selected_images"].fields.keys())
@@ -275,11 +278,15 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         document["obsolete"] = bool(document.get("obsolete"))
         # add "main" language to text_lang fields
         self.add_main_language(document)
+        # self.normalize_ingredients(document)
+        # self.normalize_bool_fields(document)
         # Don't keep all nutriment values
         self.select_nutriments(document)
         # make nova_groups_markers a list
         self.transform_nova_groups_markers(document)
         self.transform_images(document)
+        # finally do some cleanup of the JSON because PERL is not strict enough
+        conform_json_to_config(document, self.config)
         return FetcherResult(status=FetcherStatus.FOUND, document=document)
 
     def add_main_language(self, document: JSONType) -> None:
@@ -294,6 +301,26 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         for field in self.config.text_lang_fields:
             if field in document:
                 document[field + "_main"] = document[field]
+
+    def normalize_bool_fields(self, document: JSONType) -> None:
+        """Ensure that various fields follow their expected type"""
+        for field in ["obsolete", "no_nutrition_data", "packagings_complete"]:
+            if field in document:
+                document[field] = bool(document[field])
+
+    def normalize_ingredients(self, document: JSONType):
+        """Ensure that various fields of ingredients follow their expected type"""
+        for ingredient in document.get("ingredients", []):
+            if "is_in_taxonomy" in ingredient:
+                ingredient["is_in_taxonomy"] = bool(ingredient["is_in_taxonomy"])
+            if "percent" in ingredient:
+                try:
+                    ingredient["percent"] = float(ingredient["percent"])
+                except (ValueError, TypeError):
+                    del ingredient["percent"]
+            if "ingredients" in ingredient:
+                # recursively normalize sub-ingredients
+                self.normalize_ingredients(ingredient)
 
     def select_nutriments(self, document: JSONType):
         """Only selected interesting nutriments, as there are hundreds of

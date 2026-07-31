@@ -183,6 +183,9 @@ def _conform_subdocument(
             if sub_name not in item:
                 continue
             _conform_field(sub_field, item, sub_name, parents)
+        # small tweak: the object might be recursively nested
+        if field.name in item:
+            _conform_field(field, item, field.name, parents + [field.name])
 
     value = document.get(field.name)
     if isinstance(value, list):
@@ -193,7 +196,10 @@ def _conform_subdocument(
 
 
 def _conform_field(
-    field: FieldConfig, document: JSONType, key: str, parents: list[str] | None = None
+    field: FieldConfig,
+    document: JSONType,
+    key: str,
+    parents: list[str] | None = None,
 ) -> None:
     """Conform a single top-level or nested field in the document."""
     if key not in document:
@@ -209,8 +215,8 @@ def _conform_field(
 
     value = document[key]
 
-    # A list value for a scalar field: conform each element in place.
-    if isinstance(value, list):
+    # A list value for a scalar field: conform each element in place
+    if isinstance(value, list) and value:
         conformed: list = []
         for element in value:
             coerced = _coerce_value(field, element)
@@ -231,13 +237,14 @@ def _conform_field(
     coerced = _coerce_value(field, value)
     if coerced is _DROP:
         del document[key]
-        logger.warning(
-            "conform_json_to_config: dropped field %r whose value %r "
-            "could not be conformed to type %s",
-            ".".join(parents + [key]),
-            value,
-            field.type,
-        )
+        if value:
+            logger.warning(
+                "conform_json_to_config: dropped field %r whose value %r "
+                "could not be conformed to type %s",
+                ".".join(parents + [key]),
+                value,
+                field.type,
+            )
     else:
         document[key] = coerced
 
