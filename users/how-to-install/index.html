@@ -1123,10 +1123,11 @@ You will need to install both of these before you can use search-a-licious.</p>
 <p>Look closely at each variable in the <code>.env</code> file.
 You must at the very least:</p>
 <ul>
-<li>change <code>RESTART_POLICY</code> to <code>always</code></li>
+<li>change <code>RESTART_POLICY</code> to <code>always</code>
+  (by default, containers are not automatically restarted; using <code>always</code> helps services come back after crashes or host reboots, which is recommended for production deployments)</li>
 <li>change <code>COMPOSE_FILE</code> to <code>docker-compose.yml;docker/prod.yml;docker/monitor.yml</code> (monitor is optional but recommended)</li>
 <li>change <code>MEM_LIMIT</code> to set elasticsearch memory limit</li>
-<li>change <code>NGINX_BASIC_AUTH_USER_PASSWD</code></li>
+<li>change <code>NGINX_BASIC_AUTH_USER_PASSWD</code> to an htpasswd-style value in the format <code>username:hashed_password</code> (not a plaintext password), for example: <code>admin:$apr1$example$abcdefghijklmnop</code></li>
 </ul>
 <p>Then you can either:</p>
 <ul>
