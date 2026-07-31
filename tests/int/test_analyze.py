@@ -113,9 +113,6 @@ def test_taxonomy_search_analyzer_without_synonyms(
     def get_taxonomy_search_analyzer_no_synonyms(
         config, taxonomy: str, lang: str, with_synonyms: bool
     ):
-        import pdb
-
-        pdb.set_trace()
         return get_taxonomy_search_analyzer(
             config, taxonomy, lang, False
         )  # force no synonyms
