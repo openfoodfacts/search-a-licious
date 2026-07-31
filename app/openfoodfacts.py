@@ -159,15 +159,16 @@ def convert_to_legacy_schema(images: JSONType) -> JSONType:
     for selected_key, image_by_lang in images.get("selected", {}).items():
         for lang, image_data in image_by_lang.items():
             new_image_data = {
-                "imgid": image_data["imgid"],
-                "rev": image_data["rev"],
+                "rev": image_data.get("rev", 1),
                 "sizes": {
                     # remove URL field
                     size: {k: v for k, v in image_size_data.items() if k != "url"}
-                    for size, image_size_data in image_data["sizes"].items()
+                    for size, image_size_data in image_data.get("sizes", {}).items()
                 },
                 **(image_data.get("generation", {})),
             }
+            if "imgid" in image_data:
+                new_image_data["imgid"] = image_data["imgid"]
             images_with_legacy_schema[f"{selected_key}_{lang}"] = new_image_data
 
     return images_with_legacy_schema
@@ -472,9 +473,11 @@ class ResultProcessor(BaseResultProcessor):
         for image_type, image_datas in _selected.items():
             selected_final[image_type] = {}
             for image_data in image_datas:
-                source = image_data.pop("source")
-                image_data["imgid"] = source["id"]
-                image_data["sizes"] = {"full": image_data.pop("full_size")}
+                source = image_data.pop("source", None)
+                if source:
+                    image_data["imgid"] = source["id"]
+                if "full_size" in image_data:
+                    image_data["sizes"] = {"full": image_data.pop("full_size")}
                 selected_final[image_type][image_data.pop("lc")] = image_data
         product["images"]["selected"] = selected_final
 

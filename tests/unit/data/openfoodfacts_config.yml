@@ -13,7 +13,7 @@ indices:
         source: |-
           String nova_index = (doc['nova_group'].size() != 0) ? doc['nova_group'].value.toString() : "unknown";
           String nutri_index = (doc['nutriscore_grade'].size() != 0) ? doc['nutriscore_grade'].value : 'e';
-          String eco_index = (doc['ecoscore_grade'].size() != 0) ? doc['ecoscore_grade'].value : 'e';
+          String eco_index = (doc['environmental_score_grade'].size() != 0) ? doc['ecoscore_grade'].value : 'e';
           return (
             params['nova_to_score'].getOrDefault(nova_index, 0) * params['nova_group']
             + params['grades_to_score'].getOrDefault(nutri_index, 0) * params['nutri_score']
