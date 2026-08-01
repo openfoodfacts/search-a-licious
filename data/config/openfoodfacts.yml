@@ -18,9 +18,9 @@ indices:
           String nutri_index = (doc['nutriscore_grade'].size() != 0) ? doc['nutriscore_grade'].value : 'e';
           String environmental_index = (doc['environmental_score_grade'].size() != 0) ? doc['environmental_score_grade'].value : 'e';
           return (
-            params['nova_to_score'].getOrDefault(environmental_index, 0) * params['nova_group']
+            params['nova_to_score'].getOrDefault(nova_index, 0) * params['nova_group']
             + params['grades_to_score'].getOrDefault(nutri_index, 0) * params['nutri_score']
-            + params['grades_to_score'].getOrDefault(environmental, 0) * params['environmental_score']
+            + params['grades_to_score'].getOrDefault(environmental_index, 0) * params['environmental_score']
           );
         params:
           environmental_score: 1
