@@ -3878,14 +3878,14 @@
     "created_t": {
       "type": "date"
     },
-    "ecoscore_data": {
+    "environmental_score_data": {
       "enabled": false,
       "type": "object"
     },
-    "ecoscore_grade": {
+    "environmental_score_grade": {
       "type": "keyword"
     },
-    "ecoscore_score": {
+    "environmental_score": {
       "type": "integer"
     },
     "emb_codes": {

@@ -442,6 +442,15 @@ class FieldConfig(BaseModel):
     ] = None
 
     @model_validator(mode="after")
+    def no_index_false_for_object_and_nested(self):
+        """Validator that checks that `index` is not set to False for
+        fields with types `object` or `nested`.
+        (because ES does not support it)"""
+        if not self.index and self.type in (FieldType.object, FieldType.nested):
+            raise ValueError("index cannot be set to False for object or nested type")
+        return self
+
+    @model_validator(mode="after")
     def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
         """Validator that checks that `bucket_agg` is only provided for
         fields with types `keyword`, `double`, `float`, `integer` or `bool`."""

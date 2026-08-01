@@ -243,7 +243,7 @@ indices:
         taxonomy_name: minerals
         bucket_agg: true
       # this field is a bit different from what the API provides to be able to leverage search
-      nova_group_markers:
+      nova_groups_markers:
         type: nested
         fields:
           id:

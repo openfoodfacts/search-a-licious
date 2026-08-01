@@ -526,7 +526,7 @@ def run_items_import(
         # create the index, use create method instead of save
         # because it supports additional parameters
         # it can be very long if we have a lot of synonyms to handle
-        index.create(using=es_client, timeout=f"{3600 * 2}s")
+        index.create(using=es_client, timeout="3600s", request_timeout=3600)
         # wait for it to be really available,
         # this can take a lot of time
         # if we have a lot of synonyms

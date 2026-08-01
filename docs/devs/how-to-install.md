@@ -131,7 +131,7 @@ You will then need to import from a JSONL dump (see instructions below).
    ```bash
    # get some sample data
    curl https://world.openfoodfacts.org/data/exports/products.random-modulo-1000.jsonl.gz --output data/products.random-modulo-1000.jsonl.gz
-   gzip -d data/products.random-modulo-10000.jsonl.gz
+   gzip -d data/products.random-modulo-1000.jsonl.gz
    ```
 
 - this sample data has products with mix schema version,
@@ -154,7 +154,7 @@ You will then need to import from a JSONL dump (see instructions below).
 - Import products :
   ```bash
    # we skip updates because we are not connected to any redis
-   make import-dataset filepath='products.random-modulo-10000.1002jsonl' args='--skip-updates'
+   make import-dataset filepath='products.random-modulo-1000.1002jsonl' args='--skip-updates'
   ```
 
 Verify you have data by going to http://search.localhost:8000/

@@ -62,7 +62,7 @@ def generate_dsl_field(
     :return: the elasticsearch_dsl field
     """
     metadata = {}
-    if not field.index:
+    if not field.index and field.type not in (FieldType.object, FieldType.nested):
         metadata["index"] = False
     if field.type is FieldType.taxonomy:
         # We will store the taxonomy identifier as keyword
@@ -95,10 +95,11 @@ def generate_dsl_field(
         properties = {
             lang: dsl_field.Text(
                 analyzer=analyzer(ANALYZER_LANG_MAPPING.get(lang, "standard")),
+                **metadata,
             )
             for lang in supported_langs
         }
-        return dsl_field.Object(dynamic=False, properties=properties, **metadata)
+        return dsl_field.Object(dynamic=False, properties=properties)
     elif field.type in (FieldType.object, FieldType.nested):
         if not field.fields:
             # this should not happen by construction of FieldConfig
@@ -110,7 +111,7 @@ def generate_dsl_field(
             for sub_field in field.fields.values()
         }
         if field.type == FieldType.nested:
-            return dsl_field.Nested(properties=properties)
+            return dsl_field.Nested(properties=properties, **metadata)
         else:
             return dsl_field.Object(dynamic=False, properties=properties, **metadata)
     elif field.type == FieldType.disabled:

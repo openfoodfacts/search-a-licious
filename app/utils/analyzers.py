@@ -1,5 +1,6 @@
 """Defines some analyzers for the elesaticsearch fields."""
 
+from collections.abc import Iterator
 from typing import Optional
 
 from elasticsearch_dsl import Mapping
@@ -72,7 +73,7 @@ STOP_WORDS = {
 
 def iter_taxonomy_synonyms_filters(
     config: IndexConfig, taxonomy: str, lang: str
-) -> dsl_analysis.TokenFilter:
+) -> Iterator[dsl_analysis.TokenFilter]:
     """Return the synonyms filters to use for the taxonomized field analyzer"""
     for set_id in expected_synonyms_sets_ids(config, taxonomy, lang):
         yield token_filter(

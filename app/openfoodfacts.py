@@ -351,8 +351,10 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         to
         ```
         [
-          {'id': 3, marker: [{'marker': 'en:ingredient', 'id': 'en:chocolate powder'}]},
-          {'id': 4, marker: [
+          {'id': "3", marker: [
+            {'marker': 'en:ingredient', 'id': 'en:chocolate powder'}
+        ]},
+          {'id': "4", marker: [
             {'marker': 'en:ingredient', , 'id': 'en:vanillin'},
             {'marker': 'en:additive', , 'id': 'en:e424'}
           ]},
@@ -364,7 +366,7 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         nova_groups_markers = document["nova_groups_markers"]
         document["nova_groups_markers"] = [
             {
-                "id": nova_group,
+                "id": str(nova_group),
                 "marker": [{"type": marker[0], "id": marker[1]} for marker in markers],
             }
             for nova_group, markers in nova_groups_markers.items()
@@ -446,7 +448,7 @@ class ResultProcessor(BaseResultProcessor):
     def process_after(
         self, result: JSONType, projection: set[str] | None = None
     ) -> JSONType:
-        if not projection or "images" in projection:
+        if not projection or any("image" in fname for fname in projection):
             result |= self.build_image_fields(result, projection)
         return result
 
@@ -462,6 +464,8 @@ class ResultProcessor(BaseResultProcessor):
         fields: JSONType = {}
 
         # recreate a structure equivalent to ProductOpener
+        # we recreate it even if we don't need it in projection,
+        # because we need to generate the image urls
         _uploaded = product.get("uploaded_images", [])
         product["images"] = {}
         product["images"]["uploaded"] = uploaded_final = {}

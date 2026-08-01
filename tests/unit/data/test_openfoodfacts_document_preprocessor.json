@@ -5,7 +5,7 @@
   "ingredients_text_main": "this should be in main",
   "nova_groups_markers": [
     {
-      "id": 3,
+      "id": "3",
       "marker": [
         {
           "id": "en:chocolate powder",
@@ -14,7 +14,7 @@
       ]
     },
     {
-      "id": 4,
+      "id": "4",
       "marker": [
         {
           "id": "en:vanillin",

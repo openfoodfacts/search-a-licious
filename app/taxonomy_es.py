@@ -92,8 +92,9 @@ def compute_synonyms_sets(
         # also node id without prefix
         multi_lang_synonyms.append(_normalize_synonym(node.id.split(":", 1)[-1]))
         multi_lang_synonyms = [s for s in multi_lang_synonyms if s.strip()]
-        for lang, synonyms in node.synonyms.items():
-            if (not synonyms and not multi_lang_synonyms) or lang not in langs:
+        for lang in langs:
+            synonyms = node.synonyms.get(lang, [])
+            if not synonyms and not multi_lang_synonyms:
                 continue
             # avoid commas in synonyms… add multilang syns and identifier without prefix
             synonyms_ = (_normalize_synonym(s) for s in synonyms)
@@ -134,8 +135,8 @@ def ingest_synonyms_sets(
             es.synonyms.put_synonym(
                 id=set_id,
                 synonyms_set=[
-                    {"id": id, "synonyms": f"{','.join(synonyms)} => {id}"}
-                    for id, synonyms in batched_synonyms_sets_items
+                    {"id": entry_id, "synonyms": f"{','.join(synonyms)} => {entry_id}"}
+                    for entry_id, synonyms in batched_synonyms_sets_items
                 ],
             )
             created_sets.add(set_id)

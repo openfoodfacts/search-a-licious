@@ -705,7 +705,7 @@
           "taxonomy_name": null,
           "type": "keyword"
         },
-        "nova_group_markers": {
+        "nova_groups_markers": {
           "bucket_agg": false,
           "fields": {
             "id": {
@@ -761,7 +761,7 @@
           "full_text_search": false,
           "index": true,
           "input_field": null,
-          "name": "nova_group_markers",
+          "name": "nova_groups_markers",
           "required": false,
           "split": false,
           "taxonomy_name": null,

@@ -118,12 +118,13 @@ def test_taxonomy_search_analyzer_without_synonyms(
         )  # force no synonyms
 
     # mock get_taxonomy_search_analyzer
-    unittest.mock.patch(
+    patcher = unittest.mock.patch(
         "app.indexing.get_taxonomy_search_analyzer",
         new=get_taxonomy_search_analyzer_no_synonyms,
     )
-    # create the index, without synonyms
-    data_ingester([])
+    with patcher:
+        # create the index, without synonyms
+        data_ingester([])
     search_en = get_taxonomy_search_analyzer(
         index_config, "labels", "en", False
     ).to_dict()
@@ -156,10 +157,12 @@ def test_taxonomy_search_analyzer_without_synonyms(
 
 
 @pytest.mark.xfail(reason="No stop words support yet")
-def test_taxonomy_search_analyzer_stopwords(es_connection, data_ingester):
+def test_taxonomy_search_analyzer_stopwords(index_config, es_connection, data_ingester):
     # create the index, with synonyms
     data_ingester([])
-    search_fr = get_taxonomy_search_analyzer("labels", "fr", True).to_dict()
+    search_fr = get_taxonomy_search_analyzer(
+        index_config, "labels", "fr", True
+    ).to_dict()
 
     # simple stop words taken into account
     result = es_connection.indices.analyze(
