@@ -41,7 +41,7 @@ class BaseResultProcessor:
                 suffix = "" if lang == "main" else f"_{lang}"
                 result[f"{fname}{suffix}"] = text
         # personalize the result
-        result = self.process_after(result)
+        result = self.process_after(result, projection)
         if projection:
             result = dict((k, v) for k, v in result.items() if k in projection)
         return result

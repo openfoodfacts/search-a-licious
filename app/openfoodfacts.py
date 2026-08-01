@@ -447,10 +447,12 @@ class ResultProcessor(BaseResultProcessor):
         self, result: JSONType, projection: set[str] | None = None
     ) -> JSONType:
         if not projection or "images" in projection:
-            result |= self.build_image_fields(result)
+            result |= self.build_image_fields(result, projection)
         return result
 
-    def build_image_fields(self, product: JSONType) -> JSONType:
+    def build_image_fields(
+        self, product: JSONType, projection: set[str] | None = None
+    ) -> JSONType:
         """Images are stored in a weird way in Open Food Facts,
         We want to make it far more simple to use in results.
         """
@@ -512,7 +514,10 @@ class ResultProcessor(BaseResultProcessor):
                             f"image_{image_type}_thumb_url"
                         ]
 
-            if product.get("languages_codes"):
+            selected_images_requested = (
+                not projection or "selected_images" in projection
+            )
+            if selected_images_requested and product.get("languages_codes"):
                 for language_code in product["languages_codes"]:
                     image_id = f"{image_type}_{language_code}"
                     if images and images.get(image_id) and images[image_id]["sizes"]:
