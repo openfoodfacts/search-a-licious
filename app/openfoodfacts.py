@@ -518,6 +518,7 @@ class ResultProcessor(BaseResultProcessor):
                     if images and images.get(image_id) and images[image_id]["sizes"]:
                         if "selected_images" not in fields:
                             fields["selected_images"] = {}
+                        rev_id = images[image_id]["rev"]
                         fields["selected_images"].update(
                             {
                                 image_type: {
