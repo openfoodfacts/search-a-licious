@@ -116,7 +116,7 @@ def get_processed_since(
             if result.status == FetcherStatus.SKIP:
                 logger.debug(f"Skipping ID {id_} because fetches stated to do so")
             elif result.status == FetcherStatus.RETRY:
-                logger.warn(
+                logger.warning(
                     f"Should retry ID {id_} due to status RETRY, but it's not yet implemented !"
                 )
             elif result.status == FetcherStatus.REMOVED:
@@ -183,7 +183,7 @@ def get_new_updates(
                         f"Skipping ID {id_}  in {stream_name} because fetches stated to do so"
                     )
                 elif result.status == FetcherStatus.RETRY:
-                    logger.warn(
+                    logger.warning(
                         f"Should retry ID {id_}  in {stream_name} due to status RETRY, "
                         "but it's not yet implemented !"
                     )
@@ -626,7 +626,7 @@ def perform_refresh_synonyms(index_id: str, config: IndexConfig) -> None:
     try:
         check_synonyms_sets_size(config)
     except TooManySynonymsSetsException as e:
-        logger.warn(
+        logger.warning(
             cd_(
                 """Too many synonyms in some taxonomies: %s
                 Consider raising max_synonyms_entries for those taxonomies
