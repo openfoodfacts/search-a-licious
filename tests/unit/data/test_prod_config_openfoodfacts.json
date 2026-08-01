@@ -2092,7 +2092,7 @@
             "nova_group": 1,
             "nutri_score": 1
           },
-          "source": "String nova_index = (doc['nova_group'].size() != 0) ? doc['nova_group'].value.toString() : \"unknown\";\nString nutri_index = (doc['nutriscore_grade'].size() != 0) ? doc['nutriscore_grade'].value : 'e';\nString environmental_index = (doc['environmental_score_grade'].size() != 0) ? doc['environmental_score_grade'].value : 'e';\nreturn (\n  params['nova_to_score'].getOrDefault(environmental_index, 0) * params['nova_group']\n  + params['grades_to_score'].getOrDefault(nutri_index, 0) * params['nutri_score']\n  + params['grades_to_score'].getOrDefault(environmental, 0) * params['environmental_score']\n);",
+          "source": "String nova_index = (doc['nova_group'].size() != 0) ? doc['nova_group'].value.toString() : \"unknown\";\nString nutri_index = (doc['nutriscore_grade'].size() != 0) ? doc['nutriscore_grade'].value : 'e';\nString environmental_index = (doc['environmental_score_grade'].size() != 0) ? doc['environmental_score_grade'].value : 'e';\nreturn (\n  params['nova_to_score'].getOrDefault(nova_index, 0) * params['nova_group']\n  + params['grades_to_score'].getOrDefault(nutri_index, 0) * params['nutri_score']\n  + params['grades_to_score'].getOrDefault(environmental_index, 0) * params['environmental_score']\n);",
           "static_params": {
             "grades_to_score": {
               "a": 90,

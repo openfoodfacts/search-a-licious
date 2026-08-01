@@ -3878,18 +3878,18 @@
     "created_t": {
       "type": "date"
     },
+    "emb_codes": {
+      "type": "text"
+    },
+    "environmental_score": {
+      "type": "integer"
+    },
     "environmental_score_data": {
       "enabled": false,
       "type": "object"
     },
     "environmental_score_grade": {
       "type": "keyword"
-    },
-    "environmental_score": {
-      "type": "integer"
-    },
-    "emb_codes": {
-      "type": "text"
     },
     "forest_footprint_data": {
       "enabled": false,
