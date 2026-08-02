@@ -94,7 +94,7 @@ $defs:
           \    * disabled: a field that is not stored nor searchable\n      (see [Elasticsearch\
           \ help])\n    * object: this field contains a dict with sub-fields.\n  \
           \  * nested: this field contains an array of objects.\n    \n\n[Elasticsearch\
-          \ help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
+          \ help](https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html)"
       required:
         default: false
         description: 'if required=True, the field is required in the input data
@@ -102,6 +102,16 @@ $defs:
 
           An entry that does not contains a value for this field will be rejected.'
         title: Required
+        type: boolean
+      index:
+        default: true
+        description: 'if False the field is not indexed, but only stored.
+
+
+          That is it will be possible to retrieve it in results,
+
+          but not query on it.'
+        title: Index
         type: boolean
       input_field:
         anyOf:
@@ -211,7 +221,7 @@ $defs:
       \ synonyms and translations\n      (and in fact also a text mapping possibility)\n\
       \    * disabled: a field that is not stored nor searchable\n      (see [Elasticsearch\
       \ help])\n    * object: this field contains a dict with sub-fields.\n    * nested:\
-      \ this field contains an array of objects.\n    \n\n[Elasticsearch help]: https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html"
+      \ this field contains an array of objects.\n    \n\n[Elasticsearch help](https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html)"
     enum:
     - keyword
     - date
@@ -295,6 +305,20 @@ $defs:
         description: Used for vega. Should be CSS color code.
         title: Accent Color
         type: string
+      synonyms_strategy:
+        allOf:
+        - $ref: '#/$defs/SynonymsStrategy'
+        default: index
+        description: "Strategy to use for synonyms.\n\n    * index: synonyms are implemented\
+          \ using the ElasticSearch synonyms sets strategy.\n      It can be efficient\n\
+          \      but it is not well supported\n      if you have a lot of taxonomies\
+          \ and a lot of languages.\n      (ElasticSearch start will be very very\
+          \ slow)\n    * none: synonyms are not automatically accounted for during\
+          \ requests\n      (you still get the taxonomies separate indexes).\n   \
+          \   This means your queries have to use the taxonomy id,\n      instead\
+          \ of a synonym or a translation.\n\n    A \"query\" strategy might be implemented\
+          \ in the future,\n    acting before sending the query to ElasticSearch.\n\
+          \    "
       taxonomy:
         allOf:
         - $ref: '#/$defs/TaxonomyConfig'
@@ -500,6 +524,20 @@ $defs:
     - painless
     title: ScriptType
     type: string
+  SynonymsStrategy:
+    description: "Strategy to use for synonyms.\n\n* index: synonyms are implemented\
+      \ using the ElasticSearch synonyms sets strategy.\n  It can be efficient\n \
+      \ but it is not well supported\n  if you have a lot of taxonomies and a lot\
+      \ of languages.\n  (ElasticSearch start will be very very slow)\n* none: synonyms\
+      \ are not automatically accounted for during requests\n  (you still get the\
+      \ taxonomies separate indexes).\n  This means your queries have to use the taxonomy\
+      \ id,\n  instead of a synonym or a translation.\n\nA \"query\" strategy might\
+      \ be implemented in the future,\nacting before sending the query to ElasticSearch."
+    enum:
+    - index
+    - none
+    title: SynonymsStrategy
+    type: string
   TaxonomyConfig:
     description: 'Configuration of taxonomies,
 
@@ -643,6 +681,21 @@ $defs:
           Other keys correspond to properties associated to this entry (eg. wikidata\
           \ id)."
         title: Url
+      max_synonyms_entries:
+        default: 10000
+        description: 'The maximum synonyms to account for
+
+          above this threshold, some synonyms will be ignored.
+
+
+          Using a high value might lead to performance problems
+
+
+          If you change this setting and go above a 10000 slice,
+
+          you will have to re-import your index for it to take effect'
+        title: Max Synonyms Entries
+        type: integer
     required:
     - name
     - url

@@ -277,6 +277,8 @@
 </li>
       <li><a href="searching.html#app.query.compute_facets_filters">compute_facets_filters() (in module app.query)</a>
 </li>
+      <li><a href="searching.html#app.taxonomy_es.compute_synonyms_sets">compute_synonyms_sets() (in module app.taxonomy_es)</a>
+</li>
       <li><a href="config.html#app.config.Settings.config_path">config_path (app.config.Settings attribute)</a>
 </li>
       <li><a href="config.html#app.config.ConfigGenerateJsonSchema">ConfigGenerateJsonSchema (class in app.config)</a>
@@ -290,8 +292,6 @@
       <li><a href="types.html#app._types.FacetInfo.count_error_margin">count_error_margin (app._types.FacetInfo attribute)</a>
 </li>
       <li><a href="searching.html#app.query.create_aggregation_clauses">create_aggregation_clauses() (in module app.query)</a>
-</li>
-      <li><a href="searching.html#app.taxonomy_es.create_synonyms_files">create_synonyms_files() (in module app.taxonomy_es)</a>
 </li>
       <li><a href="searching.html#app.utils.connection.current_es_client">current_es_client() (in module app.utils.connection)</a>
 </li>
@@ -351,6 +351,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="searching.html#app.taxonomy_es.expected_synonyms_sets_ids">expected_synonyms_sets_ids() (in module app.taxonomy_es)</a>
+</li>
       <li><a href="cli.html#app.cli.main.export_config_schema">export_config_schema() (in module app.cli.main)</a>
 </li>
       <li><a href="cli.html#app.cli.main.export_openapi">export_openapi() (in module app.cli.main)</a>
@@ -459,6 +461,8 @@
 </li>
       <li><a href="searching.html#app.es_scripts.get_script_prefix">get_script_prefix() (in module app.es_scripts)</a>
 </li>
+      <li><a href="config.html#app.config.IndexConfig.get_synonym_set_name">get_synonym_set_name() (app.config.IndexConfig method)</a>
+</li>
       <li><a href="misc.html#app.taxonomy.TaxonomyNode.get_synonyms">get_synonyms() (app.taxonomy.TaxonomyNode method)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.get_taxonomy">get_taxonomy() (in module app.taxonomy)</a>
@@ -470,8 +474,6 @@
       <li><a href="searching.html#app.utils.analyzers.get_taxonomy_search_analyzer">get_taxonomy_search_analyzer() (in module app.utils.analyzers)</a>
 </li>
       <li><a href="searching.html#app.utils.analyzers.get_taxonomy_stop_words_filter">get_taxonomy_stop_words_filter() (in module app.utils.analyzers)</a>
-</li>
-      <li><a href="searching.html#app.utils.analyzers.get_taxonomy_synonym_filter">get_taxonomy_synonym_filter() (in module app.utils.analyzers)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -503,9 +505,11 @@
 </li>
       <li><a href="cli.html#app.cli.main.import_taxonomies">import_taxonomies() (in module app.cli.main)</a>
 </li>
-      <li><a href="config.html#app.config.IndexConfig.index">index (app.config.IndexConfig attribute)</a>
+      <li><a href="config.html#app.config.FieldConfig.index">index (app.config.FieldConfig attribute)</a>
 
       <ul>
+        <li><a href="config.html#app.config.IndexConfig.index">(app.config.IndexConfig attribute)</a>
+</li>
         <li><a href="config.html#app.config.TaxonomyConfig.index">(app.config.TaxonomyConfig attribute)</a>
 </li>
       </ul></li>
@@ -514,6 +518,8 @@
       <li><a href="types.html#app._types.QuerySearchParameters.index_id">index_id (app._types.QuerySearchParameters attribute)</a>
 </li>
       <li><a href="config.html#app.config.Config.indices">indices (app.config.Config attribute)</a>
+</li>
+      <li><a href="searching.html#app.taxonomy_es.ingest_synonyms_sets">ingest_synonyms_sets() (in module app.taxonomy_es)</a>
 </li>
       <li><a href="config.html#app.config.FieldConfig.input_field">input_field (app.config.FieldConfig attribute)</a>
 </li>
@@ -544,6 +550,10 @@
       <li><a href="types.html#app._types.FacetInfo.items">items (app._types.FacetInfo attribute)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.iter_nodes">iter_nodes() (app.taxonomy.Taxonomy method)</a>
+</li>
+      <li><a href="searching.html#app.taxonomy_es.iter_synonyms_sets">iter_synonyms_sets() (in module app.taxonomy_es)</a>
+</li>
+      <li><a href="searching.html#app.utils.analyzers.iter_taxonomy_synonyms_filters">iter_taxonomy_synonyms_filters() (in module app.utils.analyzers)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -605,6 +615,8 @@
 </li>
       <li><a href="config.html#app.config.IndexConfig.match_phrase_boost_proximity">match_phrase_boost_proximity (app.config.IndexConfig attribute)</a>
 </li>
+      <li><a href="config.html#app.config.TaxonomySourceConfig.max_synonyms_entries">max_synonyms_entries (app.config.TaxonomySourceConfig attribute)</a>
+</li>
       <li>
     module
 
@@ -660,9 +672,11 @@
         <li><a href="config.html#app.config.TaxonomySourceConfig.name">(app.config.TaxonomySourceConfig attribute)</a>
 </li>
       </ul></li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode.names">names (app.taxonomy.TaxonomyNode attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.names">names (app.taxonomy.TaxonomyNode attribute)</a>
+      <li><a href="config.html#app.config.FieldConfig.no_index_false_for_object_and_nested">no_index_false_for_object_and_nested() (app.config.FieldConfig method)</a>
 </li>
       <li><a href="types.html#app._types.GetSearchParameters.no_sort_by_scripts_on_get">no_sort_by_scripts_on_get() (app._types.GetSearchParameters method)</a>
 </li>
@@ -806,11 +820,13 @@
 </li>
       <li><a href="types.html#app._types.PostSearchParameters.sort_params">sort_params (app._types.PostSearchParameters attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.ScriptConfig.source">source (app.config.ScriptConfig attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.TaxonomyConfig.sources">sources (app.config.TaxonomyConfig attribute)</a>
+</li>
+      <li><a href="config.html#app.config.TaxonomyConfig.sources_by_name">sources_by_name (app.config.TaxonomyConfig property)</a>
 </li>
       <li><a href="config.html#app.config.FieldConfig.split">split (app.config.FieldConfig attribute)</a>
 </li>
@@ -840,7 +856,9 @@
       </ul></li>
       <li><a href="misc.html#app.taxonomy.TaxonomyNode.synonyms">synonyms (app.taxonomy.TaxonomyNode attribute)</a>
 </li>
-      <li><a href="config.html#app.config.Settings.synonyms_path">synonyms_path (app.config.Settings attribute)</a>
+      <li><a href="config.html#app.config.IndexConfig.synonyms_strategy">synonyms_strategy (app.config.IndexConfig attribute)</a>
+</li>
+      <li><a href="config.html#app.config.SynonymsStrategy">SynonymsStrategy (class in app.config)</a>
 </li>
   </ul></td>
 </tr></table>

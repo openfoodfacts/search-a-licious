@@ -1063,6 +1063,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime-techdebt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime Technical Debt Tracking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1381,12 +1409,39 @@ The following steps are for those options, in case you edit the <code>.env</code
 <h2 id="importing-data-into-your-development-environment">Importing data into your development environment<a class="headerlink" href="#importing-data-into-your-development-environment" title="Permanent link">#</a></h2>
 <ul>
 <li>Import Taxonomies: <code>make import-taxonomies</code></li>
+</ul>
+<ul>
+<li>Get sample data
+   <div class="highlight"><pre><span></span><code><span class="c1"># get some sample data</span>
+curl<span class="w"> </span>https://world.openfoodfacts.org/data/exports/products.random-modulo-1000.jsonl.gz<span class="w"> </span>--output<span class="w"> </span>data/products.random-modulo-1000.jsonl.gz
+gzip<span class="w"> </span>-d<span class="w"> </span>data/products.random-modulo-1000.jsonl.gz
+</code></pre></div></li>
+</ul>
+<ul>
+<li>
+<p>this sample data has products with mix schema version,
+  you should convert them to all the same schema version,
+  the one corresponding to expected API used in <code>openfoodfacts.py</code>.
+  At the time of writing it's 1002</p>
+<ul>
+<li><a href="https://openfoodfacts.github.io/documentation/docs/Product-Opener/dev/how-to-quick-start-guide/">Install Product Opener locally</a></li>
+</ul>
+<ul>
+<li>then use the <code>convert_product_schema_dump.pl</code> script
+  <div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--no-deps<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>/path/to/search/data:/tmp/data<span class="w"> </span>backend<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>scripts/convert_product_schema_dump.pl<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>/tmp/data/products.random-modulo-1000.jsonl
+<span class="w">    </span>--to-version<span class="w"> </span><span class="m">1002</span>
+<span class="w">    </span>--output<span class="w"> </span>/tmp/data/products.random-modulo-1000.1002.jsonl
+</code></pre></div></li>
+</ul>
+</li>
+</ul>
+<ul>
 <li>Import products :
-  <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="c1"># get some sample data</span>
-<span class="w"> </span>curl<span class="w"> </span>https://world.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz<span class="w"> </span>--output<span class="w"> </span>data/products.random-modulo-10000.jsonl.gz
-<span class="w"> </span>gzip<span class="w"> </span>-d<span class="w"> </span>data/products.random-modulo-10000.jsonl.gz
-<span class="w"> </span><span class="c1"># we skip updates because we are not connected to any redis</span>
-<span class="w"> </span>make<span class="w"> </span>import-dataset<span class="w"> </span><span class="nv">filepath</span><span class="o">=</span><span class="s1">&#39;products.random-modulo-10000.jsonl&#39;</span><span class="w"> </span><span class="nv">args</span><span class="o">=</span><span class="s1">&#39;--skip-updates&#39;</span>
+  <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="c1"># we skip updates because we are not connected to any redis</span>
+<span class="w"> </span>make<span class="w"> </span>import-dataset<span class="w"> </span><span class="nv">filepath</span><span class="o">=</span><span class="s1">&#39;products.random-modulo-1000.1002jsonl&#39;</span><span class="w"> </span><span class="nv">args</span><span class="o">=</span><span class="s1">&#39;--skip-updates&#39;</span>
 </code></pre></div></li>
 </ul>
 <p>Verify you have data by going to http://search.localhost:8000/</p>

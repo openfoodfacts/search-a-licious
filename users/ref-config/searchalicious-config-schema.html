@@ -711,6 +711,8 @@ to provide intended behaviour.</p>
 * object: this field contains a dict with sub-fields.
 * nested: this field contains an array of objects.
 </code></pre>
+
+<p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html">Elasticsearch help</a></p>
 </span>
 
     <div class="enum-value" id="indices_additionalProperties_fields_additionalProperties_type_enum">
@@ -780,6 +782,71 @@ to provide intended behaviour.</p>
 <span class="description"><p>if required=True, the field is required in the input data</p>
 
 <p>An entry that does not contains a value for this field will be rejected.</p>
+</span>
+        
+
+        
+        
+
+        
+            </div>
+        </div>
+    </div>
+</div>
+<div class="accordion" id="accordionindices_additionalProperties_fields_additionalProperties_index">
+    <div class="card">
+        <div class="card-header" id="headingindices_additionalProperties_fields_additionalProperties_index">
+            <h2 class="mb-0">
+                <button class="btn btn-link property-name-button" type="button" data-toggle="collapse" data-target="#indices_additionalProperties_fields_additionalProperties_index"
+                        aria-expanded="" aria-controls="indices_additionalProperties_fields_additionalProperties_index" onclick="setAnchor('#indices_additionalProperties_fields_additionalProperties_index')"><span class="property-name">index</span></button>
+            </h2>
+        </div>
+
+        <div id="indices_additionalProperties_fields_additionalProperties_index"
+             class="collapse property-definition-div" aria-labelledby="headingindices_additionalProperties_fields_additionalProperties_index"
+             data-parent="#accordionindices_additionalProperties_fields_additionalProperties_index">
+            <div class="card-body pl-5">
+
+    <div class="breadcrumbs">root
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices" onclick="anchorLink('indices')">indices</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties" onclick="anchorLink('indices_additionalProperties')">IndexConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_fields" onclick="anchorLink('indices_additionalProperties_fields')">fields</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_fields_additionalProperties" onclick="anchorLink('indices_additionalProperties_fields_additionalProperties')">FieldConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_fields_additionalProperties_index" onclick="anchorLink('indices_additionalProperties_fields_additionalProperties_index')">index</a></div><h4>Index</h4><span class="badge badge-dark value-type">Type: boolean</span> <span class="badge badge-success default-value">Default: true</span><br/>
+<span class="description"><p>if False the field is not indexed, but only stored.</p>
+
+<p>That is it will be possible to retrieve it in results,<br />
+but not query on it.</p>
 </span>
         
 
@@ -1874,6 +1941,73 @@ because they lead to nasty bugs, and are not meant for production use.</p>
         </div>
     </div>
 </div>
+<div class="accordion" id="accordionindices_additionalProperties_synonyms_strategy">
+    <div class="card">
+        <div class="card-header" id="headingindices_additionalProperties_synonyms_strategy">
+            <h2 class="mb-0">
+                <button class="btn btn-link property-name-button" type="button" data-toggle="collapse" data-target="#indices_additionalProperties_synonyms_strategy"
+                        aria-expanded="" aria-controls="indices_additionalProperties_synonyms_strategy" onclick="setAnchor('#indices_additionalProperties_synonyms_strategy')"><span class="property-name">synonyms_strategy</span></button>
+            </h2>
+        </div>
+
+        <div id="indices_additionalProperties_synonyms_strategy"
+             class="collapse property-definition-div" aria-labelledby="headingindices_additionalProperties_synonyms_strategy"
+             data-parent="#accordionindices_additionalProperties_synonyms_strategy">
+            <div class="card-body pl-5">
+
+    <div class="breadcrumbs">root
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices" onclick="anchorLink('indices')">indices</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties" onclick="anchorLink('indices_additionalProperties')">IndexConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_synonyms_strategy" onclick="anchorLink('indices_additionalProperties_synonyms_strategy')">synonyms_strategy</a></div><h4>SynonymsStrategy</h4><span class="badge badge-dark value-type">Type: enum (of string)</span> <span class="badge badge-success default-value">Default: "index"</span><br/>
+<span class="description"><p>Strategy to use for synonyms.</p>
+
+<pre><code>* index: synonyms are implemented using the ElasticSearch synonyms sets strategy.
+  It can be efficient
+  but it is not well supported
+  if you have a lot of taxonomies and a lot of languages.
+  (ElasticSearch start will be very very slow)
+* none: synonyms are not automatically accounted for during requests
+  (you still get the taxonomies separate indexes).
+  This means your queries have to use the taxonomy id,
+  instead of a synonym or a translation.
+
+A "query" strategy might be implemented in the future,
+acting before sending the query to ElasticSearch.
+</code></pre>
+</span>
+
+    <div class="enum-value" id="indices_additionalProperties_synonyms_strategy_enum">
+            <h4>Must be one of:</h4>
+            <ul class="list-group"><li class="list-group-item enum-item">"index"</li><li class="list-group-item enum-item">"none"</li></ul>
+            </div>
+        
+
+        
+        
+
+        
+            </div>
+        </div>
+    </div>
+</div>
 <div class="accordion" id="accordionindices_additionalProperties_taxonomy">
     <div class="card">
         <div class="card-header" id="headingindices_additionalProperties_taxonomy">
@@ -2329,6 +2463,81 @@ in various languages (keys are language codes)</li>
 
         
         </div></div></div>
+        
+
+        
+        
+
+        
+            </div>
+        </div>
+    </div>
+</div>
+<div class="accordion" id="accordionindices_additionalProperties_taxonomy_sources_items_max_synonyms_entries">
+    <div class="card">
+        <div class="card-header" id="headingindices_additionalProperties_taxonomy_sources_items_max_synonyms_entries">
+            <h2 class="mb-0">
+                <button class="btn btn-link property-name-button" type="button" data-toggle="collapse" data-target="#indices_additionalProperties_taxonomy_sources_items_max_synonyms_entries"
+                        aria-expanded="" aria-controls="indices_additionalProperties_taxonomy_sources_items_max_synonyms_entries" onclick="setAnchor('#indices_additionalProperties_taxonomy_sources_items_max_synonyms_entries')"><span class="property-name">max_synonyms_entries</span></button>
+            </h2>
+        </div>
+
+        <div id="indices_additionalProperties_taxonomy_sources_items_max_synonyms_entries"
+             class="collapse property-definition-div" aria-labelledby="headingindices_additionalProperties_taxonomy_sources_items_max_synonyms_entries"
+             data-parent="#accordionindices_additionalProperties_taxonomy_sources_items_max_synonyms_entries">
+            <div class="card-body pl-5">
+
+    <div class="breadcrumbs">root
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices" onclick="anchorLink('indices')">indices</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties" onclick="anchorLink('indices_additionalProperties')">IndexConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_taxonomy" onclick="anchorLink('indices_additionalProperties_taxonomy')">taxonomy</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_taxonomy_sources" onclick="anchorLink('indices_additionalProperties_taxonomy_sources')">sources</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_taxonomy_sources_items" onclick="anchorLink('indices_additionalProperties_taxonomy_sources_items')">TaxonomySourceConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_taxonomy_sources_items_max_synonyms_entries" onclick="anchorLink('indices_additionalProperties_taxonomy_sources_items_max_synonyms_entries')">max_synonyms_entries</a></div><h4>Max Synonyms Entries</h4><span class="badge badge-dark value-type">Type: integer</span> <span class="badge badge-success default-value">Default: 10000</span><br/>
+<span class="description"><p>The maximum synonyms to account for<br />
+above this threshold, some synonyms will be ignored.</p>
+
+<p>Using a high value might lead to performance problems</p>
+
+<p>If you change this setting and go above a 10000 slice,<br />
+you will have to re-import your index for it to take effect</p>
+</span>
         
 
         
@@ -4665,6 +4874,6 @@ Otherwise it will allow some gap between words matching</p>
 </div>
 
     <footer>
-        <p class="generated-by-footer">Generated using <a href="https://github.com/coveooss/json-schema-for-humans">json-schema-for-humans</a> on 2026-07-31 at 12:42:07 +0000</p>
+        <p class="generated-by-footer">Generated using <a href="https://github.com/coveooss/json-schema-for-humans">json-schema-for-humans</a> on 2026-08-02 at 13:18:20 +0000</p>
     </footer></body>
 </html>
