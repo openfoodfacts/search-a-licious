@@ -344,7 +344,6 @@ def build_completion_query(
     :return: the built Query
     """
     query = Search(index=config.taxonomy.index.name)
-    # import pdb;pdb.set_trace();
     for lang in langs:
         completion_clause = {
             "field": f"synonyms.{lang}",

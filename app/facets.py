@@ -109,7 +109,8 @@ def build_facets(
         facet_items.extend(
             FacetItem(
                 key=bucket["key"],
-                # TECHDEBT(SAL-TECHDEBT-001): compute translated value when facet is taxonomy-backed.
+                # TECHDEBT(SAL-TECHDEBT-001):
+                # compute translated value when facet is taxonomy-backed.
                 name=bucket["key"],
                 count=bucket["doc_count"],
                 selected=bucket["key"] in selected_values,
@@ -120,7 +121,8 @@ def build_facets(
         facet_items.extend(
             FacetItem(
                 key=value,
-                # TECHDEBT(SAL-TECHDEBT-001): compute translated value when facet is taxonomy-backed.
+                # TECHDEBT(SAL-TECHDEBT-001):
+                # compute translated value when facet is taxonomy-backed.
                 name=value,
                 count=None,  # undefined
                 selected=True,
@@ -149,11 +151,13 @@ def build_facets(
         #     facet_items.append(
         #         FacetItem(
         #             key="--none--",
-        #             # TECHDEBT(SAL-TECHDEBT-002): localize built-in pseudo facet labels.
+        #             # TECHDEBT(SAL-TECHDEBT-002):
+        #             # localize built-in pseudo facet labels.
         #             name="None",
         #             # Note:translate_facets_values leave it to user to verify
         #             count=search_result.count - items_count,
-        #             # TECHDEBT(SAL-TECHDEBT-003): compute selected state for synthetic entries.
+        #             # TECHDEBT(SAL-TECHDEBT-003):
+        #             #compute selected state for synthetic entries.
         #             selected=False,
         #         )
         #     )

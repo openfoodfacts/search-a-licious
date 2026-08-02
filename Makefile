@@ -34,7 +34,7 @@ DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test $(DOCKER_COMPOSE)
 
 create_external_volumes:
 	@echo "🔎 Creating external volumes (production only) …"
-	@for vol_name in esdata01 esdata02 es_synonyms; \
+	@for vol_name in esdata01 esdata02; \
 	do \
 		vol_name=${COMPOSE_PROJECT_NAME}_$$vol_name; \
 		echo creating docker volume $$vol_name \
