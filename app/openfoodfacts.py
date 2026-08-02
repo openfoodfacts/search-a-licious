@@ -393,8 +393,8 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                 "uploaded_t": image.get("uploaded_t"),
                 "uploader": image.get("uploader"),
                 "full_size": {
-                    "h": image.get("sizes", {}).get("full", {}).get("h"),
-                    "w": image.get("sizes", {}).get("full", {}).get("w"),
+                    "h": deep_get(image, "sizes", "full", "h"),
+                    "w": deep_get(image, "sizes", "full", "w"),
                 },
             }
             for key, image in uploaded.items()
@@ -411,8 +411,8 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                 {
                     "lc": lc,
                     "full_size": {
-                        "h": image.get("sizes", {}).get("full", {}).get("h"),
-                        "w": image.get("sizes", {}).get("full", {}).get("w"),
+                        "h": deep_get(image, "sizes", "full", "h"),
+                        "w": deep_get(image, "sizes", "full", "w"),
                     },
                     "rev": image.get("rev"),
                     # will be removed
