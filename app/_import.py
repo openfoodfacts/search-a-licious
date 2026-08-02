@@ -232,6 +232,7 @@ def gen_documents(
     num_items: int | None,
     num_processes: int,
     process_num: int,
+    gen_document_errors: list[Exception] | None = None,
 ):
     """Generate documents to index for process number process_num
 
@@ -244,11 +245,16 @@ def gen_documents(
         if i % num_processes != process_num:
             continue
 
-        document_dict = get_document_dict(
-            processor,
-            FetcherResult(status=FetcherStatus.FOUND, document=row),
-            next_index,
-        )
+        try:
+            document_dict = get_document_dict(
+                processor,
+                FetcherResult(status=FetcherStatus.FOUND, document=row),
+                next_index,
+            )
+        except Exception as e:
+            if gen_document_errors is not None:
+                gen_document_errors.append(e)
+            continue
         if not document_dict:
             continue
         yield document_dict
@@ -362,6 +368,8 @@ def import_parallel(
     processor = DocumentProcessor(config)
     # open a connection for this process
     es = connection.get_es_client(request_timeout=120, retry_on_timeout=True)
+    # a list of errors that occurs during document generation
+    gen_document_errors: list[Exception] = []
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to
     # parallelize that. If we then do parallel_bulk here, this causes queueing
@@ -375,6 +383,7 @@ def import_parallel(
             num_items,
             num_processes,
             process_num,
+            gen_document_errors,
         ),
         raise_on_error=False,
     )
@@ -413,6 +422,7 @@ def get_redis_products(
     index: str,
     id_field_name: str,
     last_updated_timestamp_ms: int,
+    errors: list[Exception] | None = None,
 ):
     """Fetch IDs of documents to update from Redis.
 
@@ -434,9 +444,13 @@ def get_redis_products(
         id_field_name,
         document_fetcher=fetcher,
     ):
-        document_dict = get_document_dict(processor, result, index)
-        if document_dict:
-            yield document_dict
+        try:
+            document_dict = get_document_dict(processor, result, index)
+            if document_dict:
+                yield document_dict
+        except Exception as e:
+            if errors is not None:
+                errors.append(e)
         processed += 1
     logger.info("Processed %d updates from Redis", processed)
 
@@ -472,6 +486,7 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
     id_field_name = config.index.id_field_name
     # Since this is only done by a single process, we can use parallel_bulk
     num_errors = 0
+    document_gen_errors: list[Exception] = []
     for success, info in parallel_bulk(
         es_client,
         get_redis_products(
@@ -481,11 +496,15 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
             index,
             id_field_name,
             last_updated_timestamp_ms,
+            document_gen_errors,
         ),
     ):
         if not success:
             logger.warning("A document failed: %s", info)
             num_errors += 1
+    for error in document_gen_errors:
+        logger.error("A document failed: %s", error)
+    num_errors += len(document_gen_errors)
     return num_errors
 
 

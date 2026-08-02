@@ -390,11 +390,11 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         document["uploaded_images"] = [
             {
                 "id": key,
-                "uploaded_t": image["uploaded_t"],
-                "uploader": image["uploader"],
+                "uploaded_t": image.get("uploaded_t"),
+                "uploader": image.get("uploader"),
                 "full_size": {
-                    "h": image["sizes"]["full"]["h"],
-                    "w": image["sizes"]["full"]["w"],
+                    "h": deep_get(image, "sizes", "full", "h"),
+                    "w": deep_get(image, "sizes", "full", "w"),
                 },
             }
             for key, image in uploaded.items()
@@ -411,12 +411,12 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                 {
                     "lc": lc,
                     "full_size": {
-                        "h": image["sizes"]["full"]["h"],
-                        "w": image["sizes"]["full"]["w"],
+                        "h": deep_get(image, "sizes", "full", "h"),
+                        "w": deep_get(image, "sizes", "full", "w"),
                     },
-                    "rev": image["rev"],
+                    "rev": image.get("rev"),
                     # will be removed
-                    "imgid": image["imgid"],
+                    "imgid": image.get("imgid"),
                 }
                 for lc, image in selected.items()
             ]
@@ -428,8 +428,8 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                     continue
                 selected_image["source"] = {
                     "id": imgid,
-                    "uploaded_t": uploaded_img["uploaded_t"],
-                    "uploader": uploaded_img["uploader"],
+                    "uploaded_t": uploaded_img.get("uploaded_t"),
+                    "uploader": uploaded_img.get("uploader"),
                 }
         # remove images
         document.pop("images", None)
