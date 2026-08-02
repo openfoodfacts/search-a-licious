@@ -208,7 +208,11 @@ def get_document_dict(
     """Return the document dict suitable for a bulk insert operation."""
     if result.document is None:
         return None
-    result = processor.from_result(result)
+    try:
+        result = processor.from_result(result)
+    except Exception:
+        logger.exception(f"Error processing result: {result}")
+        return None
     document = result.document
     if not document:
         return None
