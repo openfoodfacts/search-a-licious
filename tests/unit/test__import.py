@@ -326,6 +326,7 @@ def test_gen_documents(default_config):
         assert datetime.datetime.fromisoformat(last_indexed_datetime) > start_datetime
         assert "categories" in document["_source"]
         assert document["_source"] == {
+            "obsolete": False,
             "categories": ["en:beverages"],
             "code": ids[i],
         }

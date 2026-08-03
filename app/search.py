@@ -104,7 +104,11 @@ def search(
     except QueryCheckError as e:
         return ErrorSearchResponse(
             debug=SearchResponseDebug(),
-            errors=[SearchResponseError(title="QueryCheckError", description=str(e))],
+            errors=[
+                SearchResponseError(
+                    title="QueryCheckError", description=str(e), status=400
+                )
+            ],
         )
     if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
