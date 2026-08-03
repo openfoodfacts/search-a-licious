@@ -9,6 +9,8 @@ from app._types import FetcherResult, FetcherStatus, JSONType
 from app.indexing import BaseDocumentPreprocessor, BaseTaxonomyPreprocessor
 from app.postprocessing import BaseResultProcessor
 from app.taxonomy import Taxonomy, TaxonomyNode, TaxonomyNodeResult
+from app.utils.conform_json import conform_json_to_config
+from app.utils.dict_utils import deep_get
 from app.utils.download import http_session
 from app.utils.log import get_logger
 
@@ -157,15 +159,16 @@ def convert_to_legacy_schema(images: JSONType) -> JSONType:
     for selected_key, image_by_lang in images.get("selected", {}).items():
         for lang, image_data in image_by_lang.items():
             new_image_data = {
-                "imgid": image_data["imgid"],
-                "rev": image_data["rev"],
+                "rev": image_data.get("rev", 1),
                 "sizes": {
                     # remove URL field
                     size: {k: v for k, v in image_size_data.items() if k != "url"}
-                    for size, image_size_data in image_data["sizes"].items()
+                    for size, image_size_data in image_data.get("sizes", {}).items()
                 },
                 **(image_data.get("generation", {})),
             }
+            if "imgid" in image_data:
+                new_image_data["imgid"] = image_data["imgid"]
             images_with_legacy_schema[f"{selected_key}_{lang}"] = new_image_data
 
     return images_with_legacy_schema
@@ -198,9 +201,10 @@ class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
         taxonomies.
         """
         if taxonomy.name == "brands":
-            # brands are all stored under the `xx` lang prefix, put them
-            # in "main lang"
-            node.names.update(main=node.names["xx"])
+            # brands are all stored under the `xx` lang prefix,
+            # put them in "main lang" (or pick en, or a random one)
+            if "xx" in node.names:
+                node.names.update(main=node.names["xx"])
             if node.synonyms and (synonyms_xx := list(node.synonyms.get("xx", []))):
                 node.synonyms.update(main=synonyms_xx)
         else:
@@ -228,7 +232,7 @@ class DocumentFetcher(BaseDocumentFetcher):
             return FetcherResult(status=FetcherStatus.REMOVED, document=None)
 
         code = item["code"]
-        url = f"{OFF_API_URL}/api/v2/product/{code}"
+        url = f"{OFF_API_URL}/api/v3.3/product/{code}"
         try:
             response = http_session.get(url)
         except requests.exceptions.RequestException as exc:
@@ -255,6 +259,19 @@ class DocumentFetcher(BaseDocumentFetcher):
 
 class DocumentPreprocessor(BaseDocumentPreprocessor):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.selected_nutriments = frozenset(
+            self.config.fields["nutriments"].fields.keys()
+            if "nutriments" in self.config.fields
+            else []
+        )
+        self.selected_images_keys = (
+            frozenset(self.config.fields["selected_images"].fields.keys())
+            if "selected_images" in self.config.fields
+            else frozenset()
+        )
+
     def preprocess(self, document: JSONType) -> FetcherResult:
         # no need to have a deep-copy here
         document = copy.copy(document)
@@ -262,8 +279,15 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         document["obsolete"] = bool(document.get("obsolete"))
         # add "main" language to text_lang fields
         self.add_main_language(document)
+        # self.normalize_ingredients(document)
+        # self.normalize_bool_fields(document)
         # Don't keep all nutriment values
         self.select_nutriments(document)
+        # make nova_groups_markers a list
+        self.transform_nova_groups_markers(document)
+        self.transform_images(document)
+        # finally do some cleanup of the JSON because PERL is not strict enough
+        conform_json_to_config(document, self.config)
         return FetcherResult(status=FetcherStatus.FOUND, document=document)
 
     def add_main_language(self, document: JSONType) -> None:
@@ -279,6 +303,26 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
             if field in document:
                 document[field + "_main"] = document[field]
 
+    def normalize_bool_fields(self, document: JSONType) -> None:
+        """Ensure that various fields follow their expected type"""
+        for field in ["obsolete", "no_nutrition_data", "packagings_complete"]:
+            if field in document:
+                document[field] = bool(document[field])
+
+    def normalize_ingredients(self, document: JSONType):
+        """Ensure that various fields of ingredients follow their expected type"""
+        for ingredient in document.get("ingredients", []):
+            if "is_in_taxonomy" in ingredient:
+                ingredient["is_in_taxonomy"] = bool(ingredient["is_in_taxonomy"])
+            if "percent" in ingredient:
+                try:
+                    ingredient["percent"] = float(ingredient["percent"])
+                except (ValueError, TypeError):
+                    del ingredient["percent"]
+            if "ingredients" in ingredient:
+                # recursively normalize sub-ingredients
+                self.normalize_ingredients(ingredient)
+
     def select_nutriments(self, document: JSONType):
         """Only selected interesting nutriments, as there are hundreds of
         possible values and we're limited to 1000 fields (total) by
@@ -287,31 +331,130 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         Update `document` in place.
         """
         nutriments = document.get("nutriments", {})
+        document["nutriments"] = {
+            k: nutriments[k] for k in self.selected_nutriments if k in nutriments
+        }
 
-        for key in list(nutriments):
-            # Only keep some nutriment values per 100g
-            if key not in (
-                "energy-kj_100g",
-                "energy-kcal_100g",
-                "fiber_100g",
-                "fat_100g",
-                "saturated-fat_100g",
-                "carbohydrates_100g",
-                "sugars_100g",
-                "proteins_100g",
-                "salt_100g",
-                "sodium_100g",
-            ):
-                nutriments.pop(key)
+    def transform_nova_groups_markers(self, document: JSONType):
+        """Transform Nova Groups markers into a list
+
+        ProductOpener structure is made of lists that are to be considered like tuple,
+        it is not handy for ES indexing, where we need a list of dict.
+
+        Goes from:
+        ```
+        {
+          3: [['en:ingredient', 'en:chocolate powder']],
+          4: [['en:ingredient', 'en:vanillin'], ['en:additive', 'en:e424']],
+        }
+        ```
+        to
+        ```
+        [
+          {'id': "3", marker: [
+            {'marker': 'en:ingredient', 'id': 'en:chocolate powder'}
+        ]},
+          {'id': "4", marker: [
+            {'marker': 'en:ingredient', , 'id': 'en:vanillin'},
+            {'marker': 'en:additive', , 'id': 'en:e424'}
+          ]},
+        ]
+        ```
+        """
+        if "nova_groups_markers" not in document:
+            return
+        nova_groups_markers = document["nova_groups_markers"]
+        document["nova_groups_markers"] = [
+            {
+                "id": str(nova_group),
+                "marker": [{"type": marker[0], "id": marker[1]} for marker in markers],
+            }
+            for nova_group, markers in nova_groups_markers.items()
+        ]
+
+    def transform_images(self, document: JSONType):
+        """
+        Images field is very nested. We want to transform it
+        to fit ES indexing capability
+        and to have only the information we need.
+
+        It creates `uploaded_images` and `selected_images` fields
+        according to expected schema.
+
+        In selected_images, we also add informations from the source.
+        """
+        if "images" not in document:
+            return
+        uploaded = deep_get(document, "images", "uploaded", default={})
+        # create uploaded_images
+        document["uploaded_images"] = [
+            {
+                "id": key,
+                "uploaded_t": image.get("uploaded_t"),
+                "uploader": image.get("uploader"),
+                "full_size": {
+                    "h": deep_get(image, "sizes", "full", "h"),
+                    "w": deep_get(image, "sizes", "full", "w"),
+                },
+            }
+            for key, image in uploaded.items()
+        ]
+        # selected images
+        document["selected_images"] = {}
+        orig_selected_images = deep_get(document, "images", "selected", default={})
+        for image_type, selected in orig_selected_images.items():
+            if image_type not in self.selected_images_keys:
+                continue
+            # transform selected images to fit ES indexing capability
+            # and to have only the information we need
+            document["selected_images"][image_type] = _images = [
+                {
+                    "lc": lc,
+                    "full_size": {
+                        "h": deep_get(image, "sizes", "full", "h"),
+                        "w": deep_get(image, "sizes", "full", "w"),
+                    },
+                    "rev": image.get("rev"),
+                    # will be removed
+                    "imgid": image.get("imgid"),
+                }
+                for lc, image in selected.items()
+            ]
+            # add source
+            for selected_image in _images:
+                imgid = selected_image.pop("imgid")
+                uploaded_img = uploaded.get(imgid)
+                if not uploaded_img:
+                    continue
+                selected_image["source"] = {
+                    "id": imgid,
+                    "uploaded_t": uploaded_img.get("uploaded_t"),
+                    "uploader": uploaded_img.get("uploader"),
+                }
+        # remove images
+        document.pop("images", None)
 
 
 class ResultProcessor(BaseResultProcessor):
-    def process_after(self, result: JSONType) -> JSONType:
-        result |= ResultProcessor.build_image_fields(result)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.selected_images_keys = (
+            list(self.config.fields["selected_images"].fields.keys())
+            if "selected_images" in self.config.fields
+            else []
+        )
+
+    def process_after(
+        self, result: JSONType, projection: set[str] | None = None
+    ) -> JSONType:
+        if not projection or any("image" in fname for fname in projection):
+            result |= self.build_image_fields(result, projection)
         return result
 
-    @staticmethod
-    def build_image_fields(product: JSONType) -> JSONType:
+    def build_image_fields(
+        self, product: JSONType, projection: set[str] | None = None
+    ) -> JSONType:
         """Images are stored in a weird way in Open Food Facts,
         We want to make it far more simple to use in results.
         """
@@ -320,7 +463,31 @@ class ResultProcessor(BaseResultProcessor):
         code = product["code"]
         fields: JSONType = {}
 
-        for image_type in ["front", "ingredients", "nutrition", "packaging"]:
+        # recreate a structure equivalent to ProductOpener
+        # we recreate it even if we don't need it in projection,
+        # because we need to generate the image urls
+        _uploaded = product.get("uploaded_images", [])
+        product["images"] = {}
+        product["images"]["uploaded"] = uploaded_final = {}
+        for image_data in _uploaded:
+            imgid = image_data.pop("id")
+            image_data["sizes"] = {"full": image_data.pop("full_size")}
+            uploaded_final[imgid] = image_data
+
+        _selected = product.get("selected_images", {})
+        selected_final: dict[str, JSONType] = {}
+        for image_type, image_datas in _selected.items():
+            selected_final[image_type] = {}
+            for image_data in image_datas:
+                source = image_data.pop("source", None)
+                if source:
+                    image_data["imgid"] = source["id"]
+                if "full_size" in image_data:
+                    image_data["sizes"] = {"full": image_data.pop("full_size")}
+                selected_final[image_type][image_data.pop("lc")] = image_data
+        product["images"]["selected"] = selected_final
+
+        for image_type in self.selected_images_keys:
             display_ids = []
             lang = product.get("lang")
             if lang:
@@ -351,12 +518,16 @@ class ResultProcessor(BaseResultProcessor):
                             f"image_{image_type}_thumb_url"
                         ]
 
-            if product.get("languages_codes"):
+            selected_images_requested = (
+                not projection or "selected_images" in projection
+            )
+            if selected_images_requested and product.get("languages_codes"):
                 for language_code in product["languages_codes"]:
                     image_id = f"{image_type}_{language_code}"
                     if images and images.get(image_id) and images[image_id]["sizes"]:
                         if "selected_images" not in fields:
                             fields["selected_images"] = {}
+                        rev_id = images[image_id]["rev"]
                         fields["selected_images"].update(
                             {
                                 image_type: {
