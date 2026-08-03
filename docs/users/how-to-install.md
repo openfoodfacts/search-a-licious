@@ -32,9 +32,10 @@ If you want to see more about applications settings, see the [Reference for Sett
 Look closely at each variable in the `.env` file.
 You must at the very least:
 * change `RESTART_POLICY` to `always`
+  (by default, containers are not automatically restarted; using `always` helps services come back after crashes or host reboots, which is recommended for production deployments)
 * change `COMPOSE_FILE` to `docker-compose.yml;docker/prod.yml;docker/monitor.yml` (monitor is optional but recommended)
 * change `MEM_LIMIT` to set elasticsearch memory limit
-* change `NGINX_BASIC_AUTH_USER_PASSWD`
+* change `NGINX_BASIC_AUTH_USER_PASSWD` to an htpasswd-style value in the format `username:hashed_password` (not a plaintext password), for example: `admin:$apr1$example$abcdefghijklmnop`
 
 Then you can either:
 * rebuild the docker images by running `make build`
