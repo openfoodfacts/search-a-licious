@@ -74,3 +74,5 @@ types-requests = "^2.31.0.10"
 
 [tool.poetry.group.docs.dependencies]
 autodoc-pydantic = "^2.2.0"
+rich = "^13.7.1"
+sphinx = "7.4.7"

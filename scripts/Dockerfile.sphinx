@@ -1,7 +1,7 @@
 ARG USER_UID=1000
 ARG USER_GID=1000
 
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.11
 
 # This first stage install Poetry and exports a requirements.txt,
 # which we will then use in the second stage to install dependencies.
@@ -23,7 +23,7 @@ COPY poetry.lock  pyproject.toml ./
 RUN poetry export --with docs --output requirements.txt
 
 
-FROM sphinxdoc/sphinx:7.4.7 AS docs-builder
+FROM python:${PYTHON_VERSION}-slim AS docs-builder
 
 ARG USER_UID
 ARG USER_GID
