@@ -49,6 +49,8 @@ RUN mkdir -p /docs/build  && \
 
 USER user
 
+ENV PATH="/home/user/.local/bin:${PATH}"
+
 
 COPY --from=poetry-builder /build/requirements.txt .
 

@@ -45,3 +45,5 @@ repos:
         entry: make check_translations
         types_or: [ts,javascript,pofile]
         language: system
+        pass_filenames: false
+        require_serial: true
