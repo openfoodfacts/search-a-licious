@@ -31,7 +31,7 @@ ARG USER_GID
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y curl cargo && \
+    apt-get install -y curl cargo make && \
     apt-get autoremove --purge && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
