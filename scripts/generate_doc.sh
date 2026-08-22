@@ -55,8 +55,8 @@ end_group
 
 start_group "Generate openapi html with redocly"
 docker run --rm \
-  -v $(pwd)/data:/data \
-  -v $(pwd)/gh_pages/:/output \
+  -v "$(pwd)/data:/data" \
+  -v "$(pwd)/gh_pages/:/output" \
   --user "$(id -u):$(id -g)" \
   ghcr.io/redocly/redoc/cli:latest \
   build -o /output/users/ref-openapi/index.html searchalicious-openapi.yml
