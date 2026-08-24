@@ -1569,7 +1569,7 @@ Search-a-licious can help you have it done in a matter of few hours, while retai
 <p>For this we can create a conf/data/openfoodfacts-tutorial.yml file. It uses the <a href="https://yaml.org/">YAML format</a>.</p>
 <h4 id="default-index-and-indices">Default Index and Indices<a class="headerlink" href="#default-index-and-indices" title="Permanent link">#</a></h4>
 <p>At the top we have:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">default_index</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;off&quot;</span><span class="w"> </span><span class="c1"># see 2</span>
+<div class="highlight"><pre><span></span><code><span class="nt">default_index</span><span class="p">:</span><span class="w"> </span><span class="s">"off"</span><span class="w"> </span><span class="c1"># see 2</span>
 <span class="nt">indices</span><span class="p">:</span><span class="w">  </span><span class="c1"># see 1</span>
 <span class="w">  </span><span class="nt">off</span><span class="p">:</span><span class="w">    </span><span class="c1"># see 2</span>
 </code></pre></div>
@@ -1708,8 +1708,8 @@ Search-a-licious can help you have it done in a matter of few hours, while retai
 <span class="nt">indices</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">off</span><span class="p">:</span>
 <span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
-<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">supported_langs</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;en&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;fr&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">lang_separator</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;_&quot;</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">supported_langs</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"en"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"fr"</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">lang_separator</span><span class="p">:</span><span class="w"> </span><span class="s">"_"</span>
 </code></pre></div>
 <ol>
 <li>the list of supported languages tells which languages will be retained in our index</li>
@@ -1821,24 +1821,24 @@ This will enable us to get facets on those fields.</p>
 and ask for facet <code>nutriscore_grade</code>.
 We get a result with same fields as for previous searches, but we have a new <code>facets</code> fields.</p>
 <p>It returns something like
-<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">&quot;facets&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;nutriscore_grade&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;nutriscore_grade&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">"facets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"nutriscore_grade"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"nutriscore_grade"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"items"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">          </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;e&quot;</span><span class="p">,</span>
-<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;e&quot;</span><span class="p">,</span>
-<span class="w">          </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
-<span class="w">          </span><span class="nt">&quot;selected&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">          </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"e"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"e"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"selected"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="p">{</span>
-<span class="w">          </span><span class="nt">&quot;key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d&quot;</span><span class="p">,</span>
-<span class="w">          </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;d&quot;</span><span class="p">,</span>
-<span class="w">          </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">          </span><span class="nt">&quot;selected&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">          </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d"</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">"selected"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">      </span><span class="p">],</span>
-<span class="w">      </span><span class="nt">&quot;count_error_margin&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">      </span><span class="nt">"count_error_margin"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 </code></pre></div></p>
@@ -1863,27 +1863,27 @@ We won't care much about the "look and feel" for now, for sake of simplicity.</p
 <span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
     <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>Search-a-licious tutorial<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
     <span class="cm">&lt;!-- this makes the various searchalicious components available --&gt;</span>
-    <span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;module&quot;</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;./search-a-licious.bundled.js&quot;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">script</span> <span class="na">type</span><span class="o">=</span><span class="s">"module"</span> <span class="na">src</span><span class="o">=</span><span class="s">"./search-a-licious.bundled.js"</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
 <span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
 <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;search-bar&quot;</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"search-bar"</span><span class="p">&gt;</span>
   <span class="cm">&lt;!-- the search bar where you can add text --&gt;</span>
   <span class="p">&lt;</span><span class="nt">searchalicious-bar</span><span class="p">&gt;&lt;/</span><span class="nt">searchalicious-bar</span><span class="p">&gt;</span>
   <span class="cm">&lt;!-- the button to launch the search --&gt;</span>
   <span class="p">&lt;</span><span class="nt">searchalicious-button</span><span class="p">&gt;&lt;/</span><span class="nt">searchalicious-button</span><span class="p">&gt;</span>
   <span class="cm">&lt;!-- sorting --&gt;</span>
   <span class="p">&lt;</span><span class="nt">searchalicious-sort</span> <span class="na">auto-refresh</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">searchalicious-sort-field</span> <span class="na">field</span><span class="o">=</span><span class="s">&quot;nutriscore_grade&quot;</span><span class="p">&gt;</span>Best nutriscore<span class="p">&lt;/</span><span class="nt">searchalicious-sort-field</span><span class="p">&gt;</span>
-    <span class="p">&lt;</span><span class="nt">searchalicious-sort-field</span> <span class="na">field</span><span class="o">=</span><span class="s">&quot;-nutriscore_grade&quot;</span><span class="p">&gt;</span>Worst nutriscore<span class="p">&lt;/</span><span class="nt">searchalicious-sort-field</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">searchalicious-sort-field</span> <span class="na">field</span><span class="o">=</span><span class="s">"nutriscore_grade"</span><span class="p">&gt;</span>Best nutriscore<span class="p">&lt;/</span><span class="nt">searchalicious-sort-field</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">searchalicious-sort-field</span> <span class="na">field</span><span class="o">=</span><span class="s">"-nutriscore_grade"</span><span class="p">&gt;</span>Worst nutriscore<span class="p">&lt;/</span><span class="nt">searchalicious-sort-field</span><span class="p">&gt;</span>
   <span class="p">&lt;/</span><span class="nt">searchalicious-sort</span><span class="p">&gt;</span>
   <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
-  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;results&quot;</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">div</span> <span class="na">id</span><span class="o">=</span><span class="s">"results"</span><span class="p">&gt;</span>
   <span class="cm">&lt;!-- display of results --&gt;</span>
   <span class="p">&lt;</span><span class="nt">searchalicious-results</span><span class="p">&gt;</span>
     <span class="cm">&lt;!-- this define a template for results. We can use ${} expression with a result object containing result fields --&gt;</span>
-    <span class="p">&lt;</span><span class="nt">template</span> <span class="na">slot</span><span class="o">=</span><span class="s">&quot;result&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">template</span> <span class="na">slot</span><span class="o">=</span><span class="s">"result"</span><span class="p">&gt;</span>
       <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;</span>
-        <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;https://world.openfoodfacts.org/${result.code}&quot;</span><span class="p">&gt;</span>${result.product_name}<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+        <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">"https://world.openfoodfacts.org/${result.code}"</span><span class="p">&gt;</span>${result.product_name}<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
         − Nutri-Score: ${result.nutriscore_grade}
       <span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;</span>
     <span class="p">&lt;/</span><span class="nt">template</span><span class="p">&gt;</span>

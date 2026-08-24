@@ -1145,16 +1145,16 @@
 <span class="w">        </span><span class="c1"># the script source, here a trivial example</span>
 <span class="w">        </span><span class="c1"># see 3</span>
 <span class="w">        </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|-</span>
-<span class="w">          </span><span class="no">doc[params[&quot;preferred_field&quot;]].size &gt; 0 ? doc[params[&quot;preferred_field&quot;]].value : (doc[params[&quot;secondary_field&quot;]].size &gt; 0 ? doc[params[&quot;secondary_field&quot;]].value : 0)</span>
+<span class="w">          </span><span class="no">doc[params["preferred_field"]].size &gt; 0 ? doc[params["preferred_field"]].value : (doc[params["secondary_field"]].size &gt; 0 ? doc[params["secondary_field"]].value : 0)</span>
 <span class="w">        </span><span class="c1"># gives an example of parameters</span>
 <span class="w">        </span><span class="c1"># see 4</span>
 <span class="w">        </span><span class="nt">params</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">preferred_field</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;field1&quot;</span>
-<span class="w">          </span><span class="nt">secondary_field</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;field2&quot;</span>
+<span class="w">          </span><span class="nt">preferred_field</span><span class="p">:</span><span class="w"> </span><span class="s">"field1"</span>
+<span class="w">          </span><span class="nt">secondary_field</span><span class="p">:</span><span class="w"> </span><span class="s">"field2"</span>
 <span class="w">        </span><span class="c1"># more non editable parameters, can be easier than to declare constants in the script</span>
 <span class="w">        </span><span class="c1"># see 5</span>
 <span class="w">        </span><span class="nt">static_params</span><span class="p">:</span>
-<span class="w">          </span><span class="nt">param1 </span><span class="p">:</span><span class="w"> </span><span class="s">&quot;foo&quot;</span>
+<span class="w">          </span><span class="nt">param1 </span><span class="p">:</span><span class="w"> </span><span class="s">"foo"</span>
 </code></pre></div></p>
 <p>Here:</p>
 <ol>
@@ -1212,16 +1212,16 @@ or to sort on nutriscore or sugar per 100g (if no nutriscore).</p>
 (because default id is based on script name).</p>
 <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">searchalicious-sort</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="nt">searchalicious-sort-script</span>
-    <span class="na">script</span><span class="o">=</span><span class="s">&quot;personal_score&quot;</span>
-    <span class="na">id</span><span class="o">=</span><span class="s">&quot;sort-by-quantity&quot;</span>
-    <span class="na">parameters</span><span class="o">=</span><span class="s">&#39;{&quot;preferred_field&quot;: &quot;portion_size&quot;, &quot;secondary_field&quot;: &quot;quantity&quot;}&#39;</span>
+    <span class="na">script</span><span class="o">=</span><span class="s">"personal_score"</span>
+    <span class="na">id</span><span class="o">=</span><span class="s">"sort-by-quantity"</span>
+    <span class="na">parameters</span><span class="o">=</span><span class="s">'{"preferred_field": "portion_size", "secondary_field": "quantity"}'</span>
   <span class="p">&gt;</span>
     Sort by portion size (fallback on quantity)
   <span class="p">&lt;/</span><span class="nt">searchalicious-sort-script</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="nt">searchalicious-sort-script</span>
-    <span class="na">script</span><span class="o">=</span><span class="s">&quot;personal_score&quot;</span>
-    <span class="na">id</span><span class="o">=</span><span class="s">&quot;sort-by-nutrition&quot;</span>
-    <span class="na">parameters</span><span class="o">=</span><span class="s">&#39;{&quot;preferred_field&quot;: &quot;nutriscore&quot;, &quot;secondary_field&quot;: &quot;sugar_per_100g&quot;}&#39;</span>
+    <span class="na">script</span><span class="o">=</span><span class="s">"personal_score"</span>
+    <span class="na">id</span><span class="o">=</span><span class="s">"sort-by-nutrition"</span>
+    <span class="na">parameters</span><span class="o">=</span><span class="s">'{"preferred_field": "nutriscore", "secondary_field": "sugar_per_100g"}'</span>
   <span class="p">&gt;</span>
     Sort by Nutri-Score (fallback on sugar per 100g)
   <span class="p">&lt;/</span><span class="nt">searchalicious-sort-script</span><span class="p">&gt;</span>
@@ -1236,8 +1236,8 @@ For this you will need an independant way to set the values to sort on (your own
 <p>The later option as the advantage that it will survive a reload of the page or be still present on another visit.
 <div class="highlight"><pre><span></span><code><span class="p">&lt;</span><span class="nt">searchalicious-sort</span><span class="p">&gt;</span>
   <span class="p">&lt;</span><span class="nt">searchalicious-sort-script</span>
-    <span class="na">script</span><span class="o">=</span><span class="s">&quot;personal_score&quot;</span>
-    <span class="na">parameters</span><span class="o">=</span><span class="s">&#39;local:personal-score-params&#39;</span>
+    <span class="na">script</span><span class="o">=</span><span class="s">"personal_score"</span>
+    <span class="na">parameters</span><span class="o">=</span><span class="s">'local:personal-score-params'</span>
   <span class="p">&gt;</span>
     Sort according to my preferences
   <span class="p">&lt;/</span><span class="nt">searchalicious-sort-script</span><span class="p">&gt;</span>
@@ -1255,11 +1255,11 @@ For this you will need an independant way to set the values to sort on (your own
 </li>
 </ul>
 <p>Let's use the same example as above, we could launch a search on whole database using our <code>personal_script</code> script, using curl
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
-<span class="s1">    &quot;sort_by&quot;: &quot;personal_score&quot;,</span>
-<span class="s1">    &quot;sort_params&quot;: {&quot;preferred_field&quot;: &quot;nutriscore&quot;, &quot;secondary_field&quot;: &quot;sugar_per_100g&quot;}</span>
-<span class="s1">  }&#39;</span><span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s2">"Content-Type: application/json"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">'{</span>
+<span class="s1">    "sort_by": "personal_score",</span>
+<span class="s1">    "sort_params": {"preferred_field": "nutriscore", "secondary_field": "sugar_per_100g"}</span>
+<span class="s1">  }'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>http://localhost:8000/api/search
 </code></pre></div></p>
 <h2 id="privacy-considerations">Privacy considerations<a class="headerlink" href="#privacy-considerations" title="Permanent link">#</a></h2>
