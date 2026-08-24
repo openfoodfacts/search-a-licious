@@ -6920,60 +6920,6 @@
     },
     {
       "kind": "javascript-module",
-      "path": "src/interfaces/chart-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/interfaces/events-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/interfaces/facets-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/interfaces/history-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/interfaces/search-bar-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/interfaces/search-ctl-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/interfaces/search-params-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/interfaces/sort-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/interfaces/suggestion-interfaces.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
       "path": "src/icons/chart.ts",
       "declarations": [
         {
@@ -7099,6 +7045,60 @@
           }
         }
       ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/chart-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/events-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/facets-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/history-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/search-bar-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/search-ctl-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/search-params-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/sort-interfaces.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/interfaces/suggestion-interfaces.ts",
+      "declarations": [],
+      "exports": []
     },
     {
       "kind": "javascript-module",
@@ -9135,40 +9135,6 @@
     },
     {
       "kind": "javascript-module",
-      "path": "src/styles/index.ts",
-      "declarations": [
-        {
-          "kind": "variable",
-          "name": "WHITE_PANEL_STYLE",
-          "default": "css`\n  .white-panel {\n    margin-bottom: 1rem;\n    background-color: white;\n    padding: 0.5rem;\n    border-radius: 5px;\n  }\n`"
-        },
-        {
-          "kind": "variable",
-          "name": "HIDE_STYLE",
-          "default": "css`\n  .hidden {\n    display: none;\n  }\n`"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "WHITE_PANEL_STYLE",
-          "declaration": {
-            "name": "WHITE_PANEL_STYLE",
-            "module": "src/styles/index.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "HIDE_STYLE",
-          "declaration": {
-            "name": "HIDE_STYLE",
-            "module": "src/styles/index.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
       "path": "src/test/search-bar_test.ts",
       "declarations": [],
       "exports": []
@@ -9208,6 +9174,40 @@
           "declaration": {
             "name": "resetSignalToDefault",
             "module": "src/test/utils.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/styles/index.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "WHITE_PANEL_STYLE",
+          "default": "css`\n  .white-panel {\n    margin-bottom: 1rem;\n    background-color: white;\n    padding: 0.5rem;\n    border-radius: 5px;\n  }\n`"
+        },
+        {
+          "kind": "variable",
+          "name": "HIDE_STYLE",
+          "default": "css`\n  .hidden {\n    display: none;\n  }\n`"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "WHITE_PANEL_STYLE",
+          "declaration": {
+            "name": "WHITE_PANEL_STYLE",
+            "module": "src/styles/index.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "HIDE_STYLE",
+          "declaration": {
+            "name": "HIDE_STYLE",
+            "module": "src/styles/index.ts"
           }
         }
       ]
