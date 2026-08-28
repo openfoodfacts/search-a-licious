@@ -27,3 +27,15 @@ def test_get_search_parameters_preserves_structured_charts(default_global_config
     params = GetSearchParameters(q="milk", charts=charts)
 
     assert params.charts == charts
+
+
+def test_get_search_parameters_accepts_empty_string_charts(default_global_config):
+    params = GetSearchParameters(q="milk", charts="")
+
+    assert params.charts == []
+
+
+def test_get_search_parameters_accepts_empty_list_charts(default_global_config):
+    params = GetSearchParameters(q="milk", charts=[])
+
+    assert params.charts == []
