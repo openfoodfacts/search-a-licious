@@ -14,6 +14,7 @@ import app.search as app_search
 from app import config
 from app._types import (
     CommonParametersQuery,
+    ErrorSearchResponse,
     GetSearchParameters,
     PostSearchParameters,
     SearchResponse,
@@ -101,12 +102,20 @@ def get_document(
 def status_for_response(result: SearchResponse):
     if isinstance(result, SuccessSearchResponse):
         return status.HTTP_200_OK
+    elif isinstance(result, ErrorSearchResponse) and result.errors:
+        # returns the status of the first error
+        return result.errors[0].status or status.HTTP_500_INTERNAL_SERVER_ERROR
     else:
-        # TODO: should we refine that ?
         return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@app.post("/search")
+@app.post(
+    "/search",
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
+)
 def search(
     response: Response, search_parameters: Annotated[PostSearchParameters, Body()]
 ) -> SearchResponse:
@@ -121,7 +130,13 @@ def search(
     return result
 
 
-@app.get("/search")
+@app.get(
+    "/search",
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
+)
 def search_get(
     response: Response, search_parameters: Annotated[GetSearchParameters, Query()]
 ) -> SearchResponse:
