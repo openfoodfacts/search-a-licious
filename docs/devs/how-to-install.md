@@ -126,13 +126,35 @@ You will then need to import from a JSONL dump (see instructions below).
 ## Importing data into your development environment
 
 - Import Taxonomies: `make import-taxonomies`
+
+- Get sample data
+   ```bash
+   # get some sample data
+   curl https://world.openfoodfacts.org/data/exports/products.random-modulo-1000.jsonl.gz --output data/products.random-modulo-1000.jsonl.gz
+   gzip -d data/products.random-modulo-1000.jsonl.gz
+   ```
+
+- this sample data has products with mix schema version,
+  you should convert them to all the same schema version,
+  the one corresponding to expected API used in `openfoodfacts.py`.
+  At the time of writing it's 1002
+
+  - [Install Product Opener locally](https://openfoodfacts.github.io/documentation/docs/Product-Opener/dev/how-to-quick-start-guide/)
+
+  - then use the `convert_product_schema_dump.pl` script
+    ```bash
+    docker compose run --rm --no-deps \
+      -v /path/to/search/data:/tmp/data backend \
+        scripts/convert_product_schema_dump.pl \
+        /tmp/data/products.random-modulo-1000.jsonl
+        --to-version 1002
+        --output /tmp/data/products.random-modulo-1000.1002.jsonl
+    ```
+
 - Import products :
   ```bash
-   # get some sample data
-   curl https://world.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz --output data/products.random-modulo-10000.jsonl.gz
-   gzip -d data/products.random-modulo-10000.jsonl.gz
    # we skip updates because we are not connected to any redis
-   make import-dataset filepath='products.random-modulo-10000.jsonl' args='--skip-updates'
+   make import-dataset filepath='products.random-modulo-1000.1002jsonl' args='--skip-updates'
   ```
 
 Verify you have data by going to http://search.localhost:8000/

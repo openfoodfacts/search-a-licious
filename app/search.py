@@ -13,7 +13,6 @@ from ._types import (
     SuccessSearchResponse,
 )
 from .charts import build_charts
-from .exceptions import QueryCheckError
 from .exceptions import QueryAnalysisError
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor

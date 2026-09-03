@@ -128,7 +128,10 @@ def status_for_response(result: SearchResponse):
 
 @app.post(
     "/search",
-    responses={400: {"model": ErrorSearchResponse}, 500: {"model": ErrorSearchResponse}},
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
 )
 def search(
     response: Response, search_parameters: Annotated[PostSearchParameters, Body()]
@@ -146,7 +149,10 @@ def search(
 
 @app.get(
     "/search",
-    responses={400: {"model": ErrorSearchResponse}, 500: {"model": ErrorSearchResponse}},
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
 )
 def search_get(
     response: Response, search_parameters: Annotated[GetSearchParameters, Query()]
