@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.5.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.4.0...v1.5.0) (2026-09-03)
+
+
+### Features
+
+* add devcontainer.json ([#336](https://github.com/openfoodfacts/search-a-licious/issues/336)) ([6f8c9e8](https://github.com/openfoodfacts/search-a-licious/commit/6f8c9e8ebf0ce444771e96a03a8318152eedc204))
+* adding sub fields to object ([#271](https://github.com/openfoodfacts/search-a-licious/issues/271)) ([33368c7](https://github.com/openfoodfacts/search-a-licious/commit/33368c7d7c1e0ff086502c9ac5dc197d8ca741c0))
+* Allow CORS access from all origins ([#289](https://github.com/openfoodfacts/search-a-licious/issues/289)) ([f91c59d](https://github.com/openfoodfacts/search-a-licious/commit/f91c59d37ac62272b763e746a3b66c7872b6d38a)), closes [#80](https://github.com/openfoodfacts/search-a-licious/issues/80)
+* **backend:** improve status and error contract consistency ([#406](https://github.com/openfoodfacts/search-a-licious/issues/406)) ([247b9c4](https://github.com/openfoodfacts/search-a-licious/commit/247b9c4c313b3f6774efc0810c6f63b906e45c96))
+* better import ([#228](https://github.com/openfoodfacts/search-a-licious/issues/228)) ([ab75a96](https://github.com/openfoodfacts/search-a-licious/commit/ab75a966884350216fbcbea21b02bc62a042b16c))
+* enhanced completion ([#259](https://github.com/openfoodfacts/search-a-licious/issues/259)) ([5e05aef](https://github.com/openfoodfacts/search-a-licious/commit/5e05aef7d92e2a01272553f6fd530076912912c1))
+* handling synonyms and text fields more efficiently ([#234](https://github.com/openfoodfacts/search-a-licious/issues/234)) ([f427a5e](https://github.com/openfoodfacts/search-a-licious/commit/f427a5e7a9bfa4c6d91153e1910018f818964b1f))
+* new openfoodfacts configuration and supporting features ([#301](https://github.com/openfoodfacts/search-a-licious/issues/301)) ([35bc3c1](https://github.com/openfoodfacts/search-a-licious/commit/35bc3c17949f4023f15be86270011045c0f59b63))
+* prepare crowdin usage to make the app translatable ([#244](https://github.com/openfoodfacts/search-a-licious/issues/244)) ([a321cd2](https://github.com/openfoodfacts/search-a-licious/commit/a321cd251cf07b27c33e496a2ead278f04180a69))
+
+
+### Bug Fixes
+
+* add repository condition ([#339](https://github.com/openfoodfacts/search-a-licious/issues/339)) ([9c4414a](https://github.com/openfoodfacts/search-a-licious/commit/9c4414a117dc718d03fc62f095afb1316ed4e3b5))
+* always convert `images` field to legacy schema ([16598f3](https://github.com/openfoodfacts/search-a-licious/commit/16598f3c3b19aa70e28e28b3f9a405808884ec69))
+* **api:** return proper search error status codes ([#376](https://github.com/openfoodfacts/search-a-licious/issues/376)) ([71f9f60](https://github.com/openfoodfacts/search-a-licious/commit/71f9f607f51015a6807edade484e362fcc5a3105))
+* Changes for Green-Score ([#432](https://github.com/openfoodfacts/search-a-licious/issues/432)) ([7c02f67](https://github.com/openfoodfacts/search-a-licious/commit/7c02f67eb0d87d60f9f4739b99bfbf6ad97b2e6e))
+* check document id after pre-processing ([#263](https://github.com/openfoodfacts/search-a-licious/issues/263)) ([d363b41](https://github.com/openfoodfacts/search-a-licious/commit/d363b41dc98452b788b84e672a021f63db41d5db))
+* **ci:** correct USER_UID env var in pre-commit workflow ([#380](https://github.com/openfoodfacts/search-a-licious/issues/380)) ([e0838e4](https://github.com/openfoodfacts/search-a-licious/commit/e0838e4546fb2fd1af0933a547b3be5737167402))
+* **deps:** Bump vulnerable dependencies in frontend ([#353](https://github.com/openfoodfacts/search-a-licious/issues/353)) ([aa6d619](https://github.com/openfoodfacts/search-a-licious/commit/aa6d6193c81ea48c6a524cb52a88476dfff741e2))
+* do not create docker volume on a specific place ([51a2450](https://github.com/openfoodfacts/search-a-licious/commit/51a2450ee84854686b593213bd74eae7794461a7))
+* **docker:** Improve backend Docker build caching ([#424](https://github.com/openfoodfacts/search-a-licious/issues/424)) ([1c743c6](https://github.com/openfoodfacts/search-a-licious/commit/1c743c606133fc2f397f084928d1a27351b4e11d))
+* fix brand taxonomy preprocessor after schema update ([#305](https://github.com/openfoodfacts/search-a-licious/issues/305)) ([81c78e0](https://github.com/openfoodfacts/search-a-licious/commit/81c78e0162c8d9d2035a2eb1f7d11ad70ff0a627)), closes [#304](https://github.com/openfoodfacts/search-a-licious/issues/304)
+* fix broken pre-commit dependency ([0e7a8cf](https://github.com/openfoodfacts/search-a-licious/commit/0e7a8cf3a1537ee4decd8de2d008de6ff146d992))
+* fix bug in convert_to_legacy_schema function ([#298](https://github.com/openfoodfacts/search-a-licious/issues/298)) ([8084a2b](https://github.com/openfoodfacts/search-a-licious/commit/8084a2b85e0967af1a5066af9c76aaa540a0b9d9))
+* Fix check_translations pre-commit hook failures due to corrupted node_modules ([#326](https://github.com/openfoodfacts/search-a-licious/issues/326)) ([4c25f9a](https://github.com/openfoodfacts/search-a-licious/commit/4c25f9acf0021ecf9a28ca5f0572cd05ebfcca36))
+* handle invalid lucene query term values gracefully ([#268](https://github.com/openfoodfacts/search-a-licious/issues/268)) ([7644c29](https://github.com/openfoodfacts/search-a-licious/commit/7644c295a7cb737ddc6cc2ddce0f54191f3f402e)), closes [#253](https://github.com/openfoodfacts/search-a-licious/issues/253)
+* make import more robust ([#441](https://github.com/openfoodfacts/search-a-licious/issues/441)) ([328f28e](https://github.com/openfoodfacts/search-a-licious/commit/328f28e3c613a86b69b572b8c5c7bfb930857abb))
+* on getting _id in indexing ([#266](https://github.com/openfoodfacts/search-a-licious/issues/266)) ([f792240](https://github.com/openfoodfacts/search-a-licious/commit/f79224052bcfb98dbeb2182f90609c242eedca7b))
+* Potential fix for 1 code quality finding ([#370](https://github.com/openfoodfacts/search-a-licious/issues/370)) ([a8f167b](https://github.com/openfoodfacts/search-a-licious/commit/a8f167b5e66656998e2c18c04406f85615889369))
+* setup CORS as a public API ([d921923](https://github.com/openfoodfacts/search-a-licious/commit/d92192344e3e868b7bc4a3ec086ac0850686db82))
+* **tests:** Add --wait option to API integration tests for Elasticsearch startup ([#383](https://github.com/openfoodfacts/search-a-licious/issues/383)) ([495b487](https://github.com/openfoodfacts/search-a-licious/commit/495b4879c9d9570854a693d4f95537f44f30cf1c))
+* top bar search resets state instead of refining ([#417](https://github.com/openfoodfacts/search-a-licious/issues/417)) ([dae7b4a](https://github.com/openfoodfacts/search-a-licious/commit/dae7b4a79b0010c74653099ac376cd58cd410b11))
+* type hints after pre-commit update ([#269](https://github.com/openfoodfacts/search-a-licious/issues/269)) ([acd55a1](https://github.com/openfoodfacts/search-a-licious/commit/acd55a178c26f16d7904d4b2e03a0b7dfc5b4405))
+
 ## [1.4.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.3.0...v1.4.0) (2024-07-25)
 
 
