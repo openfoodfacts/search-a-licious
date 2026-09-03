@@ -137,7 +137,7 @@ test_api_unit:
 # you can use keep_es=1 to avoid stopping elasticsearch after tests (useful during development)
 test_api_integration:
 	@echo "🔎 Running API integration tests..."
-	${DOCKER_COMPOSE_TEST} up -d es01 es02 elasticvue
+	${DOCKER_COMPOSE_TEST} up -d --wait es01 es02 elasticvue
 	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/unit
 	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop es01 es02 elasticvue || true
 

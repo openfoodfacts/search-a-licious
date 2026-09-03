@@ -27,5 +27,12 @@ jobs:
           make build
       - name: Enforce pre-commit hook server side
         uses: pre-commit/action@v3.0.1
+
+      - name: Setup sysctl
+        run: |
+          sudo sysctl -w vm.max_map_count=262144
+          sudo sysctl -w fs.file-max=65536
+          sudo sysctl -w fs.nr_open=65536
+
       - name: run tests
         run: make test
