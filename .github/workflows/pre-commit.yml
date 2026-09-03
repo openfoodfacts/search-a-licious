@@ -12,9 +12,9 @@ jobs:
       COMPOSE_PROGRESS: plain
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: install python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.11
       - name: build docker containers
@@ -22,10 +22,17 @@ jobs:
           echo "" > .envrc
           echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
           echo OFF_API_URL=https://world.openfoodfacts.org >> .envrc
-          echo USER_IID=$(id -u) >>.envrc
+          echo USER_UID=$(id -u) >>.envrc
           echo USER_GID=$(id -g) >>.envrc
           make build
       - name: Enforce pre-commit hook server side
         uses: pre-commit/action@v3.0.1
+
+      - name: Setup sysctl
+        run: |
+          sudo sysctl -w vm.max_map_count=262144
+          sudo sysctl -w fs.file-max=65536
+          sudo sysctl -w fs.nr_open=65536
+
       - name: run tests
         run: make test

@@ -4,7 +4,7 @@ ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
 
 # builder is the node service, only used to build project in prod
-FROM node:lts-bullseye as builder
+FROM node:lts-bullseye AS builder
 ARG USER_UID
 ARG USER_GID
 RUN usermod --uid $USER_UID node && \
@@ -63,7 +63,7 @@ RUN rm -rf public/dist/* && npm run build && npm run bundle
 CMD ["npm", "run", "serve"]
 
 # nginx
-FROM nginx:stable as frontend
+FROM nginx:stable AS frontend
 WORKDIR /opt/search-a-licious
 ARG USER_UID
 ARG USER_GID

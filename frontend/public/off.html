@@ -158,7 +158,7 @@
         const DEFAULT_PREFERENCES = {
           nutri_score: 1,
           nova_group: 1,
-          eco_score: 1,
+          environmental_score: 1,
         }
         const preferences = {};
 
@@ -316,7 +316,7 @@
                             <span slot="label">Sort by ▿</span>
                             <searchalicious-sort-field field="-unique_scans_n">Most scanned products
                             </searchalicious-sort-field>
-                            <searchalicious-sort-field field="ecoscore_grade">Products with the best Eco-Score
+                            <searchalicious-sort-field field="environmental_score_grade">Products with the best Green-Score
                             </searchalicious-sort-field>
                             <searchalicious-sort-field field="nutriscore_grade">Products with the best Nutri-Score
                             </searchalicious-sort-field>
@@ -347,20 +347,20 @@
                     <div id="preferences_config" style="display:none">
                       <form id="preferences_form" onSubmit="return storePreferences()">
                         <div><a onclick="return togglePreferences(false)">Select your Food preferences :</a></div>
-                        <label for="nutri_score">Nutriscore</label>
+                        <label for="nutri_score">Nutri-Score</label>
                         <select name="nutri_score">
                           <option value="0">not important</option>
                           <option value="1">important</option>
                           <option value="2">very important</option>
                         </select>
-                        <label for="nova_group">Nova</label>
+                        <label for="nova_group">NOVA</label>
                         <select name="nova_group">
                           <option value="0">not important</option>
                           <option value="1">important</option>
                           <option value="2">very important</option>
                         </select>
-                        <label for="eco_score">Environmental impact</label>
-                        <select name="eco_score">
+                        <label for="environmental_score">Environmental impact</label>
+                        <select name="environmental_score">
                           <option value="0">not important</option>
                           <option value="1">important</option>
                           <option value="2">very important</option>
@@ -372,7 +372,7 @@
                       <searchalicious-facet-terms search-name="off" name="brands" show-other="true"></searchalicious-facet-terms>
                       <searchalicious-facet-terms search-name="off" name="categories" show-other="true"></searchalicious-facet-terms>
                       <searchalicious-facet-terms search-name="off" name="nutrition_grades"></searchalicious-facet-terms>
-                      <searchalicious-facet-terms search-name="off" name="ecoscore_grade"></searchalicious-facet-terms>
+                      <searchalicious-facet-terms search-name="off" name="environmental_score_grade"></searchalicious-facet-terms>
                     </searchalicious-facets>
                   </div>
                   <div slot="col-2">
@@ -407,12 +407,12 @@
                                     <div part="scores">
                                       <img
                                               loading="lazy"
-                                              part="scores logo ecoscore"
-                                              src="https://static.openfoodfacts.org/images/attributes/dist/ecoscore-${result.ecoscore_grade}.svg"
+                                              part="scores logo Green-Score"
+                                              src="https://static.openfoodfacts.org/images/attributes/dist/green-score-${result.environmental_score_grade ? result.environmental_score_grade : 'unknown'}.svg"
                                       />
                                       <img
                                               loading="lazy"
-                                              part="scores logo nutriscore"
+                                              part="scores logo Nutri-Score"
                                               src="https://static.openfoodfacts.org/images/attributes/dist/nutriscore-${result.nutriscore_grade ? result.nutriscore_grade : 'unknown'}.svg"
                                       />
                                     </div>
@@ -432,8 +432,8 @@
                   <div slot="col-3">
                     <!-- Graphs inside -->
                     <searchalicious-distribution-chart search-name="off" field="nutrition_grades"'></searchalicious-distribution-chart>
-                    <searchalicious-distribution-chart search-name="off" field="ecoscore_grade"></searchalicious-distribution-chart>
-                    <searchalicious-distribution-chart search-name="off" field="nova_groups"></searchalicious-distribution-chart>
+                    <searchalicious-distribution-chart search-name="off" field="environmental_score_grade"></searchalicious-distribution-chart>
+                    <searchalicious-distribution-chart search-name="off" field="nova_group"></searchalicious-distribution-chart>
                     <searchalicious-scatter-chart search-name="off" x="nutriscore_score" y="nutriments.fiber_100g"></searchalicious-scatter-chart>
                   </div>
                 </searchalicious-layout-page>

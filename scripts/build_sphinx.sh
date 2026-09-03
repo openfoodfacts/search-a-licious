@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # Build sphinx documentation
 
-echo '::group::{build_sphinx}'
-
 set -e
 
 # get group id to use it in the docker
@@ -28,5 +26,3 @@ docker run --rm --user user \
 rm -rf gh_pages/devs/ref-python || true
 mv gh_pages/sphinx/html gh_pages/devs/ref-python
 rm -rf gh_pages/sphinx/
-
-echo "::endgroup::"
