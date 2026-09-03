@@ -1,5 +1,10 @@
 # modifications to docker-compose for production settings
 
+services:
+  es01:
+    ports:
+    - "${ES_EXPOSE:-127.0.0.1:9200}:9200"
+
 volumes:
   # declare volumes external to avoid loosing data
   # we use COMPOSE_PROJECT_NAME to be sure they are unique
@@ -9,9 +14,6 @@ volumes:
   esdata02:
     external: true
     name: ${COMPOSE_PROJECT_NAME}_esdata02
-  es_synonyms:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_es_synonyms
 
 networks:
   common_net:
