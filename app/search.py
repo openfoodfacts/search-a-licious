@@ -24,9 +24,34 @@ logger = logging.getLogger(__name__)
 # we cache query builder and result processor here for faster processing
 _ES_QUERY_BUILDERS = {}
 _RESULT_PROCESSORS = {}
+_CACHED_CONFIG_ID: int | None = None
+
+
+def invalidate_runtime_caches():
+    """Clear in-process caches used by search runtime."""
+    global _CACHED_CONFIG_ID
+    _ES_QUERY_BUILDERS.clear()
+    _RESULT_PROCESSORS.clear()
+    _CACHED_CONFIG_ID = None
+
+
+def _ensure_runtime_caches_match_config():
+    """Invalidate caches when global config object changed."""
+    global _CACHED_CONFIG_ID
+    current_config_id = id(config.get_config())
+    if _CACHED_CONFIG_ID is None:
+        _CACHED_CONFIG_ID = current_config_id
+        return
+
+    if _CACHED_CONFIG_ID != current_config_id:
+        logger.info("Global config changed, invalidating search runtime caches")
+        _ES_QUERY_BUILDERS.clear()
+        _RESULT_PROCESSORS.clear()
+        _CACHED_CONFIG_ID = current_config_id
 
 
 def get_es_query_builder(index_id):
+    _ensure_runtime_caches_match_config()
     if index_id not in _ES_QUERY_BUILDERS:
         index_config = config.get_config().indices[index_id]
         _ES_QUERY_BUILDERS[index_id] = build_elasticsearch_query_builder(index_config)
@@ -34,6 +59,7 @@ def get_es_query_builder(index_id):
 
 
 def get_result_processor(index_id):
+    _ensure_runtime_caches_match_config()
     if index_id not in _RESULT_PROCESSORS:
         index_config = config.get_config().indices[index_id]
         _RESULT_PROCESSORS[index_id] = load_result_processor(index_config)
