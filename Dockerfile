@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 ARG PYTHON_VERSION=3.11
 # create off user
 ARG USER_UID=1000
@@ -20,7 +19,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYSETUP_PATH="/opt/pysetup" \
     VENV_PATH="/opt/pysetup/.venv" \
     POETRY_HOME="/opt/poetry" \
-    POETRY_VERSION=2.2.1 \
+    POETRY_VERSION=2.3.2 \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
     POETRY_NO_INTERACTION=1
 ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
@@ -32,11 +31,9 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 WORKDIR $PYSETUP_PATH
 # we need README.md for poetry check
 COPY poetry.lock  pyproject.toml README.md ./
-RUN poetry check --lock --quiet || \
+RUN poetry check --lock || \
   ( echo "Poetry.lock is outdated, please run make update_poetry_lock" && false )
-RUN --mount=type=cache,target=/root/.cache/pypoetry \
-    --mount=type=cache,target=/root/.cache/pip \
-    poetry install --without dev
+RUN poetry install --without dev
 
 # This is our final image
 # ------------------------
@@ -67,7 +64,7 @@ COPY --chown=off:off poetry.lock pyproject.toml /opt/search/
 
 USER off:off
 WORKDIR /opt/search
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT /docker-entrypoint.sh $0 $@
 
 CMD ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 
@@ -79,11 +76,9 @@ WORKDIR $PYSETUP_PATH
 # we need README.md for poetry check
 COPY poetry.lock  pyproject.toml README.md ./
 # full install, with dev packages
-RUN poetry check --lock --quiet || \
+RUN poetry check --lock || \
   ( echo "Poetry.lock is outdated, please run make update_poetry_lock" && false )
-RUN --mount=type=cache,target=/root/.cache/pypoetry \
-    --mount=type=cache,target=/root/.cache/pip \
-    poetry install
+RUN poetry install
 
 # image with dev tooling
 # ----------------------

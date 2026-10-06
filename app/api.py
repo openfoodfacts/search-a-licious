@@ -102,11 +102,28 @@ def get_document(
 def status_for_response(result: SearchResponse):
     if isinstance(result, SuccessSearchResponse):
         return status.HTTP_200_OK
-    elif isinstance(result, ErrorSearchResponse) and result.errors:
-        # returns the status of the first error
-        return result.errors[0].status or status.HTTP_500_INTERNAL_SERVER_ERROR
-    else:
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    if isinstance(result, ErrorSearchResponse) and result.errors:
+        first_error = result.errors[0]
+        if first_error.status:
+            return first_error.status
+
+        titles = {error.title for error in result.errors}
+
+        if titles & {
+            "QueryCheckError",
+            "InvalidLuceneQueryError",
+            "FreeWildCardError",
+            "UnknownFieldError",
+            "UnknownScriptError",
+            "ValueError",
+        }:
+            return status.HTTP_400_BAD_REQUEST
+
+        if titles & {"es_connection_error", "es_api_error"}:
+            return status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 @app.post(
