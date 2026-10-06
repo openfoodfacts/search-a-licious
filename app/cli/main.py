@@ -112,7 +112,7 @@ def import_data(
     logger.info("Import time: %s seconds", end_time - start_time)
     if num_errors:
         logger.error("There were %s errors during import", num_errors)
-        typer.Exit(1)
+        raise typer.Exit(code=1)
 
 
 @cli.command()
