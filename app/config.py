@@ -329,6 +329,14 @@ class FieldConfig(BaseModel):
     # name of the field (internal field), it's added here for convenience.
     # It's set by the `add_field_name_to_each_field` classmethod.
     name: Annotated[str, Field(description="name of the field (must be unique")] = ""
+    display_name: Annotated[
+        str | dict[str, str] | None,
+        Field(
+            description=cd_(
+                """Human readable display name for this field (string or dictionary of language code to display name)"""
+            )
+        ),
+    ] = None
     type: Annotated[
         FieldType,
         Field(description=f"Type of the field\n\n{cd_(FieldType.__doc__)}"),
