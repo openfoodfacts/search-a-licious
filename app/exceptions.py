@@ -33,3 +33,15 @@ class QueryCheckError(QueryAnalysisError):
         return (
             f"{self.__class__.__name__}({', '.join(self.args)}, errors={self.errors})"
         )
+
+
+class IndexException(Exception):
+    """Exceptions around index definition"""
+
+
+class TooManySynonymsSetsException(IndexException):
+    """Too many synonyms sets were created for a taxonomy.
+
+    This is due to the fact that
+    Elasticsearch has a limit of 10000 synonyms rules per set.
+    """

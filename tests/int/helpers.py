@@ -78,6 +78,10 @@ class TestDocumentPreprocessor(BaseDocumentPreprocessor, CallRegistration):
 
 class TestResultProcessor(BaseResultProcessor, CallRegistration):
 
-    def process_after(self, result: JSONType) -> JSONType:
-        self.register_call(result)
+    def process_after(
+        self, result: JSONType, projection: set[str] | None = None
+    ) -> JSONType:
+        self.register_call(
+            result, sorted(projection) if projection is not None else None
+        )
         return result

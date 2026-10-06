@@ -13,14 +13,14 @@ indices:
         source: |-
           String nova_index = (doc['nova_group'].size() != 0) ? doc['nova_group'].value.toString() : "unknown";
           String nutri_index = (doc['nutriscore_grade'].size() != 0) ? doc['nutriscore_grade'].value : 'e';
-          String eco_index = (doc['ecoscore_grade'].size() != 0) ? doc['ecoscore_grade'].value : 'e';
+          String green_index = (doc['environmental_score_grade'].size() != 0) ? doc['environmental_score_grade'].value : 'e';
           return (
             params['nova_to_score'].getOrDefault(nova_index, 0) * params['nova_group']
             + params['grades_to_score'].getOrDefault(nutri_index, 0) * params['nutri_score']
-            + params['grades_to_score'].getOrDefault(eco_index, 0) * params['eco_score']
+            + params['grades_to_score'].getOrDefault(green_index, 0) * params['environmental_score']
           );
         params:
-          eco_score: 1
+          environmental_score: 1
           nutri_score: 1
           nova_group: 1
         static_params:
@@ -29,6 +29,7 @@ indices:
     fields:
       code:
         required: true
+        full_text_search: true
         type: keyword
       obsolete:
         required: true
@@ -75,6 +76,7 @@ indices:
         bucket_agg: true
       quantity:
         type: text
+        index: false
       countries:
         type: taxonomy
         input_field: conutries_tags
@@ -98,7 +100,7 @@ indices:
       nutrition_grades:
         type: keyword
         bucket_agg: true
-      ecoscore_grade:
+      environmental_score_grade:
         type: keyword
         bucket_agg: true
       nova_groups:
@@ -117,9 +119,9 @@ indices:
         input_field: allergens_tags
         taxonomy_name: allergens
         bucket_agg: true
-      ecoscore_data:
+      environmental_score_data:
         type: disabled
-      ecoscore_score:
+      environmental_score:
         type: integer
       forest_footprint_data:
         type: disabled
@@ -155,6 +157,15 @@ indices:
         type: integer
       completeness:
         type: float
+      packagings:
+        type: nested
+        fields:
+          material:
+            type: taxonomy
+            taxonomy_name: packaging_materials
+            bucket_agg: true
+          weight_measured:
+            type: float
     document_denylist:
     - '8901552007122'
     lang_separator: _

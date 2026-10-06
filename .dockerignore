@@ -1,0 +1,3 @@
+.mypy_cache/
+.git/
+frontend/node_modules/
