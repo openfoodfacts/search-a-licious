@@ -99,7 +99,7 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
         (
             "complex_query",
             'bacon de boeuf (countries:italy AND (categories:"en:beef" AND '
-            "(nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
+            "(nutriments.fat_100g:[2 TO *] OR nutriments.fat_100g:[0 TO 0.05])))",
             ["en"],
             25,
             2,
@@ -130,17 +130,6 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
         (
             "open_range",
             "(unique_scans_n:>2 AND unique_scans_n:<3) OR unique_scans_n:>=10",
-            ["en"],
-            25,
-            2,
-            None,
-            None,
-            True,
-        ),
-        (
-            # it should be ok for now, until we implement subfields
-            "non_existing_subfield",
-            "Milk AND nutriments:(nonexisting:>=3)",
             ["en"],
             25,
             2,
@@ -204,6 +193,15 @@ def test_build_search_query(
     [
         # non existing field
         ({"q": "nonexisting:Milk"}, "field 'nonexisting' not found in index config"),
+        # non existing sub-field
+        (
+            {"q": "myobj.nonexisting:value"},
+            "field 'myobj.nonexisting' not found in index config",
+        ),
+        (
+            {"q": "Milk AND nutriments:(nonexisting:>=3)"},
+            "field 'nutriments.nonexisting' not found in index config",
+        ),
         # non existing field inside more complex request
         (
             {"q": "Milk AND (categories:en:Whole OR (nonexisting:Whole)^2)"},

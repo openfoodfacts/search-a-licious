@@ -211,8 +211,9 @@ class QueryCheck(luqum.check.LuceneCheck):
         has_lang_suffix = field_names[-1] in self.index_config.supported_langs_set
         if has_lang_suffix:
             field_names.pop()
-        is_sub_field = len(field_names) > 1
-        # check field exists in config, but only for non sub-field
-        # TECHDEBT(SAL-TECHDEBT-010): validate configured sub-fields once supported.
-        if not is_sub_field and (field_names[0] not in self.index_config.fields):
-            yield f"Search field '{'.'.join(field_names)}' not found in index config"
+        current_fields = self.index_config.fields
+        for part in field_names:
+            if current_fields is None or part not in current_fields:
+                yield f"Search field '{'.'.join(field_names)}' not found in index config"
+                break
+            current_fields = current_fields[part].fields
