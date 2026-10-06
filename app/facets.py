@@ -13,6 +13,29 @@ from ._types import (
 )
 from .taxonomy_es import get_taxonomy_names
 
+PSEUDO_FACET_LABELS: dict[str, dict[str, str]] = {
+    "--other--": {
+        "en": "Other",
+        "fr": "Autres",
+        "es": "Otros",
+        "de": "Andere",
+        "it": "Altri",
+        "nl": "Overige",
+        "ru": "Другое",
+        "pl": "Inne",
+    },
+    "--none--": {
+        "en": "None",
+        "fr": "Aucun",
+        "es": "Ninguno",
+        "de": "Keine",
+        "it": "Nessuno",
+        "nl": "Geen",
+        "ru": "Ничего",
+        "pl": "Brak",
+    },
+}
+
 
 def _get_translations(
     lang: str, items: list[tuple[str, str]], index_config: config.IndexConfig
@@ -72,12 +95,17 @@ def translate_facets_values(
         (item.key, field_name)
         for field_name, info in facets.items()
         for item in info.items
+        if item.key not in PSEUDO_FACET_LABELS
     ]
     translations = _get_translations(lang, items, index_config)
     # translate facets
     for field_name, info in facets.items():
         for item in info.items:
-            item.name = translations.get((item.key, field_name), item.name)
+            if item.key in PSEUDO_FACET_LABELS:
+                labels = PSEUDO_FACET_LABELS[item.key]
+                item.name = labels.get(lang, labels.get("en", item.name))
+            else:
+                item.name = translations.get((item.key, field_name), item.name)
 
 
 def build_facets(
@@ -169,10 +197,23 @@ def build_facets(
                 key=lambda i_item: (not i_item[1].selected, i_item[0]),
             )
         ]
+        # resolve display name for facet
+        field_config = index_config.fields.get(field_name)
+        display_name = field_name
+        if field_config and field_config.display_name:
+            if isinstance(field_config.display_name, dict):
+                display_name = (
+                    field_config.display_name.get(lang)
+                    or field_config.display_name.get(index_config.main_lang)
+                    or field_config.display_name.get("en")
+                    or field_name
+                )
+            else:
+                display_name = field_config.display_name
+
         # append our facet information
         facets[field_name] = FacetInfo(
-            # TECHDEBT(SAL-TECHDEBT-004): support translated facet display names.
-            name=field_name,
+            name=display_name,
             items=facet_items,
             count_error_margin=count_error_margin,
         )
