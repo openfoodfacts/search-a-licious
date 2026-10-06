@@ -1,0 +1,32 @@
+# GitHub Actions-only build cache settings.
+#
+# The gha cache backend requires GitHub Actions cache environment variables, so
+# keep it out of the default local compose file set.
+x-backend-cache: &backend-cache
+  cache_from:
+    - type=gha,scope=search-a-licious-backend
+  cache_to:
+    - type=gha,scope=search-a-licious-backend,mode=max
+
+x-frontend-cache: &frontend-cache
+  cache_from:
+    - type=gha,scope=search-a-licious-frontend
+  cache_to:
+    - type=gha,scope=search-a-licious-frontend,mode=max
+
+services:
+  api:
+    build:
+      <<: *backend-cache
+
+  updater:
+    build:
+      <<: *backend-cache
+
+  search_frontend:
+    build:
+      <<: *frontend-cache
+
+  search_nodejs:
+    build:
+      <<: *frontend-cache
