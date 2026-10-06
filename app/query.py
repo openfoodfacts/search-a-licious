@@ -60,6 +60,8 @@ def parse_query(q: str | None) -> QueryAnalysis:
     except (
         luqum.exceptions.ParseError,
         luqum.exceptions.InconsistentQueryException,
+        ValueError,
+        TypeError,
     ) as e:
         raise InvalidLuceneQueryError("Request could not be analyzed by luqum") from e
     return analysis
@@ -287,7 +289,11 @@ def build_es_query(
             es_query = es_query.query(
                 es_query_builder(analysis.luqum_tree, params.index_config, params.langs)
             )
-        except luqum.exceptions.InconsistentQueryException as e:
+        except (
+            luqum.exceptions.InconsistentQueryException,
+            ValueError,
+            TypeError,
+        ) as e:
             raise InvalidLuceneQueryError(
                 "Request could not be transformed by luqum"
             ) from e
@@ -375,9 +381,28 @@ def execute_query(
     debug = SearchResponseDebug(es_query=query.to_dict())
     try:
         results = query.execute()
+    except elasticsearch.BadRequestError as e:
+        logger.warning(
+            "Client query error from Elasticsearch: %s %s", str(e), str(e.body)
+        )
+        errors.append(
+            SearchResponseError(
+                title="InvalidLuceneQueryError",
+                description=str(e),
+                status=400,
+            )
+        )
+        return ErrorSearchResponse(debug=debug, errors=errors)
     except elasticsearch.ApiError as e:
         logger.error("Error while running query: %s %s", str(e), str(e.body))
-        errors.append(SearchResponseError(title="es_api_error", description=str(e)))
+        error_status = 400 if getattr(e, "status_code", None) == 400 else None
+        errors.append(
+            SearchResponseError(
+                title="es_api_error",
+                description=str(e),
+                status=error_status,
+            )
+        )
         return ErrorSearchResponse(debug=debug, errors=errors)
     except elastic_transport.ConnectionError as e:
         errors.append(
