@@ -122,7 +122,9 @@ def search(
         search_result.facets = build_facets(
             search_result, query, params.main_lang, index_config, params.facets
         )
-        search_result.charts = build_charts(search_result, index_config, params.charts)
+        search_result.charts = build_charts(
+            search_result, index_config, params.charts, params.main_lang
+        )
         search_result.debug = add_debug_info(search_result, query, params)
         # remove aggregations
         search_result.aggregations = None
