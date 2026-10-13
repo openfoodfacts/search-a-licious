@@ -5,6 +5,22 @@
 Welcome to the documentation of search-a-licious,
 a ready to use search component built on top of [Elasticsearch](https://www.elastic.co/).
 
+## Quick Navigation
+
+**👥 For Users & Integrators:**
+- 🚀 [**Get Started with Tutorial**](./users/tutorial.md) - Step-by-step guide to set up your first search interface
+- 📋 [**Installation Guide**](./users/how-to-install.md) - Deploy Search-a-licious with Docker
+- 🔧 [**Configuration Reference**](./users/ref-config.md) - Complete configuration options
+- 🔍 [**Query Language Guide**](./users/explain-query-language.md) - Master the search syntax
+- 🌐 [**Web Components**](./users/ref-web-components.md) - Building UI with web components
+
+**🛠️ For Contributors & Developers:**
+- 💡 [**Development Introduction**](./devs/introduction.md) - Get started contributing
+- 🏗️ [**Architecture Overview**](./devs/explain-architecture.md) - Understand the system design
+- 🔧 [**Installation for Development**](./devs/how-to-install.md) - Set up development environment
+- 🐛 [**Debugging Guide**](./devs/how-to-debug-backend.md) - Debug backend issues
+- 📚 [**Python Reference**](./devs/ref-python.md) - API documentation
+
 ## Executive summary
 
 Search-a-licious transforms large data collections into searchable content, allowing users to quickly find what they need with powerful queries, facet exploration, and visualizations. Originally developed for Open Food Facts, it’s perfect for exposing data, supporting decision-making, and enabling exploration, unlocking the full potential of open data collections. Developers can rapidly build apps thanks to its easy configuration, reusable components, and robust architecture.
@@ -52,6 +68,11 @@ See our [developer introduction to get started](./devs/introduction.md)
 
 Every contribution as bug report, documentation, UX design is also really welcome !
 See our [wiki page about Open Food Facts](https://wiki.openfoodfacts.org/Search-a-licious)
+
+## 🎨 Design Resources
+
+- [![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?logo=figma&logoColor=white) Search-a-Licious logo](https://www.figma.com/design/gNnI56OF91Ugdd4fBaq5F8/Search-A-Licious-Logo?m=auto&t=bEHMawF1eequkY9w-6)
+- [![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?logo=figma&logoColor=white) Wireframes & Mood board](https://www.figma.com/design/d1tuhFa0qQLqqJP2xbwBqZ/Website-%E2%80%93%3E-Search?node-id=1-2&t=bEHMawF1eequkY9w-0)
 
 ## documentation organization
 

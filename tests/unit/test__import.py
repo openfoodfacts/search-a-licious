@@ -326,6 +326,7 @@ def test_gen_documents(default_config):
         assert datetime.datetime.fromisoformat(last_indexed_datetime) > start_datetime
         assert "categories" in document["_source"]
         assert document["_source"] == {
+            "obsolete": False,
             "categories": ["en:beverages"],
             "code": ids[i],
         }
@@ -421,9 +422,11 @@ def test_run_update_daemon(default_global_config: Config):
     load_document_fetcher_mock = MagicMock(return_value=document_fetcher_mock)
 
     # Patch the necessary functions and objects
-    with patch("app._import.connection", connection_mock), patch(
-        "app._import.load_document_fetcher", load_document_fetcher_mock
-    ), patch("app._import.get_new_updates", MagicMock(return_value=updates)):
+    with (
+        patch("app._import.connection", connection_mock),
+        patch("app._import.load_document_fetcher", load_document_fetcher_mock),
+        patch("app._import.get_new_updates", MagicMock(return_value=updates)),
+    ):
         # Call the function
         run_update_daemon(default_global_config)
 

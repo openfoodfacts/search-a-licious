@@ -451,4 +451,4 @@ def test_fields(req_type, sample_data, test_client):
     # we only get code and product_name
     assert set(
         attributes for result in data["hits"] for attributes in result.keys()
-    ) == {"code", "product_name"}
+    ) == {"_score", "code", "product_name"}

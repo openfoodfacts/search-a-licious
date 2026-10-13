@@ -55,7 +55,8 @@ def parse_query(q: str | None) -> QueryAnalysis:
         return analysis
     try:
         analysis.luqum_tree = parser.parse(q)
-        # FIXME: resolve UnknownFilter (to AND)
+        # TECHDEBT(SAL-TECHDEBT-006): align parser UnknownFilter handling with
+        # the UnknownOperation resolution strategy.
     except (
         luqum.exceptions.ParseError,
         luqum.exceptions.InconsistentQueryException,
@@ -343,7 +344,6 @@ def build_completion_query(
     :return: the built Query
     """
     query = Search(index=config.taxonomy.index.name)
-    # import pdb;pdb.set_trace();
     for lang in langs:
         completion_clause = {
             "field": f"synonyms.{lang}",

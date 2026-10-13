@@ -35,6 +35,7 @@
                       {
                         "multi_match": {
                           "fields": [
+                            "code",
                             "product_name.fr",
                             "generic_name.fr",
                             "categories.fr",
@@ -49,6 +50,7 @@
                       {
                         "multi_match": {
                           "fields": [
+                            "code",
                             "product_name.fr",
                             "generic_name.fr",
                             "categories.fr",
@@ -67,6 +69,7 @@
                   "multi_match": {
                     "boost": 2.0,
                     "fields": [
+                      "code",
                       "product_name.fr",
                       "generic_name.fr",
                       "categories.fr",

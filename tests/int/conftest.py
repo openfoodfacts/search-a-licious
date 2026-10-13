@@ -9,6 +9,7 @@ import app.utils.connection
 
 from .data_generation import (
     delete_es_indices,
+    delete_es_synonyms,
     ingest_data,
     ingest_taxonomies,
     load_state,
@@ -72,6 +73,7 @@ def data_ingester(index_config, es_connection, clean_es):
     """
     if clean_es:
         delete_es_indices(es_connection)
+        delete_es_synonyms(es_connection)
     else:
         load_state("test_off", index_config, es_connection)
 

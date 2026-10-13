@@ -49,12 +49,6 @@ def test_import_data(test_off_config, es_connection, synonyms_created):
         "nutriments": {
             "fat_100g": 0.0,
             "energy-kcal_100g": 400.0,
-            "proteins_100g": 0.0,
-            "saturated-fat_100g": 0.0,
-            "salt_100g": 0.0,
-            "carbohydrates_100g": 100.0,
-            "sugars_100g": 100.0,
-            "sodium_100g": 0.0,
         },
         "completeness": 0.5874999999999999,
     }
@@ -112,12 +106,6 @@ def test_import_data(test_off_config, es_connection, synonyms_created):
         "nutriments": {
             "fat_100g": 0.0,
             "energy-kcal_100g": 400.0,
-            "proteins_100g": 0.0,
-            "saturated-fat_100g": 0.0,
-            "salt_100g": 0.1,
-            "carbohydrates_100g": 100.0,
-            "sugars_100g": 100.0,
-            "sodium_100g": 0.001,
         },
         "completeness": 0.5874999999999999,
     }
@@ -150,7 +138,9 @@ def test_cleanup_indexes(test_off_config, es_connection):
     assert result.exit_code == 0
     # assert we got the index with the right alias, and other indexes untouched
     aliases = es_connection.indices.get_alias(index="*")
-    assert dict(aliases) == {
+    # remove special aliases starting with .
+    aliases = {k: v for k, v in aliases.items() if not k.startswith(".")}
+    assert aliases == {
         # only aliases where kept
         "test_off_taxonomy-2024-07-25": {"aliases": {"test_off_taxonomy": {}}},
         "test_off-2024-07-25": {"aliases": {"test_off": {}}},

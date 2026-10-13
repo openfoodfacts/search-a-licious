@@ -1,12 +1,11 @@
 import abc
 import math
-import time
 from datetime import datetime
+from inspect import cleandoc as cd_
 from multiprocessing import Pool
 from pathlib import Path
 from typing import Iterator, cast
 
-import elasticsearch
 import tqdm
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk, parallel_bulk
@@ -14,15 +13,17 @@ from elasticsearch_dsl import Index, Search
 from redis import Redis
 
 from app._types import FetcherResult, FetcherStatus, JSONType
-from app.config import Config, IndexConfig, settings
+from app.config import Config, IndexConfig
+from app.exceptions import TooManySynonymsSetsException
 from app.indexing import (
     BaseTaxonomyPreprocessor,
     DocumentProcessor,
     generate_index_object,
     generate_taxonomy_index_object,
+    wait_index_health,
 )
 from app.taxonomy import iter_taxonomies
-from app.taxonomy_es import refresh_synonyms
+from app.taxonomy_es import check_synonyms_sets_size, refresh_synonyms
 from app.utils import connection, get_logger, load_class_object_from_string
 from app.utils.io import jsonl_iter
 
@@ -115,7 +116,7 @@ def get_processed_since(
             if result.status == FetcherStatus.SKIP:
                 logger.debug(f"Skipping ID {id_} because fetches stated to do so")
             elif result.status == FetcherStatus.RETRY:
-                logger.warn(
+                logger.warning(
                     f"Should retry ID {id_} due to status RETRY, but it's not yet implemented !"
                 )
             elif result.status == FetcherStatus.REMOVED:
@@ -182,7 +183,7 @@ def get_new_updates(
                         f"Skipping ID {id_}  in {stream_name} because fetches stated to do so"
                     )
                 elif result.status == FetcherStatus.RETRY:
-                    logger.warn(
+                    logger.warning(
                         f"Should retry ID {id_}  in {stream_name} due to status RETRY, "
                         "but it's not yet implemented !"
                     )
@@ -231,6 +232,7 @@ def gen_documents(
     num_items: int | None,
     num_processes: int,
     process_num: int,
+    gen_document_errors: list[Exception] | None = None,
 ):
     """Generate documents to index for process number process_num
 
@@ -243,14 +245,18 @@ def gen_documents(
         if i % num_processes != process_num:
             continue
 
-        document_dict = get_document_dict(
-            processor,
-            FetcherResult(status=FetcherStatus.FOUND, document=row),
-            next_index,
-        )
+        try:
+            document_dict = get_document_dict(
+                processor,
+                FetcherResult(status=FetcherStatus.FOUND, document=row),
+                next_index,
+            )
+        except Exception as e:
+            if gen_document_errors is not None:
+                gen_document_errors.append(e)
+            continue
         if not document_dict:
             continue
-
         yield document_dict
 
 
@@ -362,6 +368,8 @@ def import_parallel(
     processor = DocumentProcessor(config)
     # open a connection for this process
     es = connection.get_es_client(request_timeout=120, retry_on_timeout=True)
+    # a list of errors that occurs during document generation
+    gen_document_errors: list[Exception] = []
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to
     # parallelize that. If we then do parallel_bulk here, this causes queueing
@@ -375,6 +383,7 @@ def import_parallel(
             num_items,
             num_processes,
             process_num,
+            gen_document_errors,
         ),
         raise_on_error=False,
     )
@@ -413,6 +422,7 @@ def get_redis_products(
     index: str,
     id_field_name: str,
     last_updated_timestamp_ms: int,
+    errors: list[Exception] | None = None,
 ):
     """Fetch IDs of documents to update from Redis.
 
@@ -434,9 +444,13 @@ def get_redis_products(
         id_field_name,
         document_fetcher=fetcher,
     ):
-        document_dict = get_document_dict(processor, result, index)
-        if document_dict:
-            yield document_dict
+        try:
+            document_dict = get_document_dict(processor, result, index)
+            if document_dict:
+                yield document_dict
+        except Exception as e:
+            if errors is not None:
+                errors.append(e)
         processed += 1
     logger.info("Processed %d updates from Redis", processed)
 
@@ -472,6 +486,7 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
     id_field_name = config.index.id_field_name
     # Since this is only done by a single process, we can use parallel_bulk
     num_errors = 0
+    document_gen_errors: list[Exception] = []
     for success, info in parallel_bulk(
         es_client,
         get_redis_products(
@@ -481,11 +496,15 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
             index,
             id_field_name,
             last_updated_timestamp_ms,
+            document_gen_errors,
         ),
     ):
         if not success:
             logger.warning("A document failed: %s", info)
             num_errors += 1
+    for error in document_gen_errors:
+        logger.error("A document failed: %s", error)
+    num_errors += len(document_gen_errors)
     return num_errors
 
 
@@ -523,18 +542,14 @@ def run_items_import(
         index_date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
         next_index = f"{config.index.name}-{index_date}"
         index = generate_index_object(next_index, config)
-        # create the index
-        index.save(using=es_client)
-        # it may take some time to create the index
-        for i in range(60):
-            try:
-                index.refresh()
-                break
-            except elasticsearch.NotFoundError:
-                logger.info("Index not ready, waiting 10 seconds")
-                time.sleep(10)
-        else:
-            raise RuntimeError("Index not ready after 600 seconds")
+        # create the index, use create method instead of save
+        # because it supports additional parameters
+        # it can be very long if we have a lot of synonyms to handle
+        index.create(using=es_client, timeout="3600s", request_timeout=3600)
+        # wait for it to be really available,
+        # this can take a lot of time
+        # if we have a lot of synonyms
+        wait_index_health(es_client, next_index)
     else:
         # use current index
         next_index = config.index.name
@@ -626,7 +641,19 @@ def perform_cleanup_indexes(config: IndexConfig) -> int:
 
 def perform_refresh_synonyms(index_id: str, config: IndexConfig) -> None:
     """Refresh synonyms files generated by taxonomies."""
-    refresh_synonyms(index_id, config, settings.synonyms_path)
+    refresh_synonyms(index_id, config)
+    try:
+        check_synonyms_sets_size(config)
+    except TooManySynonymsSetsException as e:
+        logger.warning(
+            cd_(
+                """Too many synonyms in some taxonomies: %s
+                Consider raising max_synonyms_entries for those taxonomies
+                (will require a complete re-index of your data).
+                """
+            ),
+            e,
+        )
 
 
 def run_update_daemon(config: Config) -> None:

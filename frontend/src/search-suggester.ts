@@ -58,7 +58,7 @@ type taxonomySelectionOption = SuggestionSelectionOption & {
 export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   SearchaliciousSuggester
 ) {
-  // TODO: suggestion should be by type
+  // TECHDEBT(SAL-TECHDEBT-011): support suggestion rendering by taxonomy/type.
   // for that we need for example to use slot by taxonomy where we put the value
   // this would enable adding beautiful html selections
 
@@ -109,7 +109,7 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
         return;
       }
     }
-    // TODO: handle the case of no facet found: replace expression with a condition on specific field
+    // TECHDEBT(SAL-TECHDEBT-012): fallback to a field-level query condition when no facet matches.
   }
 
   /**

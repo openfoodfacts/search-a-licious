@@ -119,4 +119,36 @@ suite('searchalicious-bar', () => {
       'boost_phrase=true&index_id=foo&langs=en&page_size=10&q=test'
     );
   });
+
+  test('submitSuggestion resets facets on direct text submit', async () => {
+    // create search bar qnad get it
+    const el = await fixture(html` <searchalicious-bar></searchalicious-bar>`);
+    const bar = el as SearchaliciousBar;
+
+    let resetFacetsCalled = false;
+    const originalResetFacets = (bar as any).resetFacets.bind(bar);
+    (bar as any).resetFacets = (launchSearch: boolean) => {
+      resetFacetsCalled = true;
+      assert.equal(launchSearch, false);
+      originalResetFacets(launchSearch);
+    };
+
+    // mock search API
+    (bar as any).search = () => {};
+
+    // mimic option selection
+    (bar as any).selectedOption = {
+      value: 'categories:pastas',
+      label: 'categories:pastas',
+      id: '--direct-suggestion--categories:pastas',
+      input: 'categories:pastas',
+    };
+    bar.submitSuggestion(false);
+
+    assert.isTrue(
+      resetFacetsCalled,
+      'resetFacets should be called when submitting a non-suggestion query'
+    );
+    assert.equal(bar.query, 'categories:pastas');
+  });
 });
