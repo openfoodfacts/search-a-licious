@@ -7,21 +7,21 @@ requires-python = ">=3.11,<3.12"
 license = "AGPL-3.0-only"
 authors = [{ name = "Open Food Facts team" }]
 dependencies = [
-  "cachetools~=5.3.2",
+  "cachetools~=7.2.1",
   "elasticsearch-dsl~=8.9.0",
-  "fastapi~=0.115.0",
+  "fastapi~=0.143.0",
   "jinja2~=3.1.6",
-  "luqum~=0.13.0",
-  "orjson~=3.11.6",
+  "luqum~=1.0.0",
+  "orjson~=3.13.0",
   "py-healthcheck>=1.10.1,<2.0.0",
-  "pydantic-settings~=2.0.3",
-  "pyyaml~=6.0.1",
-  "redis~=5.0.0",
-  "requests~=2.33.0",
-  "sentry-sdk[fastapi]~=1.45.1",
-  "tqdm~=4.66.1",
-  "typer~=0.9.0",
-  "uvicorn~=0.23.2",
+  "pydantic-settings~=2.15.0",
+  "pyyaml~=6.0.3",
+  "redis~=8.1.0",
+  "requests~=2.34.2",
+  "sentry-sdk[fastapi]~=2.72.0",
+  "tqdm~=4.70.1",
+  "typer~=0.27.3",
+  "uvicorn~=0.54.0",
 ]
 
 [build-system]
