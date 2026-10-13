@@ -1198,7 +1198,10 @@ files = [
 librt = {version = ">=0.8.0", markers = "platform_python_implementation != \"PyPy\""}
 mypy_extensions = ">=1.0.0"
 pathspec = ">=1.0.0"
-typing_extensions = {version = ">=4.6.0", markers = "python_version < \"3.15\""}
+typing_extensions = [
+    {version = ">=4.6.0", markers = "python_version < \"3.15\""},
+    {version = ">=4.14.0", markers = "python_version >= \"3.15\""},
+]
 
 [package.extras]
 dmypy = ["psutil (>=4.0)"]
@@ -2309,5 +2312,5 @@ python-discovery = ">=1.6.1"
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.11,<3.12"
-content-hash = "36150bba8b2a07154a75768df5e9f7d526ff519b51cc346b468aafa13dd38997"
+python-versions = ">=3.11,<4.0"
+content-hash = "ad22ea3194579e53046e06b466f69a87045ef5aad1f4ee74d24977a01a3dbc27"
