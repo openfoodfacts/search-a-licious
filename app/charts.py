@@ -1,3 +1,4 @@
+import collections
 from functools import reduce
 
 from . import config
@@ -249,10 +250,12 @@ def build_charts(
         for chart in requested_charts
         if chart.chart_type == "DistributionChart"
     }
+    # translate the bucket "keys" (the label)
+    # so that en:chocolate becomes _chocolat_ in french
     translations = get_translations(
         lang,
         [
-            (bucket["key"], field)
+            (str(bucket["key"]), field)
             for field, buckets in buckets_by_field.items()
             for bucket in buckets
         ],
@@ -268,10 +271,11 @@ def build_charts(
             # distribution charts are created from aggregations
             field = requested_chart.field
             # keys sharing a name (e.g. same brand, different case) become one bar
-            amounts: dict[str | float, int] = {}
+            # (thanks to translations)
+            amounts: dict[str | float, int] = collections.defaultdict(int)
             for bucket in buckets_by_field[field]:
-                name = translations.get((bucket["key"], field), bucket["key"])
-                amounts[name] = amounts.get(name, 0) + bucket["doc_count"]
+                name = translations.get((str(bucket["key"]), field), bucket["key"])
+                amounts[name] += bucket["doc_count"]
             values = [
                 {"category": name, "amount": amount}
                 for name, amount in sorted(

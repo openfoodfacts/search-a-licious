@@ -42,6 +42,7 @@ def test_distribution_chart_uses_translated_names(default_config, monkeypatch):
                 ("en:kellogg-s", 5), ("post", 3), ("Post", 2), ("auchan", 1)
             ),
             "nutrition_grades": _buckets(("a", 4), ("b", 1)),
+            "nova_groups": _buckets((1, 2), (3, 5), (4, 10)),
         }
     )
 
@@ -51,6 +52,7 @@ def test_distribution_chart_uses_translated_names(default_config, monkeypatch):
         [
             DistributionChart(field="brands"),
             DistributionChart(field="nutrition_grades"),
+            DistributionChart(field="nova_groups"),
         ],
         "en",
     )
@@ -65,6 +67,11 @@ def test_distribution_chart_uses_translated_names(default_config, monkeypatch):
     assert _chart_values(charts["nutrition_grades"]) == [
         {"category": "a", "amount": 4},
         {"category": "b", "amount": 1},
+    ]
+    assert _chart_values(charts["nova_groups"]) == [
+        {"category": 1, "amount": 2},
+        {"category": 3, "amount": 5},
+        {"category": 4, "amount": 10},
     ]
     # one lookup for all charts
     assert len(lookups) == 1
