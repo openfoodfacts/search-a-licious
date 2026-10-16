@@ -27,7 +27,11 @@ def default_config():
 @pytest.fixture
 def default_global_config():
     """Fixture that returns default global configuration for tests."""
-    yield Config.from_yaml(DEFAULT_CONFIG_PATH)
+    conf = Config.from_yaml(DEFAULT_CONFIG_PATH)
+    previous_conf = app_config._CONFIG
+    app_config._CONFIG = conf
+    yield conf
+    app_config._CONFIG = previous_conf
 
 
 @pytest.fixture
