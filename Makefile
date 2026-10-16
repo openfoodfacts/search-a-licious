@@ -115,7 +115,7 @@ tsc_watch:
 
 update_poetry_lock:
 	@echo "🔎 Updating poetry.lock"
-	${DOCKER_COMPOSE} run --rm api poetry lock --no-update
+	${DOCKER_COMPOSE} run --rm api poetry lock --regenerate
 
 #-------#
 # Tests #
