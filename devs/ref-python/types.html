@@ -83,6 +83,12 @@
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Name of vega representations to return in the response.\nCan be distribution chart or scatter plot.\n\nIf you pass a simple string, it will be interpreted as a distribution chart,\nor a scatter plot if it is two fields separated by a column (x_axis_field:y_axis_field)."</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Charts"</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"charts_y_axis"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Add a vertical axis with counts to distribution charts.\n\nOff by default, as small charts read better without it."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Charts Y Axis"</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">"$defs"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -145,6 +151,7 @@
 <dt class="field-odd">Fields<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><a class="reference internal" href="#app._types.AggregateSearchParameters.charts" title="app._types.AggregateSearchParameters.charts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">charts</span> <span class="pre">(list[app._types.DistributionChart</span> <span class="pre">|</span> <span class="pre">app._types.ScatterChart]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#app._types.AggregateSearchParameters.charts_y_axis" title="app._types.AggregateSearchParameters.charts_y_axis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">charts_y_axis</span> <span class="pre">(bool)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#app._types.AggregateSearchParameters.facets" title="app._types.AggregateSearchParameters.facets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">facets</span> <span class="pre">(list[str]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 </ul>
 </dd>
@@ -162,6 +169,21 @@
 Can be distribution chart or scatter plot.</p>
 <p>If you pass a simple string, it will be interpreted as a distribution chart,
 or a scatter plot if it is two fields separated by a column (x_axis_field:y_axis_field).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#app._types.AggregateSearchParameters.check_charts_are_valid" title="app._types.AggregateSearchParameters.check_charts_are_valid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_charts_are_valid</span></code></a></p></li>
+<li><p><a class="reference internal" href="#app._types.AggregateSearchParameters.check_facets_are_valid" title="app._types.AggregateSearchParameters.check_facets_are_valid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_facets_are_valid</span></code></a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="app._types.AggregateSearchParameters.charts_y_axis">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">charts_y_axis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Annotated</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Query</span><span class="p"><span class="pre">(</span></span><span class="pre">PydanticUndefined</span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.AggregateSearchParameters.charts_y_axis" title="Link to this definition">¶</a></dt>
+<dd><p>Add a vertical axis with counts to distribution charts.</p>
+<p>Off by default, as small charts read better without it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -730,6 +752,12 @@ who have the opportunity to discard an entry</p>
 <span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Name of vega representations to return in the response.\nCan be distribution chart or scatter plot.\n\nIf you pass a simple string, it will be interpreted as a distribution chart,\nor a scatter plot if it is two fields separated by a column (x_axis_field:y_axis_field)."</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Charts"</span>
 <span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"charts_y_axis"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Add a vertical axis with counts to distribution charts.\n\nOff by default, as small charts read better without it."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Charts Y Axis"</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span>
+<span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">"fields"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"anyOf"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="p">{</span>
@@ -999,6 +1027,12 @@ separated by ‘,’ for Distribution and Scatter charts.</p>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Name of vega representations to return in the response.\nCan be distribution chart or scatter plot.\n\nIf you pass a simple string, it will be interpreted as a distribution chart,\nor a scatter plot if it is two fields separated by a column (x_axis_field:y_axis_field)."</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Charts"</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"charts_y_axis"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Add a vertical axis with counts to distribution charts.\n\nOff by default, as small charts read better without it."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Charts Y Axis"</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">"fields"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"anyOf"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1686,6 +1720,12 @@ If a script needs parameters, you can only use the POST method.</p>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Name of vega representations to return in the response.\nCan be distribution chart or scatter plot.\n\nIf you pass a simple string, it will be interpreted as a distribution chart,\nor a scatter plot if it is two fields separated by a column (x_axis_field:y_axis_field)."</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Charts"</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">"charts_y_axis"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Add a vertical axis with counts to distribution charts.\n\nOff by default, as small charts read better without it."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Charts Y Axis"</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">"fields"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"anyOf"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
