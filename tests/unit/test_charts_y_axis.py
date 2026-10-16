@@ -26,6 +26,7 @@ def test_distribution_chart_y_axis(default_config, y_axis, expected):
         _search_result(),
         default_config,
         [DistributionChart(field="nutrition_grades")],
+        "en",
         y_axis=y_axis,
     )
 

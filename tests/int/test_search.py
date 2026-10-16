@@ -275,14 +275,15 @@ def test_simple_charts(req_type, charts, sample_data, test_client):
         ["categories", "labels", "unique_scans_n x completeness"]
     )
     assert charts["categories"]["data"][0]["values"] == [
+        # en:brown-sugars is not in the test taxonomy
         {"category": "en:brown-sugars", "amount": 2},
-        {"category": "en:granulated-sugars", "amount": 4},
-        {"category": "en:sugars", "amount": 6},
-        {"category": "en:sweeteners", "amount": 6},
+        {"category": "Granulated sugars", "amount": 4},
+        {"category": "Sugars", "amount": 6},
+        {"category": "Sweeteners", "amount": 6},
     ]
     assert charts["labels"]["data"][0]["values"] == [
-        {"category": "en:no-lactose", "amount": 2},
-        {"category": "en:organic", "amount": 3},
+        {"category": "No lactose", "amount": 2},
+        {"category": "Organic", "amount": 3},
     ]
     assert list_of_dict_to_comparable(
         charts["unique_scans_n:completeness"]["data"][0]["values"]

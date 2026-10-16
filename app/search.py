@@ -123,7 +123,11 @@ def search(
             search_result, query, params.main_lang, index_config, params.facets
         )
         search_result.charts = build_charts(
-            search_result, index_config, params.charts, y_axis=params.charts_y_axis
+            search_result,
+            index_config,
+            params.charts,
+            params.main_lang,
+            y_axis=params.charts_y_axis,
         )
         search_result.debug = add_debug_info(search_result, query, params)
         # remove aggregations
