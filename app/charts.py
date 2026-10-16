@@ -46,7 +46,10 @@ def empty_chart(chart_name):
 
 
 def build_distribution_chart(
-    chart: DistributionChart, values, index_config: config.IndexConfig
+    chart: DistributionChart,
+    values,
+    index_config: config.IndexConfig,
+    y_axis: bool = False,
 ):
     """
     Return the vega structure for a Bar Chart
@@ -86,11 +89,19 @@ def build_distribution_chart(
             "range": "height",
         },
     ]
-    # How to hide vertical axis: do not add { scale: yscale, ...}
-    # in axes section
     vega_chart["axes"] = [
         {"orient": "bottom", "scale": "xscale", "domain": False, "ticks": False}
     ]
+    if y_axis:
+        vega_chart["axes"].append(
+            {
+                "orient": "left",
+                "scale": "yscale",
+                "tickCount": 4,
+                "grid": True,
+                "domain": False,
+            }
+        )
     vega_chart["marks"] = [
         {
             "type": "rect",
@@ -234,6 +245,7 @@ def build_charts(
     index_config: config.IndexConfig,
     requested_charts: list[ChartType] | None,
     lang: str,
+    y_axis: bool = False,
 ) -> ChartsInfos:
     """
     Build and return vega charts representations for the given
@@ -286,7 +298,7 @@ def build_charts(
                 )
             ]
             charts[field] = build_distribution_chart(
-                requested_chart, values, index_config
+                requested_chart, values, index_config, y_axis=y_axis
             )
 
     return charts
