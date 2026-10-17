@@ -565,7 +565,7 @@ def test_chart_get_without_chart_fails(sample_data, test_client):
     resp, _ = do_search(
         test_client, "GET", {"sort_by": "created_t"}, code=422, path="/chart"
     )
-    assert "chart" in resp.text
+    assert "Field required" in resp.text
     resp, _ = do_search(
         test_client,
         "GET",
