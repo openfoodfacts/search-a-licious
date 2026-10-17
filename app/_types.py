@@ -57,7 +57,6 @@ class ScatterChart(BaseModel):
     x: str
     y: str
     max_entries: Annotated[int, CommonParametersQuery.max_entries] = 1000
-    """Maximum number of points, only used by the chart endpoint"""
 
 
 ChartType = Union[DistributionChart, ScatterChart]
@@ -673,6 +672,7 @@ class GetChartSearchParameters(ChartSearchParameters, GetBaseSearchParameters):
 
     @model_validator(mode="after")
     def set_chart_max_entries(self):
+        """Apply the flat GET `max_entries` to the chart"""
         self.chart.max_entries = self.max_entries
         return self
 
