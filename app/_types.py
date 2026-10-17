@@ -404,6 +404,18 @@ class AggregateSearchParameters(BaseModel):
         ),
     ] = None
 
+    charts_y_axis: Annotated[
+        bool,
+        Query(
+            description=cd_(
+                """Add a vertical axis with counts to distribution charts.
+
+                Off by default, as small charts read better without it.
+                """
+            )
+        ),
+    ] = False
+
     @model_validator(mode="after")
     def check_facets_are_valid(self):
         """Check that the facets names are valid."""
