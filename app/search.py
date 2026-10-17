@@ -3,6 +3,8 @@ from typing import cast
 
 from . import config
 from ._types import (
+    BaseSearchParameters,
+    ChartSearchParameters,
     DebugInfo,
     ErrorSearchResponse,
     QueryAnalysis,
@@ -43,7 +45,7 @@ def get_result_processor(index_id):
 def add_debug_info(
     search_result: SuccessSearchResponse,
     analysis: QueryAnalysis,
-    params: SearchParameters,
+    params: BaseSearchParameters,
 ) -> SearchResponseDebug | None:
     if not params.debug_info:
         return None
@@ -61,6 +63,27 @@ def add_debug_info(
             case DebugInfo.aggregations:
                 data[debug_info.value] = search_result.aggregations
     return SearchResponseDebug(**data)
+
+
+def _build_query(params: BaseSearchParameters) -> QueryAnalysis | ErrorSearchResponse:
+    try:
+        return build_search_query(
+            params,
+            # ES query builder is generated from elasticsearch mapping and
+            # takes ~40ms to generate, build-it before hand to avoid this delay
+            es_query_builder=get_es_query_builder(params.valid_index_id),
+        )
+    except (QueryAnalysisError, ValueError) as e:
+        return ErrorSearchResponse(
+            debug=SearchResponseDebug(),
+            errors=[
+                SearchResponseError(
+                    title=e.__class__.__name__,
+                    description=str(e),
+                    status=400,
+                )
+            ],
+        )
 
 
 def search(
@@ -82,24 +105,9 @@ def search(
         params.charts,
     )
     index_config = params.index_config
-    try:
-        query = build_search_query(
-            params,
-            # ES query builder is generated from elasticsearch mapping and
-            # takes ~40ms to generate, build-it before hand to avoid this delay
-            es_query_builder=get_es_query_builder(params.valid_index_id),
-        )
-    except (QueryAnalysisError, ValueError) as e:
-        return ErrorSearchResponse(
-            debug=SearchResponseDebug(),
-            errors=[
-                SearchResponseError(
-                    title=e.__class__.__name__,
-                    description=str(e),
-                    status=400,
-                )
-            ],
-        )
+    query = _build_query(params)
+    if isinstance(query, ErrorSearchResponse):
+        return query
     (
         logger.debug(
             "Luqum query: %s\nElasticsearch query: %s",
@@ -131,5 +139,31 @@ def search(
         )
         search_result.debug = add_debug_info(search_result, query, params)
         # remove aggregations
+        search_result.aggregations = None
+    return search_result
+
+
+def chart(params: ChartSearchParameters) -> SearchResponse:
+    """Build a scatter chart from the first `max_entries` results"""
+    query = _build_query(params)
+    if isinstance(query, ErrorSearchResponse):
+        return query
+    chart_option = params.chart
+    result_processor = cast(
+        BaseResultProcessor, get_result_processor(params.valid_index_id)
+    )
+    search_result = execute_query(
+        query.es_query,
+        result_processor,
+        page=1,
+        page_size=chart_option.max_entries,
+        projection={chart_option.x.split(".")[0], chart_option.y.split(".")[0]},
+    )
+    if isinstance(search_result, SuccessSearchResponse):
+        search_result.charts = build_charts(
+            search_result, params.index_config, [chart_option], params.main_lang
+        )
+        search_result.debug = add_debug_info(search_result, query, params)
+        search_result.hits = []
         search_result.aggregations = None
     return search_result
