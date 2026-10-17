@@ -155,11 +155,7 @@ def build_scatter_chart(
     chart_option: ScatterChart, search_result, index_config: config.IndexConfig
 ):
     """
-    Build a scatter plot only for values from search_results
-    (only values in the current page)
-    TECHDEBT(SAL-TECHDEBT-005): evaluate using full result set
-    (or dedicated aggregation)
-    instead of current page only.
+    Build a scatter plot for the values of search_result hits
     Inspiration: https://vega.github.io/vega/examples/scatter-plot/
     """
 
