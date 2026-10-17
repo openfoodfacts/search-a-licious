@@ -7,6 +7,7 @@ from app._types import (
     JSONType,
     PostChartSearchParameters,
     QueryAnalysis,
+    ScatterChart,
     SearchParameters,
 )
 from app.config import IndexConfig
@@ -259,11 +260,11 @@ def test_build_chart_query(
     default_config: IndexConfig,
     default_filter_query_builder: FullTextQueryBuilder,
 ):
-    chart = {"x": "nutriments.fat_100g", "y": "completeness", "max_entries": 7}
+    chart = ScatterChart(x="nutriments.fat_100g", y="completeness", max_entries=7)
     params = PostChartSearchParameters(q="milk", chart=chart, sort_by="-scans_n")
     es_query = build_search_query(
         params, es_query_builder=default_filter_query_builder
-    ).es_query.to_dict()
+    )._dict_dump()["es_query"]
     assert es_query["size"] == 7
     assert es_query["from"] == 0
     assert es_query["_source"] == ["nutriments.fat_100g", "completeness"]
@@ -282,11 +283,11 @@ def test_build_chart_query_sort_script(
     default_filter_query_builder: FullTextQueryBuilder,
 ):
     params = PostChartSearchParameters(
-        chart={"x": "scans_n", "y": "completeness"},
+        chart=ScatterChart(x="scans_n", y="completeness"),
         sort_by="personal_score",
         sort_params={"environmental_score": 1, "nutri_score": 1, "nova_group": 1},
     )
     es_query = build_search_query(
         params, es_query_builder=default_filter_query_builder
-    ).es_query.to_dict()
+    )._dict_dump()["es_query"]
     assert "_script" in es_query["sort"][0]
