@@ -16,6 +16,23 @@ def test_status_for_response_client_query_error_is_400():
     assert status_for_response(result) == status.HTTP_400_BAD_REQUEST
 
 
+def test_status_for_response_value_error_is_400():
+    result = _error_response("ValueError")
+    assert status_for_response(result) == status.HTTP_400_BAD_REQUEST
+
+
+def test_status_for_response_explicit_status_code():
+    result = ErrorSearchResponse(
+        debug=SearchResponseDebug(),
+        errors=[
+            SearchResponseError(
+                title="es_api_error", description="bad range", status=400
+            )
+        ],
+    )
+    assert status_for_response(result) == status.HTTP_400_BAD_REQUEST
+
+
 def test_status_for_response_es_error_is_503():
     result = _error_response("es_connection_error")
     assert status_for_response(result) == status.HTTP_503_SERVICE_UNAVAILABLE
