@@ -3,7 +3,12 @@ from typing import Any
 import pytest
 from luqum.parser import parser
 
-from app._types import JSONType, QueryAnalysis, SearchParameters
+from app._types import (
+    JSONType,
+    PostChartSearchParameters,
+    QueryAnalysis,
+    SearchParameters,
+)
 from app.config import IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
 from app.exceptions import QueryAnalysisError
@@ -248,3 +253,40 @@ def test_build_search_query_failure(
             es_query_builder=default_filter_query_builder,
         )
     assert error_msg in str(exc_info.value)
+
+
+def test_build_chart_query(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    chart = {"x": "nutriments.fat_100g", "y": "completeness", "max_entries": 7}
+    params = PostChartSearchParameters(q="milk", chart=chart, sort_by="-scans_n")
+    es_query = build_search_query(
+        params, es_query_builder=default_filter_query_builder
+    ).es_query.to_dict()
+    assert es_query["size"] == 7
+    assert es_query["from"] == 0
+    assert es_query["_source"] == ["nutriments.fat_100g", "completeness"]
+    assert "aggs" not in es_query
+    assert es_query["sort"] == [{"scans_n": {"order": "desc"}}]
+    exists = [
+        f["exists"]["field"]
+        for f in es_query["query"]["bool"]["filter"]
+        if "exists" in f
+    ]
+    assert exists == ["nutriments.fat_100g", "completeness"]
+
+
+def test_build_chart_query_sort_script(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = PostChartSearchParameters(
+        chart={"x": "scans_n", "y": "completeness"},
+        sort_by="personal_score",
+        sort_params={"environmental_score": 1, "nutri_score": 1, "nova_group": 1},
+    )
+    es_query = build_search_query(
+        params, es_query_builder=default_filter_query_builder
+    ).es_query.to_dict()
+    assert "_script" in es_query["sort"][0]
