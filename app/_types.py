@@ -315,10 +315,12 @@ class ResultSearchParameters(BaseModel):
     ] = None
 
     page_size: Annotated[
-        int, Query(description="Number of results to return per page.")
+        int, Query(ge=1, description="Number of results to return per page.")
     ] = 10
 
-    page: Annotated[int, Query(description="Number of results to return per page.")] = 1
+    page: Annotated[
+        int, Query(ge=1, description="Page number to return, starting at 1.")
+    ] = 1
 
     sort_by: Annotated[
         str | None,
