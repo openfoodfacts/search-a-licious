@@ -777,12 +777,14 @@ who have the opportunity to discard an entry</p>
 <span class="w">      </span><span class="nt">"page_size"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of results to return per page."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"minimum"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page Size"</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of results to return per page."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page number to return, starting at 1."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"minimum"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page"</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
 <span class="w">      </span><span class="p">},</span>
@@ -959,7 +961,7 @@ separated by ‘,’ for Distribution and Scatter charts.</p>
 
 <dl class="py method pydantic_validator">
 <dt class="sig sig-object py" id="app._types.GetSearchParameters.parse_value_str">
-<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parse_value_str</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">facets</span></em><em class="property"><span class="pre">,</span> </em><em class="xref py py-obj"><span class="pre">fields</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.GetSearchParameters.parse_value_str" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">validator</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parse_value_str</span></span><em class="autodoc_pydantic_validator_arrow property">&#160; <span class="pre">»</span>&#160; </em><em class="xref py py-obj"><span class="pre">fields</span></em><em class="property"><span class="pre">,</span> </em><em class="xref py py-obj"><span class="pre">facets</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.GetSearchParameters.parse_value_str" title="Link to this definition">¶</a></dt>
 <dd><p>Parse for get params ‘langs’</p>
 </dd></dl>
 
@@ -1053,12 +1055,14 @@ separated by ‘,’ for Distribution and Scatter charts.</p>
 <span class="w">      </span><span class="nt">"page_size"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of results to return per page."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"minimum"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page Size"</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of results to return per page."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page number to return, starting at 1."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"minimum"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page"</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
 <span class="w">      </span><span class="p">},</span>
@@ -1487,12 +1491,14 @@ by the default index</p>
 <span class="w">      </span><span class="nt">"page_size"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of results to return per page."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"minimum"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page Size"</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of results to return per page."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page number to return, starting at 1."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"minimum"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page"</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
 <span class="w">      </span><span class="p">},</span>
@@ -1544,10 +1550,15 @@ by the default index</p>
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="app._types.ResultSearchParameters.page">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">page</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Annotated</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Query</span><span class="p"><span class="pre">(</span></span><span class="pre">PydanticUndefined</span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.ResultSearchParameters.page" title="Link to this definition">¶</a></dt>
-<dd><p>Number of results to return per page.</p>
+<dd><p>Page number to return, starting at 1.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dt class="field-odd">Constraints<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>ge</strong> = 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Validated by<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><a class="reference internal" href="#app._types.ResultSearchParameters.sort_by_is_field_or_script" title="app._types.ResultSearchParameters.sort_by_is_field_or_script"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sort_by_is_field_or_script</span></code></a></p></li>
 </ul>
 </dd>
@@ -1559,8 +1570,13 @@ by the default index</p>
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">page_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Annotated</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Query</span><span class="p"><span class="pre">(</span></span><span class="pre">PydanticUndefined</span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/_types.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app._types.ResultSearchParameters.page_size" title="Link to this definition">¶</a></dt>
 <dd><p>Number of results to return per page.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dt class="field-odd">Constraints<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>ge</strong> = 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Validated by<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><a class="reference internal" href="#app._types.ResultSearchParameters.sort_by_is_field_or_script" title="app._types.ResultSearchParameters.sort_by_is_field_or_script"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sort_by_is_field_or_script</span></code></a></p></li>
 </ul>
 </dd>
@@ -1746,12 +1762,14 @@ If a script needs parameters, you can only use the POST method.</p>
 <span class="w">      </span><span class="nt">"page_size"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of results to return per page."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"minimum"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page Size"</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">"page"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Number of results to return per page."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page number to return, starting at 1."</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"minimum"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Page"</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
 <span class="w">      </span><span class="p">},</span>
