@@ -479,12 +479,15 @@ class ResultProcessor(BaseResultProcessor):
         for image_type, image_datas in _selected.items():
             selected_final[image_type] = {}
             for image_data in image_datas:
+                lc = image_data.pop("lc", None)
+                if not lc:
+                    continue
                 source = image_data.pop("source", None)
                 if source:
                     image_data["imgid"] = source["id"]
                 if "full_size" in image_data:
                     image_data["sizes"] = {"full": image_data.pop("full_size")}
-                selected_final[image_type][image_data.pop("lc")] = image_data
+                selected_final[image_type][lc] = image_data
         product["images"]["selected"] = selected_final
 
         for image_type in self.selected_images_keys:

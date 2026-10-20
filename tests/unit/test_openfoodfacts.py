@@ -149,3 +149,32 @@ class TestTaxonomyPreprocessor:
         # Check that we renamed "xx" to "main"
         assert result.node.names["main"] == "NAT&vie"
         assert result.node.synonyms["main"] == ["NAT&vie", "NAT&vie veggie"]
+
+
+@pytest.mark.parametrize(
+    "language", [pytest.param({}, id="missing"), {"lc": ""}, {"lc": None}]
+)
+def test_result_processor_skips_selected_images_without_language(language):
+    conf = app.config.Config.from_yaml(Path("data/config/openfoodfacts.yml"))
+    processor = app.openfoodfacts.ResultProcessor(config=conf.indices["off"])
+    product = {
+        "code": "3168930010265",
+        "lang": "en",
+        "languages_codes": ["en"],
+        "selected_images": {
+            "front": [
+                {**language, "rev": 298, "full_size": {"h": 400, "w": 400}},
+                {"lc": "en", "rev": 299, "full_size": {"h": 400, "w": 400}},
+            ],
+        },
+    }
+
+    result = processor.process_result(product, projection=None)
+
+    assert result["images"]["selected"]["front"] == {
+        "en": {"rev": 299, "sizes": {"full": {"h": 400, "w": 400}}},
+    }
+    assert result["image_url"] == (
+        "https://images.openfoodfacts.org/images/products/316/893/001/0265/front_en.299.400.jpg"
+    )
+    assert result["selected_images"]["front"]["display"]["en"] == result["image_url"]
