@@ -102,14 +102,14 @@
                           "should": [
                             {
                               "range": {
-                                "nutriments.salt_100g": {
+                                "nutriments.fat_100g": {
                                   "gte": "2"
                                 }
                               }
                             },
                             {
                               "range": {
-                                "nutriments.salt_100g": {
+                                "nutriments.fat_100g": {
                                   "gte": "0",
                                   "lte": "0.05"
                                 }
@@ -130,6 +130,6 @@
     "size": 25
   },
   "facets_filters": {},
-  "luqum_tree": "((bacon AND de AND boeuf) OR \"bacon de boeuf\"^2) AND (countries.en:italy AND (categories.en:\"en:beef\" AND (nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
-  "text_query": "bacon de boeuf (countries:italy AND (categories:\"en:beef\" AND (nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))"
+  "luqum_tree": "((bacon AND de AND boeuf) OR \"bacon de boeuf\"^2) AND (countries.en:italy AND (categories.en:\"en:beef\" AND (nutriments.fat_100g:[2 TO *] OR nutriments.fat_100g:[0 TO 0.05])))",
+  "text_query": "bacon de boeuf (countries:italy AND (categories:\"en:beef\" AND (nutriments.fat_100g:[2 TO *] OR nutriments.fat_100g:[0 TO 0.05])))"
 }
