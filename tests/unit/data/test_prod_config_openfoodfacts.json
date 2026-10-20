@@ -10,6 +10,7 @@
       "fields": {
         "additives": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -22,6 +23,7 @@
         },
         "additives_n": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -34,6 +36,7 @@
         },
         "allergens": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -46,6 +49,7 @@
         },
         "amino_acids": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -58,6 +62,7 @@
         },
         "brands": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": true,
           "index": true,
@@ -70,6 +75,7 @@
         },
         "categories": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": true,
           "index": true,
@@ -82,6 +88,7 @@
         },
         "categories_properties_tags": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -94,6 +101,7 @@
         },
         "checkers_tags": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -106,6 +114,7 @@
         },
         "code": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": true,
           "index": true,
@@ -118,6 +127,7 @@
         },
         "compared_to_category": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -130,6 +140,7 @@
         },
         "completeness": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -142,6 +153,7 @@
         },
         "correctors_tags": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -154,6 +166,7 @@
         },
         "countries": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -166,6 +179,7 @@
         },
         "created_t": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -178,6 +192,7 @@
         },
         "creator": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -190,6 +205,7 @@
         },
         "data_quality_bugs_tags": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -202,6 +218,7 @@
         },
         "data_quality_errors_tags": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -214,6 +231,7 @@
         },
         "data_quality_info_tags": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -226,6 +244,7 @@
         },
         "data_quality_warnings": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -238,6 +257,7 @@
         },
         "data_sources": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -250,6 +270,7 @@
         },
         "editors_tags": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -262,6 +283,7 @@
         },
         "emb_codes": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": true,
           "index": true,
@@ -274,6 +296,7 @@
         },
         "emb_codes_tags": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -286,6 +309,7 @@
         },
         "environmental_score": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -298,6 +322,7 @@
         },
         "environmental_score_grade": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -310,6 +335,7 @@
         },
         "environmental_score_score": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -322,6 +348,7 @@
         },
         "forest_footprint_data": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -334,6 +361,7 @@
         },
         "generic_name": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": true,
           "index": true,
@@ -346,9 +374,11 @@
         },
         "ingredients": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": {
             "id": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -361,6 +391,7 @@
             },
             "is_in_taxonomy": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -373,6 +404,7 @@
             },
             "percent": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -385,6 +417,7 @@
             },
             "percent_estimate": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -397,6 +430,7 @@
             },
             "percent_max": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -409,6 +443,7 @@
             },
             "percent_min": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -431,6 +466,7 @@
         },
         "ingredients_analysis": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -443,6 +479,7 @@
         },
         "ingredients_analysis_tags": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -455,6 +492,7 @@
         },
         "ingredients_n": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -467,6 +505,7 @@
         },
         "ingredients_tags": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -479,6 +518,7 @@
         },
         "ingredients_text": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -491,6 +531,7 @@
         },
         "known_ingredients_n": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -503,6 +544,7 @@
         },
         "labels": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": true,
           "index": true,
@@ -515,6 +557,7 @@
         },
         "lang": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -527,6 +570,7 @@
         },
         "languages": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -539,6 +583,7 @@
         },
         "last_checked_t": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -551,6 +596,7 @@
         },
         "last_checker": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -563,6 +609,7 @@
         },
         "last_editor": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -575,6 +622,7 @@
         },
         "last_image_t": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -587,6 +635,7 @@
         },
         "last_modified_by": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -599,6 +648,7 @@
         },
         "last_modified_t": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -611,6 +661,7 @@
         },
         "last_updated_t": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -623,6 +674,7 @@
         },
         "lc": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -635,6 +687,7 @@
         },
         "link": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -647,6 +700,7 @@
         },
         "manufacturing_places": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -659,6 +713,7 @@
         },
         "minerals": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -671,6 +726,7 @@
         },
         "misc_tags": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -683,6 +739,7 @@
         },
         "no_nutrition_data": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -695,6 +752,7 @@
         },
         "nova_group": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -707,9 +765,11 @@
         },
         "nova_groups_markers": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": {
             "id": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -722,9 +782,11 @@
             },
             "marker": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": {
                 "id": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -737,6 +799,7 @@
                 },
                 "type": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -769,6 +832,7 @@
         },
         "nucleotides": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -781,9 +845,11 @@
         },
         "nutrient_levels": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": {
             "fat": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -796,6 +862,7 @@
             },
             "salt": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -808,6 +875,7 @@
             },
             "saturated-fat": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -820,6 +888,7 @@
             },
             "sugars": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -842,9 +911,11 @@
         },
         "nutriments": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": {
             "alcohol_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -857,6 +928,7 @@
             },
             "carbohydrates_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -869,6 +941,7 @@
             },
             "energy-kcal_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -881,6 +954,7 @@
             },
             "energy-kj_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -893,6 +967,7 @@
             },
             "fat_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -905,6 +980,7 @@
             },
             "fiber_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -917,6 +993,7 @@
             },
             "proteins_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -929,6 +1006,7 @@
             },
             "salt_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -941,6 +1019,7 @@
             },
             "saturated-fat_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -953,6 +1032,7 @@
             },
             "sodium_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -965,6 +1045,7 @@
             },
             "sugars_100g": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -987,6 +1068,7 @@
         },
         "nutriscore_data": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -999,6 +1081,7 @@
         },
         "nutriscore_grade": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1011,6 +1094,7 @@
         },
         "nutriscore_score": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1023,6 +1107,7 @@
         },
         "nutrition_data_per": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1035,6 +1120,7 @@
         },
         "nutrition_data_prepared_per": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1047,6 +1133,7 @@
         },
         "nutrition_grades": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1059,6 +1146,7 @@
         },
         "nutrition_grades_tags": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1071,6 +1159,7 @@
         },
         "obsolete": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1083,6 +1172,7 @@
         },
         "obsolete_since_date": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1095,6 +1185,7 @@
         },
         "origins": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1107,6 +1198,7 @@
         },
         "other_nutritional_substances_tags": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1119,6 +1211,7 @@
         },
         "owner": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1131,9 +1224,11 @@
         },
         "packagings": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": {
             "material": {
               "bucket_agg": true,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -1146,6 +1241,7 @@
             },
             "number_of_units": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -1158,6 +1254,7 @@
             },
             "quantity_per_unit_unit": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -1170,6 +1267,7 @@
             },
             "quantity_per_unit_value": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -1182,6 +1280,7 @@
             },
             "recycling": {
               "bucket_agg": true,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -1194,6 +1293,7 @@
             },
             "shape": {
               "bucket_agg": true,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -1206,6 +1306,7 @@
             },
             "weight_measured": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -1228,6 +1329,7 @@
         },
         "packagings_complete": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1240,6 +1342,7 @@
         },
         "photographers": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1252,6 +1355,7 @@
         },
         "popularity_key": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1264,6 +1368,7 @@
         },
         "popularity_tags": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1276,6 +1381,7 @@
         },
         "product_name": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": true,
           "index": true,
@@ -1288,6 +1394,7 @@
         },
         "product_quantity": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1300,6 +1407,7 @@
         },
         "product_quantity_unit": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1312,6 +1420,7 @@
         },
         "quantity": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1324,6 +1433,7 @@
         },
         "rev": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1336,6 +1446,7 @@
         },
         "scans_n": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1348,15 +1459,19 @@
         },
         "selected_images": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": {
             "front": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": {
                 "full_size": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": {
                     "h": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1369,6 +1484,7 @@
                     },
                     "w": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1391,6 +1507,7 @@
                 },
                 "lc": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1403,6 +1520,7 @@
                 },
                 "rev": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1415,9 +1533,11 @@
                 },
                 "source": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": {
                     "id": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1430,6 +1550,7 @@
                     },
                     "uploaded_t": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1442,6 +1563,7 @@
                     },
                     "uploader": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1474,12 +1596,15 @@
             },
             "ingredients": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": {
                 "full_size": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": {
                     "h": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1492,6 +1617,7 @@
                     },
                     "w": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1514,6 +1640,7 @@
                 },
                 "lc": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1526,6 +1653,7 @@
                 },
                 "rev": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1538,9 +1666,11 @@
                 },
                 "source": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": {
                     "id": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1553,6 +1683,7 @@
                     },
                     "uploaded_t": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1565,6 +1696,7 @@
                     },
                     "uploader": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1597,12 +1729,15 @@
             },
             "nutrition": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": {
                 "full_size": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": {
                     "h": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1615,6 +1750,7 @@
                     },
                     "w": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1637,6 +1773,7 @@
                 },
                 "lc": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1649,6 +1786,7 @@
                 },
                 "rev": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1661,9 +1799,11 @@
                 },
                 "source": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": {
                     "id": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1676,6 +1816,7 @@
                     },
                     "uploaded_t": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1688,6 +1829,7 @@
                     },
                     "uploader": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1720,12 +1862,15 @@
             },
             "packaging": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": {
                 "full_size": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": {
                     "h": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1738,6 +1883,7 @@
                     },
                     "w": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1760,6 +1906,7 @@
                 },
                 "lc": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1772,6 +1919,7 @@
                 },
                 "rev": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1784,9 +1932,11 @@
                 },
                 "source": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": {
                     "id": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1799,6 +1949,7 @@
                     },
                     "uploaded_t": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1811,6 +1962,7 @@
                     },
                     "uploader": {
                       "bucket_agg": false,
+                      "display_name": null,
                       "fields": null,
                       "full_text_search": false,
                       "index": true,
@@ -1853,6 +2005,7 @@
         },
         "serving_quantity": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1865,6 +2018,7 @@
         },
         "serving_quantity_unit": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1877,6 +2031,7 @@
         },
         "serving_size": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1889,6 +2044,7 @@
         },
         "states": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1901,6 +2057,7 @@
         },
         "states_tags": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1913,6 +2070,7 @@
         },
         "stores": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1925,6 +2083,7 @@
         },
         "teams": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1937,6 +2096,7 @@
         },
         "traces": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1949,6 +2109,7 @@
         },
         "unique_scans_n": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1961,6 +2122,7 @@
         },
         "unknown_ingredients_n": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
@@ -1973,12 +2135,15 @@
         },
         "uploaded_images": {
           "bucket_agg": false,
+          "display_name": null,
           "fields": {
             "full_size": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": {
                 "h": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -1991,6 +2156,7 @@
                 },
                 "w": {
                   "bucket_agg": false,
+                  "display_name": null,
                   "fields": null,
                   "full_text_search": false,
                   "index": true,
@@ -2013,6 +2179,7 @@
             },
             "id": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -2025,6 +2192,7 @@
             },
             "uploaded_t": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -2037,6 +2205,7 @@
             },
             "uploader": {
               "bucket_agg": false,
+              "display_name": null,
               "fields": null,
               "full_text_search": false,
               "index": true,
@@ -2059,6 +2228,7 @@
         },
         "vitamins": {
           "bucket_agg": true,
+          "display_name": null,
           "fields": null,
           "full_text_search": false,
           "index": true,
