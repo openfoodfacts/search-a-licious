@@ -27,6 +27,7 @@ import {
   isSearchChanged,
   isSearchLoading,
   searchResultDetail,
+  getDefaultSearchResultDetail,
 } from '../signals';
 import {SignalWatcher} from '@lit-labs/preact-signals';
 import {isTheSameSearchName} from '../utils/search';
@@ -455,6 +456,8 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       return {params, needsPOST};
     };
 
+    private searchRequestId = 0;
+
     /**
      * Launching search
      */
@@ -463,47 +466,71 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
 
+      const requestId = ++this.searchRequestId;
+      const emptyResult = {
+        ...getDefaultSearchResultDetail(),
+        pageSize: this.pageSize,
+        // Facet selections belong to the query and must survive a failed request.
+        facets: searchResultDetail(this.name).value.facets,
+      };
+      this._results = [];
+      this._count = 0;
+      this._currentPage = 0;
+      this._pageCount = 0;
+      searchResultDetail(this.name).value = emptyResult;
       isSearchLoading(this.name).value = true;
 
-      let response;
-      if (method === 'GET') {
-        response = await fetch(
-          `${searchUrl}?${this._paramsToQueryStr(params)}`
-        );
-      } else {
-        response = await fetch(searchUrl, {
-          method: 'POST',
-          body: JSON.stringify(params),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+      try {
+        const response =
+          method === 'GET'
+            ? await fetch(`${searchUrl}?${this._paramsToQueryStr(params)}`)
+            : await fetch(searchUrl, {
+                method: 'POST',
+                body: JSON.stringify(params),
+                headers: {'Content-Type': 'application/json'},
+              });
+        if (requestId !== this.searchRequestId) {
+          return;
+        }
+        if (!response.ok) {
+          throw new Error(`Search failed with status ${response.status}`);
+        }
+        // FIXME data should be typed…
+        const data = await response.json();
+        if (requestId !== this.searchRequestId) {
+          return;
+        }
+        if (!Array.isArray(data.hits)) {
+          throw new Error('Search response has no results array');
+        }
+        this._results = data.hits;
+        this._count = data.count;
+        this.pageSize = data.page_size;
+        this._currentPage = data.page;
+        this._pageCount = data.page_count;
+
+        searchResultDetail(this.name).value = {
+          charts: data.charts,
+          count: data.count,
+          currentPage: this._currentPage!,
+          displayTime: data.took,
+          facets: data.facets,
+          isCountExact: data.is_count_exact,
+          isSearchLaunch: true,
+          pageCount: this._pageCount!,
+          pageSize: this.pageSize,
+          results: this._results!,
+        };
+      } catch {
+        if (requestId === this.searchRequestId) {
+          searchResultDetail(this.name).value = {...emptyResult, error: true};
+        }
+      } finally {
+        if (requestId === this.searchRequestId) {
+          isSearchLoading(this.name).value = false;
+          this.updateSearchSignals();
+        }
       }
-      // FIXME data should be typed…
-      const data = await response.json();
-      this._results = data.hits;
-      this._count = data.count;
-      this.pageSize = data.page_size;
-      this._currentPage = data.page;
-      this._pageCount = data.page_count;
-
-      isSearchLoading(this.name).value = false;
-      this.updateSearchSignals();
-
-      searchResultDetail(this.name).value = {
-        charts: data.charts,
-        count: data.count,
-        currentPage: this._currentPage!,
-        displayTime: data.took,
-        facets: data.facets,
-        isCountExact: data.is_count_exact,
-        isSearchLaunch: true,
-        pageCount: this._pageCount!,
-        pageSize: this.pageSize,
-        results: this._results!,
-      };
-
-      this.updateSearchSignals();
     }
   }
 
