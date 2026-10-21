@@ -52,6 +52,9 @@
         <target state="translated">Rechercher</target>
         <note from="lit-localize">Search button</note>
       </trans-unit>
+<trans-unit id="s2c8e2b8956c4bf47">
+  <source>Search failed. Please try again.</source>
+</trans-unit>
     </body>
   </file>
 </xliff>
