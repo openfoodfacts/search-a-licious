@@ -141,6 +141,17 @@ def test_create_mapping(default_config, load_expected_result):
     assert data == expected_result
 
 
+@pytest.mark.parametrize(
+    "lang,expected_analyzer",
+    [("cs", "czech"), ("sk", "standard"), ("uk", "standard"), ("en", "english")],
+)
+def test_text_lang_mapping_analyzers(default_config, lang, expected_analyzer):
+    config = default_config.model_copy(update={"supported_langs": [lang]})
+    mapping = generate_mapping_object(config).to_dict()
+    properties = mapping["properties"]["product_name"]["properties"]
+    assert properties[lang]["analyzer"] == expected_analyzer
+
+
 # ---------------------------------------------------------------------------
 # DocumentProcessor.inputs_from_data: object / nested fields
 # ---------------------------------------------------------------------------
