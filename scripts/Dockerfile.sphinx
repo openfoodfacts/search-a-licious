@@ -57,4 +57,4 @@ COPY --from=poetry-builder /build/requirements.txt .
 # install those dependencies
 RUN pip install -U pip && \
     pip install -r requirements.txt && \
-    pip install --no-deps "sphinxcontrib-typer==0.8.1"
+    pip install --no-deps "sphinxcontrib-typer==0.9.2"
