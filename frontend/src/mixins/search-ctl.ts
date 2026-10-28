@@ -27,9 +27,13 @@ import {
   isSearchChanged,
   isSearchLoading,
   searchResultDetail,
+  getDefaultSearchResultDetail,
 } from '../signals';
 import {SignalWatcher} from '@lit-labs/preact-signals';
 import {isTheSameSearchName} from '../utils/search';
+
+// Controllers with the same name publish to the same result and loading signals.
+const searchRequests = new Map<string, symbol>();
 
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
@@ -463,47 +467,77 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
 
-      isSearchLoading(this.name).value = true;
-
-      let response;
-      if (method === 'GET') {
-        response = await fetch(
-          `${searchUrl}?${this._paramsToQueryStr(params)}`
-        );
-      } else {
-        response = await fetch(searchUrl, {
-          method: 'POST',
-          body: JSON.stringify(params),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      }
-      // FIXME data should be typed…
-      const data = await response.json();
-      this._results = data.hits;
-      this._count = data.count;
-      this.pageSize = data.page_size;
-      this._currentPage = data.page;
-      this._pageCount = data.page_count;
-
-      isSearchLoading(this.name).value = false;
-      this.updateSearchSignals();
-
-      searchResultDetail(this.name).value = {
-        charts: data.charts,
-        count: data.count,
-        currentPage: this._currentPage!,
-        displayTime: data.took,
-        facets: data.facets,
-        isCountExact: data.is_count_exact,
-        isSearchLaunch: true,
-        pageCount: this._pageCount!,
+      const searchName = this.name;
+      const requestId = Symbol();
+      searchRequests.set(searchName, requestId);
+      const ownsRequest = () => searchRequests.get(searchName) === requestId;
+      const emptyResult = {
+        ...getDefaultSearchResultDetail(),
         pageSize: this.pageSize,
-        results: this._results!,
+        // Facet selections belong to the query and must survive a failed request.
+        facets: searchResultDetail(searchName).value.facets,
       };
+      this._results = [];
+      this._count = 0;
+      this._currentPage = 0;
+      this._pageCount = 0;
+      searchResultDetail(searchName).value = emptyResult;
+      isSearchLoading(searchName).value = true;
 
-      this.updateSearchSignals();
+      try {
+        const response =
+          method === 'GET'
+            ? await fetch(`${searchUrl}?${this._paramsToQueryStr(params)}`)
+            : await fetch(searchUrl, {
+                method: 'POST',
+                body: JSON.stringify(params),
+                headers: {'Content-Type': 'application/json'},
+              });
+        if (!ownsRequest() || this.name !== searchName) {
+          return;
+        }
+        if (!response.ok) {
+          throw new Error(`Search failed with status ${response.status}`);
+        }
+        // FIXME data should be typed…
+        const data = await response.json();
+        if (!ownsRequest() || this.name !== searchName) {
+          return;
+        }
+        if (!Array.isArray(data.hits)) {
+          throw new Error('Search response has no results array');
+        }
+        this._results = data.hits;
+        this._count = data.count;
+        this.pageSize = data.page_size;
+        this._currentPage = data.page;
+        this._pageCount = data.page_count;
+
+        searchResultDetail(searchName).value = {
+          charts: data.charts,
+          count: data.count,
+          currentPage: this._currentPage!,
+          displayTime: data.took,
+          facets: data.facets,
+          isCountExact: data.is_count_exact,
+          isSearchLaunch: true,
+          pageCount: this._pageCount!,
+          pageSize: this.pageSize,
+          results: this._results!,
+        };
+      } catch {
+        if (ownsRequest() && this.name === searchName) {
+          searchResultDetail(searchName).value = {...emptyResult, error: true};
+        }
+      } finally {
+        if (ownsRequest()) {
+          searchRequests.delete(searchName);
+          isSearchLoading(searchName).value = false;
+          if (this.name === searchName) {
+            this.updateSearchSignals();
+          }
+        }
+      }
     }
   }
 
