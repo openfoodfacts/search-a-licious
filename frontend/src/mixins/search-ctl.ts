@@ -32,6 +32,9 @@ import {
 import {SignalWatcher} from '@lit-labs/preact-signals';
 import {isTheSameSearchName} from '../utils/search';
 
+// Controllers with the same name publish to the same result and loading signals.
+const searchRequests = new Map<string, symbol>();
+
 export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
   superClass: T
 ) => {
@@ -456,8 +459,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       return {params, needsPOST};
     };
 
-    private searchRequestId = 0;
-
     /**
      * Launching search
      */
@@ -466,19 +467,22 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
       const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
 
-      const requestId = ++this.searchRequestId;
+      const searchName = this.name;
+      const requestId = Symbol();
+      searchRequests.set(searchName, requestId);
+      const ownsRequest = () => searchRequests.get(searchName) === requestId;
       const emptyResult = {
         ...getDefaultSearchResultDetail(),
         pageSize: this.pageSize,
         // Facet selections belong to the query and must survive a failed request.
-        facets: searchResultDetail(this.name).value.facets,
+        facets: searchResultDetail(searchName).value.facets,
       };
       this._results = [];
       this._count = 0;
       this._currentPage = 0;
       this._pageCount = 0;
-      searchResultDetail(this.name).value = emptyResult;
-      isSearchLoading(this.name).value = true;
+      searchResultDetail(searchName).value = emptyResult;
+      isSearchLoading(searchName).value = true;
 
       try {
         const response =
@@ -489,7 +493,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
                 body: JSON.stringify(params),
                 headers: {'Content-Type': 'application/json'},
               });
-        if (requestId !== this.searchRequestId) {
+        if (!ownsRequest() || this.name !== searchName) {
           return;
         }
         if (!response.ok) {
@@ -497,7 +501,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         }
         // FIXME data should be typed…
         const data = await response.json();
-        if (requestId !== this.searchRequestId) {
+        if (!ownsRequest() || this.name !== searchName) {
           return;
         }
         if (!Array.isArray(data.hits)) {
@@ -509,7 +513,7 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
         this._currentPage = data.page;
         this._pageCount = data.page_count;
 
-        searchResultDetail(this.name).value = {
+        searchResultDetail(searchName).value = {
           charts: data.charts,
           count: data.count,
           currentPage: this._currentPage!,
@@ -522,13 +526,16 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
           results: this._results!,
         };
       } catch {
-        if (requestId === this.searchRequestId) {
-          searchResultDetail(this.name).value = {...emptyResult, error: true};
+        if (ownsRequest() && this.name === searchName) {
+          searchResultDetail(searchName).value = {...emptyResult, error: true};
         }
       } finally {
-        if (requestId === this.searchRequestId) {
-          isSearchLoading(this.name).value = false;
-          this.updateSearchSignals();
+        if (ownsRequest()) {
+          searchRequests.delete(searchName);
+          isSearchLoading(searchName).value = false;
+          if (this.name === searchName) {
+            this.updateSearchSignals();
+          }
         }
       }
     }

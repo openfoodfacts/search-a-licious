@@ -16,13 +16,13 @@ suite('search request lifecycle', () => {
   let count: HTMLElement;
   let pages: HTMLElement;
 
-  const response = (id: string) =>
+  const response = (id: string, pageSize = 10) =>
     new Response(
       JSON.stringify({
         hits: [{id}],
         count: 1,
         page: 1,
-        page_size: 10,
+        page_size: pageSize,
         page_count: 1,
         took: 1,
         facets: {},
@@ -158,6 +158,162 @@ suite('search request lifecycle', () => {
     await old;
     assert.deepEqual(searchResultDetail(bar.name).value.results, [
       {id: 'latest product'},
+    ]);
+  });
+
+  const anotherBar = async (name = bar.name) => {
+    const other = await fixture<SearchaliciousBar>(html`
+      <searchalicious-bar name=${name}></searchalicious-bar>
+    `);
+    await nextFrame();
+    return other;
+  };
+
+  for (const rejected of [false, true]) {
+    test(`ignores an older same-name controller's ${
+      rejected ? 'failure' : 'response'
+    }`, async () => {
+      const other = await anotherBar();
+      let finishOld!: (value: Response) => void;
+      let rejectOld!: (reason: Error) => void;
+      let finishLatest!: (value: Response) => void;
+      window.fetch = () =>
+        new Promise((resolve, reject) => {
+          finishOld = resolve;
+          rejectOld = reject;
+        });
+      const old = bar.search();
+      window.fetch = () => new Promise((resolve) => (finishLatest = resolve));
+      const latest = other.search();
+      try {
+        if (rejected) rejectOld(new TypeError('obsolete failure'));
+        else finishOld(response('obsolete product'));
+        await old;
+        assert.isTrue(isSearchLoading(bar.name).value);
+        assert.deepEqual(searchResultDetail(bar.name).value.results, []);
+        assert.isNotTrue(searchResultDetail(bar.name).value.error);
+      } finally {
+        finishLatest(response('latest product'));
+        await latest;
+      }
+      assert.deepEqual(searchResultDetail(bar.name).value.results, [
+        {id: 'latest product'},
+      ]);
+    });
+  }
+
+  test('ignores a same-name controller whose JSON body arrives late', async () => {
+    const other = await anotherBar();
+    let controller!: ReadableStreamDefaultController<Uint8Array>;
+    const stream = new ReadableStream<Uint8Array>({
+      start(value) {
+        controller = value;
+      },
+    });
+    window.fetch = async () => new Response(stream);
+    const old = bar.search();
+    await Promise.resolve();
+    assert.isTrue(stream.locked);
+    window.fetch = async () => response('latest product');
+    try {
+      await other.search();
+    } finally {
+      controller.enqueue(
+        new TextEncoder().encode(await response('obsolete product').text())
+      );
+      controller.close();
+      await old;
+    }
+    assert.deepEqual(searchResultDetail(bar.name).value.results, [
+      {id: 'latest product'},
+    ]);
+  });
+
+  test('does not reuse ownership after a newer same-name search finishes', async () => {
+    const other = await anotherBar();
+    let finishOld!: (value: Response) => void;
+    let finishLatest!: (value: Response) => void;
+    window.fetch = () => new Promise((resolve) => (finishOld = resolve));
+    const old = bar.search();
+    window.fetch = async () => response('completed product');
+    await other.search();
+    window.fetch = () => new Promise((resolve) => (finishLatest = resolve));
+    const latest = other.search();
+    try {
+      finishOld(response('obsolete product'));
+      await old;
+      assert.isTrue(isSearchLoading(bar.name).value);
+      assert.deepEqual(searchResultDetail(bar.name).value.results, []);
+    } finally {
+      finishLatest(response('latest product'));
+      await latest;
+    }
+  });
+
+  test('keeps independently named requests concurrent', async () => {
+    const other = await anotherBar('independent-search');
+    let finishFirst!: (value: Response) => void;
+    let finishOther!: (value: Response) => void;
+    window.fetch = () => new Promise((resolve) => (finishFirst = resolve));
+    const first = bar.search();
+    window.fetch = () => new Promise((resolve) => (finishOther = resolve));
+    const second = other.search();
+    try {
+      finishFirst(response('first product'));
+      await first;
+      assert.isFalse(isSearchLoading(bar.name).value);
+      assert.isTrue(isSearchLoading(other.name).value);
+      assert.deepEqual(searchResultDetail(bar.name).value.results, [
+        {id: 'first product'},
+      ]);
+    } finally {
+      finishOther(response('other product'));
+      await second;
+    }
+    assert.deepEqual(searchResultDetail(other.name).value.results, [
+      {id: 'other product'},
+    ]);
+  });
+
+  test('does not publish a pending response into a renamed search', async () => {
+    const originalName = bar.name;
+    let finish!: (value: Response) => void;
+    window.fetch = () => new Promise((resolve) => (finish = resolve));
+    const pending = bar.search();
+    bar.name = 'renamed-search';
+    finish(response('old-name product', 25));
+    await pending;
+    assert.equal(bar.pageSize, 10);
+    assert.isFalse(isSearchLoading(originalName).value);
+    assert.deepEqual(searchResultDetail(bar.name).value.results, []);
+    assert.isNotTrue(searchResultDetail(bar.name).value.error);
+    window.fetch = async () => response('renamed product');
+    await bar.search();
+    assert.deepEqual(searchResultDetail(bar.name).value.results, [
+      {id: 'renamed product'},
+    ]);
+  });
+
+  test('keeps a replacement controller in charge after the old one disconnects', async () => {
+    const other = await anotherBar();
+    let finishOld!: (value: Response) => void;
+    let finishLatest!: (value: Response) => void;
+    window.fetch = () => new Promise((resolve) => (finishOld = resolve));
+    const old = bar.search();
+    bar.remove();
+    window.fetch = () => new Promise((resolve) => (finishLatest = resolve));
+    const latest = other.search();
+    try {
+      finishOld(response('disconnected product'));
+      await old;
+      assert.isTrue(isSearchLoading(other.name).value);
+      assert.deepEqual(searchResultDetail(other.name).value.results, []);
+    } finally {
+      finishLatest(response('replacement product'));
+      await latest;
+    }
+    assert.deepEqual(searchResultDetail(other.name).value.results, [
+      {id: 'replacement product'},
     ]);
   });
 
