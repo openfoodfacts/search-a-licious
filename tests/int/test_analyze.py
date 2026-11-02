@@ -11,6 +11,7 @@ import unittest.mock
 
 import pytest
 
+from app.indexing import generate_index_object
 from app.utils.analyzers import (
     get_taxonomy_indexing_analyzer,
     get_taxonomy_search_analyzer,
@@ -19,6 +20,38 @@ from app.utils.analyzers import (
 
 def _tokens(result):
     return [part["token"] for part in result["tokens"]]
+
+
+def test_czech_text_search(es_connection, index_config):
+    """Czech inflections match through the generated product-name mapping."""
+    config = index_config.model_copy(
+        update={
+            "supported_langs": ["cs"],
+            "fields": {"product_name": index_config.fields["product_name"]},
+        }
+    )
+    index_name = "test_czech_text_search"
+    index = generate_index_object(index_name, config)
+    index.settings(number_of_replicas=0)
+    index.create(using=es_connection)
+    try:
+        es_connection.index(
+            index=index_name,
+            id="apples",
+            document={"product_name": {"cs": "jablka"}},
+            refresh=True,
+        )
+        result = es_connection.search(
+            index=index_name, query={"match": {"product_name.cs": "jablko"}}
+        )
+        assert [hit["_id"] for hit in result["hits"]["hits"]] == ["apples"]
+
+        result = es_connection.search(
+            index=index_name, query={"match": {"product_name.cs": "hruška"}}
+        )
+        assert result["hits"]["total"]["value"] == 0
+    finally:
+        index.delete(using=es_connection)
 
 
 def test_taxonomy_indexing_analyzer(es_connection, data_ingester):
