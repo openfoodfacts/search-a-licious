@@ -8,6 +8,7 @@ see https://openfoodfacts.github.io/search-a-licious/users/explain-taxonomies
 """
 
 import unittest.mock
+from uuid import uuid4
 
 import pytest
 
@@ -30,7 +31,7 @@ def test_czech_text_search(es_connection, index_config):
             "fields": {"product_name": index_config.fields["product_name"]},
         }
     )
-    index_name = "test_czech_text_search"
+    index_name = f"test_czech_text_search_{uuid4().hex}"
     index = generate_index_object(index_name, config)
     index.settings(number_of_replicas=0)
     index.create(using=es_connection)
