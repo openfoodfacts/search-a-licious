@@ -5,6 +5,24 @@ from app.config import IndexConfig
 from app.utils import load_class_object_from_string
 
 
+def _project_fields(result: JSONType, fields: set[str]) -> JSONType:
+    """Select top-level fields and dotted paths within object fields."""
+    projected = {}
+    for name, value in result.items():
+        if name in fields:
+            projected[name] = value
+        elif isinstance(value, dict):
+            prefix = f"{name}."
+            subfields = {
+                field[len(prefix) :] for field in fields if field.startswith(prefix)
+            }
+            if subfields:
+                selected = _project_fields(value, subfields)
+                if selected:
+                    projected[name] = selected
+    return projected
+
+
 class BaseResultProcessor:
     def __init__(self, config: IndexConfig) -> None:
         self.config = config
@@ -41,9 +59,14 @@ class BaseResultProcessor:
                 suffix = "" if lang == "main" else f"_{lang}"
                 result[f"{fname}{suffix}"] = text
         # personalize the result
-        result = self.process_after(result, projection)
+        processing_fields = (
+            {field.split(".", 1)[0] for field in projection}
+            if projection
+            else projection
+        )
+        result = self.process_after(result, processing_fields)
         if projection:
-            result = dict((k, v) for k, v in result.items() if k in projection)
+            result = _project_fields(result, projection)
         return result
 
     def process_after(

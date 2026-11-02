@@ -310,7 +310,8 @@ class ResultSearchParameters(BaseModel):
     fields: Annotated[
         list[str] | None,
         Query(
-            description="List of fields to include in the response. All other fields will be ignored."
+            description="List of fields to include in the response. Dotted paths select "
+            "individual fields inside objects. All other fields will be ignored."
         ),
     ] = None
 
