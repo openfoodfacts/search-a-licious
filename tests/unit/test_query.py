@@ -248,3 +248,118 @@ def test_build_search_query_failure(
             es_query_builder=default_filter_query_builder,
         )
     assert error_msg in str(exc_info.value)
+
+
+def test_filter_by_langs_adds_filter(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Apfel",
+        langs=["de"],
+        filter_by_langs=True,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    es_dict = query.es_query.to_dict()
+    filter_clauses = es_dict["query"]["bool"]["filter"]
+    assert any(
+        clause.get("terms", {}).get("languages_codes") == ["de"]
+        for clause in filter_clauses
+    )
+
+
+def test_filter_by_langs_disabled_has_no_filter(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Apfel",
+        langs=["de"],
+        filter_by_langs=False,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    es_dict = query.es_query.to_dict()
+    bool_clause = es_dict.get("query", {}).get("bool", {})
+    assert "filter" not in bool_clause
+
+
+def test_filter_by_langs_excludes_main(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Milk",
+        langs=["fr", "main"],
+        filter_by_langs=True,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    es_dict = query.es_query.to_dict()
+    filter_clauses = es_dict["query"]["bool"]["filter"]
+    terms_values = None
+    for clause in filter_clauses:
+        if "terms" in clause and "languages_codes" in clause["terms"]:
+            terms_values = clause["terms"]["languages_codes"]
+    assert terms_values is not None
+    assert "main" not in terms_values
+    assert "fr" in terms_values
+
+
+def test_filter_by_langs_only_main_skips_filter(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Milk",
+        langs=["main"],
+        filter_by_langs=True,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    es_dict = query.es_query.to_dict()
+    bool_clause = es_dict.get("query", {}).get("bool", {})
+    assert "filter" not in bool_clause
+
+
+def test_filter_by_langs_missing_field_raises(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    import types
+
+    from app.exceptions import QueryCheckError
+    from app.query import build_es_query
+
+    fields_no_lang_codes = {
+        k: v for k, v in default_config.fields.items() if k != "languages_codes"
+    }
+    fake_index_config = types.SimpleNamespace(
+        index=default_config.index,
+        fields=fields_no_lang_codes,
+        scripts=None,
+    )
+    fake_params = types.SimpleNamespace(
+        langs=["de"],
+        filter_by_langs=True,
+        facets=None,
+        charts=None,
+        sort_by=None,
+        page_size=10,
+        page=1,
+        index_config=fake_index_config,
+        valid_index_id="off",
+        uses_sort_script=False,
+        sign_sort_by=("+", None),
+    )
+
+    analysis = QueryAnalysis(text_query="Apfel")
+
+    with pytest.raises(QueryCheckError) as exc_info:
+        build_es_query(analysis, fake_params, default_filter_query_builder)
+    assert "languages_codes" in str(exc_info.value)

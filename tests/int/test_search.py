@@ -453,3 +453,67 @@ def test_fields(req_type, sample_data, test_client):
     assert set(
         attributes for result in data["hits"] for attributes in result.keys()
     ) == {"_score", "code", "product_name"}
+
+
+def langs_filter_sample():
+    data = [
+        Product(
+            code="9900000000001",
+            product_name_en="German Apple",
+            categories_tags=["en:fruits"],
+            languages_codes=["de", "en"],
+        ),
+        Product(
+            code="9900000000002",
+            product_name_fr="Pain",
+            categories_tags=["en:breads"],
+            languages_codes=["fr", "en"],
+        ),
+        Product(
+            code="9900000000003",
+            product_name_en="English Tea",
+            categories_tags=["en:beverages"],
+            languages_codes=["en"],
+        ),
+    ]
+    created_t = 1537090000
+    modified_t = 1700525044
+    for i, product in enumerate(data):
+        product["created_t"] = created_t - i * 86400
+        product["last_modified_t"] = modified_t + i * 86400
+        product["unique_scans_n"] = (i + 1) * 10
+    return data
+
+
+@pytest.fixture
+def langs_filter_data(data_ingester):
+    data = langs_filter_sample()
+    data_ingester(data)
+    yield data
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_filter_by_langs_returns_matching_only(
+    req_type, langs_filter_data, test_client
+):
+    _, data = do_search(
+        test_client,
+        req_type,
+        {"sort_by": "unique_scans_n", "langs": ["de"], "filter_by_langs": True},
+    )
+    codes = set(hits_attr(data, "code"))
+    assert "9900000000001" in codes
+    assert "9900000000002" not in codes
+    assert "9900000000003" not in codes
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_filter_by_langs_off_returns_all(req_type, langs_filter_data, test_client):
+    _, data = do_search(
+        test_client,
+        req_type,
+        {"sort_by": "unique_scans_n", "langs": ["de"]},
+    )
+    assert data["count"] == 3
+    codes = set(hits_attr(data, "code"))
+    assert codes == {"9900000000001", "9900000000002", "9900000000003"}
