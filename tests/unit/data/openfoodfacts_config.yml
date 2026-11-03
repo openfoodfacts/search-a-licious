@@ -166,6 +166,8 @@ indices:
             bucket_agg: true
           weight_measured:
             type: float
+      languages_codes:
+        type: keyword
     document_denylist:
     - '8901552007122'
     lang_separator: _

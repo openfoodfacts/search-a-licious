@@ -46,6 +46,8 @@ indices:
             type: float
       completeness:
         type: float
+      languages_codes:
+        type: keyword
     lang_separator: _
     match_phrase_boost: 2.0
     # todo ?

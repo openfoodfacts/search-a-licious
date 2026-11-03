@@ -174,6 +174,20 @@ def build_es_query(
                 "Request could not be transformed by luqum"
             ) from e
 
+    if params.filter_by_langs:
+        filter_langs = [lang for lang in params.langs if lang != "main"]
+        if filter_langs:
+            if "languages_codes" not in config.fields:
+                raise QueryCheckError(
+                    "Cannot filter by languages: 'languages_codes' field is not "
+                    "defined in the index configuration. A full re-index with the "
+                    "'languages_codes' field added to the config is required.",
+                    errors=[
+                        "'languages_codes' field is missing from the index configuration"
+                    ],
+                )
+            es_query = es_query.filter("terms", languages_codes=filter_langs)
+
     sort_by: JSONType | str | None = None
     if (
         isinstance(params, PostBaseSearchParameters)

@@ -6164,6 +6164,9 @@
     "lang": {
       "type": "keyword"
     },
+    "languages_codes": {
+      "type": "keyword"
+    },
     "last_indexed_datetime": {
       "type": "date"
     },

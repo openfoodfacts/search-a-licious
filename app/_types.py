@@ -233,6 +233,30 @@ class QuerySearchParameters(BaseModel):
         ),
     ] = ["en"]
 
+    filter_by_langs: Annotated[
+        bool,
+        Query(
+            description=cd_(
+                """When True, restrict results to products available in any of
+                the requested languages (OR semantics).
+
+                Note: ``langs`` alone only selects language-specific subfields
+                for matching; it does **not** filter results. Set this flag to
+                True to also add an Elasticsearch ``terms`` filter on the
+                ``languages_codes`` field.
+
+                The pseudo-language ``main`` is excluded from the filter. If
+                the effective language list is empty after removing ``main``,
+                no filter is applied.
+
+                Requires the index to have been built with the
+                ``languages_codes`` keyword field (needs a full re-index after
+                adding it to the configuration).
+                """
+            )
+        ),
+    ] = False
+
     index_id: Annotated[
         str | None,
         CommonParametersQuery.index_id,

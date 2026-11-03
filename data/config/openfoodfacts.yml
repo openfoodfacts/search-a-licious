@@ -436,6 +436,8 @@ indices:
       teams:
         type: keyword
         input_field: teams_tags
+      languages_codes:
+        type: keyword
 
     document_denylist:
     - '8901552007122'
