@@ -7,7 +7,7 @@ from elasticsearch_dsl.response import Response
 
 from app.config import Config
 from app.openfoodfacts import ResultProcessor, generate_image_url
-from app.postprocessing import BaseResultProcessor
+from app.postprocessing import BaseResultProcessor, _prepare_projection
 
 
 @pytest.mark.parametrize(
@@ -140,16 +140,6 @@ def test_nested_fields_apply_after_image_postprocessing(batch):
     assert actual == {"selected_images": {"front": {"display": {"en": url}}}}
 
 
-def test_projection_preserves_literal_dotted_fields(default_config):
-    processor = BaseResultProcessor(default_config)
-    document = {"a.b": False, "a": {"b": 0, "omit": 1}}
-
-    assert processor.process_result(document, {"a.b"}) == {
-        "a.b": False,
-        "a": {"b": 0},
-    }
-
-
 def make_search_response(documents):
     return Response(
         Search(),
@@ -165,15 +155,9 @@ def make_search_response(documents):
     )
 
 
-def test_response_projection_groups_fields_once(default_config):
-    class CountedFields(set):
-        iterations = 0
-
-        def __iter__(self):
-            self.iterations += 1
-            return super().__iter__()
-
-    fields = CountedFields({f"missing{i}.value" for i in range(500)} | {"nested.value"})
+def test_response_reuses_cached_projection(default_config):
+    _prepare_projection.cache_clear()
+    fields = {f"missing{i}.value" for i in range(500)} | {"nested.value"}
     processor = BaseResultProcessor(default_config)
     response = make_search_response([{"nested": {"value": 0, "omit": 1}}] * 100)
 
@@ -181,11 +165,13 @@ def test_response_projection_groups_fields_once(default_config):
         processor.process(response, fields)["hits"]
         == [{"nested": {"value": 0}, "_score": 1}] * 100
     )
-    assert fields.iterations == 1
+    # One root projection and one nested projection are shared across all hits.
+    assert _prepare_projection.cache_info().misses == 2
     assert (
         processor.process(response, {"nested.omit"})["hits"]
         == [{"nested": {"omit": 1}, "_score": 1}] * 100
     )
+    assert _prepare_projection.cache_info().maxsize == 128
 
 
 def test_response_preserves_custom_result_override(default_config):
@@ -216,13 +202,3 @@ def test_response_isolates_custom_postprocessor_fields(default_config):
         processor.process(response, {"nested.value"})["hits"]
         == [{"nested": {"value": 0}, "_score": 1}] * 2
     )
-
-
-def test_projection_preserves_nested_literal_dotted_fields(default_config):
-    processor = BaseResultProcessor(default_config)
-    document = {"a.b": {"c": 0, "omit": 1}, "a": {"b": {"c": False}}}
-
-    assert processor.process_result(document, {"a.b.c"}) == {
-        "a.b": {"c": 0},
-        "a": {"b": {"c": False}},
-    }

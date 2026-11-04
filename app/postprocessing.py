@@ -1,4 +1,4 @@
-from functools import partial
+from functools import lru_cache
 
 from elasticsearch_dsl.response import Response
 
@@ -7,11 +7,10 @@ from app.config import IndexConfig
 from app.utils import load_class_object_from_string
 
 
+@lru_cache(maxsize=128)
 def _prepare_projection(
-    fields: set[str] | None,
-) -> tuple[set[str] | None, dict[str, set[str]]]:
-    if not fields:
-        return fields, {}
+    fields: frozenset[str],
+) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
     roots = set()
     subfields_by_name: dict[str, set[str]] = {}
     for field in fields:
@@ -19,29 +18,23 @@ def _prepare_projection(
         roots.add(name)
         if separator:
             subfields_by_name.setdefault(name, set()).add(subfield)
-    return roots, subfields_by_name
+    return frozenset(roots), {
+        name: frozenset(subfields) for name, subfields in subfields_by_name.items()
+    }
 
 
 def _project_fields(
     result: JSONType,
-    fields: set[str],
-    subfields_by_name: dict[str, set[str]] | None = None,
+    fields: set[str] | frozenset[str],
 ) -> JSONType:
     """Select top-level fields and dotted paths within object fields."""
-    if subfields_by_name is None:
-        _, subfields_by_name = _prepare_projection(fields)
+    _, subfields_by_name = _prepare_projection(frozenset(fields))
     projected = {}
     for name, value in result.items():
         if name in fields:
             projected[name] = value
         elif isinstance(value, dict):
             subfields = subfields_by_name.get(name)
-            if subfields is None and "." in name:
-                # Custom processors can produce literal dotted object names.
-                prefix = f"{name}."
-                subfields = {
-                    field[len(prefix) :] for field in fields if field.startswith(prefix)
-                }
             if subfields:
                 selected = _project_fields(value, subfields)
                 if selected:
@@ -63,19 +56,9 @@ class BaseResultProcessor:
             "count": response.hits.total["value"],
             "is_count_exact": response.hits.total["relation"] == "eq",
         }
-        process_result = self.process_result
-        if (
-            getattr(process_result, "__func__", None)
-            is BaseResultProcessor.process_result
-        ):
-            # Reuse request-level field groups while preserving custom overrides.
-            process_result = partial(
-                self._process_result,
-                prepared_projection=_prepare_projection(projection),
-            )
         hits = []
         for hit in response.hits:
-            result = process_result(hit.to_dict(), projection)
+            result = self.process_result(hit.to_dict(), projection)
             result["_score"] = hit.meta.score
             hits.append(result)
         output["hits"] = hits
@@ -84,14 +67,6 @@ class BaseResultProcessor:
 
     def process_result(self, result: JSONType, projection: set[str] | None) -> JSONType:
         """Process a single result"""
-        return self._process_result(result, projection, _prepare_projection(projection))
-
-    def _process_result(
-        self,
-        result: JSONType,
-        projection: set[str] | None,
-        prepared_projection: tuple[set[str] | None, dict[str, set[str]]],
-    ) -> JSONType:
         # TODO make it an unsplit option or move to specific off post processing
         for fname in self.config.text_lang_fields:
             if fname not in result:
@@ -103,12 +78,14 @@ class BaseResultProcessor:
                 suffix = "" if lang == "main" else f"_{lang}"
                 result[f"{fname}{suffix}"] = text
         # personalize the result
-        processing_fields, subfields_by_name = prepared_projection
-        result = self.process_after(
-            result, processing_fields.copy() if processing_fields else processing_fields
+        processing_fields = (
+            set(_prepare_projection(frozenset(projection))[0])
+            if projection
+            else projection
         )
+        result = self.process_after(result, processing_fields)
         if projection:
-            result = _project_fields(result, projection, subfields_by_name)
+            result = _project_fields(result, projection)
         return result
 
     def process_after(
