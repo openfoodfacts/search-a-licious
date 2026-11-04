@@ -2,7 +2,7 @@
 # Base user uid / gid keep 1000 on prod, align with your user on dev
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
-ARG NODE_VERSION=22
+ARG NODE_VERSION=26
 
 # builder is the node service, only used to build project in prod
 FROM node:${NODE_VERSION}-bookworm AS builder
