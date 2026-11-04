@@ -10,6 +10,8 @@ Search-a-licious transforms large data collections into searchable content with 
 
 🛠️ **[Developer Guide](https://openfoodfacts.github.io/search-a-licious/devs/introduction/)** - Contributing and development setup
 
+📦 **[Release & Maintenance Guide](RELEASE.md)** - Release process, index rebuilding, and operational runbook
+
 ## Key Features
 
 - **Fast full-text search** with Elasticsearch backend
