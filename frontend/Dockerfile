@@ -29,7 +29,7 @@ USER node
 # install dependencies
 RUN --mount=type=cache,id=search-a-licious-npm-cache,target=/home/node/.npm,mode=0777 \
   npm install && \
-  npx playwright install
+  npx playwright install chromium
 USER root
 # Install the dependencies for playwright with chromium
 # "npx playwright install-deps chromium" is broken on some hosts
