@@ -209,7 +209,8 @@ class QueryCheck(luqum.check.LuceneCheck):
         field_names = (".".join(fields)).split(".")
         # remove eventual lang suffix
         has_lang_suffix = field_names[-1] in self.index_config.supported_langs_set
-        if has_lang_suffix:
+        # but keep a lone language code (eg. `en:foo`) so that it gets checked
+        if has_lang_suffix and len(field_names) > 1:
             field_names.pop()
         current_fields = self.index_config.fields
         for part in field_names:

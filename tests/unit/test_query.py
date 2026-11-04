@@ -108,6 +108,17 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
             True,
         ),
         (
+            # a valid nested sub-field must not be rejected
+            "nested_subfield_group",
+            "nutriments:(fat_100g:>=3)",
+            ["en"],
+            25,
+            2,
+            None,
+            None,
+            True,
+        ),
+        (
             "empty_query_with_sort_by",
             None,
             ["en"],
@@ -195,9 +206,12 @@ def test_build_search_query(
         ({"q": "nonexisting:Milk"}, "field 'nonexisting' not found in index config"),
         # non existing sub-field
         (
-            {"q": "myobj.nonexisting:value"},
-            "field 'myobj.nonexisting' not found in index config",
+            # goes past a leaf field
+            {"q": "nutriments.fat_100g.x:value"},
+            "field 'nutriments.fat_100g.x' not found in index config",
         ),
+        # a language code alone is not a field
+        ({"q": "en:foo"}, "field 'en' not found in index config"),
         (
             {"q": "Milk AND nutriments:(nonexisting:>=3)"},
             "field 'nutriments.nonexisting' not found in index config",
