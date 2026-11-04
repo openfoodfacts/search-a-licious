@@ -2,9 +2,10 @@
 # Base user uid / gid keep 1000 on prod, align with your user on dev
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
+ARG NODE_VERSION=22
 
 # builder is the node service, only used to build project in prod
-FROM node:lts-bookworm AS builder
+FROM node:${NODE_VERSION}-bookworm AS builder
 ARG USER_UID
 ARG USER_GID
 RUN usermod --uid $USER_UID node && \
@@ -29,7 +30,7 @@ USER node
 # install dependencies
 RUN --mount=type=cache,id=search-a-licious-npm-cache,target=/home/node/.npm,mode=0777 \
   npm install && \
-  npx playwright install
+  npx playwright install chromium
 USER root
 # Install the dependencies for playwright with chromium
 # "npx playwright install-deps chromium" is broken on some hosts
