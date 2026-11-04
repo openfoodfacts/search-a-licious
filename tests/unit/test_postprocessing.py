@@ -216,3 +216,13 @@ def test_response_isolates_custom_postprocessor_fields(default_config):
         processor.process(response, {"nested.value"})["hits"]
         == [{"nested": {"value": 0}, "_score": 1}] * 2
     )
+
+
+def test_projection_preserves_nested_literal_dotted_fields(default_config):
+    processor = BaseResultProcessor(default_config)
+    document = {"a.b": {"c": 0, "omit": 1}, "a": {"b": {"c": False}}}
+
+    assert processor.process_result(document, {"a.b.c"}) == {
+        "a.b": {"c": 0},
+        "a": {"b": {"c": False}},
+    }

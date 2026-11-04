@@ -36,6 +36,12 @@ def _project_fields(
             projected[name] = value
         elif isinstance(value, dict):
             subfields = subfields_by_name.get(name)
+            if subfields is None and "." in name:
+                # Custom processors can produce literal dotted object names.
+                prefix = f"{name}."
+                subfields = {
+                    field[len(prefix) :] for field in fields if field.startswith(prefix)
+                }
             if subfields:
                 selected = _project_fields(value, subfields)
                 if selected:
