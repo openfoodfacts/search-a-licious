@@ -117,7 +117,8 @@ def test_search_nested_nutriment_fields(
     ]
 
 
-def test_nested_fields_apply_after_image_postprocessing():
+@pytest.mark.parametrize("batch", [False, True])
+def test_nested_fields_apply_after_image_postprocessing(batch):
     config = Config.from_yaml(Path("data/config/openfoodfacts.yml")).indices["off"]
     processor = ResultProcessor(config)
     document = {
@@ -130,6 +131,88 @@ def test_nested_fields_apply_after_image_postprocessing():
     }
     url = generate_image_url(document["code"], "front_en.1.400")
 
-    assert processor.process_result(document, {"selected_images.front.display.en"}) == {
-        "selected_images": {"front": {"display": {"en": url}}}
+    fields = {"selected_images.front.display.en"}
+    if batch:
+        actual = processor.process(make_search_response([document]), fields)["hits"][0]
+        assert actual.pop("_score") == 1
+    else:
+        actual = processor.process_result(document, fields)
+    assert actual == {"selected_images": {"front": {"display": {"en": url}}}}
+
+
+def test_projection_preserves_literal_dotted_fields(default_config):
+    processor = BaseResultProcessor(default_config)
+    document = {"a.b": False, "a": {"b": 0, "omit": 1}}
+
+    assert processor.process_result(document, {"a.b"}) == {
+        "a.b": False,
+        "a": {"b": 0},
     }
+
+
+def make_search_response(documents):
+    return Response(
+        Search(),
+        {
+            "took": 1,
+            "timed_out": False,
+            "hits": {
+                "total": {"value": len(documents), "relation": "eq"},
+                "hits": [{"_score": 1, "_source": doc} for doc in documents],
+            },
+            "aggregations": {},
+        },
+    )
+
+
+def test_response_projection_groups_fields_once(default_config):
+    class CountedFields(set):
+        iterations = 0
+
+        def __iter__(self):
+            self.iterations += 1
+            return super().__iter__()
+
+    fields = CountedFields({f"missing{i}.value" for i in range(500)} | {"nested.value"})
+    processor = BaseResultProcessor(default_config)
+    response = make_search_response([{"nested": {"value": 0, "omit": 1}}] * 100)
+
+    assert (
+        processor.process(response, fields)["hits"]
+        == [{"nested": {"value": 0}, "_score": 1}] * 100
+    )
+    assert fields.iterations == 1
+    assert (
+        processor.process(response, {"nested.omit"})["hits"]
+        == [{"nested": {"omit": 1}, "_score": 1}] * 100
+    )
+
+
+def test_response_preserves_custom_result_override(default_config):
+    class CustomProcessor(BaseResultProcessor):
+        def process_result(self, result, projection):
+            assert projection == {"code"}
+            return {"custom": result["code"]}
+
+    processor = CustomProcessor(default_config)
+    response = make_search_response([{"code": "123"}])
+
+    assert processor.process(response, {"code"})["hits"] == [
+        {"custom": "123", "_score": 1}
+    ]
+
+
+def test_response_isolates_custom_postprocessor_fields(default_config):
+    class CustomProcessor(BaseResultProcessor):
+        def process_after(self, result, projection=None):
+            assert projection == {"nested"}
+            projection.clear()
+            return result
+
+    processor = CustomProcessor(default_config)
+    response = make_search_response([{"nested": {"value": 0, "omit": 1}}] * 2)
+
+    assert (
+        processor.process(response, {"nested.value"})["hits"]
+        == [{"nested": {"value": 0}, "_score": 1}] * 2
+    )
