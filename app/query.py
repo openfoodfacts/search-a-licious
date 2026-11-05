@@ -3,11 +3,8 @@ import elasticsearch
 import luqum.exceptions
 from elasticsearch_dsl import A, Search
 from elasticsearch_dsl.aggs import Agg
-from luqum import tree
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
-from luqum.parser import parser
-from luqum.utils import OpenRangeTransformer, UnknownOperationResolver
 
 from ._types import (
     ErrorSearchResponse,
@@ -23,7 +20,7 @@ from ._types import (
 from .config import FieldType, IndexConfig
 from .es_query_builder import FullTextQueryBuilder
 from .es_scripts import get_script_id
-from .exceptions import InvalidLuceneQueryError, QueryCheckError, UnknownScriptError
+from .exceptions import InvalidLuceneQueryError, UnknownScriptError
 from .indexing import generate_index_object
 from .postprocessing import BaseResultProcessor
 from .query_pipeline import (
@@ -35,7 +32,6 @@ from .query_pipeline import (
     resolve_open_ranges,
     resolve_unknown_operation,
 )
-from .query_transformers import QueryCheck
 from .utils import get_logger, str_utils
 
 logger = get_logger(__name__)
