@@ -20,8 +20,6 @@ This file tracks technical-debt markers introduced in runtime paths.
   Files: app/query_transformers.py
 - SAL-TECHDEBT-009: Upstream phrase/open-range checks into LuceneCheck.
   Files: app/query_transformers.py
-- SAL-TECHDEBT-010: Validate configured sub-fields once sub-field support is implemented.
-  Files: app/query_transformers.py
 - SAL-TECHDEBT-011: Support suggestion rendering by taxonomy/type.
   Files: frontend/src/search-suggester.ts
 - SAL-TECHDEBT-012: Add fallback field-level query condition when no facet matches a taxonomy suggestion.
