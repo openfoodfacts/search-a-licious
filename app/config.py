@@ -21,6 +21,30 @@ log = logging.getLogger(__name__)
 
 ES_DOCS_URL = "https://www.elastic.co/guide/en/elasticsearch/reference/current"
 
+# this comes from ES, this is a hard limit at the time of writing
+MAX_SYNONYMS_SETS_RULES = 10000
+
+
+class SynonymsStrategy(StrEnum):
+    """Strategy to use for synonyms.
+
+    * index: synonyms are implemented using the ElasticSearch synonyms sets strategy.
+      It can be efficient
+      but it is not well supported
+      if you have a lot of taxonomies and a lot of languages.
+      (ElasticSearch start will be very very slow)
+    * none: synonyms are not automatically accounted for during requests
+      (you still get the taxonomies separate indexes).
+      This means your queries have to use the taxonomy id,
+      instead of a synonym or a translation.
+
+    A "query" strategy might be implemented in the future,
+    acting before sending the query to ElasticSearch.
+    """
+
+    INDEX = "index"
+    NONE = "none"
+
 
 class LoggingLevel(StrEnum):
     """Accepted logging levels
@@ -129,12 +153,6 @@ class Settings(BaseSettings):
             description="User-Agent used when fetching resources (taxonomies) or documents"
         ),
     ] = "search-a-licious"
-    synonyms_path: Annotated[
-        Path,
-        Field(
-            description="Path of the directory that will contain synonyms for ElasticSearch instances"
-        ),
-    ] = Path("/opt/search/synonyms")
 
 
 settings = Settings()
@@ -234,6 +252,24 @@ class TaxonomySourceConfig(BaseModel):
             )
         ),
     ]
+    # there is a limitation of 10 000 synonyms rules per synonyms set in ES
+    # we must add a filter for each synonym set in ES
+    # so we must evaluate beforehand how much synonyms set we will need
+    max_synonyms_entries: Annotated[
+        int,
+        Field(
+            description=cd_(
+                f"""The maximum synonyms to account for
+                above this threshold, some synonyms will be ignored.
+
+                Using a high value might lead to performance problems
+
+                If you change this setting and go above a {MAX_SYNONYMS_SETS_RULES} slice,
+                you will have to re-import your index for it to take effect
+                """
+            )
+        ),
+    ] = MAX_SYNONYMS_SETS_RULES
 
 
 class FieldType(StrEnum):
@@ -286,7 +322,7 @@ class FieldType(StrEnum):
 
 # add url to FieldType doc
 if FieldType.__doc__:
-    FieldType.__doc__ += f"\n\n[Elasticsearch help]: {ES_DOCS_URL}/enabled.html"
+    FieldType.__doc__ += f"\n\n[Elasticsearch help]({ES_DOCS_URL}/enabled.html)"
 
 
 class FieldConfig(BaseModel):
@@ -308,6 +344,18 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = False
+    index: Annotated[
+        bool,
+        Field(
+            description=cd_(
+                """if False the field is not indexed, but only stored.
+
+                That is it will be possible to retrieve it in results,
+                but not query on it.
+                """
+            )
+        ),
+    ] = True
     input_field: Annotated[
         str | None,
         Field(
@@ -392,6 +440,15 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = None
+
+    @model_validator(mode="after")
+    def no_index_false_for_object_and_nested(self):
+        """Validator that checks that `index` is not set to False for
+        fields with types `object` or `nested`.
+        (because ES does not support it)"""
+        if not self.index and self.type in (FieldType.object, FieldType.nested):
+            raise ValueError("index cannot be set to False for object or nested type")
+        return self
 
     @model_validator(mode="after")
     def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
@@ -578,6 +635,10 @@ class TaxonomyConfig(BaseModel):
         | None
     ) = None
 
+    @functools.cached_property
+    def sources_by_name(self) -> dict[str, TaxonomySourceConfig]:
+        return {source.name: source for source in self.sources}
+
 
 class ScriptConfig(BaseModel):
     """Scripts can be used to sort results of a search.
@@ -670,6 +731,10 @@ class IndexConfig(BaseModel):
         str,
         Field(description="Used for vega. Should be CSS color code."),
     ] = "#222"
+    synonyms_strategy: Annotated[
+        SynonymsStrategy,
+        Field(description=SynonymsStrategy.__doc__),
+    ] = SynonymsStrategy.INDEX
     taxonomy: Annotated[TaxonomyConfig, Field(description=TaxonomyConfig.__doc__)]
     supported_langs: Annotated[
         list[str],
@@ -887,10 +952,13 @@ class IndexConfig(BaseModel):
     @functools.cached_property
     def lang_fields(self) -> dict[str, FieldConfig]:
         """Fully qualified name of fields that are translated"""
+        lang_fields_types = ["text_lang"]
+        if self.synonyms_strategy == SynonymsStrategy.INDEX:
+            lang_fields_types.append("taxonomy")
         return {
             fname: field
             for fname, field in self.fields.items()
-            if field.type in ["taxonomy", "text_lang"]
+            if field.type in lang_fields_types
         }
 
     @functools.cached_property
@@ -901,6 +969,12 @@ class IndexConfig(BaseModel):
             for fname, field in self.fields.items()
             if field.full_text_search
         }
+
+    def get_synonym_set_name(self, taxonomy_name: str, lang: str) -> str:
+        """Return the prefix
+        that the synonyms set for a taxonomy and language should have
+        """
+        return f"{self.index.name}-{taxonomy_name}-{lang}"
 
 
 CONFIG_DESCRIPTION_INDICES = """

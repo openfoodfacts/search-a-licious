@@ -178,6 +178,7 @@ def test_build_search_query(
     load_expected_result,
     default_config: IndexConfig,
     default_filter_query_builder: FullTextQueryBuilder,
+    query_builder_cache_is_empty: None,
 ):
     params = SearchParameters(
         q=q,
