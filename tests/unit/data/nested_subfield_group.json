@@ -1,0 +1,16 @@
+{
+  "es_query": {
+    "from": 25,
+    "query": {
+      "range": {
+        "nutriments.fat_100g": {
+          "gte": "3"
+        }
+      }
+    },
+    "size": 25
+  },
+  "facets_filters": {},
+  "luqum_tree": "nutriments:(fat_100g:[3 TO *])",
+  "text_query": "nutriments:(fat_100g:>=3)"
+}
