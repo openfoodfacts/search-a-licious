@@ -186,8 +186,9 @@ export const SearchaliciousApiMixin = <
           pageSize: this.pageSize,
           results: this._results!,
         };
-      } catch {
+      } catch (error) {
         if (ownsRequest() && this.name === searchName) {
+          console.error('Search request failed', error);
           searchResultDetail(searchName).value = {...emptyResult, error: true};
         }
       } finally {
