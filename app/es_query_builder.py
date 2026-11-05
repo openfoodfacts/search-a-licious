@@ -53,6 +53,9 @@ class FullTextMixin:
                 "Free wildcards are not allowed in full text queries"
             )
         if "query_string" in query:
+            if not fields:
+                # no full-text field applies, do not let ES fall back to `*`
+                return {"match_none": {}}
             # no need to transform, just add fields
             # (ES refuses `fields` together with `default_field`)
             query["query_string"].pop("default_field", None)

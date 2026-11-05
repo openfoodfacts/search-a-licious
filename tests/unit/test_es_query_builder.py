@@ -1,6 +1,9 @@
+from unittest import mock
+
 import pytest
 
 from app._types import SearchParameters
+from app.es_query_builder import FullTextMixin
 from app.query import build_search_query
 
 
@@ -17,3 +20,18 @@ def test_wildcard_free_text_query_has_no_default_field(
 
     assert "default_field" not in query_string
     assert "product_name.en" in query_string["fields"]
+
+
+def test_wildcard_free_text_query_without_fields_matches_nothing(
+    default_config, default_filter_query_builder
+):
+    """An empty `fields` would make ES fall back to every field"""
+    with mock.patch.object(
+        FullTextMixin, "full_text_query_fields", new_callable=mock.PropertyMock
+    ) as fields:
+        fields.return_value = []
+        analysis = build_search_query(
+            SearchParameters(q="mil*", langs=["en"], page_size=5, page=1),
+            es_query_builder=default_filter_query_builder,
+        )
+    assert analysis.es_query.to_dict()["query"] == {"match_none": {}}
