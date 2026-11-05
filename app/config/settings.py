@@ -1,19 +1,10 @@
-import functools
 import logging
-from enum import StrEnum, auto
+from enum import StrEnum
 from inspect import cleandoc as cd_
 from pathlib import Path
-from typing import Annotated, Any
+from typing import Annotated
 
-import yaml
-from pydantic import (
-    BaseModel,
-    Field,
-    FileUrl,
-    HttpUrl,
-    field_validator,
-    model_validator,
-)
+from pydantic import Field
 from pydantic.json_schema import GenerateJsonSchema
 from pydantic_settings import BaseSettings
 
@@ -64,24 +55,36 @@ class Settings(BaseSettings):
 
     config_path: Annotated[
         Path | None,
-        Field(description=cd_("""Path to the search-a-licious yaml configuration file.
+        Field(
+            description=cd_(
+                """Path to the search-a-licious yaml configuration file.
 
                 See [Explain configuration file](../explain-configuration/) for more information
-                """)),
+                """
+            )
+        ),
     ] = None
     elasticsearch_url: Annotated[
         str,
-        Field(description=cd_("""URL to the ElasticSearch instance
+        Field(
+            description=cd_(
+                """URL to the ElasticSearch instance
 
                 Bare in mind this is from inside the container.
-                """)),
+                """
+            )
+        ),
     ] = "http://localhost:9200"
     redis_host: Annotated[
         str,
-        Field(description=cd_("""Host for the Redis instance containing event stream
+        Field(
+            description=cd_(
+                """Host for the Redis instance containing event stream
 
                 Bare in mind this is from inside the container.
-                """)),
+                """
+            )
+        ),
     ] = "localhost"
     redis_port: Annotated[
         int,

@@ -15,7 +15,6 @@ from pydantic import (
     model_validator,
 )
 from pydantic.json_schema import GenerateJsonSchema
-from pydantic_settings import BaseSettings
 
 log = logging.getLogger(__name__)
 ES_DOCS_URL = "https://www.elastic.co/guide/en/elasticsearch/reference/current"
@@ -102,15 +101,21 @@ class TaxonomySourceConfig(BaseModel):
 
     name: Annotated[
         str,
-        Field(description=cd_("""Name of the taxonomy
+        Field(
+            description=cd_(
+                """Name of the taxonomy
 
                 This is the name you will use in the configuration (and the API)
                 to reference this taxonomy
-                """)),
+                """
+            )
+        ),
     ]
     url: Annotated[
         FileUrl | HttpUrl,
-        Field(description=cd_("""URL of the taxonomy.
+        Field(
+            description=cd_(
+                """URL of the taxonomy.
 
                 The target file must be in JSON format
                 and follows Open Food Facts JSON taxonomy format.
@@ -124,21 +129,27 @@ class TaxonomySourceConfig(BaseModel):
                 * parents: contains a list of direct parent ids (taxonomy is a directed acyclic graph)
 
                 Other keys correspond to properties associated to this entry (eg. wikidata id).
-                """)),
+                """
+            )
+        ),
     ]
     # there is a limitation of 10 000 synonyms rules per synonyms set in ES
     # we must add a filter for each synonym set in ES
     # so we must evaluate beforehand how much synonyms set we will need
     max_synonyms_entries: Annotated[
         int,
-        Field(description=cd_(f"""The maximum synonyms to account for
+        Field(
+            description=cd_(
+                f"""The maximum synonyms to account for
                 above this threshold, some synonyms will be ignored.
 
                 Using a high value might lead to performance problems
 
                 If you change this setting and go above a {MAX_SYNONYMS_SETS_RULES} slice,
                 you will have to re-import your index for it to take effect
-                """)),
+                """
+            )
+        ),
     ] = MAX_SYNONYMS_SETS_RULES
 
 
@@ -206,38 +217,52 @@ class FieldConfig(BaseModel):
     required: Annotated[
         bool,
         Field(
-            description=cd_("""if required=True, the field is required in the input data
+            description=cd_(
+                """if required=True, the field is required in the input data
 
                 An entry that does not contains a value for this field will be rejected.
-                """)
+                """
+            )
         ),
     ] = False
     index: Annotated[
         bool,
-        Field(description=cd_("""if False the field is not indexed, but only stored.
+        Field(
+            description=cd_(
+                """if False the field is not indexed, but only stored.
 
                 That is it will be possible to retrieve it in results,
                 but not query on it.
-                """)),
+                """
+            )
+        ),
     ] = True
     input_field: Annotated[
         str | None,
-        Field(description=cd_("""name of the input field to use when importing data
+        Field(
+            description=cd_(
+                """name of the input field to use when importing data
 
                 By default, Search-a-licious use the same name as the field name.
 
                 This is useful to index the same field using different types or configurations.
-                """)),
+                """
+            )
+        ),
     ] = None
     split: Annotated[
         bool,
-        Field(description=cd_("""do we split the input field with `split_separator` ?
+        Field(
+            description=cd_(
+                """do we split the input field with `split_separator` ?
 
                 This is useful if you have some text fields that contains list of values,
                 (for example a comma separated list of values, like apple,banana,carrot).
 
                 You must set split_separator to the character that separates the values in the dataset.
-                """)),
+                """
+            )
+        ),
     ] = False
     full_text_search: Annotated[
         bool,
@@ -268,14 +293,20 @@ class FieldConfig(BaseModel):
     ] = False
     taxonomy_name: Annotated[
         str | None,
-        Field(description=cd_("""the name of the taxonomy associated with this field.
+        Field(
+            description=cd_(
+                """the name of the taxonomy associated with this field.
 
                 It must only be provided for taxonomy field type.
-                """)),
+                """
+            )
+        ),
     ] = None
     fields: Annotated[
         dict[str, "FieldConfig"] | None,
-        Field(description=cd_("""Sub fields configuration
+        Field(
+            description=cd_(
+                """Sub fields configuration
 
                 This is valid only for "object" and "nested" fields,
                 and must be provided in this case.
@@ -286,7 +317,9 @@ class FieldConfig(BaseModel):
                 Note: that although dynamic fields are supported in Elasticsearch,
                 we don't support them in Search-a-licious,
                 because they lead to nasty bugs, and are not meant for production use.
-                """)),
+                """
+            )
+        ),
     ] = None
 
     @model_validator(mode="after")
@@ -352,30 +385,42 @@ class BaseESIndexConfig(BaseModel):
 
     name: Annotated[
         str,
-        Field(description=cd_("""Name of the index alias to use.
+        Field(
+            description=cd_(
+                """Name of the index alias to use.
 
                 Search-a-licious will create an index using this name and an import date,
                 but alias will always point to the latest index.
 
                 The alias must not already exists in your ElasticSearch instance.
-                """)),
+                """
+            )
+        ),
     ]
     number_of_shards: Annotated[
         int,
-        Field(description=cd_(f"""Number of shards to use for the index.
+        Field(
+            description=cd_(
+                f"""Number of shards to use for the index.
 
                 Shards are useful to distribute the load on your cluster.
                 (see [index settings]({ES_DOCS_URL}/index-modules.html#_static_index_settings))
-                """)),
+                """
+            )
+        ),
     ] = 4
     number_of_replicas: Annotated[
         int,
-        Field(description=cd_(f"""Number of replicas to use for the index.
+        Field(
+            description=cd_(
+                f"""Number of replicas to use for the index.
 
                 More replica means more resiliency but also more disk space and memory.
 
                 (see [index settings]({ES_DOCS_URL}/index-modules.html#_static_index_settings))
-                """)),
+                """
+            )
+        ),
     ] = 1
 
 
@@ -388,12 +433,16 @@ class ESIndexConfig(BaseESIndexConfig):
 
     id_field_name: Annotated[
         str,
-        Field(description=cd_("""Name of the field to use for `_id`.
+        Field(
+            description=cd_(
+                """Name of the field to use for `_id`.
                 it is mandatory to provide one.
 
                 If your dataset does not have an identifier field,
                 you should use a document preprocessor to compute one (see `preprocessor`).
-                """)),
+                """
+            )
+        ),
     ]
     last_modified_field_name: Annotated[
         str,
@@ -450,7 +499,8 @@ class TaxonomyConfig(BaseModel):
         Annotated[
             str,
             Field(
-                description=cd_("""The full qualified reference to the preprocessor
+                description=cd_(
+                    """The full qualified reference to the preprocessor
                     to use before taxonomy entry import.
 
                     This class must inherit `app.indexing.BaseTaxonomyPreprocessor`
@@ -458,7 +508,8 @@ class TaxonomyConfig(BaseModel):
 
                     This is used to adapt the taxonomy schema
                     or to add specific fields for example.
-                    """),
+                    """
+                ),
                 examples=["app.openfoodfacts.TaxonomyPreprocessor"],
             ),
         ]
@@ -576,7 +627,8 @@ class IndexConfig(BaseModel):
     document_fetcher: Annotated[
         str,
         Field(
-            description=cd_("""The full qualified reference to the document fetcher,
+            description=cd_(
+                """The full qualified reference to the document fetcher,
                 i.e. the class responsible from fetching the document.
                 using the document ID present in the Redis Stream.
 
@@ -586,7 +638,8 @@ class IndexConfig(BaseModel):
                 To keep things sleek,
                 you generally have few item fields in the event stream payload.
                 This class will fetch the full document using your application API.
-                """),
+                """
+            ),
             examples=["app.openfoodfacts.DocumentFetcher"],
         ),
     ]
@@ -594,7 +647,8 @@ class IndexConfig(BaseModel):
         Annotated[
             str,
             Field(
-                description=cd_("""The full qualified reference to the preprocessor
+                description=cd_(
+                    """The full qualified reference to the preprocessor
                     to use before data import.
 
                     This class must inherit `app.indexing.BaseDocumentPreprocessor`
@@ -603,7 +657,8 @@ class IndexConfig(BaseModel):
                     This is used to adapt the data schema
                     or to add search-a-licious specific fields
                     for example.
-                    """),
+                    """
+                ),
                 examples=["app.openfoodfacts.DocumentPreprocessor"],
             ),
         ]
@@ -644,7 +699,9 @@ class IndexConfig(BaseModel):
     ) = None
     match_phrase_boost: Annotated[
         float,
-        Field(description=cd_("""How much we boost exact matches on consecutive words
+        Field(
+            description=cd_(
+                """How much we boost exact matches on consecutive words
 
             That is, if you search "Dark Chocolate",
             it will boost entries that have the "Dark Chocolate" phrase (in the same field).
@@ -657,25 +714,35 @@ class IndexConfig(BaseModel):
             Note: this field accept float of string,
             because using float might generate rounding problems.
             The string must represent a float.
-            """)),
+            """
+            )
+        ),
     ] = 2.0
     match_phrase_boost_proximity: Annotated[
         int | None,
-        Field(description=cd_("""How much we allow proximity for `match_phrase_boost`.
+        Field(
+            description=cd_(
+                """How much we allow proximity for `match_phrase_boost`.
 
             If unspecified we will just match word to word.
             Otherwise it will allow some gap between words matching
 
             This only makes sense when using
             "boost_phrase" request parameters and "best match" order.
-            """)),
+            """
+            )
+        ),
     ] = None
     document_denylist: Annotated[
         set[str],
-        Field(description=cd_("""list of documents IDs to ignore.
+        Field(
+            description=cd_(
+                """list of documents IDs to ignore.
 
             Use this to skip some documents at indexing time.
-            """)),
+            """
+            )
+        ),
     ] = Field(default_factory=set)
 
     redis_stream_name: Annotated[
