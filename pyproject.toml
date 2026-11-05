@@ -3,7 +3,7 @@ name = "search-a-licious"
 version = "0.1.0"
 description = ""
 readme = "README.md"
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.12,<4.0"
 license = "AGPL-3.0-only"
 authors = [{ name = "Open Food Facts team" }]
 dependencies = [
@@ -61,18 +61,18 @@ exclude = '''(?x)(
 package-mode = false
 
 [tool.poetry.group.dev.dependencies]
-coverage = { extras = ["toml"], version = "^7.3.2" }
-factory-boy = "^3.3.1"
-httpx = "^0.27.1"
-mypy = "^1.10.0"
-pre-commit = "^3.5.0"
-pytest = "^9.0.3"
-pytest-cov = "^4.1.0"
-types-cachetools = "^5.3.0.7"
-types-pyyaml = "^6.0.12.12"
-types-requests = "^2.31.0.10"
+coverage = { extras = ["toml"], version = "^7.16.2" }
+factory-boy = "^3.3.3"
+httpx2 = "^2.16.0"
+mypy = "^2.4.0"
+pre-commit = "^4.7.0"
+pytest = "^9.1.1"
+pytest-cov = "^7.1.0"
+types-cachetools = "^7.0.0.20260713"
+types-pyyaml = "^6.0.12.20260906"
+types-requests = "^2.33.0.20261006"
 
 [tool.poetry.group.docs.dependencies]
 autodoc-pydantic = "^2.2.0"
-rich = "^13.7.1"
-sphinx = "7.4.7"
+rich = "^15.0.0"
+sphinx = "9.1.0"
