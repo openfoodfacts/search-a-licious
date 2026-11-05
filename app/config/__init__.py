@@ -1,17 +1,19 @@
-from .settings import LoggingLevel, Settings, SettingsGenerateJsonSchema, settings
+from .loader import get_config, set_global_config
 from .models import (
     ANALYZER_LANG_MAPPING,
-    ScriptType,
-    FieldType,
-    FieldConfig,
-    TaxonomySourceConfig,
+    MAX_SYNONYMS_SETS_RULES,
     BaseESIndexConfig,
-    ESIndexConfig,
-    TaxonomyIndexConfig,
-    TaxonomyConfig,
-    ScriptConfig,
-    IndexConfig,
     Config,
     ConfigGenerateJsonSchema,
+    ESIndexConfig,
+    FieldConfig,
+    FieldType,
+    IndexConfig,
+    ScriptConfig,
+    ScriptType,
+    SynonymsStrategy,
+    TaxonomyConfig,
+    TaxonomyIndexConfig,
+    TaxonomySourceConfig,
 )
-from .loader import get_config, set_global_config
+from .settings import LoggingLevel, Settings, SettingsGenerateJsonSchema, settings

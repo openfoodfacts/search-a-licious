@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from .models import Config
 from .settings import settings
 

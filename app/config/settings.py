@@ -19,6 +19,8 @@ from pydantic_settings import BaseSettings
 
 log = logging.getLogger(__name__)
 ES_DOCS_URL = "https://www.elastic.co/guide/en/elasticsearch/reference/current"
+
+
 class LoggingLevel(StrEnum):
     """Accepted logging levels
 
@@ -62,36 +64,24 @@ class Settings(BaseSettings):
 
     config_path: Annotated[
         Path | None,
-        Field(
-            description=cd_(
-                """Path to the search-a-licious yaml configuration file.
+        Field(description=cd_("""Path to the search-a-licious yaml configuration file.
 
                 See [Explain configuration file](../explain-configuration/) for more information
-                """
-            )
-        ),
+                """)),
     ] = None
     elasticsearch_url: Annotated[
         str,
-        Field(
-            description=cd_(
-                """URL to the ElasticSearch instance
+        Field(description=cd_("""URL to the ElasticSearch instance
 
                 Bare in mind this is from inside the container.
-                """
-            )
-        ),
+                """)),
     ] = "http://localhost:9200"
     redis_host: Annotated[
         str,
-        Field(
-            description=cd_(
-                """Host for the Redis instance containing event stream
+        Field(description=cd_("""Host for the Redis instance containing event stream
 
                 Bare in mind this is from inside the container.
-                """
-            )
-        ),
+                """)),
     ] = "localhost"
     redis_port: Annotated[
         int,
@@ -121,15 +111,10 @@ class Settings(BaseSettings):
             description="User-Agent used when fetching resources (taxonomies) or documents"
         ),
     ] = "search-a-licious"
-    synonyms_path: Annotated[
-        Path,
-        Field(
-            description="Path of the directory that will contain synonyms for ElasticSearch instances"
-        ),
-    ] = Path("/opt/search/synonyms")
 
 
 settings = Settings()
+
 
 # Mapping from language 2-letter code to Elasticsearch language analyzer names
 class SettingsGenerateJsonSchema(GenerateJsonSchema):
@@ -140,5 +125,3 @@ class SettingsGenerateJsonSchema(GenerateJsonSchema):
         json_schema["title"] = "JSON schema for search-a-licious settings"
         json_schema["$schema"] = self.schema_dialect
         return json_schema
-
-
