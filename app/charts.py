@@ -1,3 +1,4 @@
+import collections
 from functools import reduce
 
 from . import config
@@ -8,6 +9,7 @@ from ._types import (
     ScatterChart,
     SuccessSearchResponse,
 )
+from .facets import get_translations
 
 
 def empty_chart(chart_name):
@@ -44,7 +46,10 @@ def empty_chart(chart_name):
 
 
 def build_distribution_chart(
-    chart: DistributionChart, values, index_config: config.IndexConfig
+    chart: DistributionChart,
+    values,
+    index_config: config.IndexConfig,
+    y_axis: bool = False,
 ):
     """
     Return the vega structure for a Bar Chart
@@ -84,11 +89,19 @@ def build_distribution_chart(
             "range": "height",
         },
     ]
-    # How to hide vertical axis: do not add { scale: yscale, ...}
-    # in axes section
     vega_chart["axes"] = [
         {"orient": "bottom", "scale": "xscale", "domain": False, "ticks": False}
     ]
+    if y_axis:
+        vega_chart["axes"].append(
+            {
+                "orient": "left",
+                "scale": "yscale",
+                "tickCount": 4,
+                "grid": True,
+                "domain": False,
+            }
+        )
     vega_chart["marks"] = [
         {
             "type": "rect",
@@ -231,6 +244,8 @@ def build_charts(
     search_result: SuccessSearchResponse,
     index_config: config.IndexConfig,
     requested_charts: list[ChartType] | None,
+    lang: str,
+    y_axis: bool = False,
 ) -> ChartsInfos:
     """
     Build and return vega charts representations for the given
@@ -242,27 +257,48 @@ def build_charts(
         return charts
 
     aggregations = search_result.aggregations
+    buckets_by_field = {
+        chart.field: ((aggregations or {}).get(chart.field) or {}).get("buckets", [])
+        for chart in requested_charts
+        if chart.chart_type == "DistributionChart"
+    }
+    # translate the bucket "keys" (the label)
+    # so that en:chocolate becomes _chocolat_ in french
+    translations = get_translations(
+        lang,
+        [
+            (str(bucket["key"]), field)
+            for field, buckets in buckets_by_field.items()
+            for bucket in buckets
+        ],
+        index_config,
+    )
 
     for requested_chart in requested_charts:
         if requested_chart.chart_type == "ScatterChart":
             charts[f"{requested_chart.x}:{requested_chart.y}"] = build_scatter_chart(
                 requested_chart, search_result, index_config
             )
-        else:
+        elif aggregations is not None:
             # distribution charts are created from aggregations
-            if aggregations is not None:
-                agg_data = aggregations.get(requested_chart.field, {})
-
-                buckets = agg_data.get("buckets", []) if agg_data else []
-
-                values = [
-                    {"category": bucket["key"], "amount": bucket["doc_count"]}
-                    for bucket in buckets
-                ]
-                values.sort(key=lambda x: x["category"])
-
-                charts[requested_chart.field] = build_distribution_chart(
-                    requested_chart, values, index_config
+            field = requested_chart.field
+            # keys sharing a name (e.g. same brand, different case) become one bar
+            # (thanks to translations)
+            amounts: dict[str | float, int] = collections.defaultdict(int)
+            for bucket in buckets_by_field[field]:
+                name = translations.get((str(bucket["key"]), field), bucket["key"])
+                amounts[name] += bucket["doc_count"]
+            values = [
+                {"category": name, "amount": amount}
+                for name, amount in sorted(
+                    amounts.items(),
+                    key=lambda item: (
+                        item[0].casefold() if isinstance(item[0], str) else item[0]
+                    ),
                 )
+            ]
+            charts[field] = build_distribution_chart(
+                requested_chart, values, index_config, y_axis=y_axis
+            )
 
     return charts

@@ -14,7 +14,7 @@ from ._types import (
 from .taxonomy_es import get_taxonomy_names
 
 
-def _get_translations(
+def get_translations(
     lang: str, items: list[tuple[str, str]], index_config: config.IndexConfig
 ) -> dict[tuple[str, str], str]:
     """Get translations for a list of items
@@ -38,6 +38,8 @@ def _get_translations(
         for id, field_name in items
         if field_name in field_taxonomy
     ]
+    if not items_to_fetch:
+        return {}
     items_names = get_taxonomy_names(items_to_fetch, index_config)
     # compute best translations
     translations: dict[tuple[str, str], str] = {}
@@ -73,7 +75,7 @@ def translate_facets_values(
         for field_name, info in facets.items()
         for item in info.items
     ]
-    translations = _get_translations(lang, items, index_config)
+    translations = get_translations(lang, items, index_config)
     # translate facets
     for field_name, info in facets.items():
         for item in info.items:
