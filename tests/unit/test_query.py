@@ -262,6 +262,7 @@ def test_filter_by_langs_adds_filter(
         page=1,
     )
     query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
     es_dict = query.es_query.to_dict()
     filter_clauses = es_dict["query"]["bool"]["filter"]
     assert any(
@@ -282,6 +283,7 @@ def test_filter_by_langs_disabled_has_no_filter(
         page=1,
     )
     query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
     es_dict = query.es_query.to_dict()
     bool_clause = es_dict.get("query", {}).get("bool", {})
     assert "filter" not in bool_clause
@@ -299,6 +301,7 @@ def test_filter_by_langs_excludes_main(
         page=1,
     )
     query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
     es_dict = query.es_query.to_dict()
     filter_clauses = es_dict["query"]["bool"]["filter"]
     terms_values = None
@@ -322,6 +325,7 @@ def test_filter_by_langs_only_main_skips_filter(
         page=1,
     )
     query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
     es_dict = query.es_query.to_dict()
     bool_clause = es_dict.get("query", {}).get("bool", {})
     assert "filter" not in bool_clause
@@ -332,6 +336,7 @@ def test_filter_by_langs_missing_field_raises(
     default_filter_query_builder: FullTextQueryBuilder,
 ):
     import types
+    from typing import Any
 
     from app.exceptions import QueryCheckError
     from app.query import build_es_query
@@ -344,7 +349,7 @@ def test_filter_by_langs_missing_field_raises(
         fields=fields_no_lang_codes,
         scripts=None,
     )
-    fake_params = types.SimpleNamespace(
+    fake_params: Any = types.SimpleNamespace(
         langs=["de"],
         filter_by_langs=True,
         facets=None,
