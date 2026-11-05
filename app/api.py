@@ -242,7 +242,7 @@ def html_search(
 ):
     """A demo page to test the search endpoint directly"""
     if not q:
-        return templates.TemplateResponse("search.html", {"request": request})
+        return templates.TemplateResponse(request, "search.html")
 
     results = search_get(
         q=q,
@@ -280,6 +280,7 @@ def html_search(
         template_data["pagination"] = pagination
 
     return templates.TemplateResponse(
+        request,
         "display_results.html",
         template_data,
     )
