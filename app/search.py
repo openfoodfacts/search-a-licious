@@ -51,7 +51,7 @@ def _ensure_runtime_caches_match_config():
     """
     global _CACHED_CONFIG_REF
     current_config = config.get_config()
-    if _CACHED_CONFIG_REF is None or _CACHED_CONFIG_REF() is None:
+    if _CACHED_CONFIG_REF is None:
         _CACHED_CONFIG_REF = weakref.ref(current_config)
         return current_config
 
