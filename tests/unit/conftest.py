@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from app import config as app_config
 from app._types import JSONType
 from app.config import Config
+from app.config import loader as app_config
 from app.query import build_elasticsearch_query_builder
 from app.utils.io import load_json
 
@@ -27,7 +27,11 @@ def default_config():
 @pytest.fixture
 def default_global_config():
     """Fixture that returns default global configuration for tests."""
-    yield Config.from_yaml(DEFAULT_CONFIG_PATH)
+    conf = Config.from_yaml(DEFAULT_CONFIG_PATH)
+    previous_conf = app_config._CONFIG
+    app_config._CONFIG = conf
+    yield conf
+    app_config._CONFIG = previous_conf
 
 
 @pytest.fixture

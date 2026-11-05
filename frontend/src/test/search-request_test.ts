@@ -388,9 +388,7 @@ suite('search request lifecycle', () => {
       facets: {
         labels_tags: {
           name: 'Labels',
-          items: [
-            {key: 'en:organic', name: 'Organic', count: 1, selected: false},
-          ],
+          items: [{key: 'en:organic', name: 'Organic'}],
         },
       },
     };
