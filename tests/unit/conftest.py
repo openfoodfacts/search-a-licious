@@ -42,11 +42,11 @@ def query_builder_cache_is_empty():
     """Fixture that ensures the query builder cache is empty
     before and after a test, so we don't get one from a previous test
     """
-    from app.search import _ES_QUERY_BUILDERS
+    from app.search import _get_es_query_builder_cached
 
-    _ES_QUERY_BUILDERS.clear()
+    _get_es_query_builder_cached.cache_clear()
     yield
-    _ES_QUERY_BUILDERS.clear()
+    _get_es_query_builder_cached.cache_clear()
 
 
 @pytest.fixture
