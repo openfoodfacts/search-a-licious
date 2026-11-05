@@ -17,7 +17,11 @@ export declare class SearchaliciousDomInterface {
   resetFacets(launchSearch?: boolean): void;
 }
 
-export const SearchaliciousDomMixin = <T extends Constructor<LitElement & SearchaliciousStateInterface & SearchaliciousHistoryInterface>>(
+export const SearchaliciousDomMixin = <
+  T extends Constructor<
+    LitElement & SearchaliciousStateInterface & SearchaliciousHistoryInterface
+  >
+>(
   superClass: T
 ) => {
   class SearchaliciousDomMixinClass extends superClass {
@@ -74,9 +78,7 @@ export const SearchaliciousDomMixin = <T extends Constructor<LitElement & Search
 
       document
         .querySelectorAll(
-          `searchalicious-scatter-chart[search-name="${CSS.escape(
-            this.name
-          )}"]`
+          `searchalicious-scatter-chart[search-name="${CSS.escape(this.name)}"]`
         )
         .forEach((item) => {
           const chartItem = item as SearchaliciousScatterChart;
@@ -102,5 +104,6 @@ export const SearchaliciousDomMixin = <T extends Constructor<LitElement & Search
     }
   }
 
-  return SearchaliciousDomMixinClass as unknown as Constructor<SearchaliciousDomInterface> & T;
+  return SearchaliciousDomMixinClass as unknown as Constructor<SearchaliciousDomInterface> &
+    T;
 };

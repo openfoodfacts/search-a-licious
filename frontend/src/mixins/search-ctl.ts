@@ -103,5 +103,6 @@ export const SearchaliciousSearchMixin = <T extends Constructor<LitElement>>(
     }
   }
 
-  return SearchaliciousSearchMixinClass as unknown as Constructor<SearchaliciousSearchInterface> & T;
+  return SearchaliciousSearchMixinClass as unknown as Constructor<SearchaliciousSearchInterface> &
+    T;
 };

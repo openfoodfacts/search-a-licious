@@ -16,7 +16,14 @@ export declare class SearchaliciousApiInterface {
   search(page?: number): Promise<void>;
 }
 
-export const SearchaliciousApiMixin = <T extends Constructor<LitElement & SearchaliciousStateInterface & SearchaliciousDomInterface & SearchaliciousHistoryInterface>>(
+export const SearchaliciousApiMixin = <
+  T extends Constructor<
+    LitElement &
+      SearchaliciousStateInterface &
+      SearchaliciousDomInterface &
+      SearchaliciousHistoryInterface
+  >
+>(
   superClass: T
 ) => {
   class SearchaliciousApiMixinClass extends superClass {
@@ -46,7 +53,9 @@ export const SearchaliciousApiMixin = <T extends Constructor<LitElement & Search
           if (value.constructor === Array) {
             value = value.join(API_LIST_DIVIDER);
           }
-          return `${encodeURIComponent(key)}=${encodeURIComponent(value as string)}`;
+          return `${encodeURIComponent(key)}=${encodeURIComponent(
+            value as string
+          )}`;
         })
         .filter((val) => val !== null)
         .sort()
@@ -75,7 +84,7 @@ export const SearchaliciousApiMixin = <T extends Constructor<LitElement & Search
         page_size: this.pageSize?.toString(),
         index_id: this.index,
       };
-      
+
       const sortElement = this._sortElement();
       if (sortElement) {
         const sortParameters = sortElement.getSortParameters();
@@ -84,11 +93,11 @@ export const SearchaliciousApiMixin = <T extends Constructor<LitElement & Search
           Object.assign(params, sortParameters);
         }
       }
-      
+
       if (page) {
         params.page = page.toString();
       }
-      
+
       if (this._facetsNames().length > 0) {
         params.facets = this._facetsNames();
       }
@@ -155,5 +164,6 @@ export const SearchaliciousApiMixin = <T extends Constructor<LitElement & Search
     }
   }
 
-  return SearchaliciousApiMixinClass as unknown as Constructor<SearchaliciousApiInterface> & T;
+  return SearchaliciousApiMixinClass as unknown as Constructor<SearchaliciousApiInterface> &
+    T;
 };

@@ -27,7 +27,9 @@ export declare class SearchaliciousStateInterface {
   updateSearchSignals(): void;
 }
 
-export const SearchaliciousStateMixin = <T extends Constructor<LitElement & SearchaliciousHistoryInterface>>(
+export const SearchaliciousStateMixin = <
+  T extends Constructor<LitElement & SearchaliciousHistoryInterface>
+>(
   superClass: T
 ) => {
   class SearchaliciousStateMixinClass extends SignalWatcher(superClass) {
@@ -94,5 +96,6 @@ export const SearchaliciousStateMixin = <T extends Constructor<LitElement & Sear
     }
   }
 
-  return SearchaliciousStateMixinClass as unknown as Constructor<SearchaliciousStateInterface> & T;
+  return SearchaliciousStateMixinClass as unknown as Constructor<SearchaliciousStateInterface> &
+    T;
 };
