@@ -104,7 +104,6 @@ requested languages).
 - The pseudo-language `main` is ignored when building the filter.
 - If all requested languages are `main` (or the list is empty after excluding
   `main`), no filter is applied.
-- The index must have been built with a `languages_codes` keyword field in the
-  configuration. If the field is absent, the API returns an error.
-- Adding `languages_codes` to an existing index requires a **full re-index**.
+- The index must have been built with a `languages_codes` keyword field. The API returns an error if the field is missing from the configuration, but it cannot tell whether the index serving the query has actually been re-indexed.
+- Adding `languages_codes` to an existing index requires a **full re-index**. Only use `filter_by_langs=true` once the re-index has completed and the alias has switched to the new index; until then, filtered searches may silently return no results.
   See [How to update an index](how-to-update-index.md) for details.
