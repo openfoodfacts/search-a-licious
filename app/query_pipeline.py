@@ -1,6 +1,6 @@
 import luqum.exceptions
 from luqum import tree
-from luqum.parser import parser
+from luqum.thread import parse as thread_safe_parse
 from luqum.utils import OpenRangeTransformer, UnknownOperationResolver
 
 from ._types import QueryAnalysis, SearchParameters
@@ -19,7 +19,8 @@ def parse_query(q: str | None) -> QueryAnalysis:
     if q is None or not q.strip():
         return analysis
     try:
-        analysis.luqum_tree = parser.parse(q)
+        # the shared PLY parser is not thread-safe, use the per-thread one
+        analysis.luqum_tree = thread_safe_parse(q)
         # TECHDEBT(SAL-TECHDEBT-006): align parser UnknownFilter handling with
         # the UnknownOperation resolution strategy.
     except (
