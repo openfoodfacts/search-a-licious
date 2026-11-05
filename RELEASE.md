@@ -61,7 +61,7 @@ Release management is automated with [Google release-please](https://github.com/
 1. Whenever changes land on `main`, the `release-please` action analyzes conventional commit history since the previous tag.
 2. It automatically creates or updates an open pull request titled:  
    `chore(main): release X.Y.Z`  
-   This PR updates [CHANGELOG.md](file:///Users/pierre/development/search-a-licious/CHANGELOG.md) with classified changelog entries and bumps the version.
+   This PR updates [CHANGELOG.md](CHANGELOG.md) with classified changelog entries and bumps the version.
 3. **To trigger a release**: Review the Release PR and merge it into `main`.
 4. Upon merging the Release PR:
    - `release-please` automatically publishes a new GitHub Release.
