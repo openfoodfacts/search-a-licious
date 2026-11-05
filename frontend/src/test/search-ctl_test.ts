@@ -14,6 +14,7 @@ class DummySearchCtl extends SearchaliciousSearchMixin(LitElement) {
 
 suite('SearchaliciousSearchMixin / search-ctl', () => {
   setup(() => {
+    window.history.pushState({}, '', '/');
     resetSignalToDefault();
   });
 
