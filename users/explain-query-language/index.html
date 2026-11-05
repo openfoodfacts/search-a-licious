@@ -1092,14 +1092,14 @@ without the need to complexify the query to much at API level.</p>
 </code></pre></div>
   Entries with text <code>dark chocolate</code>, labels containing <code>organic</code> or <code>vegan</code>, and Nutri-Score not <code>e</code> or <code>d</code></li>
 <li>you can query a sub field by using "." or ":":
-  <div class="highlight"><pre><span></span><code>nutrients.sugar_100g:[10 TO 15]
+  <div class="highlight"><pre><span></span><code>nutriments.sugars_100g:[10 TO 15]
 </code></pre></div>
   equivalent to:
-  <div class="highlight"><pre><span></span><code>nutrients:sugar_100g:[10 TO 15]
+  <div class="highlight"><pre><span></span><code>nutriments:sugars_100g:[10 TO 15]
 </code></pre></div>
   Entries with sugar between 10 and 15 grams per 100g</li>
 <li>in range you can use * for unbounded values:
-  <div class="highlight"><pre><span></span><code>nutrients.sugar_100g:[* TO 20] AND nutrients.proteins_100g:[2 TO *]
+  <div class="highlight"><pre><span></span><code>nutriments.sugars_100g:[* TO 20] AND nutriments.proteins_100g:[2 TO *]
 </code></pre></div>
   Entries with sugar below 20 g and proteins above 2g for 100g</li>
 <li>match field existence with <code>*</code>:
