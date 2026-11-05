@@ -201,10 +201,8 @@ def add_languages_suffix(
     # unsupported languages would produce sub-fields that do not exist
     supported_langs = [lang for lang in langs if lang in config.supported_langs_set]
     if not supported_langs:
-        raise QueryCheckError(
-            "None of the requested languages is supported by this index",
-            errors=[f"Supported languages: {', '.join(config.supported_langs)}"],
-        )
+        # nothing to suffix with, keep the query as is rather than failing it
+        return analysis
     transformer = LanguageSuffixTransformer(
         lang_fields=set(config.lang_fields), langs=supported_langs
     )

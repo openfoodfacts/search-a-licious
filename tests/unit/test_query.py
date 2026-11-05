@@ -6,7 +6,7 @@ from luqum.parser import parser
 from app._types import JSONType, QueryAnalysis, SearchParameters
 from app.config import IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
-from app.exceptions import QueryAnalysisError, QueryCheckError
+from app.exceptions import QueryAnalysisError
 from app.query import (
     add_languages_suffix,
     boost_phrases,
@@ -279,9 +279,10 @@ def test_add_languages_suffix_ignores_unsupported_langs(default_config: IndexCon
     assert "not_a_lang" not in str(analysis.luqum_tree)
 
 
-def test_add_languages_suffix_fails_without_supported_langs(
-    default_config: IndexConfig,
+@pytest.mark.parametrize("q", ["milk", "categories:organic"])
+def test_add_languages_suffix_keeps_query_without_supported_langs(
+    q: str, default_config: IndexConfig
 ):
-    analysis = QueryAnalysis(luqum_tree=parser.parse("categories:organic"))
-    with pytest.raises(QueryCheckError):
-        add_languages_suffix(analysis, ["not_a_lang"], default_config)
+    analysis = QueryAnalysis(luqum_tree=parser.parse(q))
+    analysis = add_languages_suffix(analysis, ["not_a_lang"], default_config)
+    assert str(analysis.luqum_tree) == q
