@@ -598,6 +598,7 @@ def test_chart_get_without_chart_fails(sample_data, test_client):
 
 
 def langs_filter_sample():
+    """Sample products available in different languages"""
     data = [
         Product(
             code="9900000000001",
