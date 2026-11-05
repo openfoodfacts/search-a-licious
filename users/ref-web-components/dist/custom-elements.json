@@ -1179,361 +1179,7 @@
             },
             {
               "kind": "field",
-              "name": "query",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "description": "Query that will be sent to searchalicious",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "name",
-              "default": "DEFAULT_SEARCH_NAME",
-              "attribute": "name",
-              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "baseUrl",
-              "type": {
-                "text": "string"
-              },
-              "default": "'/'",
-              "description": "The base api url",
-              "attribute": "base-url",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "langs",
-              "type": {
-                "text": "string"
-              },
-              "default": "'en'",
-              "description": "Separated list of languages,\nthe first one is the main language",
-              "attribute": "langs",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "index",
-              "type": {
-                "text": "string | undefined"
-              },
-              "description": "index to query\n\nIf not specified, the default index will be used",
-              "attribute": "index",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "boostPhrase",
-              "type": {
-                "text": "boolean"
-              },
-              "default": "false",
-              "description": "Wether to use the boost phrase heuristic.\n\nThis heuristic is used to boost nearby term in search results.\nIt can greatly improve the pertinence of the search results (only for default sort)\n\nIt defaults to false.",
-              "attribute": "boost-phrase",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "pageSize",
-              "type": {
-                "text": "number"
-              },
-              "default": "10",
-              "description": "Number of result per page",
-              "attribute": "page-size",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_currentPage",
-              "type": {
-                "text": "number | undefined"
-              },
-              "description": "Number of result per page",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_pageCount",
-              "type": {
-                "text": "number | undefined"
-              },
-              "description": "Last search page count",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_results",
-              "type": {
-                "text": "{}[] | undefined"
-              },
-              "description": "Last search results for current page",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_count",
-              "type": {
-                "text": "number | undefined"
-              },
-              "description": "Last search total number of results",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "lastQuery",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "description": "Last search query",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "lastFacetsFilters",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "description": "Last search facets filters",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "isQueryChanged",
-              "description": "Check if the query has changed since the last search",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "isFacetsChanged",
-              "description": "Check if the facets filters have changed since the last search",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "isSearchChanged",
-              "description": "Check if the search button text should be displayed",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "canReset",
-              "description": "Check if the filters can be reset\nFilters is facets filters and query",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "updateSearchSignals",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_sortElement",
-              "return": {
-                "type": {
-                  "text": ""
-                }
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "autoLaunch",
-              "type": {
-                "text": "boolean"
-              },
-              "default": "false",
-              "description": "Wether search should be launched at page load",
-              "attribute": "auto-launch",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
               "name": "firstSearch",
-              "description": "Launch search at page loaded if needed (we have a search in url)",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "relatedFacets",
-              "return": {
-                "type": {
-                  "text": ""
-                }
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_facetsNames",
-              "return": {
-                "type": {
-                  "text": "string[]"
-                }
-              },
-              "description": "Get the list of facets we want to request",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_chartParams",
-              "return": {
-                "type": {
-                  "text": "ChartSearchParam[] | string | undefined"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "isGetRequest",
-                  "type": {
-                    "text": "boolean"
-                  }
-                }
-              ],
-              "description": "Get the list of charts params we want to request",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_facetsFilters",
-              "description": "Get the filter linked to facets",
-              "return": {
-                "type": {
-                  "text": ""
-                }
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "resetFacets",
-              "parameters": [
-                {
-                  "name": "launchSearch",
-                  "default": "true"
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_searchUrl",
-              "parameters": [
-                {
-                  "name": "page",
-                  "optional": true,
-                  "type": {
-                    "text": "number"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_paramsToQueryStr",
-              "return": {
-                "type": {
-                  "text": "string"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "params",
-                  "type": {
-                    "text": "SearchParameters"
-                  }
-                }
-              ],
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
                 "module": "src/mixins/search-ctl.ts"
@@ -1566,7 +1212,6 @@
                   }
                 }
               ],
-              "description": "External component (like the search button)\ncan use the `searchalicious-search` event\nto trigger a search.\nIt must have the search name in it's data.",
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
                 "module": "src/mixins/search-ctl.ts"
@@ -1583,24 +1228,55 @@
                   }
                 }
               ],
-              "description": "External component (like the search pages)\ncan use the `searchalicious-change-page` event\nto ask for page change\nIt must have the search name in it's data.",
               "inheritedFrom": {
                 "name": "SearchaliciousSearchMixin",
                 "module": "src/mixins/search-ctl.ts"
               }
             },
             {
-              "kind": "field",
-              "name": "buildParams",
-              "description": "Build the params to send to the search API",
+              "kind": "method",
+              "name": "_searchUrl",
               "parameters": [
                 {
-                  "name": "page"
+                  "name": "page",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
                 }
               ],
               "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_paramsToQueryStr",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "params",
+                  "type": {
+                    "text": "SearchParameters"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "buildParams",
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
               }
             },
             {
@@ -1612,10 +1288,288 @@
                   "default": "1"
                 }
               ],
-              "description": "Launching search",
               "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_sortElement",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "relatedFacets",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_facetsNames",
+              "return": {
+                "type": {
+                  "text": "string[]"
+                }
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_chartParams",
+              "return": {
+                "type": {
+                  "text": "ChartSearchParam[] | string | undefined"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "isGetRequest",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_facetsFilters",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "resetFacets",
+              "parameters": [
+                {
+                  "name": "launchSearch",
+                  "default": "true"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "query",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "default": "DEFAULT_SEARCH_NAME",
+              "attribute": "name",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "baseUrl",
+              "type": {
+                "text": "string"
+              },
+              "default": "'/'",
+              "attribute": "base-url",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "default": "'en'",
+              "attribute": "langs",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "index",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "index",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "boostPhrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "boost-phrase",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "pageSize",
+              "type": {
+                "text": "number"
+              },
+              "default": "10",
+              "attribute": "page-size",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_currentPage",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_pageCount",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_results",
+              "type": {
+                "text": "{}[] | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_count",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "lastQuery",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "lastFacetsFilters",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "autoLaunch",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "auto-launch",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isQueryChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isFacetsChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isSearchChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "canReset",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "updateSearchSignals",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
               }
             },
             {
@@ -1780,7 +1734,6 @@
                 "module": "/src/utils/constants"
               },
               "fieldName": "name",
-              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
               "inheritedFrom": {
                 "name": "SearchaliciousHistoryMixin",
                 "module": "src/mixins/history.ts"
@@ -1792,11 +1745,10 @@
                 "text": "string"
               },
               "default": "'/'",
-              "description": "The base api url",
               "fieldName": "baseUrl",
               "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
               }
             },
             {
@@ -1805,11 +1757,10 @@
                 "text": "string"
               },
               "default": "'en'",
-              "description": "Separated list of languages,\nthe first one is the main language",
               "fieldName": "langs",
               "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
               }
             },
             {
@@ -1817,11 +1768,10 @@
               "type": {
                 "text": "string | undefined"
               },
-              "description": "index to query\n\nIf not specified, the default index will be used",
               "fieldName": "index",
               "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
               }
             },
             {
@@ -1830,11 +1780,10 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "Wether to use the boost phrase heuristic.\n\nThis heuristic is used to boost nearby term in search results.\nIt can greatly improve the pertinence of the search results (only for default sort)\n\nIt defaults to false.",
               "fieldName": "boostPhrase",
               "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
               }
             },
             {
@@ -1843,11 +1792,10 @@
                 "text": "number"
               },
               "default": "10",
-              "description": "Number of result per page",
               "fieldName": "pageSize",
               "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
               }
             },
             {
@@ -1856,11 +1804,10 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "Wether search should be launched at page load",
               "fieldName": "autoLaunch",
               "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
               }
             }
           ],
@@ -7865,6 +7812,305 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/mixins/search-ctl-api.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "SearchaliciousApiInterface",
+          "members": [
+            {
+              "kind": "method",
+              "name": "_searchUrl",
+              "return": {
+                "type": {
+                  "text": "{\n    searchUrl: string;\n    method: string;\n    params: SearchParameters;\n    history: HistoryParams;\n  }"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "page",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_paramsToQueryStr",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "params",
+                  "type": {
+                    "text": "SearchParameters"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "buildParams",
+              "return": {
+                "type": {
+                  "text": "{params: SearchParameters; needsPOST: boolean}"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "page",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "search",
+              "return": {
+                "type": {
+                  "text": "Promise<void>"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "page",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "mixin",
+          "description": "",
+          "name": "SearchaliciousApiMixin",
+          "members": [
+            {
+              "kind": "method",
+              "name": "_searchUrl",
+              "parameters": [
+                {
+                  "name": "page",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_paramsToQueryStr",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "params",
+                  "type": {
+                    "text": "SearchParameters"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "buildParams"
+            },
+            {
+              "kind": "method",
+              "name": "search",
+              "parameters": [
+                {
+                  "name": "page",
+                  "default": "1"
+                }
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "superClass",
+              "type": {
+                "text": "T"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SearchaliciousApiInterface",
+          "declaration": {
+            "name": "SearchaliciousApiInterface",
+            "module": "src/mixins/search-ctl-api.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "SearchaliciousApiMixin",
+          "declaration": {
+            "name": "SearchaliciousApiMixin",
+            "module": "src/mixins/search-ctl-api.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/mixins/search-ctl-dom.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "SearchaliciousDomInterface",
+          "members": [
+            {
+              "kind": "method",
+              "name": "_facetsNames",
+              "return": {
+                "type": {
+                  "text": "string[]"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_chartParams",
+              "return": {
+                "type": {
+                  "text": "ChartSearchParam[] | string | undefined"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "isGetRequest",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "resetFacets",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "launchSearch",
+                  "optional": true,
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "mixin",
+          "description": "",
+          "name": "SearchaliciousDomMixin",
+          "members": [
+            {
+              "kind": "field",
+              "name": "_sortElement"
+            },
+            {
+              "kind": "field",
+              "name": "relatedFacets"
+            },
+            {
+              "kind": "method",
+              "name": "_facetsNames",
+              "return": {
+                "type": {
+                  "text": "string[]"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_chartParams",
+              "return": {
+                "type": {
+                  "text": "ChartSearchParam[] | string | undefined"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "isGetRequest",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "_facetsFilters"
+            },
+            {
+              "kind": "method",
+              "name": "resetFacets",
+              "parameters": [
+                {
+                  "name": "launchSearch",
+                  "default": "true"
+                }
+              ]
+            }
+          ],
+          "parameters": [
+            {
+              "name": "superClass",
+              "type": {
+                "text": "T"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SearchaliciousDomInterface",
+          "declaration": {
+            "name": "SearchaliciousDomInterface",
+            "module": "src/mixins/search-ctl-dom.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "SearchaliciousDomMixin",
+          "declaration": {
+            "name": "SearchaliciousDomMixin",
+            "module": "src/mixins/search-ctl-dom.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/mixins/search-ctl-getter.ts",
       "declarations": [
         {
@@ -7920,12 +8166,133 @@
     },
     {
       "kind": "javascript-module",
-      "path": "src/mixins/search-ctl.ts",
+      "path": "src/mixins/search-ctl-state.ts",
       "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "SearchaliciousStateInterface",
+          "members": [
+            {
+              "kind": "field",
+              "name": "baseUrl",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "langs",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "index",
+              "type": {
+                "text": "string | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "boostPhrase",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "pageSize",
+              "type": {
+                "text": "number"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_pageCount",
+              "type": {
+                "text": "number | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_results",
+              "type": {
+                "text": "{}[] | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_count",
+              "type": {
+                "text": "number | undefined"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "lastQuery",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "lastFacetsFilters",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "autoLaunch",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isQueryChanged",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isFacetsChanged",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isSearchChanged",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "canReset",
+              "type": {
+                "text": "boolean"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "updateSearchSignals",
+              "return": {
+                "type": {
+                  "text": "void"
+                }
+              }
+            }
+          ]
+        },
         {
           "kind": "mixin",
           "description": "",
-          "name": "SearchaliciousSearchMixin",
+          "name": "SearchaliciousStateMixin",
           "members": [
             {
               "kind": "field",
@@ -7933,23 +8300,13 @@
               "type": {
                 "text": "string"
               },
-              "default": "''",
-              "description": "Query that will be sent to searchalicious",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
+              "default": "''"
             },
             {
               "kind": "field",
               "name": "name",
               "default": "DEFAULT_SEARCH_NAME",
-              "attribute": "name",
-              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
+              "attribute": "name"
             },
             {
               "kind": "field",
@@ -7958,7 +8315,6 @@
                 "text": "string"
               },
               "default": "'/'",
-              "description": "The base api url",
               "attribute": "base-url"
             },
             {
@@ -7968,7 +8324,6 @@
                 "text": "string"
               },
               "default": "'en'",
-              "description": "Separated list of languages,\nthe first one is the main language",
               "attribute": "langs"
             },
             {
@@ -7977,7 +8332,6 @@
               "type": {
                 "text": "string | undefined"
               },
-              "description": "index to query\n\nIf not specified, the default index will be used",
               "attribute": "index"
             },
             {
@@ -7987,7 +8341,6 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "Wether to use the boost phrase heuristic.\n\nThis heuristic is used to boost nearby term in search results.\nIt can greatly improve the pertinence of the search results (only for default sort)\n\nIt defaults to false.",
               "attribute": "boost-phrase"
             },
             {
@@ -7997,7 +8350,6 @@
                 "text": "number"
               },
               "default": "10",
-              "description": "Number of result per page",
               "attribute": "page-size"
             },
             {
@@ -8005,32 +8357,28 @@
               "name": "_currentPage",
               "type": {
                 "text": "number | undefined"
-              },
-              "description": "Number of result per page"
+              }
             },
             {
               "kind": "field",
               "name": "_pageCount",
               "type": {
                 "text": "number | undefined"
-              },
-              "description": "Last search page count"
+              }
             },
             {
               "kind": "field",
               "name": "_results",
               "type": {
                 "text": "{}[] | undefined"
-              },
-              "description": "Last search results for current page"
+              }
             },
             {
               "kind": "field",
               "name": "_count",
               "type": {
                 "text": "number | undefined"
-              },
-              "description": "Last search total number of results"
+              }
             },
             {
               "kind": "field",
@@ -8038,8 +8386,7 @@
               "type": {
                 "text": "string"
               },
-              "default": "''",
-              "description": "Last search query"
+              "default": "''"
             },
             {
               "kind": "field",
@@ -8047,45 +8394,7 @@
               "type": {
                 "text": "string"
               },
-              "default": "''",
-              "description": "Last search facets filters"
-            },
-            {
-              "kind": "field",
-              "name": "isQueryChanged",
-              "description": "Check if the query has changed since the last search"
-            },
-            {
-              "kind": "field",
-              "name": "isFacetsChanged",
-              "description": "Check if the facets filters have changed since the last search"
-            },
-            {
-              "kind": "field",
-              "name": "isSearchChanged",
-              "description": "Check if the search button text should be displayed"
-            },
-            {
-              "kind": "field",
-              "name": "canReset",
-              "description": "Check if the filters can be reset\nFilters is facets filters and query"
-            },
-            {
-              "kind": "method",
-              "name": "updateSearchSignals"
-            },
-            {
-              "kind": "field",
-              "name": "_sortElement",
-              "return": {
-                "type": {
-                  "text": ""
-                }
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
+              "default": "''"
             },
             {
               "kind": "field",
@@ -8094,108 +8403,133 @@
                 "text": "boolean"
               },
               "default": "false",
-              "description": "Wether search should be launched at page load",
               "attribute": "auto-launch"
             },
             {
               "kind": "field",
-              "name": "firstSearch",
-              "description": "Launch search at page loaded if needed (we have a search in url)"
+              "name": "isQueryChanged"
             },
             {
               "kind": "field",
-              "name": "relatedFacets",
-              "return": {
-                "type": {
-                  "text": ""
-                }
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_facetsNames",
-              "return": {
-                "type": {
-                  "text": "string[]"
-                }
-              },
-              "description": "Get the list of facets we want to request"
-            },
-            {
-              "kind": "method",
-              "name": "_chartParams",
-              "return": {
-                "type": {
-                  "text": "ChartSearchParam[] | string | undefined"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "isGetRequest",
-                  "type": {
-                    "text": "boolean"
-                  }
-                }
-              ],
-              "description": "Get the list of charts params we want to request"
+              "name": "isFacetsChanged"
             },
             {
               "kind": "field",
-              "name": "_facetsFilters",
-              "description": "Get the filter linked to facets",
-              "return": {
-                "type": {
-                  "text": ""
-                }
+              "name": "isSearchChanged"
+            },
+            {
+              "kind": "field",
+              "name": "canReset"
+            },
+            {
+              "kind": "method",
+              "name": "updateSearchSignals"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "name",
+              "default": "DEFAULT_SEARCH_NAME",
+              "resolveInitializer": {
+                "module": "/src/utils/constants"
               },
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
+              "fieldName": "name"
+            },
+            {
+              "name": "base-url",
+              "type": {
+                "text": "string"
+              },
+              "default": "'/'",
+              "fieldName": "baseUrl"
+            },
+            {
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "default": "'en'",
+              "fieldName": "langs"
+            },
+            {
+              "name": "index",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "index"
+            },
+            {
+              "name": "boost-phrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "boostPhrase"
+            },
+            {
+              "name": "page-size",
+              "type": {
+                "text": "number"
+              },
+              "default": "10",
+              "fieldName": "pageSize"
+            },
+            {
+              "name": "auto-launch",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "autoLaunch"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "SignalWatcher",
+              "package": "@lit-labs/preact-signals"
+            }
+          ],
+          "parameters": [
+            {
+              "name": "superClass",
+              "type": {
+                "text": "T"
               }
-            },
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "SearchaliciousStateInterface",
+          "declaration": {
+            "name": "SearchaliciousStateInterface",
+            "module": "src/mixins/search-ctl-state.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "SearchaliciousStateMixin",
+          "declaration": {
+            "name": "SearchaliciousStateMixin",
+            "module": "src/mixins/search-ctl-state.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/mixins/search-ctl.ts",
+      "declarations": [
+        {
+          "kind": "mixin",
+          "description": "",
+          "name": "SearchaliciousSearchMixin",
+          "members": [
             {
-              "kind": "method",
-              "name": "resetFacets",
-              "parameters": [
-                {
-                  "name": "launchSearch",
-                  "default": "true"
-                }
-              ]
-            },
-            {
-              "kind": "method",
-              "name": "_searchUrl",
-              "parameters": [
-                {
-                  "name": "page",
-                  "optional": true,
-                  "type": {
-                    "text": "number"
-                  }
-                }
-              ]
-            },
-            {
-              "kind": "method",
-              "name": "_paramsToQueryStr",
-              "return": {
-                "type": {
-                  "text": "string"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "params",
-                  "type": {
-                    "text": "SearchParameters"
-                  }
-                }
-              ]
+              "kind": "field",
+              "name": "firstSearch"
             },
             {
               "kind": "method",
@@ -8219,8 +8553,7 @@
                     "text": "Event"
                   }
                 }
-              ],
-              "description": "External component (like the search button)\ncan use the `searchalicious-search` event\nto trigger a search.\nIt must have the search name in it's data."
+              ]
             },
             {
               "kind": "method",
@@ -8232,18 +8565,53 @@
                     "text": "Event"
                   }
                 }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_searchUrl",
+              "parameters": [
+                {
+                  "name": "page",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
               ],
-              "description": "External component (like the search pages)\ncan use the `searchalicious-change-page` event\nto ask for page change\nIt must have the search name in it's data."
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_paramsToQueryStr",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "params",
+                  "type": {
+                    "text": "SearchParameters"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
             },
             {
               "kind": "field",
               "name": "buildParams",
-              "description": "Build the params to send to the search API",
-              "parameters": [
-                {
-                  "name": "page"
-                }
-              ]
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
             },
             {
               "kind": "method",
@@ -8254,7 +8622,289 @@
                   "default": "1"
                 }
               ],
-              "description": "Launching search"
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_sortElement",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "relatedFacets",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_facetsNames",
+              "return": {
+                "type": {
+                  "text": "string[]"
+                }
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_chartParams",
+              "return": {
+                "type": {
+                  "text": "ChartSearchParam[] | string | undefined"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "isGetRequest",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_facetsFilters",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "resetFacets",
+              "parameters": [
+                {
+                  "name": "launchSearch",
+                  "default": "true"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "query",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "default": "DEFAULT_SEARCH_NAME",
+              "attribute": "name",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "baseUrl",
+              "type": {
+                "text": "string"
+              },
+              "default": "'/'",
+              "attribute": "base-url",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "default": "'en'",
+              "attribute": "langs",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "index",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "index",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "boostPhrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "boost-phrase",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "pageSize",
+              "type": {
+                "text": "number"
+              },
+              "default": "10",
+              "attribute": "page-size",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_currentPage",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_pageCount",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_results",
+              "type": {
+                "text": "{}[] | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_count",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "lastQuery",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "lastFacetsFilters",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "autoLaunch",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "auto-launch",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isQueryChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isFacetsChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isSearchChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "canReset",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "updateSearchSignals",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
             },
             {
               "kind": "field",
@@ -8393,78 +9043,18 @@
               }
             }
           ],
-          "attributes": [
-            {
-              "name": "name",
-              "default": "DEFAULT_SEARCH_NAME",
-              "resolveInitializer": {
-                "module": "/src/utils/constants"
-              },
-              "fieldName": "name",
-              "description": "The name of this search\n\nIt enables having multiple search on the same page,\nif you specify it, your components must specify the attribute search-name",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "name": "base-url",
-              "type": {
-                "text": "string"
-              },
-              "default": "'/'",
-              "description": "The base api url",
-              "fieldName": "baseUrl"
-            },
-            {
-              "name": "langs",
-              "type": {
-                "text": "string"
-              },
-              "default": "'en'",
-              "description": "Separated list of languages,\nthe first one is the main language",
-              "fieldName": "langs"
-            },
-            {
-              "name": "index",
-              "type": {
-                "text": "string | undefined"
-              },
-              "description": "index to query\n\nIf not specified, the default index will be used",
-              "fieldName": "index"
-            },
-            {
-              "name": "boost-phrase",
-              "type": {
-                "text": "boolean"
-              },
-              "default": "false",
-              "description": "Wether to use the boost phrase heuristic.\n\nThis heuristic is used to boost nearby term in search results.\nIt can greatly improve the pertinence of the search results (only for default sort)\n\nIt defaults to false.",
-              "fieldName": "boostPhrase"
-            },
-            {
-              "name": "page-size",
-              "type": {
-                "text": "number"
-              },
-              "default": "10",
-              "description": "Number of result per page",
-              "fieldName": "pageSize"
-            },
-            {
-              "name": "auto-launch",
-              "type": {
-                "text": "boolean"
-              },
-              "default": "false",
-              "description": "Wether search should be launched at page load",
-              "fieldName": "autoLaunch"
-            }
-          ],
           "mixins": [
             {
-              "name": "SignalWatcher",
-              "package": "@lit-labs/preact-signals"
+              "name": "SearchaliciousApiMixin",
+              "module": "/src/mixins/search-ctl-api"
+            },
+            {
+              "name": "SearchaliciousDomMixin",
+              "module": "/src/mixins/search-ctl-dom"
+            },
+            {
+              "name": "SearchaliciousStateMixin",
+              "module": "/src/mixins/search-ctl-state"
             },
             {
               "name": "SearchaliciousHistoryMixin",
@@ -8480,6 +9070,91 @@
               "name": "superClass",
               "type": {
                 "text": "T"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "name",
+              "default": "DEFAULT_SEARCH_NAME",
+              "resolveInitializer": {
+                "module": "/src/utils/constants"
+              },
+              "fieldName": "name",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "name": "base-url",
+              "type": {
+                "text": "string"
+              },
+              "default": "'/'",
+              "fieldName": "baseUrl",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "default": "'en'",
+              "fieldName": "langs",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "index",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "index",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "boost-phrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "boostPhrase",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "page-size",
+              "type": {
+                "text": "number"
+              },
+              "default": "10",
+              "fieldName": "pageSize",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "auto-launch",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "autoLaunch",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
               }
             }
           ]
