@@ -54,6 +54,8 @@ class FullTextMixin:
             )
         if "query_string" in query:
             # no need to transform, just add fields
+            # (ES refuses `fields` together with `default_field`)
+            query["query_string"].pop("default_field", None)
             query["query_string"]["fields"] = fields
         elif "match" in query or "match_phrase" in query:
             query_type = list(k for k in query.keys() if k.startswith("match"))[0]
