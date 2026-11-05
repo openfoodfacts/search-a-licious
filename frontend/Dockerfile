@@ -2,9 +2,13 @@
 # Base user uid / gid keep 1000 on prod, align with your user on dev
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
+# Node 22 (Active LTS) is required.
+# Node >= 24.16 and Node 26 have a known regression in stream handling/yauzl
+# that causes Playwright's zip extraction to deadlock at 100% download (Playwright #40724, Node #63487).
+ARG NODE_VERSION=22
 
 # builder is the node service, only used to build project in prod
-FROM node:lts-bookworm AS builder
+FROM node:${NODE_VERSION}-bookworm AS builder
 ARG USER_UID
 ARG USER_GID
 RUN usermod --uid $USER_UID node && \
@@ -29,7 +33,7 @@ USER node
 # install dependencies
 RUN --mount=type=cache,id=search-a-licious-npm-cache,target=/home/node/.npm,mode=0777 \
   npm install && \
-  npx playwright install
+  npx playwright install chromium
 USER root
 # Install the dependencies for playwright with chromium
 # "npx playwright install-deps chromium" is broken on some hosts
