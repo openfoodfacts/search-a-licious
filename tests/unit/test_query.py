@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import pytest
@@ -7,7 +8,12 @@ from app._types import JSONType, QueryAnalysis, SearchParameters
 from app.config import IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
 from app.exceptions import QueryAnalysisError
-from app.query import boost_phrases, build_search_query, resolve_unknown_operation
+from app.query import (
+    boost_phrases,
+    build_search_query,
+    parse_query,
+    resolve_unknown_operation,
+)
 
 
 def test_boost_phrases_none():
@@ -248,3 +254,29 @@ def test_build_search_query_failure(
             es_query_builder=default_filter_query_builder,
         )
     assert error_msg in str(exc_info.value)
+
+
+def test_parse_query_is_thread_safe():
+    """The PLY lexer is stateful: parsing concurrently must give the same trees
+    as parsing sequentially."""
+    long_queries = [
+        " OR ".join(
+            f'(categories:"en:cat{i}" AND brands:brand{i}) OR product_name:foo{i}'
+            for i in range(start, start + 10)
+        )
+        for start in (0, 100)
+    ]
+    expected = {q: str(parse_query(q).luqum_tree) for q in long_queries}
+
+    def parse(q):
+        try:
+            return q, str(parse_query(q).luqum_tree)
+        except Exception as e:  # a race can raise parse errors
+            return q, repr(e)
+
+    # several rounds, so that a race is practically certain to show up
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        for _ in range(3):
+            results = list(executor.map(parse, long_queries * 400))
+            wrong = [(q, r) for q, r in results if r != expected[q]]
+            assert not wrong, f"{len(wrong)} of {len(results)} parses are wrong"

@@ -6,7 +6,7 @@ from elasticsearch_dsl.aggs import Agg
 from luqum import tree
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
-from luqum.parser import parser
+from luqum.thread import parse as thread_safe_parse
 from luqum.utils import OpenRangeTransformer, UnknownOperationResolver
 
 from ._types import (
@@ -54,7 +54,8 @@ def parse_query(q: str | None) -> QueryAnalysis:
     if q is None or not q.strip():
         return analysis
     try:
-        analysis.luqum_tree = parser.parse(q)
+        # the PLY lexer is stateful, use the thread safe version
+        analysis.luqum_tree = thread_safe_parse(q)
         # TECHDEBT(SAL-TECHDEBT-006): align parser UnknownFilter handling with
         # the UnknownOperation resolution strategy.
     except (
