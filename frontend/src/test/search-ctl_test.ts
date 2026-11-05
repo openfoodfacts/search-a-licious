@@ -37,29 +37,32 @@ suite('SearchaliciousSearchMixin / search-ctl', () => {
       html`<dummy-search-ctl name="search2"></dummy-search-ctl>`
     );
 
-    let el1Triggered = false;
-    let el2Triggered = false;
+    let el1Calls = 0;
+    let el2Calls = 0;
+    el1.updateSearchSignals = () => {
+      el1Calls++;
+    };
+    el2.updateSearchSignals = () => {
+      el2Calls++;
+    };
 
-    // Listen to signal that fetch initiates
-    el1.addEventListener(SearchaliciousEvents.FACET_SELECTED, () => {
-      el1Triggered = true;
-    });
-    el2.addEventListener(SearchaliciousEvents.FACET_SELECTED, () => {
-      el2Triggered = true;
-    });
+    // event handlers are registered on the next animation frame
+    await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    el1.dispatchEvent(
+    window.dispatchEvent(
       new CustomEvent(SearchaliciousEvents.FACET_SELECTED, {
         detail: {searchName: 'search1'},
-        bubbles: true,
-        composed: true,
       })
     );
+    expect(el1Calls).to.equal(1);
+    expect(el2Calls).to.equal(0);
 
-    await el1.updateComplete;
-    await el2.updateComplete;
-
-    expect(el1Triggered).to.be.true;
-    expect(el2Triggered).to.be.false;
+    window.dispatchEvent(
+      new CustomEvent(SearchaliciousEvents.FACET_SELECTED, {
+        detail: {searchName: 'search2'},
+      })
+    );
+    expect(el1Calls).to.equal(1);
+    expect(el2Calls).to.equal(1);
   });
 });
