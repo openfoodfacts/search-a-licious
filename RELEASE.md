@@ -2,32 +2,7 @@
 
 This document details the release process, CI/CD pipeline, and routine/operational maintenance tasks (including index rebuilding, taxonomy updates, script synchronization, and index cleanup) for Search-a-licious.
 
----
 
-## Table of Contents
-
-- [Environments \& Architecture](#environments--architecture)
-- [Release Process](#release-process)
-  - [1. Conventional Commits Requirement](#1-conventional-commits-requirement)
-  - [2. Automated Release via Release-Please](#2-automated-release-via-release-please)
-  - [3. Container Image Build](#3-container-image-build)
-  - [4. Deployment Workflow](#4-deployment-workflow)
-  - [5. Manual Deployment \& Hotfixes](#5-manual-deployment--hotfixes)
-  - [6. Post-Release Verification](#6-post-release-verification)
-  - [7. Rollback of an Application Release](#7-rollback-of-an-application-release)
-- [Maintenance Tasks](#maintenance-tasks)
-  - [Index Architecture (Aliases \& Zero-Downtime Swaps)](#index-architecture-aliases--zero-downtime-swaps)
-  - [Task 1: Full Index Rebuild (Reindexing)](#task-1-full-index-rebuild-reindexing)
-  - [Task 2: Rollback to a Previous Index](#task-2-rollback-to-a-previous-index)
-  - [Task 3: Partial Index Updates](#task-3-partial-index-updates)
-  - [Task 4: Taxonomy Import \& Synonym Generation](#task-4-taxonomy-import--synonym-generation)
-  - [Task 5: Synchronizing Elasticsearch Scripts](#task-5-synchronizing-elasticsearch-scripts)
-  - [Task 6: Cleaning Up Obsolete / Orphan Indexes](#task-6-cleaning-up-obsolete--orphan-indexes)
-  - [Task 7: Managing the Continuous Update Daemon](#task-7-managing-the-continuous-update-daemon)
-  - [Task 8: Cluster Health \& Monitoring](#task-8-cluster-health--monitoring)
-- [Operational Runbook Summary](#operational-runbook-summary)
-
----
 
 ## Environments & Architecture
 
@@ -44,17 +19,7 @@ Access to both environments is proxied via SSH through bastion `ovh1.openfoodfac
 
 ## Release Process
 
-### 1. Conventional Commits Requirement
-
-Every pull request merged into `main` must adhere to the [Conventional Commits specification](https://www.conventionalcommits.org/). This is validated on each PR by the `.github/workflows/semantic-pr.yml` workflow.
-
-Standard commit prefixes:
-- `feat:` – Introduces a new feature (triggers a **minor** version bump).
-- `fix:` – Fixes a bug (triggers a **patch** version bump).
-- `feat!:` or `fix!:` or `BREAKING CHANGE:` – Introduces breaking changes (triggers a **major** version bump).
-- `docs:`, `style:`, `refactor:`, `test:`, `chore:` – Maintenance tasks (documented in CHANGELOG under *Technical*).
-
-### 2. Automated Release via Release-Please
+### Automated Release via Release-Please
 
 Release management is automated with [Google release-please](https://github.com/googleapis/release-please) configured in `.github/workflows/release-please.yml`:
 
@@ -67,7 +32,7 @@ Release management is automated with [Google release-please](https://github.com/
    - `release-please` automatically publishes a new GitHub Release.
    - It tags the repository with the new semantic version (e.g. `v1.5.0`).
 
-### 3. Container Image Build
+### Container Image Build
 
 When a semantic version tag (`v*.*.*`), `main`, or `deploy-*` is pushed, the `.github/workflows/container-build.yml` workflow triggers:
 - Builds two Docker images using Buildx:
@@ -78,7 +43,7 @@ When a semantic version tag (`v*.*.*`), `main`, or `deploy-*` is pushed, the `.g
   - `sha-<commit_sha>`
   - Branch name tags
 
-### 4. Deployment Workflow
+### Deployment Workflow
 
 The deployment workflow is defined in `.github/workflows/container-deploy.yml`:
 
