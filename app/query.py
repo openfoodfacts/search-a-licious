@@ -198,8 +198,15 @@ def add_languages_suffix(
     """
     if analysis.luqum_tree is None:
         return analysis
+    # unsupported languages would produce sub-fields that do not exist
+    supported_langs = [lang for lang in langs if lang in config.supported_langs_set]
+    if not supported_langs:
+        raise QueryCheckError(
+            "None of the requested languages is supported by this index",
+            errors=[f"Supported languages: {', '.join(config.supported_langs)}"],
+        )
     transformer = LanguageSuffixTransformer(
-        lang_fields=set(config.lang_fields), langs=langs
+        lang_fields=set(config.lang_fields), langs=supported_langs
     )
     analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
     return analysis

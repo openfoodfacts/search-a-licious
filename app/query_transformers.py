@@ -208,20 +208,18 @@ class QueryCheck(luqum.check.LuceneCheck):
         # join and split to normalize and only have one field
         field_names = (".".join(fields)).split(".")
         current_fields = self.index_config.fields
-        parent = None
         for i, part in enumerate(field_names):
             # a trailing language code is a suffix only for fields with
-            # per-language sub-fields, otherwise it must be a configured sub-field
+            # generated per-language sub-fields, otherwise it must be a
+            # configured sub-field
             is_last = i == len(field_names) - 1
             if (
                 is_last
-                and parent is not None
-                and parent.has_lang_subfield()
+                and ".".join(field_names[:-1]) in self.index_config.lang_fields
                 and part in self.index_config.supported_langs_set
             ):
                 break
             if current_fields is None or part not in current_fields:
                 yield f"Search field '{'.'.join(field_names)}' not found in index config"
                 break
-            parent = current_fields[part]
-            current_fields = parent.fields
+            current_fields = current_fields[part].fields
