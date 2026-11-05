@@ -1,5 +1,3 @@
-import glob
-
 from tests.cli_utils import runner_invoke
 
 
@@ -16,17 +14,21 @@ def test_import_taxonomies(test_off_config, es_connection):
     assert aliases[index_name]["aliases"] == {"test_off_taxonomy": {}}
     # and the right number of entries, 33 categories and 20 labels
     assert es_connection.count(index="test_off_taxonomy")["count"] == 20 + 33
-    # assert synonyms files gets generated
-    assert sorted(glob.glob("/opt/search/synonyms/*/*")) == [
-        "/opt/search/synonyms/categories/en.txt",
-        "/opt/search/synonyms/categories/fr.txt",
-        "/opt/search/synonyms/categories/main.txt",
-        "/opt/search/synonyms/labels/en.txt",
-        "/opt/search/synonyms/labels/fr.txt",
-        "/opt/search/synonyms/labels/main.txt",
+    # assert synonyms sets where created with the right number of items
+    result = es_connection.synonyms.get_synonyms_sets(size=1000)
+    assert result["count"] == 6
+    assert sorted((r["synonyms_set"], r["count"]) for r in result["results"]) == [
+        ("test_off-categories-en-0", 33),
+        ("test_off-categories-fr-0", 33),
+        ("test_off-categories-main-0", 33),
+        ("test_off-labels-en-0", 20),
+        ("test_off-labels-fr-0", 20),
+        ("test_off-labels-main-0", 20),
     ]
     # with right format
-    assert (
-        "beverages with added sugar,sugared beverages,sweetened beverages => en:sweetened-beverages\n"
-        in open("/opt/search/synonyms/categories/en.txt")
+    result = es_connection.synonyms.get_synonym_rule(
+        set_id="test_off-categories-en-0", rule_id="en:sweetened-beverages"
+    )
+    assert result["synonyms"] == (
+        "beverages with added sugar,sugared beverages,sweetened beverages => en:sweetened-beverages"
     )
