@@ -88,7 +88,7 @@
           "type": "text"
         },
         "cs": {
-          "analyzer": "standard",
+          "analyzer": "czech",
           "type": "text"
         },
         "cu": {
@@ -3983,7 +3983,7 @@
           "type": "text"
         },
         "cs": {
-          "analyzer": "standard",
+          "analyzer": "czech",
           "type": "text"
         },
         "cu": {
@@ -7124,7 +7124,7 @@
           "type": "text"
         },
         "cs": {
-          "analyzer": "standard",
+          "analyzer": "czech",
           "type": "text"
         },
         "cu": {
