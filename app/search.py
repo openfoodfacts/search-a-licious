@@ -1,5 +1,6 @@
 import logging
 import threading
+import weakref
 from typing import cast
 
 from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
@@ -27,18 +28,18 @@ logger = logging.getLogger(__name__)
 # we cache query builder and result processor here for faster processing
 _ES_QUERY_BUILDERS: dict[str, ElasticsearchQueryBuilder] = {}
 _RESULT_PROCESSORS: dict[str, BaseResultProcessor] = {}
-_CACHED_CONFIG_ID: int | None = None
+_CACHED_CONFIG_REF: weakref.ReferenceType[config.Config] | None = None
 # protects the caches above (invalidation, check, build and lookup)
 _CACHE_LOCK = threading.RLock()
 
 
 def invalidate_runtime_caches():
     """Clear in-process caches used by search runtime."""
-    global _CACHED_CONFIG_ID
+    global _CACHED_CONFIG_REF
     with _CACHE_LOCK:
         _ES_QUERY_BUILDERS.clear()
         _RESULT_PROCESSORS.clear()
-        _CACHED_CONFIG_ID = None
+        _CACHED_CONFIG_REF = None
 
 
 def _ensure_runtime_caches_match_config():
@@ -48,18 +49,17 @@ def _ensure_runtime_caches_match_config():
 
     :return: the config object the caches are now consistent with
     """
-    global _CACHED_CONFIG_ID
+    global _CACHED_CONFIG_REF
     current_config = config.get_config()
-    current_config_id = id(current_config)
-    if _CACHED_CONFIG_ID is None:
-        _CACHED_CONFIG_ID = current_config_id
+    if _CACHED_CONFIG_REF is None or _CACHED_CONFIG_REF() is None:
+        _CACHED_CONFIG_REF = weakref.ref(current_config)
         return current_config
 
-    if _CACHED_CONFIG_ID != current_config_id:
+    if _CACHED_CONFIG_REF() is not current_config:
         logger.info("Global config changed, invalidating search runtime caches")
         _ES_QUERY_BUILDERS.clear()
         _RESULT_PROCESSORS.clear()
-        _CACHED_CONFIG_ID = current_config_id
+        _CACHED_CONFIG_REF = weakref.ref(current_config)
     return current_config
 
 
