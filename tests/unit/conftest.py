@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from app import config as app_config
 from app._types import JSONType
 from app.config import Config
+from app.config import loader as app_config
 from app.query import build_elasticsearch_query_builder
 from app.utils.io import load_json
 
