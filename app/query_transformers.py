@@ -4,7 +4,7 @@ import luqum.check
 import luqum.visitor
 from luqum import tree
 
-from .config import IndexConfig
+from .config import FieldConfig, FieldType, IndexConfig, SynonymsStrategy
 
 
 class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
@@ -208,6 +208,7 @@ class QueryCheck(luqum.check.LuceneCheck):
         # join and split to normalize and only have one field
         field_names = (".".join(fields)).split(".")
         current_fields = self.index_config.fields
+        parent: FieldConfig | None = None
         for i, part in enumerate(field_names):
             # a trailing language code is a suffix only for fields with
             # generated per-language sub-fields, otherwise it must be a
@@ -215,11 +216,26 @@ class QueryCheck(luqum.check.LuceneCheck):
             is_last = i == len(field_names) - 1
             if (
                 is_last
-                and ".".join(field_names[:-1]) in self.index_config.lang_fields
+                and self._has_generated_lang_subfields(parent)
                 and part in self.index_config.supported_langs_set
             ):
                 break
             if current_fields is None or part not in current_fields:
                 yield f"Search field '{'.'.join(field_names)}' not found in index config"
                 break
-            current_fields = current_fields[part].fields
+            parent = current_fields[part]
+            current_fields = parent.fields
+
+    def _has_generated_lang_subfields(self, field: FieldConfig | None) -> bool:
+        """Does the index generate per-language sub-fields for this field?
+
+        This works for nested fields too, unlike `index_config.lang_fields`
+        """
+        if field is None:
+            return False
+        if field.type == FieldType.text_lang:
+            return True
+        return (
+            field.type == FieldType.taxonomy
+            and self.index_config.synonyms_strategy == SynonymsStrategy.INDEX
+        )

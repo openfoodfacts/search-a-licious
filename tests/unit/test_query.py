@@ -13,6 +13,7 @@ from app.query import (
     build_search_query,
     resolve_unknown_operation,
 )
+from app.query_transformers import QueryCheck
 
 
 def test_boost_phrases_none():
@@ -277,6 +278,14 @@ def test_add_languages_suffix_ignores_unsupported_langs(default_config: IndexCon
     analysis = add_languages_suffix(analysis, ["en", "not_a_lang"], default_config)
     assert "categories.en" in str(analysis.luqum_tree)
     assert "not_a_lang" not in str(analysis.luqum_tree)
+
+
+def test_query_check_accepts_lang_suffix_on_nested_taxonomy(
+    default_config: IndexConfig,
+):
+    # the index generates `packagings.material.<lang>` sub-fields
+    checker = QueryCheck(index_config=default_config, zeal=1)
+    assert not checker.errors(parser.parse("packagings.material.en:plastic"))
 
 
 @pytest.mark.parametrize("q", ["milk", "categories:organic"])
