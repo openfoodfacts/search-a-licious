@@ -667,7 +667,8 @@ def run_update_daemon(config: Config) -> None:
     """
     logger.info("Starting update import daemon")
     es_client = connection.get_es_client()
-    redis_client = connection.get_redis_client()
+    # redis-py defaults to a 5s read timeout, which would end the block=0 xread
+    redis_client = connection.get_redis_client(socket_timeout=None)
 
     if redis_client.ping():
         logger.info("Connected to Redis")
