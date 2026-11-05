@@ -39,7 +39,7 @@ def get_taxonomy_names(
     query = (
         Search(index=config.taxonomy.index.name)
         .filter("bool", should=filters, minimum_should_match=1)
-        .params(size=len(filters))
+        .extra(size=len(filters))
     )
     results_dict = search_client.search(index=config.taxonomy.index.name, body=query.to_dict())
     results = [hit["_source"] for hit in results_dict.get("hits", {}).get("hits", [])]

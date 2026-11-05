@@ -1,4 +1,3 @@
-import elastic_transport
 import luqum.exceptions
 from elasticsearch_dsl import A, Search
 from elasticsearch_dsl.aggs import Agg
@@ -374,21 +373,21 @@ def execute_query(
     debug = SearchResponseDebug(es_query=query.to_dict())
     try:
         from app.utils.connection import current_es_client
-        from app.search_client import ApiError
+        from app.search_client import ApiError, ConnectionError_
         search_client = current_es_client()
         # Extract the index from the elasticsearch_dsl query object
         index_name = query._index[0] if query._index else None
         
         # We pass the dictionary representation of the query
         results = search_client.search(index=index_name, body=query.to_dict())
-    except ApiError as e:
-        logger.error("Error while running query: %s %s", str(e), getattr(e, 'body', None) or getattr(e, 'info', None))
-        errors.append(SearchResponseError(title="es_api_error", description=str(e)))
-        return ErrorSearchResponse(debug=debug, errors=errors)
-    except elastic_transport.ConnectionError as e:
+    except ConnectionError_ as e:
         errors.append(
             SearchResponseError(title="es_connection_error", description=str(e))
         )
+        return ErrorSearchResponse(debug=debug, errors=errors)
+    except ApiError as e:
+        logger.error("Error while running query: %s %s", str(e), getattr(e, 'body', None) or getattr(e, 'info', None))
+        errors.append(SearchResponseError(title="es_api_error", description=str(e)))
         return ErrorSearchResponse(debug=debug, errors=errors)
 
     response = result_processor.process(results, projection)

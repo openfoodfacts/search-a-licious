@@ -11,5 +11,5 @@ services:
       - plugins.security.disabled=true
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=StrongPassword123!
     ports:
-      - 9200:9200
-      - 9600:9600
+      - 127.0.0.1:9200:9200
+      - 127.0.0.1:9600:9600

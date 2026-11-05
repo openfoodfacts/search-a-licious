@@ -61,7 +61,7 @@ def load_result_processor(config: IndexConfig) -> BaseResultProcessor | None:
 
 
 def process_taxonomy_completion_response(
-    response: dict, input: str, langs: list[str]
+    response: dict, input_text: str, langs: list[str]
 ) -> JSONType:
     output = {"took": response["took"], "timed_out": response["timed_out"]}
     options = []
@@ -80,7 +80,7 @@ def process_taxonomy_completion_response(
                     "text": option["text"],
                     "name": option["_source"]["name"].get(lang, ""),
                     "score": option["_score"],
-                    "input": input,
+                    "input": input_text,
                     "taxonomy_name": option["_source"]["taxonomy_name"],
                 }
                 options.append(result)

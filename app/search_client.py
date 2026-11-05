@@ -12,10 +12,18 @@ from app.config import settings
 
 _engine = os.getenv("SEARCH_ENGINE", "elasticsearch").lower()
 
+if _engine not in ("elasticsearch", "opensearch"):
+    raise ValueError(
+        f"Unsupported SEARCH_ENGINE '{_engine}', "
+        "expected 'elasticsearch' or 'opensearch'"
+    )
+
 if _engine == "opensearch":
+    from opensearchpy.exceptions import ConnectionError as ConnectionError_
     from opensearchpy.exceptions import NotFoundError
     from opensearchpy.exceptions import TransportError as ApiError
 else:
+    from elastic_transport import ConnectionError as ConnectionError_
     from elasticsearch import NotFoundError
     from elasticsearch import ApiError
 
@@ -26,13 +34,10 @@ class SearchClient:
     def __init__(self, **kwargs):
         self.engine = _engine
         if self.engine == "opensearch":
-            # For local testing with opensearch without SSL/auth configured fully,
-            # or when configured via env variables.
+            # TLS behaviour comes from the endpoint URL scheme
+            # and from the options provided by the caller
             self.client = opensearchpy.OpenSearch(
                 hosts=[settings.elasticsearch_url],
-                use_ssl=False,
-                verify_certs=False,
-                ssl_show_warn=False,
                 **kwargs,
             )
         else:
@@ -65,16 +70,7 @@ class SearchClient:
     def search(self, index: str, body: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """Perform a search query."""
         if self.engine == "elasticsearch":
-            # elasticsearch 8+ doesn't use `body` for search natively in all places,
-            # but the dict format is accepted if unpacked, or it might just take body if compatibility is ok.
-            # Actually, `client.search` in v8 takes kwargs natively. But providing it as `body` works if
-            # it's unpacked or using the body parameter depending on the exact version.
-            # However, a safe way is to pass body as kwargs.
-            # Wait, Elasticsearch-py 8.x supports `**body` for search or `body=` depending on exact version.
-            # `elasticsearch-py` v8: `client.search(index=index, body=body, **kwargs)` might raise an error.
-            # It's safer to unpack body. Wait, `elasticsearch-dsl` uses `client.search(index=index, body=...)` ?
-            # Let's just pass `**body` and `**kwargs`.
-            return dict(self.client.search(index=index, **body, **kwargs))
+            return dict(self.client.search(index=index, body=body, **kwargs))
         else:
             return dict(self.client.search(index=index, body=body, **kwargs))
 
