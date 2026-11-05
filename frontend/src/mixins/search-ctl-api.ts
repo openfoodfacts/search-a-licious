@@ -7,10 +7,18 @@ import {setCurrentURLHistory} from '../utils/url';
 import {isSearchLoading, searchResultDetail} from '../signals';
 import {SearchaliciousStateInterface} from './search-ctl-state';
 import {SearchaliciousDomInterface} from './search-ctl-dom';
-import {SearchaliciousHistoryInterface} from '../interfaces/history-interfaces';
+import {
+  HistoryParams,
+  SearchaliciousHistoryInterface,
+} from '../interfaces/history-interfaces';
 
 export declare class SearchaliciousApiInterface {
-  _searchUrl(page?: number): any;
+  _searchUrl(page?: number): {
+    searchUrl: string;
+    method: string;
+    params: SearchParameters;
+    history: HistoryParams;
+  };
   _paramsToQueryStr(params: SearchParameters): string;
   buildParams(page?: number): {params: SearchParameters; needsPOST: boolean};
   search(page?: number): Promise<void>;
