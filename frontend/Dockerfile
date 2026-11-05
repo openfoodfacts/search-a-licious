@@ -2,7 +2,10 @@
 # Base user uid / gid keep 1000 on prod, align with your user on dev
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
-ARG NODE_VERSION=26
+# Node 22 (Active LTS) is required.
+# Node >= 24.16 and Node 26 have a known regression in stream handling/yauzl
+# that causes Playwright's zip extraction to deadlock at 100% download (Playwright #40724, Node #63487).
+ARG NODE_VERSION=22
 
 # builder is the node service, only used to build project in prod
 FROM node:${NODE_VERSION}-bookworm AS builder
