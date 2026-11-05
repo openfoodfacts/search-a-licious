@@ -12,6 +12,7 @@ jobs:
   documentation:
     name: Documentation
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout sources
@@ -21,7 +22,7 @@ jobs:
         run: |
           echo "" > .envrc
           echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
-          echo USER_IID=$(id -u) >>.envrc
+          echo USER_UID=$(id -u) >>.envrc
           echo USER_GID=$(id -g) >>.envrc
 
       # generating project documentation

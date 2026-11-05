@@ -315,10 +315,12 @@ class ResultSearchParameters(BaseModel):
     ] = None
 
     page_size: Annotated[
-        int, Query(description="Number of results to return per page.")
+        int, Query(ge=1, description="Number of results to return per page.")
     ] = 10
 
-    page: Annotated[int, Query(description="Number of results to return per page.")] = 1
+    page: Annotated[
+        int, Query(ge=1, description="Page number to return, starting at 1.")
+    ] = 1
 
     sort_by: Annotated[
         str | None,
@@ -403,6 +405,18 @@ class AggregateSearchParameters(BaseModel):
             )
         ),
     ] = None
+
+    charts_y_axis: Annotated[
+        bool,
+        Query(
+            description=cd_(
+                """Add a vertical axis with counts to distribution charts.
+
+                Off by default, as small charts read better without it.
+                """
+            )
+        ),
+    ] = False
 
     @model_validator(mode="after")
     def check_facets_are_valid(self):
