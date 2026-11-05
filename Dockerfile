@@ -3,9 +3,9 @@ ARG POETRY_VERSION=2.5.1
 # create off user
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-# eventually regenerate poetry lock file before building
-# Note: this means that you adto have to update the poetry.lock file in your local repo
-# before comiting changes, otherwise it will be out of sync
+# optionally regenerate poetry lock file before building
+# Note: this means that you have to update the poetry.lock file in your local repo
+# before committing changes, otherwise it will be out of sync
 # it is sometimes necessary as you might not be able to build the image otherwise.
 ARG POETRY_REGEN_LOCK=0
 
