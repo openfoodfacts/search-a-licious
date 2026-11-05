@@ -313,6 +313,27 @@ def test_filter_by_langs_excludes_main(
     assert "fr" in terms_values
 
 
+def test_filter_by_langs_trims_values(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Milk",
+        langs=["de", " fr", ""],
+        filter_by_langs=True,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    es_dict = query.es_query.to_dict()
+    filter_clauses = es_dict["query"]["bool"]["filter"]
+    assert any(
+        clause.get("terms", {}).get("languages_codes") == ["de", "fr"]
+        for clause in filter_clauses
+    )
+
+
 def test_filter_by_langs_only_main_skips_filter(
     default_config: IndexConfig,
     default_filter_query_builder: FullTextQueryBuilder,

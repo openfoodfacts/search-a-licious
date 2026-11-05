@@ -456,6 +456,7 @@ def test_fields(req_type, sample_data, test_client):
 
 
 def langs_filter_sample():
+    """Sample products available in different languages"""
     data = [
         Product(
             code="9900000000001",

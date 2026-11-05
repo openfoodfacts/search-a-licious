@@ -325,6 +325,11 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
                 self.normalize_ingredients(ingredient)
 
     def flatten_languages_codes(self, document: JSONType) -> None:
+        """Turn ``languages_codes`` (an object keyed by language code)
+        into a list of codes, so it can be indexed as a keyword field.
+
+        Update `document` in place.
+        """
         languages_codes = document.get("languages_codes")
         if isinstance(languages_codes, dict):
             document["languages_codes"] = list(languages_codes.keys())
