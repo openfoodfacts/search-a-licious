@@ -34,7 +34,7 @@ DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test $(DOCKER_COMPOSE)
 
 create_external_volumes:
 	@echo "🔎 Creating external volumes (production only) …"
-	@for vol_name in esdata01 esdata02 es_synonyms; \
+	@for vol_name in esdata01 esdata02; \
 	do \
 		vol_name=${COMPOSE_PROJECT_NAME}_$$vol_name; \
 		echo creating docker volume $$vol_name \
@@ -97,7 +97,7 @@ check_front:  _ensure_network
 # note: this is called by pre-commit, it will also extract translations
 check_translations:
 	@echo "🔎 Checking translations …"
-	cd frontend && npm install && npm run translations:extract
+	cd frontend && rm -rf node_modules && npm ci && npm run translations:extract
 
 lint: lint_back lint_front
 
@@ -137,7 +137,7 @@ test_api_unit:
 # you can use keep_es=1 to avoid stopping elasticsearch after tests (useful during development)
 test_api_integration:
 	@echo "🔎 Running API integration tests..."
-	${DOCKER_COMPOSE_TEST} up -d es01 es02 elasticvue
+	${DOCKER_COMPOSE_TEST} up -d --wait es01 es02 elasticvue
 	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/unit
 	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop es01 es02 elasticvue || true
 
