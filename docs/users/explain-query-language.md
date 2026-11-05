@@ -81,3 +81,29 @@ There are also numeric and date fields, that can be used for range matching, or 
 ## Full text queries
 
 **FIXME** add more on how we transform queries
+
+## Filtering by language
+
+By default, the `langs` parameter only selects which language-specific
+subfields are searched (e.g., `product_name.de` instead of `product_name.fr`).
+It does **not** restrict which products appear in results.
+
+To restrict results to products actually available in the requested languages,
+use the `filter_by_langs=true` parameter alongside `langs`:
+
+```
+GET /search?q=Apfel&langs=de&filter_by_langs=true
+```
+
+This adds an Elasticsearch `terms` filter on the `languages_codes` field,
+using OR semantics (a product is included if it is available in *any* of the
+requested languages).
+
+**Important notes:**
+
+- The pseudo-language `main` is ignored when building the filter.
+- If all requested languages are `main` (or the list is empty after excluding
+  `main`), no filter is applied.
+- The index must have been built with a `languages_codes` keyword field. The API returns an error if the field is missing from the configuration, but it cannot tell whether the index serving the query has actually been re-indexed.
+- Adding `languages_codes` to an existing index requires a **full re-index**. Only use `filter_by_langs=true` once the re-index has completed and the alias has switched to the new index; until then, filtered searches may silently return no results.
+  See [How to update an index](how-to-update-index.md) for details.

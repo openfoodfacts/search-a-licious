@@ -537,6 +537,18 @@
           "taxonomy_name": "languages",
           "type": "taxonomy"
         },
+        "languages_codes": {
+          "bucket_agg": false,
+          "fields": null,
+          "full_text_search": false,
+          "index": true,
+          "input_field": null,
+          "name": "languages_codes",
+          "required": false,
+          "split": false,
+          "taxonomy_name": null,
+          "type": "keyword"
+        },
         "last_checked_t": {
           "bucket_agg": false,
           "fields": null,
