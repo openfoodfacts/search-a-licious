@@ -1,10 +1,13 @@
-from types import SimpleNamespace
-
 import app.search as search
 
 
+class DummyConfig:
+    def __init__(self, indices):
+        self.indices = indices
+
+
 def test_query_builder_cache_invalidation_on_config_change(monkeypatch):
-    config_holder = {"config": SimpleNamespace(indices={"off": "index_config_v1"})}
+    config_holder = {"config": DummyConfig(indices={"off": "index_config_v1"})}
     builder_calls: list[str] = []
 
     monkeypatch.setattr(search.config, "get_config", lambda: config_holder["config"])
@@ -24,7 +27,7 @@ def test_query_builder_cache_invalidation_on_config_change(monkeypatch):
     assert second_builder == first_builder
     assert builder_calls == ["index_config_v1"]
 
-    config_holder["config"] = SimpleNamespace(indices={"off": "index_config_v2"})
+    config_holder["config"] = DummyConfig(indices={"off": "index_config_v2"})
     third_builder = search.get_es_query_builder("off")
 
     assert third_builder == "builder:index_config_v2"
@@ -32,7 +35,7 @@ def test_query_builder_cache_invalidation_on_config_change(monkeypatch):
 
 
 def test_result_processor_cache_invalidation_on_config_change(monkeypatch):
-    config_holder = {"config": SimpleNamespace(indices={"off": "index_config_v1"})}
+    config_holder = {"config": DummyConfig(indices={"off": "index_config_v1"})}
     processor_calls: list[str] = []
 
     monkeypatch.setattr(search.config, "get_config", lambda: config_holder["config"])
@@ -52,7 +55,7 @@ def test_result_processor_cache_invalidation_on_config_change(monkeypatch):
     assert second_processor == first_processor
     assert processor_calls == ["index_config_v1"]
 
-    config_holder["config"] = SimpleNamespace(indices={"off": "index_config_v2"})
+    config_holder["config"] = DummyConfig(indices={"off": "index_config_v2"})
     third_processor = search.get_result_processor("off")
 
     assert third_processor == "processor:index_config_v2"
