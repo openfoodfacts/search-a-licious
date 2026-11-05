@@ -2,6 +2,8 @@ import logging
 import threading
 from typing import cast
 
+from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
+
 from . import config
 from ._types import (
     DebugInfo,
@@ -23,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 # we cache query builder and result processor here for faster processing
-_ES_QUERY_BUILDERS = {}
-_RESULT_PROCESSORS = {}
+_ES_QUERY_BUILDERS: dict[str, ElasticsearchQueryBuilder] = {}
+_RESULT_PROCESSORS: dict[str, BaseResultProcessor] = {}
 _CACHED_CONFIG_ID: int | None = None
 # protects the caches above (invalidation, check, build and lookup)
 _CACHE_LOCK = threading.RLock()

@@ -4,9 +4,7 @@ import app.search as search
 
 
 def test_query_builder_cache_invalidation_on_config_change(monkeypatch):
-    config_holder = {
-        "config": SimpleNamespace(indices={"off": "index_config_v1"})
-    }
+    config_holder = {"config": SimpleNamespace(indices={"off": "index_config_v1"})}
     builder_calls: list[str] = []
 
     monkeypatch.setattr(search.config, "get_config", lambda: config_holder["config"])
@@ -34,9 +32,7 @@ def test_query_builder_cache_invalidation_on_config_change(monkeypatch):
 
 
 def test_result_processor_cache_invalidation_on_config_change(monkeypatch):
-    config_holder = {
-        "config": SimpleNamespace(indices={"off": "index_config_v1"})
-    }
+    config_holder = {"config": SimpleNamespace(indices={"off": "index_config_v1"})}
     processor_calls: list[str] = []
 
     monkeypatch.setattr(search.config, "get_config", lambda: config_holder["config"])
