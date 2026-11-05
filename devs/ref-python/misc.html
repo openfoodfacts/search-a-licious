@@ -7,11 +7,13 @@
 
     <title>Misc &#8212; Search-a-licious  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib_typer.css" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Types" href="types.html" />
@@ -41,7 +43,7 @@
 <p>See also <a class="reference internal" href="searching.html#module-app.taxonomy_es" title="app.taxonomy_es"><code class="xref py py-mod docutils literal notranslate"><span class="pre">app.taxonomy_es</span></code></a></p>
 <dl class="py class">
 <dt class="sig sig-object py" id="app.taxonomy.Taxonomy">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.taxonomy.</span></span><span class="sig-name descname"><span class="pre">Taxonomy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.Taxonomy" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.taxonomy.</span></span><span class="sig-name descname"><span class="pre">Taxonomy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.Taxonomy" title="Link to this definition">¶</a></dt>
 <dd><p>A class representing a taxonomy.</p>
 <p>For more information about taxonomy, see
 <a class="reference external" href="https://wiki.openfoodfacts.org/Global_taxonomies">https://wiki.openfoodfacts.org/Global_taxonomies</a>.</p>
@@ -73,7 +75,7 @@ parents within the list have been removed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="app.taxonomy.Taxonomy.from_dict">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#app.taxonomy.Taxonomy" title="app.taxonomy.Taxonomy"><span class="pre">Taxonomy</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.Taxonomy.from_dict" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#app.taxonomy.Taxonomy" title="app.taxonomy.Taxonomy"><span class="pre">Taxonomy</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.Taxonomy.from_dict" title="Link to this definition">¶</a></dt>
 <dd><p>Create a Taxonomy from <cite>data</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -87,7 +89,7 @@ parents within the list have been removed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="app.taxonomy.Taxonomy.from_path">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#app.taxonomy.Taxonomy" title="app.taxonomy.Taxonomy"><span class="pre">Taxonomy</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.Taxonomy.from_path" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#app.taxonomy.Taxonomy" title="app.taxonomy.Taxonomy"><span class="pre">Taxonomy</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.Taxonomy.from_path" title="Link to this definition">¶</a></dt>
 <dd><p>Create a Taxonomy from a JSON file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -101,7 +103,7 @@ parents within the list have been removed.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="app.taxonomy.Taxonomy.from_url">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#app.taxonomy.Taxonomy" title="app.taxonomy.Taxonomy"><span class="pre">Taxonomy</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.Taxonomy.from_url" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Session</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#app.taxonomy.Taxonomy" title="app.taxonomy.Taxonomy"><span class="pre">Taxonomy</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.Taxonomy.from_url" title="Link to this definition">¶</a></dt>
 <dd><p>Create a Taxonomy from a taxonomy file hosted at <cite>url</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -173,9 +175,9 @@ taxonomy, defaults to True.</p></li>
 
 </dd></dl>
 
-<dl class="py class pydantic_model">
+<dl class="py class">
 <dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode">
-<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.taxonomy.</span></span><span class="sig-name descname"><span class="pre">TaxonomyNode</span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.taxonomy.</span></span><span class="sig-name descname"><span class="pre">TaxonomyNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#app.taxonomy.TaxonomyNode" title="app.taxonomy.TaxonomyNode"><span class="pre">TaxonomyNode</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#app.taxonomy.TaxonomyNode" title="app.taxonomy.TaxonomyNode"><span class="pre">TaxonomyNode</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">synonyms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode" title="Link to this definition">¶</a></dt>
 <dd><p>A taxonomy element.</p>
 <p>Each node has 0+ parents and 0+ children. Each node has the following
 attributes:</p>
@@ -189,119 +191,6 @@ language</p></li>
 <li><p><cite>synonyms</cite>: a dict mapping language 2-letter code to a list of synonyms
 for this language</p></li>
 </ul>
-<p><details  class="autodoc_pydantic_collapsable_json">
-<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">   </span><span class="nt">"$defs"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">"TaxonomyNode"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A taxonomy element.\n\nEach node has 0+ parents and 0+ children. Each node has the following\nattributes:\n\n- `id`: the node identifier, it starts with a language prefix (ex: `en:`)\n- `names`: a dict mapping language 2-letter code to the node name for this\n  language\n- `parents`: the list of the node parents\n- `children`: the list of the node children\n- `properties`: additional properties of the node (taxonomy-dependent)\n- `synonyms`: a dict mapping language 2-letter code to a list of synonyms\n  for this language"</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"properties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Id"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"names"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"additionalProperties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<span class="w">               </span><span class="p">},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Names"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"parents"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">               </span><span class="nt">"items"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                  </span><span class="nt">"$ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#/$defs/TaxonomyNode"</span>
-<span class="w">               </span><span class="p">},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Parents"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"array"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"children"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">               </span><span class="nt">"items"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                  </span><span class="nt">"$ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#/$defs/TaxonomyNode"</span>
-<span class="w">               </span><span class="p">},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Children"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"array"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"synonyms"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"additionalProperties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                  </span><span class="nt">"items"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<span class="w">                  </span><span class="p">},</span>
-<span class="w">                  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"array"</span>
-<span class="w">               </span><span class="p">},</span>
-<span class="w">               </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Synonyms"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"properties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Properties"</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">},</span>
-<span class="w">         </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="s2">"id"</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">"names"</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TaxonomyNode"</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span>
-<span class="w">      </span><span class="p">}</span>
-<span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">"allOf"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">      </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">"$ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#/$defs/TaxonomyNode"</span>
-<span class="w">      </span><span class="p">}</span>
-<span class="w">   </span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</details></p><dl class="field-list simple">
-<dt class="field-odd">Fields<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="#app.taxonomy.TaxonomyNode.children" title="app.taxonomy.TaxonomyNode.children"><code class="xref py py-obj docutils literal notranslate"><span class="pre">children</span> <span class="pre">(List[app.taxonomy.TaxonomyNode])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#app.taxonomy.TaxonomyNode.id" title="app.taxonomy.TaxonomyNode.id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">id</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#app.taxonomy.TaxonomyNode.names" title="app.taxonomy.TaxonomyNode.names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">names</span> <span class="pre">(Dict[str,</span> <span class="pre">str])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#app.taxonomy.TaxonomyNode.parents" title="app.taxonomy.TaxonomyNode.parents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parents</span> <span class="pre">(List[app.taxonomy.TaxonomyNode])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#app.taxonomy.TaxonomyNode.properties" title="app.taxonomy.TaxonomyNode.properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">properties</span> <span class="pre">(Dict[str,</span> <span class="pre">Any])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#app.taxonomy.TaxonomyNode.synonyms" title="app.taxonomy.TaxonomyNode.synonyms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synonyms</span> <span class="pre">(Dict[str,</span> <span class="pre">List[str]])</span></code></a></p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.children">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">children</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#app.taxonomy.TaxonomyNode" title="app.taxonomy.TaxonomyNode"><span class="pre">TaxonomyNode</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.children" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.id">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.id" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.names">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Required]</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.names" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.parents">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parents</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#app.taxonomy.TaxonomyNode" title="app.taxonomy.TaxonomyNode"><span class="pre">TaxonomyNode</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.parents" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.properties">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">properties</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.properties" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.synonyms">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">synonyms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.synonyms" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.add_parents">
-<span class="sig-name descname"><span class="pre">add_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#app.taxonomy.TaxonomyNode" title="app.taxonomy.TaxonomyNode"><span class="pre">TaxonomyNode</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.add_parents" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.get_localized_name">
 <span class="sig-name descname"><span class="pre">get_localized_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_xx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.get_localized_name" title="Link to this definition">¶</a></dt>
@@ -321,11 +210,6 @@ for this language</p></li>
 <span class="sig-name descname"><span class="pre">get_parents_hierarchy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#app.taxonomy.TaxonomyNode" title="app.taxonomy.TaxonomyNode"><span class="pre">TaxonomyNode</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.get_parents_hierarchy" title="Link to this definition">¶</a></dt>
 <dd><p>Return the list of all parent nodes (direct and indirect).</p>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.get_synonyms">
-<span class="sig-name descname"><span class="pre">get_synonyms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.get_synonyms" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.is_child_of">
@@ -356,135 +240,24 @@ otherwise.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.to_dict">
-<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.to_dict" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNode.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNode.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
 
 </dd></dl>
 
-<dl class="py class pydantic_model">
+<dl class="py class">
 <dt class="sig sig-object py" id="app.taxonomy.TaxonomyNodeResult">
-<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">app.taxonomy.</span></span><span class="sig-name descname"><span class="pre">TaxonomyNodeResult</span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNodeResult" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.taxonomy.</span></span><span class="sig-name descname"><span class="pre">TaxonomyNodeResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.FetcherStatus" title="app._types.FetcherStatus"><span class="pre">FetcherStatus</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#app.taxonomy.TaxonomyNode" title="app.taxonomy.TaxonomyNode"><span class="pre">TaxonomyNode</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNodeResult" title="Link to this definition">¶</a></dt>
 <dd><p>Result for a taxonomy node transformation.</p>
 <p>This is used to eventually skip entry after preprocessing</p>
-<p><details  class="autodoc_pydantic_collapsable_json">
-<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">   </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TaxonomyNodeResult"</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Result for a taxonomy node transformation.\n\nThis is used to eventually skip entry after preprocessing"</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">"properties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">"$ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#/$defs/FetcherStatus"</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">"node"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">"anyOf"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"$ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#/$defs/TaxonomyNode"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"null"</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">]</span>
-<span class="w">      </span><span class="p">}</span>
-<span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">"$defs"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">"FetcherStatus"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Status of a fetcher\n\n* FOUND - document was found, index it\n* REMOVED - document was removed, remove it\n* SKIP - skip this document / update\n* RETRY - retry this document / update later\n* OTHER - unknown error"</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">            </span><span class="mi">-1</span><span class="p">,</span>
-<span class="w">            </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">            </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">            </span><span class="mi">3</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"FetcherStatus"</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"integer"</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">"TaxonomyNode"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A taxonomy element.\n\nEach node has 0+ parents and 0+ children. Each node has the following\nattributes:\n\n- `id`: the node identifier, it starts with a language prefix (ex: `en:`)\n- `names`: a dict mapping language 2-letter code to the node name for this\n  language\n- `parents`: the list of the node parents\n- `children`: the list of the node children\n- `properties`: additional properties of the node (taxonomy-dependent)\n- `synonyms`: a dict mapping language 2-letter code to a list of synonyms\n  for this language"</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"properties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Id"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"names"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"additionalProperties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<span class="w">               </span><span class="p">},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Names"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"parents"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">               </span><span class="nt">"items"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                  </span><span class="nt">"$ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#/$defs/TaxonomyNode"</span>
-<span class="w">               </span><span class="p">},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Parents"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"array"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"children"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<span class="w">               </span><span class="nt">"items"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                  </span><span class="nt">"$ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#/$defs/TaxonomyNode"</span>
-<span class="w">               </span><span class="p">},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Children"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"array"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"synonyms"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"additionalProperties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                  </span><span class="nt">"items"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<span class="w">                  </span><span class="p">},</span>
-<span class="w">                  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"array"</span>
-<span class="w">               </span><span class="p">},</span>
-<span class="w">               </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Synonyms"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">"properties"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
-<span class="w">               </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Properties"</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">},</span>
-<span class="w">         </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="s2">"id"</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">"names"</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TaxonomyNode"</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span>
-<span class="w">      </span><span class="p">}</span>
-<span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">      </span><span class="s2">"status"</span><span class="p">,</span>
-<span class="w">      </span><span class="s2">"node"</span>
-<span class="w">   </span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</details></p><dl class="field-list simple">
-<dt class="field-odd">Config<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>arbitrary_types_allowed</strong>: <em>bool = True</em></p></li>
-</ul>
-</dd>
-<dt class="field-even">Fields<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><a class="reference internal" href="#app.taxonomy.TaxonomyNodeResult.node" title="app.taxonomy.TaxonomyNodeResult.node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">node</span> <span class="pre">(app.taxonomy.TaxonomyNode</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#app.taxonomy.TaxonomyNodeResult.status" title="app.taxonomy.TaxonomyNodeResult.status"><code class="xref py py-obj docutils literal notranslate"><span class="pre">status</span> <span class="pre">(app._types.FetcherStatus)</span></code></a></p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNodeResult.node">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">node</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#app.taxonomy.TaxonomyNode" title="app.taxonomy.TaxonomyNode"><span class="pre">TaxonomyNode</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">[Required]</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNodeResult.node" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNodeResult.status">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="types.html#app._types.FetcherStatus" title="app._types.FetcherStatus"><span class="pre">FetcherStatus</span></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNodeResult.status" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="app.taxonomy.TaxonomyNodeResult.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/taxonomy.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.taxonomy.TaxonomyNodeResult.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -561,7 +334,16 @@ version is available (based on file Etag)</p></li>
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
@@ -590,16 +372,6 @@ version is available (based on file Etag)</p></li>
   </ul></li>
 </ul>
 </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -616,8 +388,8 @@ version is available (based on file Etag)</p></li>
       &#169;2024, Open Food Facts.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
       |
       <a href="_sources/misc.rst.txt"
@@ -626,7 +398,7 @@ version is available (based on file Etag)</p></li>
 
     
     <a href="https://github.com/openfoodfacts/search-a-licious" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+        <img src="_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
     </a>
     
 

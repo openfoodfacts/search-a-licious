@@ -154,9 +154,8 @@ see <code>default_index</code>.</p>
     <a href="#indices_additionalProperties_index" onclick="anchorLink('indices_additionalProperties_index')">index</a></div><h4>ESIndexConfig</h4><span class="badge badge-dark value-type">Type: object</span><br/>
 <span class="description"><p>This is the configuration for the main index containing the data.</p>
 
-<pre><code>It's used to create the index in ElasticSearch, and configure its mappings
-(along with the *fields* config)
-</code></pre>
+<p>It's used to create the index in ElasticSearch, and configure its mappings<br />
+(along with the <em>fields</em> config)</p>
 </span>
 
     
@@ -692,25 +691,26 @@ to provide intended behaviour.</p>
 
 <p>Supported field types in Search-a-Licious are:</p>
 
-<pre><code>* keyword: string values that won't be interpreted (tokenized).
-  Good for things like tags, serial, property values, etc.
-* date: Date fields
-* double, float, half_float, scaled_float:
-  different ways of storing floats with different capacity
-* short, integer, long, unsigned_long :
-  integers (with different capacity:  8 / 16 / 32 bits)
-* bool: boolean (true / false) values
-* text: a text which is tokenized to enable full text search
-* text_lang: like text, but with different values in different languages.
-  Tokenization will use analyzers specific to each languages.
-* taxonomy: a field akin to keyword but
-  with support for matching using taxonomy synonyms and translations
-  (and in fact also a text mapping possibility)
-* disabled: a field that is not stored nor searchable
-  (see [Elasticsearch help])
-* object: this field contains a dict with sub-fields.
-* nested: this field contains an array of objects.
-</code></pre>
+<ul>
+<li>keyword: string values that won't be interpreted (tokenized).<br />
+Good for things like tags, serial, property values, etc.</li>
+<li>date: Date fields</li>
+<li>double, float, half<em>float, scaled</em>float:<br />
+different ways of storing floats with different capacity</li>
+<li>short, integer, long, unsigned_long :<br />
+integers (with different capacity:  8 / 16 / 32 bits)</li>
+<li>bool: boolean (true / false) values</li>
+<li>text: a text which is tokenized to enable full text search</li>
+<li>text_lang: like text, but with different values in different languages.<br />
+Tokenization will use analyzers specific to each languages.</li>
+<li>taxonomy: a field akin to keyword but<br />
+with support for matching using taxonomy synonyms and translations<br />
+(and in fact also a text mapping possibility)</li>
+<li>disabled: a field that is not stored nor searchable<br />
+(see [Elasticsearch help])</li>
+<li>object: this field contains a dict with sub-fields.</li>
+<li>nested: this field contains an array of objects.</li>
+</ul>
 
 <p><a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html">Elasticsearch help</a></p>
 </span>
@@ -1979,19 +1979,20 @@ because they lead to nasty bugs, and are not meant for production use.</p>
     <a href="#indices_additionalProperties_synonyms_strategy" onclick="anchorLink('indices_additionalProperties_synonyms_strategy')">synonyms_strategy</a></div><h4>SynonymsStrategy</h4><span class="badge badge-dark value-type">Type: enum (of string)</span> <span class="badge badge-success default-value">Default: "index"</span><br/>
 <span class="description"><p>Strategy to use for synonyms.</p>
 
-<pre><code>* index: synonyms are implemented using the ElasticSearch synonyms sets strategy.
-  It can be efficient
-  but it is not well supported
-  if you have a lot of taxonomies and a lot of languages.
-  (ElasticSearch start will be very very slow)
-* none: synonyms are not automatically accounted for during requests
-  (you still get the taxonomies separate indexes).
-  This means your queries have to use the taxonomy id,
-  instead of a synonym or a translation.
+<ul>
+<li>index: synonyms are implemented using the ElasticSearch synonyms sets strategy.<br />
+It can be efficient<br />
+but it is not well supported<br />
+if you have a lot of taxonomies and a lot of languages.<br />
+(ElasticSearch start will be very very slow)</li>
+<li>none: synonyms are not automatically accounted for during requests<br />
+(you still get the taxonomies separate indexes).<br />
+This means your queries have to use the taxonomy id,<br />
+instead of a synonym or a translation.</li>
+</ul>
 
-A "query" strategy might be implemented in the future,
-acting before sending the query to ElasticSearch.
-</code></pre>
+<p>A "query" strategy might be implemented in the future,<br />
+acting before sending the query to ElasticSearch.</p>
 </span>
 
     <div class="enum-value" id="indices_additionalProperties_synonyms_strategy_enum">
@@ -2045,19 +2046,18 @@ acting before sending the query to ElasticSearch.
         </svg>
     <a href="#indices_additionalProperties_taxonomy" onclick="anchorLink('indices_additionalProperties_taxonomy')">taxonomy</a></div><h4>TaxonomyConfig</h4><span class="badge badge-dark value-type">Type: object</span><br/>
 <span class="description"><p>Configuration of taxonomies,<br />
-    that is collections of entries with synonyms in multiple languages.</p>
+that is collections of entries with synonyms in multiple languages.</p>
 
-<pre><code>See [Explain taxonomies](../explain-taxonomies)
+<p>See <a href="../explain-taxonomies">Explain taxonomies</a></p>
 
-Field may be linked to taxonomies.
+<p>Field may be linked to taxonomies.</p>
 
-It enables enriching search with synonyms,
-as well as providing suggestions,
-or informative facets.
+<p>It enables enriching search with synonyms,<br />
+as well as providing suggestions,<br />
+or informative facets.</p>
 
-Note: if you define taxonomies, you must import them using
-[import-taxonomies command](../ref-python/cli.html#python3-m-app-import-taxonomies)
-</code></pre>
+<p>Note: if you define taxonomies, you must import them using<br />
+<a href="../ref-python/cli.html#python3-m-app-import-taxonomies">import-taxonomies command</a></p>
 </span>
 
     
@@ -2598,13 +2598,12 @@ you will have to re-import your index for it to take effect</p>
         </svg>
     <a href="#indices_additionalProperties_taxonomy_index" onclick="anchorLink('indices_additionalProperties_taxonomy_index')">index</a></div><h4>TaxonomyIndexConfig</h4><span class="badge badge-dark value-type">Type: object</span><br/>
 <span class="description"><p>This is the configuration of<br />
-    the ElasticSearch index storing the taxonomies.</p>
+the ElasticSearch index storing the taxonomies.</p>
 
-<pre><code>All taxonomies are stored within the same index.
+<p>All taxonomies are stored within the same index.</p>
 
-It enables functions like auto-completion, or field suggestions
-as well as enrichment of requests with synonyms.
-</code></pre>
+<p>It enables functions like auto-completion, or field suggestions<br />
+as well as enrichment of requests with synonyms.</p>
 </span>
 
     
@@ -3973,6 +3972,102 @@ for example.</p>
         
 
         
+<div class="accordion" id="accordionindices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties">
+    <div class="card">
+        <div class="card-header" id="headingindices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties">
+            <h2 class="mb-0">
+                <button class="btn btn-link property-name-button" type="button" data-toggle="collapse" data-target="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties"
+                        aria-expanded="" aria-controls="indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties" onclick="setAnchor('#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties')"><em><span class="property-name">Additional Properties</span></em></button>
+            </h2>
+        </div>
+
+        <div id="indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties"
+             class="collapse property-definition-div" aria-labelledby="headingindices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties"
+             data-parent="#accordionindices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties">
+            <div class="card-body pl-5"><p class="additional-properties">Additional Properties of any type are allowed.</p>
+
+    <div class="breadcrumbs">root
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices" onclick="anchorLink('indices')">indices</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties" onclick="anchorLink('indices_additionalProperties')">IndexConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts" onclick="anchorLink('indices_additionalProperties_scripts')">scripts</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf" onclick="anchorLink('indices_additionalProperties_scripts_anyOf')">anyOf</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0')">item 0</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties')">ScriptConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params')">params</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf')">anyOf</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0')">item 0</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i0_additionalProperties')">additionalProperties</a></div><span class="badge badge-dark value-type">Type: object</span><br/>
+
+        
+
+        
+        
+
+        
+            </div>
+        </div>
+    </div>
+</div>
         </div><div class="tab-pane fade card-body "
              id="tab-pane_indices_additionalProperties_scripts_anyOf_i0_additionalProperties_params_anyOf_i1" role="tabpanel">
             
@@ -4212,6 +4307,102 @@ for example.</p>
         
 
         
+<div class="accordion" id="accordionindices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties">
+    <div class="card">
+        <div class="card-header" id="headingindices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties">
+            <h2 class="mb-0">
+                <button class="btn btn-link property-name-button" type="button" data-toggle="collapse" data-target="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties"
+                        aria-expanded="" aria-controls="indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties" onclick="setAnchor('#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties')"><em><span class="property-name">Additional Properties</span></em></button>
+            </h2>
+        </div>
+
+        <div id="indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties"
+             class="collapse property-definition-div" aria-labelledby="headingindices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties"
+             data-parent="#accordionindices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties">
+            <div class="card-body pl-5"><p class="additional-properties">Additional Properties of any type are allowed.</p>
+
+    <div class="breadcrumbs">root
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices" onclick="anchorLink('indices')">indices</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties" onclick="anchorLink('indices_additionalProperties')">IndexConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts" onclick="anchorLink('indices_additionalProperties_scripts')">scripts</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf" onclick="anchorLink('indices_additionalProperties_scripts_anyOf')">anyOf</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0')">item 0</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties')">ScriptConfig</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params')">static_params</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf')">anyOf</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0')">item 0</a>
+        <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-arrow-right-short" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path
+                fill-rule="evenodd"
+                d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z"
+            />
+        </svg>
+    <a href="#indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties" onclick="anchorLink('indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i0_additionalProperties')">additionalProperties</a></div><span class="badge badge-dark value-type">Type: object</span><br/>
+
+        
+
+        
+        
+
+        
+            </div>
+        </div>
+    </div>
+</div>
         </div><div class="tab-pane fade card-body "
              id="tab-pane_indices_additionalProperties_scripts_anyOf_i0_additionalProperties_static_params_anyOf_i1" role="tabpanel">
             
@@ -4874,6 +5065,6 @@ Otherwise it will allow some gap between words matching</p>
 </div>
 
     <footer>
-        <p class="generated-by-footer">Generated using <a href="https://github.com/coveooss/json-schema-for-humans">json-schema-for-humans</a> on 2026-11-05 at 11:01:27 +0000</p>
+        <p class="generated-by-footer">Generated using <a href="https://github.com/coveooss/json-schema-for-humans">json-schema-for-humans</a> on 2026-11-05 at 13:59:48 +0000</p>
     </footer></body>
 </html>

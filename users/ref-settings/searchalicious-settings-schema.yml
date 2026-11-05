@@ -71,12 +71,11 @@ properties:
     description: Sentry DNS to report incident, if None no incident is reported
     title: Sentry Dns
   log_level:
-    allOf:
-    - $ref: '#/$defs/LoggingLevel'
+    $ref: '#/$defs/LoggingLevel'
     default: INFO
-    description: "Log level. Accepted logging levels\n\n    * NOTSET - means no los\n\
-      \    * DEBUG / INFO / WARNING / ERROR / CRITICAL\n      - match standard Python\
-      \ logging levels\n    "
+    description: "Log level. Accepted logging levels\n\n* NOTSET - means no los\n\
+      * DEBUG / INFO / WARNING / ERROR / CRITICAL\n  - match standard Python logging\
+      \ levels\n"
   taxonomy_cache_dir:
     default: data/taxonomies
     description: Directory where to store taxonomies before ingestion to ElasticSearch

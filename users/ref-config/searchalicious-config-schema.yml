@@ -77,24 +77,22 @@ $defs:
         title: Name
         type: string
       type:
-        allOf:
-        - $ref: '#/$defs/FieldType'
+        $ref: '#/$defs/FieldType'
         description: "Type of the field\n\nSupported field types in Search-a-Licious\
-          \ are:\n\n    * keyword: string values that won't be interpreted (tokenized).\n\
-          \      Good for things like tags, serial, property values, etc.\n    * date:\
-          \ Date fields\n    * double, float, half_float, scaled_float:\n      different\
-          \ ways of storing floats with different capacity\n    * short, integer,\
-          \ long, unsigned_long :\n      integers (with different capacity:  8 / 16\
-          \ / 32 bits)\n    * bool: boolean (true / false) values\n    * text: a text\
-          \ which is tokenized to enable full text search\n    * text_lang: like text,\
-          \ but with different values in different languages.\n      Tokenization\
-          \ will use analyzers specific to each languages.\n    * taxonomy: a field\
-          \ akin to keyword but\n      with support for matching using taxonomy synonyms\
-          \ and translations\n      (and in fact also a text mapping possibility)\n\
-          \    * disabled: a field that is not stored nor searchable\n      (see [Elasticsearch\
-          \ help])\n    * object: this field contains a dict with sub-fields.\n  \
-          \  * nested: this field contains an array of objects.\n    \n\n[Elasticsearch\
-          \ help](https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html)"
+          \ are:\n\n* keyword: string values that won't be interpreted (tokenized).\n\
+          \  Good for things like tags, serial, property values, etc.\n* date: Date\
+          \ fields\n* double, float, half_float, scaled_float:\n  different ways of\
+          \ storing floats with different capacity\n* short, integer, long, unsigned_long\
+          \ :\n  integers (with different capacity:  8 / 16 / 32 bits)\n* bool: boolean\
+          \ (true / false) values\n* text: a text which is tokenized to enable full\
+          \ text search\n* text_lang: like text, but with different values in different\
+          \ languages.\n  Tokenization will use analyzers specific to each languages.\n\
+          * taxonomy: a field akin to keyword but\n  with support for matching using\
+          \ taxonomy synonyms and translations\n  (and in fact also a text mapping\
+          \ possibility)\n* disabled: a field that is not stored nor searchable\n\
+          \  (see [Elasticsearch help])\n* object: this field contains a dict with\
+          \ sub-fields.\n* nested: this field contains an array of objects.\n\n\n\
+          [Elasticsearch help](https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html)"
       required:
         default: false
         description: 'if required=True, the field is required in the input data
@@ -208,20 +206,20 @@ $defs:
     title: FieldConfig
     type: object
   FieldType:
-    description: "Supported field types in Search-a-Licious are:\n\n    * keyword:\
-      \ string values that won't be interpreted (tokenized).\n      Good for things\
-      \ like tags, serial, property values, etc.\n    * date: Date fields\n    * double,\
-      \ float, half_float, scaled_float:\n      different ways of storing floats with\
-      \ different capacity\n    * short, integer, long, unsigned_long :\n      integers\
-      \ (with different capacity:  8 / 16 / 32 bits)\n    * bool: boolean (true /\
-      \ false) values\n    * text: a text which is tokenized to enable full text search\n\
-      \    * text_lang: like text, but with different values in different languages.\n\
-      \      Tokenization will use analyzers specific to each languages.\n    * taxonomy:\
-      \ a field akin to keyword but\n      with support for matching using taxonomy\
-      \ synonyms and translations\n      (and in fact also a text mapping possibility)\n\
-      \    * disabled: a field that is not stored nor searchable\n      (see [Elasticsearch\
-      \ help])\n    * object: this field contains a dict with sub-fields.\n    * nested:\
-      \ this field contains an array of objects.\n    \n\n[Elasticsearch help](https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html)"
+    description: "Supported field types in Search-a-Licious are:\n\n* keyword: string\
+      \ values that won't be interpreted (tokenized).\n  Good for things like tags,\
+      \ serial, property values, etc.\n* date: Date fields\n* double, float, half_float,\
+      \ scaled_float:\n  different ways of storing floats with different capacity\n\
+      * short, integer, long, unsigned_long :\n  integers (with different capacity:\
+      \  8 / 16 / 32 bits)\n* bool: boolean (true / false) values\n* text: a text\
+      \ which is tokenized to enable full text search\n* text_lang: like text, but\
+      \ with different values in different languages.\n  Tokenization will use analyzers\
+      \ specific to each languages.\n* taxonomy: a field akin to keyword but\n  with\
+      \ support for matching using taxonomy synonyms and translations\n  (and in fact\
+      \ also a text mapping possibility)\n* disabled: a field that is not stored nor\
+      \ searchable\n  (see [Elasticsearch help])\n* object: this field contains a\
+      \ dict with sub-fields.\n* nested: this field contains an array of objects.\n\
+      \n\n[Elasticsearch help](https://www.elastic.co/guide/en/elasticsearch/reference/current/enabled.html)"
     enum:
     - keyword
     - date
@@ -249,11 +247,16 @@ $defs:
       One index usually correspond to one dataset.'
     properties:
       index:
-        allOf:
-        - $ref: '#/$defs/ESIndexConfig'
-        description: "This is the configuration for the main index containing the\
-          \ data.\n\n    It's used to create the index in ElasticSearch, and configure\
-          \ its mappings\n    (along with the *fields* config)\n    "
+        $ref: '#/$defs/ESIndexConfig'
+        description: 'This is the configuration for the main index containing the
+          data.
+
+
+          It''s used to create the index in ElasticSearch, and configure its mappings
+
+          (along with the *fields* config)
+
+          '
       fields:
         additionalProperties:
           $ref: '#/$defs/FieldConfig'
@@ -306,29 +309,42 @@ $defs:
         title: Accent Color
         type: string
       synonyms_strategy:
-        allOf:
-        - $ref: '#/$defs/SynonymsStrategy'
+        $ref: '#/$defs/SynonymsStrategy'
         default: index
-        description: "Strategy to use for synonyms.\n\n    * index: synonyms are implemented\
-          \ using the ElasticSearch synonyms sets strategy.\n      It can be efficient\n\
-          \      but it is not well supported\n      if you have a lot of taxonomies\
-          \ and a lot of languages.\n      (ElasticSearch start will be very very\
-          \ slow)\n    * none: synonyms are not automatically accounted for during\
-          \ requests\n      (you still get the taxonomies separate indexes).\n   \
-          \   This means your queries have to use the taxonomy id,\n      instead\
-          \ of a synonym or a translation.\n\n    A \"query\" strategy might be implemented\
-          \ in the future,\n    acting before sending the query to ElasticSearch.\n\
-          \    "
+        description: "Strategy to use for synonyms.\n\n* index: synonyms are implemented\
+          \ using the ElasticSearch synonyms sets strategy.\n  It can be efficient\n\
+          \  but it is not well supported\n  if you have a lot of taxonomies and a\
+          \ lot of languages.\n  (ElasticSearch start will be very very slow)\n* none:\
+          \ synonyms are not automatically accounted for during requests\n  (you still\
+          \ get the taxonomies separate indexes).\n  This means your queries have\
+          \ to use the taxonomy id,\n  instead of a synonym or a translation.\n\n\
+          A \"query\" strategy might be implemented in the future,\nacting before\
+          \ sending the query to ElasticSearch.\n"
       taxonomy:
-        allOf:
-        - $ref: '#/$defs/TaxonomyConfig'
-        description: "Configuration of taxonomies,\n    that is collections of entries\
-          \ with synonyms in multiple languages.\n\n    See [Explain taxonomies](../explain-taxonomies)\n\
-          \n    Field may be linked to taxonomies.\n\n    It enables enriching search\
-          \ with synonyms,\n    as well as providing suggestions,\n    or informative\
-          \ facets.\n\n    Note: if you define taxonomies, you must import them using\n\
-          \    [import-taxonomies command](../ref-python/cli.html#python3-m-app-import-taxonomies)\n\
-          \    "
+        $ref: '#/$defs/TaxonomyConfig'
+        description: 'Configuration of taxonomies,
+
+          that is collections of entries with synonyms in multiple languages.
+
+
+          See [Explain taxonomies](../explain-taxonomies)
+
+
+          Field may be linked to taxonomies.
+
+
+          It enables enriching search with synonyms,
+
+          as well as providing suggestions,
+
+          or informative facets.
+
+
+          Note: if you define taxonomies, you must import them using
+
+          [import-taxonomies command](../ref-python/cli.html#python3-m-app-import-taxonomies)
+
+          '
       supported_langs:
         description: A list of all supported languages, it is used to build index
           mapping
@@ -490,8 +506,7 @@ $defs:
       This use ElasticSearch internal capabilities'
     properties:
       lang:
-        allOf:
-        - $ref: '#/$defs/ScriptType'
+        $ref: '#/$defs/ScriptType'
         default: expression
         description: The script language, as supported by Elasticsearch
       source:
@@ -500,14 +515,16 @@ $defs:
         type: string
       params:
         anyOf:
-        - description: Params for the scripts. We need this to retrieve and validate
+        - additionalProperties: true
+          description: Params for the scripts. We need this to retrieve and validate
             parameters
           type: object
         - type: 'null'
         title: Params
       static_params:
         anyOf:
-        - description: Additional params for the scripts that can't be supplied by
+        - additionalProperties: true
+          description: Additional params for the scripts that can't be supplied by
             the API (constants)
           type: object
         - type: 'null'
@@ -568,12 +585,20 @@ $defs:
         title: Sources
         type: array
       index:
-        allOf:
-        - $ref: '#/$defs/TaxonomyIndexConfig'
-        description: "This is the configuration of\n    the ElasticSearch index storing\
-          \ the taxonomies.\n\n    All taxonomies are stored within the same index.\n\
-          \n    It enables functions like auto-completion, or field suggestions\n\
-          \    as well as enrichment of requests with synonyms.\n    "
+        $ref: '#/$defs/TaxonomyIndexConfig'
+        description: 'This is the configuration of
+
+          the ElasticSearch index storing the taxonomies.
+
+
+          All taxonomies are stored within the same index.
+
+
+          It enables functions like auto-completion, or field suggestions
+
+          as well as enrichment of requests with synonyms.
+
+          '
       preprocessor:
         anyOf:
         - description: 'The full qualified reference to the preprocessor

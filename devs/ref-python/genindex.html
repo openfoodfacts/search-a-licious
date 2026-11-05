@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; Search-a-licious  documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinxcontrib_typer.css" />
     <script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
    
@@ -55,16 +57,11 @@
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
- | <a href="#W"><strong>W</strong></a>
- | <a href="#X"><strong>X</strong></a>
- | <a href="#Y"><strong>Y</strong></a>
  
 </div>
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.IndexConfig.accent_color">accent_color (app.config.IndexConfig attribute)</a>
-</li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.add">add() (app.taxonomy.Taxonomy method)</a>
 </li>
       <li><a href="config.html#app.config.FieldConfig.add_field_name_to_each_field">add_field_name_to_each_field() (app.config.FieldConfig class method)</a>
@@ -75,14 +72,8 @@
       </ul></li>
       <li><a href="searching.html#app.query.add_languages_suffix">add_languages_suffix() (in module app.query)</a>
 </li>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.add_parents">add_parents() (app.taxonomy.TaxonomyNode method)</a>
+      <li><a href="types.html#app._types.AggregateSearchParameters">AggregateSearchParameters (class in app._types)</a>
 </li>
-      <li><a href="types.html#app._types.SearchResponseDebug.aggregations">aggregations (app._types.SearchResponseDebug attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SuccessSearchResponse.aggregations">(app._types.SuccessSearchResponse attribute)</a>
-</li>
-      </ul></li>
       <li>
     app._types
 
@@ -125,8 +116,6 @@
         <li><a href="searching.html#module-app.es_scripts">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     app.facets
 
@@ -134,6 +123,8 @@
         <li><a href="searching.html#module-app.facets">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     app.health
 
@@ -205,20 +196,18 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.indexing.BaseDocumentPreprocessor">BaseDocumentPreprocessor (class in app.indexing)</a>
 </li>
-      <li><a href="searching.html#app.indexing.BaseTaxonomyPreprocessor">BaseTaxonomyPreprocessor (class in app.indexing)</a>
+      <li><a href="config.html#app.config.BaseESIndexConfig">BaseESIndexConfig (class in app.config)</a>
 </li>
-      <li><a href="types.html#app._types.QuerySearchParameters.boost_phrase">boost_phrase (app._types.QuerySearchParameters attribute)</a>
+      <li><a href="searching.html#app.indexing.BaseTaxonomyPreprocessor">BaseTaxonomyPreprocessor (class in app.indexing)</a>
 </li>
       <li><a href="searching.html#app.query.boost_phrases">boost_phrases() (in module app.query)</a>
 </li>
-      <li><a href="config.html#app.config.FieldConfig.bucket_agg">bucket_agg (app.config.FieldConfig attribute)</a>
-</li>
       <li><a href="config.html#app.config.FieldConfig.bucket_agg_should_be_used_for_keyword_and_numeric_types_only">bucket_agg_should_be_used_for_keyword_and_numeric_types_only() (app.config.FieldConfig method)</a>
+</li>
+      <li><a href="searching.html#app.charts.build_charts">build_charts() (in module app.charts)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="searching.html#app.charts.build_charts">build_charts() (in module app.charts)</a>
-</li>
       <li><a href="searching.html#app.query.build_completion_query">build_completion_query() (in module app.query)</a>
 </li>
       <li><a href="searching.html#app.charts.build_distribution_chart">build_distribution_chart() (in module app.charts)</a>
@@ -237,20 +226,6 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.DistributionChart.chart_type">chart_type (app._types.DistributionChart attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.ScatterChart.chart_type">(app._types.ScatterChart attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="types.html#app._types.AggregateSearchParameters.charts">charts (app._types.AggregateSearchParameters attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SuccessSearchResponse.charts">(app._types.SuccessSearchResponse attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="types.html#app._types.AggregateSearchParameters.charts_y_axis">charts_y_axis (app._types.AggregateSearchParameters attribute)</a>
-</li>
       <li><a href="types.html#app._types.ChartsInfos">ChartsInfos (in module app._types)</a>
 </li>
       <li><a href="types.html#app.validations.check_all_values_are_fields_agg">check_all_values_are_fields_agg() (in module app.validations)</a>
@@ -269,11 +244,7 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.children">children (app.taxonomy.TaxonomyNode attribute)</a>
-</li>
       <li><a href="cli.html#app.cli.main.cleanup_indexes">cleanup_indexes() (in module app.cli.main)</a>
-</li>
-      <li><a href="types.html#app._types.QueryAnalysis.clone">clone() (app._types.QueryAnalysis method)</a>
 </li>
       <li><a href="types.html#app._types.CommonParametersQuery">CommonParametersQuery (class in app._types)</a>
 </li>
@@ -281,17 +252,11 @@
 </li>
       <li><a href="searching.html#app.taxonomy_es.compute_synonyms_sets">compute_synonyms_sets() (in module app.taxonomy_es)</a>
 </li>
-      <li><a href="config.html#app.config.Settings.config_path">config_path (app.config.Settings attribute)</a>
+      <li><a href="config.html#app.config.Config">Config (class in app.config)</a>
 </li>
       <li><a href="config.html#app.config.ConfigGenerateJsonSchema">ConfigGenerateJsonSchema (class in app.config)</a>
 </li>
       <li><a href="types.html#app._types.FacetItem.count">count (app._types.FacetItem attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SuccessSearchResponse.count">(app._types.SuccessSearchResponse attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="types.html#app._types.FacetInfo.count_error_margin">count_error_margin (app._types.FacetInfo attribute)</a>
 </li>
       <li><a href="searching.html#app.query.create_aggregation_clauses">create_aggregation_clauses() (in module app.query)</a>
 </li>
@@ -303,31 +268,15 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.ErrorSearchResponse.debug">debug (app._types.ErrorSearchResponse attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SuccessSearchResponse.debug">(app._types.SuccessSearchResponse attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="types.html#app._types.SearchParameters.debug_info">debug_info (app._types.SearchParameters attribute)</a>
-</li>
       <li><a href="types.html#app._types.SearchParameters.debug_info_list_from_str">debug_info_list_from_str() (app._types.SearchParameters class method)</a>
 </li>
       <li><a href="types.html#app._types.DebugInfo">DebugInfo (class in app._types)</a>
-</li>
-      <li><a href="config.html#app.config.Config.default_index">default_index (app.config.Config attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.Config.defaut_index_must_exist">defaut_index_must_exist() (app.config.Config method)</a>
 </li>
-      <li><a href="types.html#app._types.SearchResponseError.description">description (app._types.SearchResponseError attribute)</a>
-</li>
-      <li><a href="types.html#app._types.FetcherResult.document">document (app._types.FetcherResult attribute)</a>
-</li>
-      <li><a href="config.html#app.config.IndexConfig.document_denylist">document_denylist (app.config.IndexConfig attribute)</a>
-</li>
-      <li><a href="config.html#app.config.IndexConfig.document_fetcher">document_fetcher (app.config.IndexConfig attribute)</a>
+      <li><a href="types.html#app._types.DistributionChart">DistributionChart (class in app._types)</a>
 </li>
       <li><a href="searching.html#app.indexing.DocumentProcessor">DocumentProcessor (class in app.indexing)</a>
 </li>
@@ -337,20 +286,16 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.Settings.elasticsearch_url">elasticsearch_url (app.config.Settings attribute)</a>
-</li>
       <li><a href="searching.html#app.charts.empty_chart">empty_chart() (in module app.charts)</a>
 </li>
       <li><a href="config.html#app.config.IndexConfig.ensure_no_fields_use_reserved_name">ensure_no_fields_use_reserved_name() (app.config.IndexConfig class method)</a>
 </li>
-      <li><a href="types.html#app._types.ErrorSearchResponse.errors">errors (app._types.ErrorSearchResponse attribute)</a>
+      <li><a href="types.html#app._types.ErrorSearchResponse">ErrorSearchResponse (class in app._types)</a>
 </li>
       <li><a href="types.html#app._types.QueryAnalysis.es_query">es_query (app._types.QueryAnalysis attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SearchResponseDebug.es_query">(app._types.SearchResponseDebug attribute)</a>
 </li>
-      </ul></li>
+      <li><a href="config.html#app.config.ESIndexConfig">ESIndexConfig (class in app.config)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.taxonomy_es.expected_synonyms_sets_ids">expected_synonyms_sets_ids() (in module app.taxonomy_es)</a>
@@ -369,34 +314,26 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.AggregateSearchParameters.facets">facets (app._types.AggregateSearchParameters attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SuccessSearchResponse.facets">(app._types.SuccessSearchResponse attribute)</a>
+      <li><a href="types.html#app._types.FacetInfo">FacetInfo (class in app._types)</a>
 </li>
-      </ul></li>
+      <li><a href="types.html#app._types.FacetItem">FacetItem (class in app._types)</a>
+</li>
       <li><a href="types.html#app._types.QueryAnalysis.facets_filters">facets_filters (app._types.QueryAnalysis attribute)</a>
 </li>
       <li><a href="types.html#app._types.FacetsFilters">FacetsFilters (in module app._types)</a>
 </li>
       <li><a href="types.html#app._types.FacetsInfos">FacetsInfos (in module app._types)</a>
 </li>
-      <li><a href="types.html#app._types.FetcherStatus">FetcherStatus (class in app._types)</a>
+      <li><a href="types.html#app._types.FetcherResult">FetcherResult (class in app._types)</a>
 </li>
-      <li><a href="types.html#app._types.DistributionChart.field">field (app._types.DistributionChart attribute)</a>
+      <li><a href="types.html#app._types.FetcherStatus">FetcherStatus (class in app._types)</a>
 </li>
       <li><a href="config.html#app.config.IndexConfig.field_references_must_exist_and_be_valid">field_references_must_exist_and_be_valid() (app.config.IndexConfig method)</a>
 </li>
-      <li><a href="types.html#app._types.ResultSearchParameters.fields">fields (app._types.ResultSearchParameters attribute)</a>
-
-      <ul>
-        <li><a href="config.html#app.config.FieldConfig.fields">(app.config.FieldConfig attribute)</a>
-</li>
-        <li><a href="config.html#app.config.IndexConfig.fields">(app.config.IndexConfig attribute)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="config.html#app.config.FieldConfig">FieldConfig (class in app.config)</a>
+</li>
       <li><a href="config.html#app.config.FieldType">FieldType (class in app.config)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.find_deepest_nodes">find_deepest_nodes() (app.taxonomy.Taxonomy method)</a>
@@ -412,8 +349,6 @@
       <li><a href="config.html#app.config.Config.from_yaml">from_yaml() (app.config.Config class method)</a>
 </li>
       <li><a href="config.html#app.config.IndexConfig.full_text_fields">full_text_fields (app.config.IndexConfig property)</a>
-</li>
-      <li><a href="config.html#app.config.FieldConfig.full_text_search">full_text_search (app.config.FieldConfig attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -443,8 +378,6 @@
 </li>
       <li><a href="api.html#app.api.get_document">get_document() (in module app.api)</a>
 </li>
-      <li><a href="config.html#app.config.IndexConfig.get_fields_with_bucket_agg">get_fields_with_bucket_agg() (app.config.IndexConfig method)</a>
-</li>
       <li><a href="config.html#app.config.Config.get_index_config">get_index_config() (app.config.Config method)</a>
 </li>
       <li><a href="config.html#app.config.FieldConfig.get_input_field">get_input_field() (app.config.FieldConfig method)</a>
@@ -465,8 +398,6 @@
 </li>
       <li><a href="config.html#app.config.IndexConfig.get_synonym_set_name">get_synonym_set_name() (app.config.IndexConfig method)</a>
 </li>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.get_synonyms">get_synonyms() (app.taxonomy.TaxonomyNode method)</a>
-</li>
       <li><a href="misc.html#app.taxonomy.get_taxonomy">get_taxonomy() (in module app.taxonomy)</a>
 </li>
       <li><a href="searching.html#app.utils.analyzers.get_taxonomy_indexing_analyzer">get_taxonomy_indexing_analyzer() (in module app.utils.analyzers)</a>
@@ -479,6 +410,8 @@
 </li>
       <li><a href="searching.html#app.facets.get_translations">get_translations() (in module app.facets)</a>
 </li>
+      <li><a href="types.html#app._types.GetSearchParameters">GetSearchParameters (class in app._types)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -487,11 +420,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.FieldConfig.has_lang_subfield">has_lang_subfield() (app.config.FieldConfig method)</a>
 </li>
-      <li><a href="api.html#app.api.healthcheck">healthcheck() (in module app.api)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.SuccessSearchResponse.hits">hits (app._types.SuccessSearchResponse attribute)</a>
+      <li><a href="api.html#app.api.healthcheck">healthcheck() (in module app.api)</a>
 </li>
       <li><a href="api.html#app.api.html_search">html_search() (in module app.api)</a>
 </li>
@@ -501,40 +432,22 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.id">id (app.taxonomy.TaxonomyNode attribute)</a>
-</li>
-      <li><a href="config.html#app.config.ESIndexConfig.id_field_name">id_field_name (app.config.ESIndexConfig attribute)</a>
-</li>
       <li><a href="cli.html#app.cli.main.import_data">import_data() (in module app.cli.main)</a>
 </li>
       <li><a href="cli.html#app.cli.main.import_taxonomies">import_taxonomies() (in module app.cli.main)</a>
 </li>
-      <li><a href="config.html#app.config.FieldConfig.index">index (app.config.FieldConfig attribute)</a>
-
-      <ul>
-        <li><a href="config.html#app.config.IndexConfig.index">(app.config.IndexConfig attribute)</a>
-</li>
-        <li><a href="config.html#app.config.TaxonomyConfig.index">(app.config.TaxonomyConfig attribute)</a>
-</li>
-      </ul></li>
       <li><a href="types.html#app._types.QuerySearchParameters.index_config">index_config (app._types.QuerySearchParameters property)</a>
 </li>
-      <li><a href="types.html#app._types.QuerySearchParameters.index_id">index_id (app._types.QuerySearchParameters attribute)</a>
-</li>
-      <li><a href="config.html#app.config.Config.indices">indices (app.config.Config attribute)</a>
+      <li><a href="config.html#app.config.IndexConfig">IndexConfig (class in app.config)</a>
 </li>
       <li><a href="searching.html#app.taxonomy_es.ingest_synonyms_sets">ingest_synonyms_sets() (in module app.taxonomy_es)</a>
 </li>
-      <li><a href="config.html#app.config.FieldConfig.input_field">input_field (app.config.FieldConfig attribute)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.indexing.DocumentProcessor.inputs_from_data">inputs_from_data() (app.indexing.DocumentProcessor method)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.TaxonomyNode.is_child_of">is_child_of() (app.taxonomy.TaxonomyNode method)</a>
 </li>
-      <li><a href="types.html#app._types.SuccessSearchResponse.is_count_exact">is_count_exact (app._types.SuccessSearchResponse attribute)</a>
-</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.FieldType.is_numeric">is_numeric() (app.config.FieldType method)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.TaxonomyNode.is_parent_of">is_parent_of() (app.taxonomy.TaxonomyNode method)</a>
@@ -543,12 +456,6 @@
 
       <ul>
         <li><a href="misc.html#app.taxonomy.TaxonomyNode.is_parent_of_any">(app.taxonomy.TaxonomyNode method)</a>
-</li>
-      </ul></li>
-      <li><a href="types.html#app._types.ErrorSearchResponse.is_success">is_success() (app._types.ErrorSearchResponse method)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SuccessSearchResponse.is_success">(app._types.SuccessSearchResponse method)</a>
 </li>
       </ul></li>
       <li><a href="types.html#app._types.FacetInfo.items">items (app._types.FacetInfo attribute)</a>
@@ -573,10 +480,6 @@
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.FacetItem.key">key (app._types.FacetItem attribute)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="misc.html#app.taxonomy.Taxonomy.keys">keys() (app.taxonomy.Taxonomy method)</a>
 </li>
   </ul></td>
@@ -585,25 +488,11 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.ScriptConfig.lang">lang (app.config.ScriptConfig attribute)</a>
-</li>
       <li><a href="config.html#app.config.IndexConfig.lang_fields">lang_fields (app.config.IndexConfig property)</a>
-</li>
-      <li><a href="config.html#app.config.IndexConfig.lang_separator">lang_separator (app.config.IndexConfig attribute)</a>
-</li>
-      <li><a href="types.html#app._types.QuerySearchParameters.langs">langs (app._types.QuerySearchParameters attribute)</a>
-</li>
-      <li><a href="types.html#app._types.QuerySearchParameters.langs_set">langs_set (app._types.QuerySearchParameters property)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.ESIndexConfig.last_modified_field_name">last_modified_field_name (app.config.ESIndexConfig attribute)</a>
-</li>
-      <li><a href="config.html#app.config.Settings.log_level">log_level (app.config.Settings attribute)</a>
-</li>
       <li><a href="config.html#app.config.LoggingLevel">LoggingLevel (class in app.config)</a>
-</li>
-      <li><a href="types.html#app._types.SearchResponseDebug.lucene_query">lucene_query (app._types.SearchResponseDebug attribute)</a>
 </li>
       <li><a href="types.html#app._types.QueryAnalysis.luqum_tree">luqum_tree (app._types.QueryAnalysis attribute)</a>
 </li>
@@ -615,12 +504,64 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="types.html#app._types.QuerySearchParameters.main_lang">main_lang (app._types.QuerySearchParameters property)</a>
 </li>
-      <li><a href="config.html#app.config.IndexConfig.match_phrase_boost">match_phrase_boost (app.config.IndexConfig attribute)</a>
+      <li><a href="types.html#app._types.AggregateSearchParameters.model_config">model_config (app._types.AggregateSearchParameters attribute)</a>
+
+      <ul>
+        <li><a href="types.html#app._types.DistributionChart.model_config">(app._types.DistributionChart attribute)</a>
 </li>
-      <li><a href="config.html#app.config.IndexConfig.match_phrase_boost_proximity">match_phrase_boost_proximity (app.config.IndexConfig attribute)</a>
+        <li><a href="types.html#app._types.ErrorSearchResponse.model_config">(app._types.ErrorSearchResponse attribute)</a>
 </li>
-      <li><a href="config.html#app.config.TaxonomySourceConfig.max_synonyms_entries">max_synonyms_entries (app.config.TaxonomySourceConfig attribute)</a>
+        <li><a href="types.html#app._types.FacetInfo.model_config">(app._types.FacetInfo attribute)</a>
 </li>
+        <li><a href="types.html#app._types.FacetItem.model_config">(app._types.FacetItem attribute)</a>
+</li>
+        <li><a href="types.html#app._types.FetcherResult.model_config">(app._types.FetcherResult attribute)</a>
+</li>
+        <li><a href="types.html#app._types.GetSearchParameters.model_config">(app._types.GetSearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.PostSearchParameters.model_config">(app._types.PostSearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.QuerySearchParameters.model_config">(app._types.QuerySearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.ResultSearchParameters.model_config">(app._types.ResultSearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.ScatterChart.model_config">(app._types.ScatterChart attribute)</a>
+</li>
+        <li><a href="types.html#app._types.SearchParameters.model_config">(app._types.SearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.SearchResponseDebug.model_config">(app._types.SearchResponseDebug attribute)</a>
+</li>
+        <li><a href="types.html#app._types.SearchResponseError.model_config">(app._types.SearchResponseError attribute)</a>
+</li>
+        <li><a href="types.html#app._types.SuccessSearchResponse.model_config">(app._types.SuccessSearchResponse attribute)</a>
+</li>
+        <li><a href="config.html#app.config.BaseESIndexConfig.model_config">(app.config.BaseESIndexConfig attribute)</a>
+</li>
+        <li><a href="config.html#app.config.Config.model_config">(app.config.Config attribute)</a>
+</li>
+        <li><a href="config.html#app.config.ESIndexConfig.model_config">(app.config.ESIndexConfig attribute)</a>
+</li>
+        <li><a href="config.html#app.config.FieldConfig.model_config">(app.config.FieldConfig attribute)</a>
+</li>
+        <li><a href="config.html#app.config.IndexConfig.model_config">(app.config.IndexConfig attribute)</a>
+</li>
+        <li><a href="config.html#app.config.ScriptConfig.model_config">(app.config.ScriptConfig attribute)</a>
+</li>
+        <li><a href="config.html#app.config.Settings.model_config">(app.config.Settings attribute)</a>
+</li>
+        <li><a href="config.html#app.config.TaxonomyConfig.model_config">(app.config.TaxonomyConfig attribute)</a>
+</li>
+        <li><a href="config.html#app.config.TaxonomyIndexConfig.model_config">(app.config.TaxonomyIndexConfig attribute)</a>
+</li>
+        <li><a href="config.html#app.config.TaxonomySourceConfig.model_config">(app.config.TaxonomySourceConfig attribute)</a>
+</li>
+        <li><a href="misc.html#app.taxonomy.TaxonomyNode.model_config">(app.taxonomy.TaxonomyNode attribute)</a>
+</li>
+        <li><a href="misc.html#app.taxonomy.TaxonomyNodeResult.model_config">(app.taxonomy.TaxonomyNodeResult attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     module
 
@@ -665,32 +606,12 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="types.html#app._types.FacetInfo.name">name (app._types.FacetInfo attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.FacetItem.name">(app._types.FacetItem attribute)</a>
-</li>
-        <li><a href="config.html#app.config.BaseESIndexConfig.name">(app.config.BaseESIndexConfig attribute)</a>
-</li>
-        <li><a href="config.html#app.config.FieldConfig.name">(app.config.FieldConfig attribute)</a>
-</li>
-        <li><a href="config.html#app.config.TaxonomySourceConfig.name">(app.config.TaxonomySourceConfig attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.names">names (app.taxonomy.TaxonomyNode attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.FieldConfig.no_index_false_for_object_and_nested">no_index_false_for_object_and_nested() (app.config.FieldConfig method)</a>
 </li>
-      <li><a href="types.html#app._types.GetSearchParameters.no_sort_by_scripts_on_get">no_sort_by_scripts_on_get() (app._types.GetSearchParameters method)</a>
-</li>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNodeResult.node">node (app.taxonomy.TaxonomyNodeResult attribute)</a>
-</li>
       <li><a href="searching.html#app.utils.analyzers.number_of_fields">number_of_fields() (in module app.utils.analyzers)</a>
-</li>
-      <li><a href="config.html#app.config.BaseESIndexConfig.number_of_replicas">number_of_replicas (app.config.BaseESIndexConfig attribute)</a>
-</li>
-      <li><a href="config.html#app.config.BaseESIndexConfig.number_of_shards">number_of_shards (app.config.BaseESIndexConfig attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -698,24 +619,6 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.ResultSearchParameters.page">page (app._types.ResultSearchParameters attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SuccessSearchResponse.page">(app._types.SuccessSearchResponse attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="types.html#app._types.SuccessSearchResponse.page_count">page_count (app._types.SuccessSearchResponse attribute)</a>
-</li>
-      <li><a href="types.html#app._types.ResultSearchParameters.page_size">page_size (app._types.ResultSearchParameters attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SuccessSearchResponse.page_size">(app._types.SuccessSearchResponse attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="config.html#app.config.ScriptConfig.params">params (app.config.ScriptConfig attribute)</a>
-</li>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.parents">parents (app.taxonomy.TaxonomyNode attribute)</a>
-</li>
       <li><a href="types.html#app._types.GetSearchParameters.parse_charts_str">parse_charts_str() (app._types.GetSearchParameters class method)</a>
 </li>
       <li><a href="types.html#app._types.QuerySearchParameters.parse_langs_str">parse_langs_str() (app._types.QuerySearchParameters class method)</a>
@@ -724,11 +627,13 @@
 </li>
       <li><a href="searching.html#app.query.parse_sort_by_field">parse_sort_by_field() (in module app.query)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.query.parse_sort_by_script">parse_sort_by_script() (in module app.query)</a>
 </li>
       <li><a href="types.html#app._types.GetSearchParameters.parse_value_str">parse_value_str() (app._types.GetSearchParameters class method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="types.html#app._types.PostSearchParameters">PostSearchParameters (class in app._types)</a>
 </li>
       <li><a href="searching.html#app.indexing.BaseDocumentPreprocessor.preprocess">preprocess() (app.indexing.BaseDocumentPreprocessor method)</a>
 
@@ -736,19 +641,9 @@
         <li><a href="searching.html#app.indexing.BaseTaxonomyPreprocessor.preprocess">(app.indexing.BaseTaxonomyPreprocessor method)</a>
 </li>
       </ul></li>
-      <li><a href="config.html#app.config.IndexConfig.preprocessor">preprocessor (app.config.IndexConfig attribute)</a>
-
-      <ul>
-        <li><a href="config.html#app.config.TaxonomyConfig.preprocessor">(app.config.TaxonomyConfig attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="config.html#app.config.IndexConfig.primary_color">primary_color (app.config.IndexConfig attribute)</a>
-</li>
       <li><a href="searching.html#app.indexing.process_taxonomy_field">process_taxonomy_field() (in module app.indexing)</a>
 </li>
       <li><a href="searching.html#app.indexing.process_text_lang_field">process_text_lang_field() (in module app.indexing)</a>
-</li>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.properties">properties (app.taxonomy.TaxonomyNode attribute)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.purge_none_values">purge_none_values() (in module app.taxonomy)</a>
 </li>
@@ -758,7 +653,7 @@
 <h2 id="Q">Q</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.QuerySearchParameters.q">q (app._types.QuerySearchParameters attribute)</a>
+      <li><a href="types.html#app._types.QuerySearchParameters">QuerySearchParameters (class in app._types)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -766,25 +661,15 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.Settings.redis_host">redis_host (app.config.Settings attribute)</a>
-</li>
-      <li><a href="config.html#app.config.Settings.redis_port">redis_port (app.config.Settings attribute)</a>
-</li>
-      <li><a href="config.html#app.config.Settings.redis_reader_timeout">redis_reader_timeout (app.config.Settings attribute)</a>
-</li>
-      <li><a href="config.html#app.config.IndexConfig.redis_stream_name">redis_stream_name (app.config.IndexConfig attribute)</a>
-</li>
       <li><a href="config.html#app.config.Config.redis_stream_name_should_be_unique">redis_stream_name_should_be_unique() (app.config.Config method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.FieldConfig.required">required (app.config.FieldConfig attribute)</a>
 </li>
       <li><a href="searching.html#app.query.resolve_open_ranges">resolve_open_ranges() (in module app.query)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.query.resolve_unknown_operation">resolve_unknown_operation() (in module app.query)</a>
 </li>
-      <li><a href="config.html#app.config.IndexConfig.result_processor">result_processor (app.config.IndexConfig attribute)</a>
+      <li><a href="types.html#app._types.ResultSearchParameters">ResultSearchParameters (class in app._types)</a>
 </li>
       <li><a href="cli.html#app.cli.main.run_update_daemon">run_update_daemon() (in module app.cli.main)</a>
 </li>
@@ -794,7 +679,9 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.IndexConfig.scripts">scripts (app.config.IndexConfig attribute)</a>
+      <li><a href="types.html#app._types.ScatterChart">ScatterChart (class in app._types)</a>
+</li>
+      <li><a href="config.html#app.config.ScriptConfig">ScriptConfig (class in app.config)</a>
 </li>
       <li><a href="config.html#app.config.ScriptType">ScriptType (class in app.config)</a>
 </li>
@@ -806,51 +693,29 @@
       </ul></li>
       <li><a href="api.html#app.api.search_get">search_get() (in module app.api)</a>
 </li>
+      <li><a href="types.html#app._types.SearchParameters">SearchParameters (class in app._types)</a>
+</li>
+      <li><a href="types.html#app._types.SearchResponseDebug">SearchResponseDebug (class in app._types)</a>
+</li>
+      <li><a href="types.html#app._types.SearchResponseError">SearchResponseError (class in app._types)</a>
+</li>
       <li><a href="types.html#app._types.FacetItem.selected">selected (app._types.FacetItem attribute)</a>
 </li>
-      <li><a href="config.html#app.config.Settings.sentry_dns">sentry_dns (app.config.Settings attribute)</a>
-</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#app.api.serve_index">serve_index() (in module app.api)</a>
 </li>
+      <li><a href="config.html#app.config.Settings">Settings (class in app.config)</a>
+</li>
       <li><a href="config.html#app.config.SettingsGenerateJsonSchema">SettingsGenerateJsonSchema (class in app.config)</a>
-</li>
-      <li><a href="types.html#app._types.ResultSearchParameters.sign_sort_by">sign_sort_by (app._types.ResultSearchParameters property)</a>
-</li>
-      <li><a href="types.html#app._types.ResultSearchParameters.sort_by">sort_by (app._types.ResultSearchParameters attribute)</a>
 </li>
       <li><a href="types.html#app._types.ResultSearchParameters.sort_by_is_field_or_script">sort_by_is_field_or_script() (app._types.ResultSearchParameters method)</a>
 </li>
       <li><a href="types.html#app._types.PostSearchParameters.sort_by_scripts_needs_params">sort_by_scripts_needs_params() (app._types.PostSearchParameters method)</a>
 </li>
-      <li><a href="types.html#app._types.PostSearchParameters.sort_params">sort_params (app._types.PostSearchParameters attribute)</a>
-</li>
-      <li><a href="config.html#app.config.ScriptConfig.source">source (app.config.ScriptConfig attribute)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.TaxonomyConfig.sources">sources (app.config.TaxonomyConfig attribute)</a>
-</li>
-      <li><a href="config.html#app.config.TaxonomyConfig.sources_by_name">sources_by_name (app.config.TaxonomyConfig property)</a>
-</li>
-      <li><a href="config.html#app.config.FieldConfig.split">split (app.config.FieldConfig attribute)</a>
-</li>
-      <li><a href="config.html#app.config.IndexConfig.split_separator">split_separator (app.config.IndexConfig attribute)</a>
-</li>
-      <li><a href="config.html#app.config.ScriptConfig.static_params">static_params (app.config.ScriptConfig attribute)</a>
-</li>
-      <li><a href="types.html#app._types.FetcherResult.status">status (app._types.FetcherResult attribute)</a>
-
-      <ul>
-        <li><a href="types.html#app._types.SearchResponseError.status">(app._types.SearchResponseError attribute)</a>
-</li>
-        <li><a href="misc.html#app.taxonomy.TaxonomyNodeResult.status">(app.taxonomy.TaxonomyNodeResult attribute)</a>
-</li>
-      </ul></li>
       <li><a href="config.html#app.config.FieldConfig.subfields_only_if_object_or_nested">subfields_only_if_object_or_nested() (app.config.FieldConfig method)</a>
 </li>
-      <li><a href="config.html#app.config.IndexConfig.supported_langs">supported_langs (app.config.IndexConfig attribute)</a>
-</li>
-      <li><a href="config.html#app.config.IndexConfig.supported_langs_set">supported_langs_set (app.config.IndexConfig property)</a>
+      <li><a href="types.html#app._types.SuccessSearchResponse">SuccessSearchResponse (class in app._types)</a>
 </li>
       <li><a href="cli.html#app.cli.main.sync_scripts">sync_scripts() (in module app.cli.main)</a>
 
@@ -858,10 +723,6 @@
         <li><a href="searching.html#app.es_scripts.sync_scripts">(in module app.es_scripts)</a>
 </li>
       </ul></li>
-      <li><a href="misc.html#app.taxonomy.TaxonomyNode.synonyms">synonyms (app.taxonomy.TaxonomyNode attribute)</a>
-</li>
-      <li><a href="config.html#app.config.IndexConfig.synonyms_strategy">synonyms_strategy (app.config.IndexConfig attribute)</a>
-</li>
       <li><a href="config.html#app.config.SynonymsStrategy">SynonymsStrategy (class in app.config)</a>
 </li>
   </ul></td>
@@ -870,43 +731,35 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.IndexConfig.taxonomy">taxonomy (app.config.IndexConfig attribute)</a>
-</li>
       <li><a href="misc.html#app.taxonomy.Taxonomy">Taxonomy (class in app.taxonomy)</a>
 </li>
       <li><a href="api.html#app.api.taxonomy_autocomplete">taxonomy_autocomplete() (in module app.api)</a>
 </li>
-      <li><a href="config.html#app.config.Settings.taxonomy_cache_dir">taxonomy_cache_dir (app.config.Settings attribute)</a>
-</li>
-      <li><a href="config.html#app.config.FieldConfig.taxonomy_name">taxonomy_name (app.config.FieldConfig attribute)</a>
-</li>
       <li><a href="config.html#app.config.IndexConfig.taxonomy_name_should_be_defined">taxonomy_name_should_be_defined() (app.config.IndexConfig method)</a>
+</li>
+      <li><a href="config.html#app.config.TaxonomyConfig">TaxonomyConfig (class in app.config)</a>
+</li>
+      <li><a href="config.html#app.config.TaxonomyIndexConfig">TaxonomyIndexConfig (class in app.config)</a>
+</li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNode">TaxonomyNode (class in app.taxonomy)</a>
+</li>
+      <li><a href="misc.html#app.taxonomy.TaxonomyNodeResult">TaxonomyNodeResult (class in app.taxonomy)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="config.html#app.config.TaxonomySourceConfig">TaxonomySourceConfig (class in app.config)</a>
 </li>
       <li><a href="misc.html#app.health.test_connect_es">test_connect_es() (in module app.health)</a>
 </li>
       <li><a href="misc.html#app.health.test_connect_redis">test_connect_redis() (in module app.health)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.IndexConfig.text_lang_fields">text_lang_fields (app.config.IndexConfig property)</a>
 </li>
       <li><a href="types.html#app._types.QueryAnalysis.text_query">text_query (app._types.QueryAnalysis attribute)</a>
 </li>
-      <li><a href="types.html#app._types.SuccessSearchResponse.timed_out">timed_out (app._types.SuccessSearchResponse attribute)</a>
-</li>
-      <li><a href="types.html#app._types.SearchResponseError.title">title (app._types.SearchResponseError attribute)</a>
-</li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.to_dict">to_dict() (app.taxonomy.Taxonomy method)</a>
-
-      <ul>
-        <li><a href="misc.html#app.taxonomy.TaxonomyNode.to_dict">(app.taxonomy.TaxonomyNode method)</a>
-</li>
-      </ul></li>
-      <li><a href="types.html#app._types.SuccessSearchResponse.took">took (app._types.SuccessSearchResponse attribute)</a>
 </li>
       <li><a href="searching.html#app.facets.translate_facets_values">translate_facets_values() (in module app.facets)</a>
-</li>
-      <li><a href="config.html#app.config.FieldConfig.type">type (app.config.FieldConfig attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -914,12 +767,6 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.TaxonomySourceConfig.url">url (app.config.TaxonomySourceConfig attribute)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config.html#app.config.Settings.user_agent">user_agent (app.config.Settings attribute)</a>
-</li>
       <li><a href="types.html#app._types.ResultSearchParameters.uses_sort_script">uses_sort_script (app._types.ResultSearchParameters property)</a>
 </li>
   </ul></td>
@@ -935,30 +782,6 @@
       <li><a href="types.html#app._types.QuerySearchParameters.validate_index_id">validate_index_id() (app._types.QuerySearchParameters method)</a>
 </li>
       <li><a href="types.html#app._types.GetSearchParameters.validate_q_or_sort_by">validate_q_or_sort_by() (app._types.GetSearchParameters method)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="W">W</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.SuccessSearchResponse.warnings">warnings (app._types.SuccessSearchResponse attribute)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="X">X</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.ScatterChart.x">x (app._types.ScatterChart attribute)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="Y">Y</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.ScatterChart.y">y (app._types.ScatterChart attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -987,7 +810,16 @@
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Configuration</a></li>
@@ -1011,16 +843,6 @@
   </ul></li>
 </ul>
 </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -1037,14 +859,14 @@
       &#169;2024, Open Food Facts.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 
     
     <a href="https://github.com/openfoodfacts/search-a-licious" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+        <img src="_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
     </a>
     
 
