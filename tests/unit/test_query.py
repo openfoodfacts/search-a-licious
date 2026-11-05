@@ -210,6 +210,11 @@ def test_build_search_query(
             {"q": "nutriments.fat_100g.x:value"},
             "field 'nutriments.fat_100g.x' not found in index config",
         ),
+        # a language suffix is not valid under a field without lang sub-fields
+        (
+            {"q": "nutriments.fat_100g.en:1"},
+            "field 'nutriments.fat_100g.en' not found in index config",
+        ),
         # a language code alone is not a field
         ({"q": "en:foo"}, "field 'en' not found in index config"),
         (
