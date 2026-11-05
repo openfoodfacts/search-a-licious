@@ -39,3 +39,9 @@ def test_get_search_parameters_accepts_empty_list_charts(default_global_config):
     params = GetSearchParameters(q="milk", charts=[])
 
     assert params.charts == []
+
+
+def test_get_search_parameters_accepts_omitted_charts(default_global_config):
+    params = GetSearchParameters(q="milk")
+
+    assert params.charts is None

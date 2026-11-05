@@ -512,7 +512,7 @@ class GetSearchParameters(SearchParameters):
         charts_list = str_charts.split(",")
         for c in charts_list:
             if ":" in c:
-                [x, y] = c.split(":")
+                x, y = c.split(":", 1)
                 parsed_charts.append(ScatterChart(x=x, y=y))
             else:
                 parsed_charts.append(DistributionChart(field=c))
