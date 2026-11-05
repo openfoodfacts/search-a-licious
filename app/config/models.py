@@ -58,7 +58,7 @@ ANALYZER_LANG_MAPPING = {
     "pt-BR": "brazilian",
     "bg": "bulgarian",
     "ca": "catalan",
-    "cz": "czech",
+    "cs": "czech",
     "da": "danish",
     "et": "estonian",
     "fi": "finnish",
