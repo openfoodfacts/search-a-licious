@@ -63,7 +63,9 @@ export const SearchaliciousDomMixin = <T extends Constructor<LitElement & Search
 
       document
         .querySelectorAll(
-          `searchalicious-distribution-chart[search-name=${this.name}]`
+          `searchalicious-distribution-chart[search-name="${CSS.escape(
+            this.name
+          )}"]`
         )
         .forEach((item) => {
           const chartItem = item as SearchaliciousDistributionChart;
@@ -72,7 +74,9 @@ export const SearchaliciousDomMixin = <T extends Constructor<LitElement & Search
 
       document
         .querySelectorAll(
-          `searchalicious-scatter-chart[search-name=${this.name}]`
+          `searchalicious-scatter-chart[search-name="${CSS.escape(
+            this.name
+          )}"]`
         )
         .forEach((item) => {
           const chartItem = item as SearchaliciousScatterChart;

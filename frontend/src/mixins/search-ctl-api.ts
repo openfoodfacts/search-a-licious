@@ -106,31 +106,37 @@ export const SearchaliciousApiMixin = <T extends Constructor<LitElement & Search
 
       isSearchLoading(this.name).value = true;
 
-      let response;
-      if (method === 'GET') {
-        response = await fetch(
-          `${searchUrl}?${this._paramsToQueryStr(params)}`
-        );
-      } else {
-        response = await fetch(searchUrl, {
-          method: 'POST',
-          body: JSON.stringify(params),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      }
-      
       // FIXME data should be typed
-      const data = await response.json();
-      this._results = data.hits;
-      this._count = data.count;
-      this.pageSize = data.page_size;
-      this._currentPage = data.page;
-      this._pageCount = data.page_count;
-
-      isSearchLoading(this.name).value = false;
-      this.updateSearchSignals();
+      let data;
+      try {
+        let response;
+        if (method === 'GET') {
+          response = await fetch(
+            `${searchUrl}?${this._paramsToQueryStr(params)}`
+          );
+        } else {
+          response = await fetch(searchUrl, {
+            method: 'POST',
+            body: JSON.stringify(params),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+        }
+        if (!response.ok) {
+          throw new Error(
+            `Search request failed with status ${response.status}`
+          );
+        }
+        data = await response.json();
+        this._results = data.hits;
+        this._count = data.count;
+        this.pageSize = data.page_size;
+        this._currentPage = data.page;
+        this._pageCount = data.page_count;
+      } finally {
+        isSearchLoading(this.name).value = false;
+      }
 
       searchResultDetail(this.name).value = {
         charts: data.charts,
