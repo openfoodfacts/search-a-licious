@@ -26,7 +26,8 @@ def test_connect_redis():
 def test_connect_es():
     """Test connection to ElasticSearch."""
     logger.debug("health: testing es connection")
-    es = connection.get_es_client(timeout=5)
+    # use a derived client, to not replace the shared default one
+    es = connection.current_es_client().options(request_timeout=5)
     if es.ping():
         return True, "es0 connection check succedded!"
     return False, "es0 connection check failed!"
