@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+
 import yaml
 
 from app._types import FacetInfo, FacetItem, QueryAnalysis, SuccessSearchResponse
@@ -68,7 +69,7 @@ def test_translate_pseudo_facet_labels():
     }
 
     # Test French translation
-    with patch("app.facets._get_translations", return_value={}):
+    with patch("app.facets.get_translations", return_value={}):
         translate_facets_values("fr", facets, index_config)
 
     items_by_key = {item.key: item.name for item in facets["categories"].items}
@@ -76,7 +77,7 @@ def test_translate_pseudo_facet_labels():
     assert items_by_key["--none--"] == "Aucun"
 
     # Test Spanish translation
-    with patch("app.facets._get_translations", return_value={}):
+    with patch("app.facets.get_translations", return_value={}):
         translate_facets_values("es", facets, index_config)
 
     items_by_key = {item.key: item.name for item in facets["categories"].items}
@@ -106,7 +107,7 @@ def test_build_facets_display_name():
 
     query_analysis = QueryAnalysis(facets_filters={})
 
-    with patch("app.facets._get_translations", return_value={}):
+    with patch("app.facets.get_translations", return_value={}):
         # Test French display name resolution
         facets_fr = build_facets(
             mock_search_result,
@@ -128,3 +129,13 @@ def test_build_facets_display_name():
             ["categories", "labels", "simple_field"],
         )
         assert facets_en["categories"].name == "Categories"
+
+        # a language without translation falls back to English
+        facets_de = build_facets(
+            mock_search_result,
+            query_analysis,
+            "de",
+            index_config,
+            ["categories"],
+        )
+        assert facets_de["categories"].name == "Categories"

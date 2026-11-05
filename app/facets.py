@@ -206,7 +206,6 @@ def build_facets(
             if isinstance(field_config.display_name, dict):
                 display_name = (
                     field_config.display_name.get(lang)
-                    or field_config.display_name.get(index_config.main_lang)
                     or field_config.display_name.get("en")
                     or field_name
                 )
