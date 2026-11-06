@@ -4742,6 +4742,28 @@
           "kind": "class",
           "description": "The search results element\n\nIt will display results based upon the slot with name `result`,\nconsidered as a template, with variable interpolation (using tag-params library).\n\nIt reacts to the `searchalicious-result` event fired by the search controller.",
           "name": "SearchaliciousResults",
+          "slots": [
+            {
+              "description": "Template for each search result.",
+              "name": "result"
+            },
+            {
+              "description": "Content displayed while searching.",
+              "name": "loading"
+            },
+            {
+              "description": "Content displayed for an empty successful search.",
+              "name": "no-results"
+            },
+            {
+              "description": "Content displayed before the first search.",
+              "name": "before-search"
+            },
+            {
+              "description": "Message displayed when the search request fails.",
+              "name": "error"
+            }
+          ],
           "members": [
             {
               "kind": "field",
@@ -7465,6 +7487,742 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/styles/index.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "WHITE_PANEL_STYLE",
+          "default": "css`\n  .white-panel {\n    margin-bottom: 1rem;\n    background-color: white;\n    padding: 0.5rem;\n    border-radius: 5px;\n  }\n`"
+        },
+        {
+          "kind": "variable",
+          "name": "HIDE_STYLE",
+          "default": "css`\n  .hidden {\n    display: none;\n  }\n`"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "WHITE_PANEL_STYLE",
+          "declaration": {
+            "name": "WHITE_PANEL_STYLE",
+            "module": "src/styles/index.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "HIDE_STYLE",
+          "declaration": {
+            "name": "HIDE_STYLE",
+            "module": "src/styles/index.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/test/search-bar_test.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/test/search-button_test.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/test/search-ctl_test.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "DummySearchCtl",
+          "members": [
+            {
+              "kind": "field",
+              "name": "autoLaunch",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "auto-launch",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "baseUrl",
+              "type": {
+                "text": "string"
+              },
+              "default": "'http://localhost/api'",
+              "attribute": "base-url",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "firstSearch",
+              "inheritedFrom": {
+                "name": "SearchaliciousSearchMixin",
+                "module": "src/mixins/search-ctl.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "firstUpdated",
+              "parameters": [
+                {
+                  "name": "changedProperties",
+                  "type": {
+                    "text": "Map<any, any>"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousSearchMixin",
+                "module": "src/mixins/search-ctl.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_handleSearch",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousSearchMixin",
+                "module": "src/mixins/search-ctl.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_handleChangePage",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousSearchMixin",
+                "module": "src/mixins/search-ctl.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_searchUrl",
+              "parameters": [
+                {
+                  "name": "page",
+                  "optional": true,
+                  "type": {
+                    "text": "number"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_paramsToQueryStr",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "params",
+                  "type": {
+                    "text": "SearchParameters"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "buildParams",
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "search",
+              "parameters": [
+                {
+                  "name": "page",
+                  "default": "1"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousApiMixin",
+                "module": "src/mixins/search-ctl-api.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_sortElement",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "relatedFacets",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_facetsNames",
+              "return": {
+                "type": {
+                  "text": "string[]"
+                }
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_chartParams",
+              "return": {
+                "type": {
+                  "text": "ChartSearchParam[] | string | undefined"
+                }
+              },
+              "parameters": [
+                {
+                  "name": "isGetRequest",
+                  "type": {
+                    "text": "boolean"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_facetsFilters",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "resetFacets",
+              "parameters": [
+                {
+                  "name": "launchSearch",
+                  "default": "true"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousDomMixin",
+                "module": "src/mixins/search-ctl-dom.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "query",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "default": "DEFAULT_SEARCH_NAME",
+              "attribute": "name",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "default": "'en'",
+              "attribute": "langs",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "index",
+              "type": {
+                "text": "string | undefined"
+              },
+              "attribute": "index",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "boostPhrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "boost-phrase",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "pageSize",
+              "type": {
+                "text": "number"
+              },
+              "default": "10",
+              "attribute": "page-size",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_currentPage",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_pageCount",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_results",
+              "type": {
+                "text": "{}[] | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_count",
+              "type": {
+                "text": "number | undefined"
+              },
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "lastQuery",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "lastFacetsFilters",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isQueryChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isFacetsChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "isSearchChanged",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "canReset",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "updateSearchSignals",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "convertHistoryParamsToValues",
+              "description": "Convert the URL params to the original values\nIt will be used to set the values from the URL",
+              "parameters": [
+                {
+                  "name": "params"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "setValuesFromHistory",
+              "description": "Set the values from the history\nIt will set the params from the URL params",
+              "parameters": [
+                {
+                  "name": "values"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "buildHistoryParams",
+              "description": "Build the history params from the current state\nIt will be used to update the URL when searching",
+              "parameters": [
+                {
+                  "name": "params"
+                }
+              ],
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "setParamFromUrl",
+              "description": "Set the values from the URL\nIt will set the values from the URL and return if a search should be launched",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "_event_setups",
+              "type": {
+                "text": "{[key: string]: Array<number>}"
+              },
+              "default": "{}",
+              "inheritedFrom": {
+                "name": "EventRegistrationMixin",
+                "module": "src/event-listener-setup.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "addEventHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "handler",
+                  "type": {
+                    "text": "EventListenerOrEventListenerObject"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "EventRegistrationMixin",
+                "module": "src/event-listener-setup.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "removeEventHandler",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "handler",
+                  "type": {
+                    "text": "EventListenerOrEventListenerObject"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "EventRegistrationMixin",
+                "module": "src/event-listener-setup.ts"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_registrationEventHandlersOnAnimationFrame",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "handler",
+                  "type": {
+                    "text": "EventListenerOrEventListenerObject"
+                  }
+                },
+                {
+                  "name": "options",
+                  "optional": true,
+                  "type": {
+                    "text": "boolean | AddEventListenerOptions | undefined"
+                  }
+                }
+              ],
+              "inheritedFrom": {
+                "name": "EventRegistrationMixin",
+                "module": "src/event-listener-setup.ts"
+              }
+            }
+          ],
+          "mixins": [
+            {
+              "name": "SearchaliciousSearchMixin",
+              "module": "/src/mixins/search-ctl"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "dummy-search-ctl",
+          "customElement": true,
+          "attributes": [
+            {
+              "name": "name",
+              "default": "DEFAULT_SEARCH_NAME",
+              "resolveInitializer": {
+                "module": "/src/utils/constants"
+              },
+              "fieldName": "name",
+              "inheritedFrom": {
+                "name": "SearchaliciousHistoryMixin",
+                "module": "src/mixins/history.ts"
+              }
+            },
+            {
+              "name": "base-url",
+              "type": {
+                "text": "string"
+              },
+              "default": "'/'",
+              "fieldName": "baseUrl",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "langs",
+              "type": {
+                "text": "string"
+              },
+              "default": "'en'",
+              "fieldName": "langs",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "index",
+              "type": {
+                "text": "string | undefined"
+              },
+              "fieldName": "index",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "boost-phrase",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "boostPhrase",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "page-size",
+              "type": {
+                "text": "number"
+              },
+              "default": "10",
+              "fieldName": "pageSize",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            },
+            {
+              "name": "auto-launch",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "autoLaunch",
+              "inheritedFrom": {
+                "name": "SearchaliciousStateMixin",
+                "module": "src/mixins/search-ctl-state.ts"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "dummy-search-ctl",
+          "declaration": {
+            "name": "DummySearchCtl",
+            "module": "src/test/search-ctl_test.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/test/search-pages_test.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/test/search-request_test.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/test/search-results_test.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/test/utils.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "resetSignalToDefault",
+          "description": "Utility function for test to reset signal state"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "resetSignalToDefault",
+          "declaration": {
+            "name": "resetSignalToDefault",
+            "module": "src/test/utils.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/mixins/checked-input.ts",
       "declarations": [
         {
@@ -9810,736 +10568,6 @@
           "declaration": {
             "name": "VersioningMixin",
             "module": "src/mixins/versioning.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/styles/index.ts",
-      "declarations": [
-        {
-          "kind": "variable",
-          "name": "WHITE_PANEL_STYLE",
-          "default": "css`\n  .white-panel {\n    margin-bottom: 1rem;\n    background-color: white;\n    padding: 0.5rem;\n    border-radius: 5px;\n  }\n`"
-        },
-        {
-          "kind": "variable",
-          "name": "HIDE_STYLE",
-          "default": "css`\n  .hidden {\n    display: none;\n  }\n`"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "WHITE_PANEL_STYLE",
-          "declaration": {
-            "name": "WHITE_PANEL_STYLE",
-            "module": "src/styles/index.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "HIDE_STYLE",
-          "declaration": {
-            "name": "HIDE_STYLE",
-            "module": "src/styles/index.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/test/search-bar_test.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/test/search-button_test.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/test/search-ctl_test.ts",
-      "declarations": [
-        {
-          "kind": "class",
-          "description": "",
-          "name": "DummySearchCtl",
-          "members": [
-            {
-              "kind": "field",
-              "name": "autoLaunch",
-              "type": {
-                "text": "boolean"
-              },
-              "default": "false",
-              "attribute": "auto-launch",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "baseUrl",
-              "type": {
-                "text": "string"
-              },
-              "default": "'http://localhost/api'",
-              "attribute": "base-url",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "firstSearch",
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "firstUpdated",
-              "parameters": [
-                {
-                  "name": "changedProperties",
-                  "type": {
-                    "text": "Map<any, any>"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_handleSearch",
-              "parameters": [
-                {
-                  "name": "event",
-                  "type": {
-                    "text": "Event"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_handleChangePage",
-              "parameters": [
-                {
-                  "name": "event",
-                  "type": {
-                    "text": "Event"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousSearchMixin",
-                "module": "src/mixins/search-ctl.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_searchUrl",
-              "parameters": [
-                {
-                  "name": "page",
-                  "optional": true,
-                  "type": {
-                    "text": "number"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousApiMixin",
-                "module": "src/mixins/search-ctl-api.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_paramsToQueryStr",
-              "return": {
-                "type": {
-                  "text": "string"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "params",
-                  "type": {
-                    "text": "SearchParameters"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousApiMixin",
-                "module": "src/mixins/search-ctl-api.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "buildParams",
-              "inheritedFrom": {
-                "name": "SearchaliciousApiMixin",
-                "module": "src/mixins/search-ctl-api.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "search",
-              "parameters": [
-                {
-                  "name": "page",
-                  "default": "1"
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousApiMixin",
-                "module": "src/mixins/search-ctl-api.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_sortElement",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "relatedFacets",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_facetsNames",
-              "return": {
-                "type": {
-                  "text": "string[]"
-                }
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousDomMixin",
-                "module": "src/mixins/search-ctl-dom.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_chartParams",
-              "return": {
-                "type": {
-                  "text": "ChartSearchParam[] | string | undefined"
-                }
-              },
-              "parameters": [
-                {
-                  "name": "isGetRequest",
-                  "type": {
-                    "text": "boolean"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousDomMixin",
-                "module": "src/mixins/search-ctl-dom.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_facetsFilters",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "resetFacets",
-              "parameters": [
-                {
-                  "name": "launchSearch",
-                  "default": "true"
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousDomMixin",
-                "module": "src/mixins/search-ctl-dom.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "query",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "name",
-              "default": "DEFAULT_SEARCH_NAME",
-              "attribute": "name",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "langs",
-              "type": {
-                "text": "string"
-              },
-              "default": "'en'",
-              "attribute": "langs",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "index",
-              "type": {
-                "text": "string | undefined"
-              },
-              "attribute": "index",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "boostPhrase",
-              "type": {
-                "text": "boolean"
-              },
-              "default": "false",
-              "attribute": "boost-phrase",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "pageSize",
-              "type": {
-                "text": "number"
-              },
-              "default": "10",
-              "attribute": "page-size",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_currentPage",
-              "type": {
-                "text": "number | undefined"
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_pageCount",
-              "type": {
-                "text": "number | undefined"
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_results",
-              "type": {
-                "text": "{}[] | undefined"
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_count",
-              "type": {
-                "text": "number | undefined"
-              },
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "lastQuery",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "lastFacetsFilters",
-              "type": {
-                "text": "string"
-              },
-              "default": "''",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "isQueryChanged",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "isFacetsChanged",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "isSearchChanged",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "canReset",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "updateSearchSignals",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "convertHistoryParamsToValues",
-              "description": "Convert the URL params to the original values\nIt will be used to set the values from the URL",
-              "parameters": [
-                {
-                  "name": "params"
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "setValuesFromHistory",
-              "description": "Set the values from the history\nIt will set the params from the URL params",
-              "parameters": [
-                {
-                  "name": "values"
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "buildHistoryParams",
-              "description": "Build the history params from the current state\nIt will be used to update the URL when searching",
-              "parameters": [
-                {
-                  "name": "params"
-                }
-              ],
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "setParamFromUrl",
-              "description": "Set the values from the URL\nIt will set the values from the URL and return if a search should be launched",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "kind": "field",
-              "name": "_event_setups",
-              "type": {
-                "text": "{[key: string]: Array<number>}"
-              },
-              "default": "{}",
-              "inheritedFrom": {
-                "name": "EventRegistrationMixin",
-                "module": "src/event-listener-setup.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "addEventHandler",
-              "parameters": [
-                {
-                  "name": "event",
-                  "type": {
-                    "text": "string"
-                  }
-                },
-                {
-                  "name": "handler",
-                  "type": {
-                    "text": "EventListenerOrEventListenerObject"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "EventRegistrationMixin",
-                "module": "src/event-listener-setup.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "removeEventHandler",
-              "parameters": [
-                {
-                  "name": "event",
-                  "type": {
-                    "text": "string"
-                  }
-                },
-                {
-                  "name": "handler",
-                  "type": {
-                    "text": "EventListenerOrEventListenerObject"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "EventRegistrationMixin",
-                "module": "src/event-listener-setup.ts"
-              }
-            },
-            {
-              "kind": "method",
-              "name": "_registrationEventHandlersOnAnimationFrame",
-              "parameters": [
-                {
-                  "name": "event",
-                  "type": {
-                    "text": "string"
-                  }
-                },
-                {
-                  "name": "handler",
-                  "type": {
-                    "text": "EventListenerOrEventListenerObject"
-                  }
-                },
-                {
-                  "name": "options",
-                  "optional": true,
-                  "type": {
-                    "text": "boolean | AddEventListenerOptions | undefined"
-                  }
-                }
-              ],
-              "inheritedFrom": {
-                "name": "EventRegistrationMixin",
-                "module": "src/event-listener-setup.ts"
-              }
-            }
-          ],
-          "mixins": [
-            {
-              "name": "SearchaliciousSearchMixin",
-              "module": "/src/mixins/search-ctl"
-            }
-          ],
-          "superclass": {
-            "name": "LitElement",
-            "package": "lit"
-          },
-          "tagName": "dummy-search-ctl",
-          "customElement": true,
-          "attributes": [
-            {
-              "name": "name",
-              "default": "DEFAULT_SEARCH_NAME",
-              "resolveInitializer": {
-                "module": "/src/utils/constants"
-              },
-              "fieldName": "name",
-              "inheritedFrom": {
-                "name": "SearchaliciousHistoryMixin",
-                "module": "src/mixins/history.ts"
-              }
-            },
-            {
-              "name": "base-url",
-              "type": {
-                "text": "string"
-              },
-              "default": "'/'",
-              "fieldName": "baseUrl",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "name": "langs",
-              "type": {
-                "text": "string"
-              },
-              "default": "'en'",
-              "fieldName": "langs",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "name": "index",
-              "type": {
-                "text": "string | undefined"
-              },
-              "fieldName": "index",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "name": "boost-phrase",
-              "type": {
-                "text": "boolean"
-              },
-              "default": "false",
-              "fieldName": "boostPhrase",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "name": "page-size",
-              "type": {
-                "text": "number"
-              },
-              "default": "10",
-              "fieldName": "pageSize",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            },
-            {
-              "name": "auto-launch",
-              "type": {
-                "text": "boolean"
-              },
-              "default": "false",
-              "fieldName": "autoLaunch",
-              "inheritedFrom": {
-                "name": "SearchaliciousStateMixin",
-                "module": "src/mixins/search-ctl-state.ts"
-              }
-            }
-          ]
-        }
-      ],
-      "exports": [
-        {
-          "kind": "custom-element-definition",
-          "name": "dummy-search-ctl",
-          "declaration": {
-            "name": "DummySearchCtl",
-            "module": "src/test/search-ctl_test.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/test/search-pages_test.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/test/search-results_test.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/test/utils.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "resetSignalToDefault",
-          "description": "Utility function for test to reset signal state"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "resetSignalToDefault",
-          "declaration": {
-            "name": "resetSignalToDefault",
-            "module": "src/test/utils.ts"
           }
         }
       ]
