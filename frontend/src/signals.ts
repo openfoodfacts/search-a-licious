@@ -30,6 +30,8 @@ export type SearchResultDetail = {
   facets: FacetsInfos;
   isCountExact: boolean;
   isSearchLaunch: boolean;
+  /** The latest search failed; results and counts must not be displayed. */
+  error?: boolean;
   pageCount: number;
   pageSize: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
