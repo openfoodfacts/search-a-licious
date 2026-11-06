@@ -198,6 +198,13 @@ class QueryCheck(luqum.check.LuceneCheck):
     def check_open_range(self, item, parents):
         return iter([])
 
+    def _check_not_operator(self, item, parents):
+        # luqum reads `parents[-1]`, which does not exist for a query made
+        # only of a negation (`-sugar`, `NOT milk`)
+        if not parents:
+            return iter([])
+        return super()._check_not_operator(item, parents)
+
     def check_search_field(self, item, parents):
         """Check if the search field is valid"""
         yield from super().check_search_field(item, parents)
