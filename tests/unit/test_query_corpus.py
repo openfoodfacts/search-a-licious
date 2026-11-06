@@ -40,10 +40,6 @@ ACCEPTED = [
     "!milk",
     "-sugar",
     "NOT milk",
-]
-
-# queries that should work but are rejected today (HTTP 400), see #253
-XFAIL_REJECTED = [
     "coca-cola",
     "sugar-free",
     "7-up",
@@ -66,14 +62,6 @@ def _build(q: str, default_filter_query_builder):
 
 @pytest.mark.parametrize("q", ACCEPTED)
 def test_common_queries_are_accepted(q, default_filter_query_builder):
-    assert _build(q, default_filter_query_builder).es_query is not None
-
-
-@pytest.mark.parametrize("q", XFAIL_REJECTED)
-@pytest.mark.xfail(
-    reason="rejected by the query checker, see #253", raises=QueryAnalysisError
-)
-def test_hyphenated_and_slashed_queries(q, default_filter_query_builder):
     assert _build(q, default_filter_query_builder).es_query is not None
 
 
