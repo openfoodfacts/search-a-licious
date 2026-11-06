@@ -76,6 +76,10 @@ class _IndicesAdapter:
                 body[key] = kwargs.pop(key)
         return self._indices.create(index=index, body=body, **kwargs)
 
+    def clone(self, source: str, target: str, **kwargs):
+        # Elasticsearch calls the source index `source`
+        return self._indices.clone(index=source, target=target, **kwargs)
+
     def update_aliases(self, actions: list[dict], **kwargs):
         return self._indices.update_aliases(body={"actions": actions}, **kwargs)
 
@@ -131,7 +135,20 @@ class SearchClient:
             options["request_timeout"] = request_timeout
         return _Options(self, options)
 
+    def index(self, index: str, document: dict | None = None, **kwargs):
+        # Elasticsearch takes the document as `document`
+        if document is not None:
+            kwargs["body"] = document
+        return self.client.index(index=index, **kwargs)
+
     def search(self, *args, **kwargs) -> _Body:
+        # Elasticsearch takes `query` ... as arguments, OpenSearch in the body
+        body = dict(kwargs.pop("body", None) or {})
+        for key in ("query", "aggs", "aggregations"):
+            if key in kwargs:
+                body[key] = kwargs.pop(key)
+        if body:
+            kwargs["body"] = body
         return _Body(self.client.search(*args, **kwargs))
 
     def put_script(self, id: str, script: dict, context: str | None = None, **kwargs):

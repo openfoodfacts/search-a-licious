@@ -219,3 +219,36 @@ def test_dsl_search_and_index_work_with_the_adapter(client, native):
     native.indices.create.assert_called_once_with(
         index="off", body={"settings": {"number_of_shards": 1}}, timeout="3600s"
     )
+
+
+def test_index_translates_document_to_body(client, native):
+    client.index(index="idx", id="1", document={"a": 1})
+    native.index.assert_called_once_with(index="idx", id="1", body={"a": 1})
+
+
+def test_index_keeps_body(client, native):
+    client.index(index="idx", id="1", body={"a": 1})
+    native.index.assert_called_once_with(index="idx", id="1", body={"a": 1})
+
+
+def test_search_moves_query_to_body(client, native):
+    native.search.return_value = {"hits": {}}
+    client.search(index="idx", query={"match_all": {}})
+    native.search.assert_called_once_with(
+        index="idx", body={"query": {"match_all": {}}}
+    )
+
+
+def test_search_keeps_body(client, native):
+    native.search.return_value = {"hits": {}}
+    client.search(index="idx", body={"query": {"match_all": {}}})
+    native.search.assert_called_once_with(
+        index="idx", body={"query": {"match_all": {}}}
+    )
+
+
+def test_clone_translates_source(client, native):
+    client.indices.clone(source="a", target="b", wait_for_completion=True)
+    native.indices.clone.assert_called_once_with(
+        index="a", target="b", wait_for_completion=True
+    )
