@@ -189,6 +189,8 @@ def is_new_image_schema(images_data: JSONType) -> bool:
 
 # This is not part of search-a-licious, so we don't use the settings object
 OFF_API_URL = os.environ.get("OFF_API_URL", "https://world.openfoodfacts.org")
+# seconds to wait for the Open Food Facts API before giving up (and retrying)
+OFF_API_TIMEOUT = 30
 
 
 class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
@@ -234,9 +236,14 @@ class DocumentFetcher(BaseDocumentFetcher):
         code = item["code"]
         url = f"{OFF_API_URL}/api/v3.3/product/{code}"
         try:
-            response = http_session.get(url)
+            response = http_session.get(url, timeout=OFF_API_TIMEOUT)
         except requests.exceptions.RequestException as exc:
             logger.warning("Failed to fetch %s: %s", url, exc)
+            return FetcherResult(status=FetcherStatus.RETRY, document=None)
+        if not response.ok and response.status_code != 404:
+            # an error response says nothing about the product, never treat it
+            # as a removed product
+            logger.warning("Got HTTP %s from %s", response.status_code, url)
             return FetcherResult(status=FetcherStatus.RETRY, document=None)
         try:
             json_response = response.json()
