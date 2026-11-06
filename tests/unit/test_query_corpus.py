@@ -38,6 +38,8 @@ ACCEPTED = [
     "milk?",
     "milk^2",
     "!milk",
+    "-sugar",
+    "NOT milk",
 ]
 
 # queries that should work but are rejected today (HTTP 400), see #253
@@ -53,12 +55,6 @@ XFAIL_REJECTED = [
 
 # queries that are legitimately rejected with a clear error
 REJECTED = ["(milk", "milk)", "~milk", '"', "milk:", "*", "a:b:c"]
-
-# queries that crash with a 500 today
-XFAIL_CRASH = [
-    pytest.param("-sugar", id="-sugar"),  # fixed by #515
-    pytest.param("NOT milk", id="NOT milk"),  # fixed by #515
-]
 
 
 def _build(q: str, default_filter_query_builder):
@@ -85,12 +81,3 @@ def test_hyphenated_and_slashed_queries(q, default_filter_query_builder):
 def test_invalid_queries_give_a_query_error(q, default_filter_query_builder):
     with pytest.raises(QueryAnalysisError):
         _build(q, default_filter_query_builder)
-
-
-@pytest.mark.parametrize("q", XFAIL_CRASH)
-@pytest.mark.xfail(reason="IndexError on a top-level negation, see #514")
-def test_negation_only_queries_do_not_crash(q, default_filter_query_builder):
-    try:
-        _build(q, default_filter_query_builder)
-    except QueryAnalysisError:
-        pass
