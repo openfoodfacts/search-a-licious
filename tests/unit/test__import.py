@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
+from elasticsearch import NotFoundError
 from redis import Redis
 
 from app._import import (
@@ -350,6 +351,45 @@ def test_update_alias(default_config):
             {"add": {"alias": index_alias, "index": next_index}},
         ]
     )
+
+
+def test_run_update_daemon_ignores_removal_of_absent_document(
+    default_global_config: Config,
+):
+    off_config: IndexConfig = default_global_config.indices["off"]
+    es_client_mock = MagicMock()
+    es_client_mock.delete.side_effect = NotFoundError(
+        "not found", MagicMock(status=404), {}
+    )
+    connection_mock = MagicMock()
+    connection_mock.get_es_client.return_value = es_client_mock
+    updates = [
+        (
+            "product_updates_off",
+            1629878400000,
+            FetcherResult(status=FetcherStatus.REMOVED, document={"code": "4"}),
+        ),
+        (
+            "product_updates_off",
+            1629878400001,
+            FetcherResult(
+                status=FetcherStatus.FOUND, document={"code": "5", "name": "Doc 5"}
+            ),
+        ),
+    ]
+    with (
+        patch("app._import.connection", connection_mock),
+        patch(
+            "app._import.load_document_fetcher",
+            MagicMock(return_value=DocumentFetcher(off_config)),
+        ),
+        patch("app._import.get_new_updates", MagicMock(return_value=updates)),
+    ):
+        run_update_daemon(default_global_config)
+
+    es_client_mock.delete.assert_called_once()
+    # the daemon went on with the next update
+    es_client_mock.index.assert_called_once()
 
 
 def test_run_update_daemon(default_global_config: Config):

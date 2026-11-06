@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterator, cast
 
 import tqdm
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Index, Search
 from redis import Redis
@@ -709,10 +709,14 @@ def run_update_daemon(config: Config) -> None:
         index_id = stream_name_to_index_id[stream_name]
         logger.debug("Document:\n%s", processed_document)
         if processed_result.status == FetcherStatus.REMOVED:
-            es_client.delete(
-                index=config.indices[index_id].index.name,
-                id=_id,
-            )
+            try:
+                es_client.delete(
+                    index=config.indices[index_id].index.name,
+                    id=_id,
+                )
+            except NotFoundError:
+                # already absent from the index, nothing to do
+                logger.debug("Document %s to remove is not in the index", _id)
         else:
             es_client.index(
                 index=config.indices[index_id].index.name,
