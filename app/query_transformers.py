@@ -187,7 +187,7 @@ class QueryCheck(luqum.check.LuceneCheck):
     # TECHDEBT(SAL-TECHDEBT-008): move dotted field-name support to luqum core.
     field_name_re = re.compile(r"^[\w.]+$")
     # remove zealous check on words,
-    # we use an expression that redundant with spaces check (that comes before)
+    # we use an expression redundant with spaces check (that comes before)
     invalid_term_chars_re = re.compile(" ")
 
     def __init__(self, index_config: IndexConfig, **kwargs):
