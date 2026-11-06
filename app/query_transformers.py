@@ -185,7 +185,7 @@ class QueryCheck(luqum.check.LuceneCheck):
     )
     FIELD_EXPR_FIELDS = SIMPLE_EXPR_FIELDS + (tree.FieldGroup,)
     # TECHDEBT(SAL-TECHDEBT-008): move dotted field-name support to luqum core.
-    field_name_re = re.compile(r"^[\w.]+$")
+    field_name_re = re.compile(r"^[\w.-]+$")
     # remove zealous check on words,
     # we use an expression redundant with spaces check (that comes before)
     invalid_term_chars_re = re.compile(" ")
