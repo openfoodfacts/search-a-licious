@@ -4,13 +4,20 @@ import {isNullOrUndefined} from '../utils';
 import {API_LIST_DIVIDER, PROPERTY_LIST_DIVIDER} from '../utils/constants';
 import {SearchParameters} from '../interfaces/search-params-interfaces';
 import {setCurrentURLHistory} from '../utils/url';
-import {isSearchLoading, searchResultDetail} from '../signals';
+import {
+  getDefaultSearchResultDetail,
+  isSearchLoading,
+  searchResultDetail,
+} from '../signals';
 import {SearchaliciousStateInterface} from './search-ctl-state';
 import {SearchaliciousDomInterface} from './search-ctl-dom';
 import {
   HistoryParams,
   SearchaliciousHistoryInterface,
 } from '../interfaces/history-interfaces';
+
+// Controllers with the same name publish to the same result and loading signals.
+const searchRequests = new Map<string, symbol>();
 
 export declare class SearchaliciousApiInterface {
   _searchUrl(page?: number): {
@@ -121,54 +128,78 @@ export const SearchaliciousApiMixin = <
       const {searchUrl, method, params, history} = this._searchUrl(page);
       setCurrentURLHistory(history);
 
-      isSearchLoading(this.name).value = true;
+      const searchName = this.name;
+      const requestId = Symbol();
+      searchRequests.set(searchName, requestId);
+      const ownsRequest = () => searchRequests.get(searchName) === requestId;
+      const emptyResult = {
+        ...getDefaultSearchResultDetail(),
+        pageSize: this.pageSize,
+        // Facet selections belong to the query and must survive a failed request.
+        facets: searchResultDetail(searchName).value.facets,
+      };
+      this._results = [];
+      this._count = 0;
+      this._currentPage = 0;
+      this._pageCount = 0;
+      searchResultDetail(searchName).value = emptyResult;
+      isSearchLoading(searchName).value = true;
 
-      // FIXME data should be typed
-      let data;
       try {
-        let response;
-        if (method === 'GET') {
-          response = await fetch(
-            `${searchUrl}?${this._paramsToQueryStr(params)}`
-          );
-        } else {
-          response = await fetch(searchUrl, {
-            method: 'POST',
-            body: JSON.stringify(params),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
+        const response =
+          method === 'GET'
+            ? await fetch(`${searchUrl}?${this._paramsToQueryStr(params)}`)
+            : await fetch(searchUrl, {
+                method: 'POST',
+                body: JSON.stringify(params),
+                headers: {'Content-Type': 'application/json'},
+              });
+        if (!ownsRequest() || this.name !== searchName) {
+          return;
         }
         if (!response.ok) {
-          throw new Error(
-            `Search request failed with status ${response.status}`
-          );
+          throw new Error(`Search failed with status ${response.status}`);
         }
-        data = await response.json();
+        // FIXME data should be typed…
+        const data = await response.json();
+        if (!ownsRequest() || this.name !== searchName) {
+          return;
+        }
+        if (!Array.isArray(data.hits)) {
+          throw new Error('Search response has no results array');
+        }
         this._results = data.hits;
         this._count = data.count;
         this.pageSize = data.page_size;
         this._currentPage = data.page;
         this._pageCount = data.page_count;
+
+        searchResultDetail(searchName).value = {
+          charts: data.charts,
+          count: data.count,
+          currentPage: this._currentPage!,
+          displayTime: data.took,
+          facets: data.facets,
+          isCountExact: data.is_count_exact,
+          isSearchLaunch: true,
+          pageCount: this._pageCount!,
+          pageSize: this.pageSize,
+          results: this._results!,
+        };
+      } catch (error) {
+        if (ownsRequest() && this.name === searchName) {
+          console.error('Search request failed', error);
+          searchResultDetail(searchName).value = {...emptyResult, error: true};
+        }
       } finally {
-        isSearchLoading(this.name).value = false;
+        if (ownsRequest()) {
+          searchRequests.delete(searchName);
+          isSearchLoading(searchName).value = false;
+          if (this.name === searchName) {
+            this.updateSearchSignals();
+          }
+        }
       }
-
-      searchResultDetail(this.name).value = {
-        charts: data.charts,
-        count: data.count,
-        currentPage: this._currentPage!,
-        displayTime: data.took,
-        facets: data.facets,
-        isCountExact: data.is_count_exact,
-        isSearchLaunch: true,
-        pageCount: this._pageCount!,
-        pageSize: this.pageSize,
-        results: this._results!,
-      };
-
-      this.updateSearchSignals();
     }
   }
 
