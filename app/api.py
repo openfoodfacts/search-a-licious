@@ -21,6 +21,7 @@ from app._types import (
     SuccessSearchResponse,
 )
 from app.config import settings
+from app.middleware import CatchAllErrorsMiddleware
 from app.postprocessing import process_taxonomy_completion_response
 from app.query import build_completion_query
 from app.utils import connection, get_logger, init_sentry
@@ -53,6 +54,8 @@ app = FastAPI(
     },
     description=API_DESCRIPTION,
 )
+# must be added before CORSMiddleware, to be inside it
+app.add_middleware(CatchAllErrorsMiddleware)
 app.add_middleware(
     CORSMiddleware,
     # this is a public API
