@@ -179,20 +179,20 @@ def synonyms_param(*args):
         # simple queries
         ({"q": "sugar"}, ALL_CODES),
         ({"q": "brown"}, ["3012345670005", "3012345670006"]),
-        # this also searches in labels
-        ({"q": "organic"}, ORGANIC_CODES),
+        # this also searches in labels (language sub-fields need synonyms)
+        synonyms_param({"q": "organic"}, ORGANIC_CODES),
         # synonym of label organic, will work only if we boost phrase
         synonyms_param({"q": "organically grown", "boost_phrase": True}, ORGANIC_CODES),
         # also works for translations
-        ({"q": "bio", "langs": ["fr"]}, ORGANIC_CODES),
-        ({"q": "bio", "langs": ["en,fr"]}, ORGANIC_CODES),
+        synonyms_param({"q": "bio", "langs": ["fr"]}, ORGANIC_CODES),
+        synonyms_param({"q": "bio", "langs": ["en,fr"]}, ORGANIC_CODES),
         # with more terms this does not work, yet, see
         xfail_param(
             {"q": "organically grown plants", "boost_phrase": True}, ORGANIC_CODES
         ),
         # as phrase
         synonyms_param({"q": '"organically grown"'}, ORGANIC_CODES),
-        (
+        synonyms_param(
             {"q": '"issu de l\'agriculture biologique"', "langs": ["fr"]},
             ORGANIC_CODES,
         ),
