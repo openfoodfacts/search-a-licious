@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+import requests
 
 import app.config
 import app.openfoodfacts
@@ -178,3 +179,61 @@ def test_result_processor_skips_selected_images_without_language(language):
         "https://images.openfoodfacts.org/images/products/316/893/001/0265/front_en.299.400.jpg"
     )
     assert result["selected_images"]["front"]["display"]["en"] == result["image_url"]
+
+
+def _fetch(monkeypatch, response=None, exc=None):
+    """Run DocumentFetcher.fetch_document with a mocked HTTP session"""
+    get = MagicMock(return_value=response, side_effect=exc)
+    monkeypatch.setattr(app.openfoodfacts.http_session, "get", get)
+    result = app.openfoodfacts.DocumentFetcher(MagicMock()).fetch_document(
+        "stream", {"code": "123"}
+    )
+    return result, get
+
+
+def _response(status_code, json_data=None, json_error=False):
+    response = MagicMock(status_code=status_code, ok=status_code < 400)
+    if json_error:
+        response.json.side_effect = requests.exceptions.JSONDecodeError("bad", "", 0)
+    else:
+        response.json.return_value = json_data
+    return response
+
+
+def test_fetcher_found(monkeypatch):
+    result, get = _fetch(
+        monkeypatch, _response(200, {"status": 1, "product": {"a": 1}})
+    )
+    assert result.status == FetcherStatus.FOUND
+    assert result.document == {"a": 1}
+    # a timeout is always set
+    assert get.call_args.kwargs["timeout"] == app.openfoodfacts.OFF_API_TIMEOUT
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        _response(200, {"status": 0, "status_verbose": "product not found"}),
+        _response(404, {"status": 0}),
+    ],
+)
+def test_fetcher_removed(monkeypatch, response):
+    result, _ = _fetch(monkeypatch, response)
+    assert result.status == FetcherStatus.REMOVED
+
+
+@pytest.mark.parametrize("status_code", [429, 500, 502, 503])
+def test_fetcher_retries_on_server_error(monkeypatch, status_code):
+    # the body has no product, but this must not be taken as a removal
+    result, _ = _fetch(monkeypatch, _response(status_code, {}))
+    assert result.status == FetcherStatus.RETRY
+
+
+def test_fetcher_retries_on_timeout(monkeypatch):
+    result, _ = _fetch(monkeypatch, exc=requests.exceptions.Timeout())
+    assert result.status == FetcherStatus.RETRY
+
+
+def test_fetcher_invalid_json(monkeypatch):
+    result, _ = _fetch(monkeypatch, _response(200, json_error=True))
+    assert result.status == FetcherStatus.OTHER
