@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from typing import Annotated, Any, cast
 
-import elasticsearch
 import starlette.status as status
 from elasticsearch_dsl import Search
 from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
@@ -23,6 +22,7 @@ from app._types import (
 from app.config import settings
 from app.postprocessing import process_taxonomy_completion_response
 from app.query import build_completion_query
+from app.search_client import NotFoundError
 from app.utils import connection, get_logger, init_sentry
 from app.validations import check_index_id_is_defined
 
@@ -206,7 +206,7 @@ def taxonomy_autocomplete(
     )
     try:
         es_response = query.execute()
-    except elasticsearch.NotFoundError:
+    except NotFoundError:
         raise HTTPException(
             status_code=500,
             detail="taxonomy index not found, taxonomies need to be imported first",

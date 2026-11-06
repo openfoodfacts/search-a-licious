@@ -2,7 +2,7 @@ import logging
 from enum import StrEnum
 from inspect import cleandoc as cd_
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import Field
 from pydantic.json_schema import GenerateJsonSchema
@@ -75,6 +75,17 @@ class Settings(BaseSettings):
             )
         ),
     ] = "http://localhost:9200"
+    search_engine: Annotated[
+        Literal["elasticsearch", "opensearch"],
+        Field(
+            description=cd_(
+                """Search engine to use, `elasticsearch` or `opensearch`.
+
+                OpenSearch is supported with `synonyms_strategy: none` only.
+                """
+            )
+        ),
+    ] = "elasticsearch"
     redis_host: Annotated[
         str,
         Field(

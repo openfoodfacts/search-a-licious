@@ -1,0 +1,72 @@
+# Run search-a-licious on OpenSearch instead of Elasticsearch.
+#
+# Add it to the compose files, it replaces the engine used by api and updater:
+#   COMPOSE_FILE="docker-compose.yml;docker/dev.yml;docker/opensearch.yml"
+# then start `os01 os02` instead of `es01 es02`.
+#
+# Only `synonyms_strategy: none` is supported (OpenSearch has no synonyms sets API).
+
+x-base-os-service: &base-os-service
+  image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+  restart: ${RESTART_POLICY:-always}
+  mem_limit: ${MEM_LIMIT}
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
+    nofile:
+      soft: 65536
+      hard: 65536
+  healthcheck:
+    test: ["CMD-SHELL", "curl -s -f localhost:9200/_cat/health >/dev/null || exit 1"]
+    interval: 10s
+    timeout: 10s
+    retries: 120
+
+# shared environment for OpenSearch, comparable to the one of Elasticsearch
+x-base-os-envs: &base-os-envs
+  cluster.name: ${CLUSTER_NAME}
+  cluster.initial_cluster_manager_nodes: os01,os02
+  bootstrap.memory_lock: "true"
+  DISABLE_SECURITY_PLUGIN: "true"
+  DISABLE_INSTALL_DEMO_CONFIG: "true"
+  # Elasticsearch uses half of the memory limit for its heap, do the same
+  OPENSEARCH_JAVA_OPTS: ${OPENSEARCH_JAVA_OPTS:--Xms2g -Xmx2g}
+
+x-search-engine: &search-engine
+  environment:
+    - SEARCH_ENGINE=opensearch
+    - ELASTICSEARCH_URL=http://os01:9200
+
+services:
+  os01:
+    <<: *base-os-service
+    environment:
+      <<: *base-os-envs
+      node.name: os01
+      discovery.seed_hosts: os02
+    volumes:
+      - osdata01:/usr/share/opensearch/data
+    ports:
+      - "${ES_EXPOSE:-127.0.0.1:9200}:9200"
+
+  os02:
+    <<: *base-os-service
+    environment:
+      <<: *base-os-envs
+      node.name: os02
+      discovery.seed_hosts: os01
+    depends_on:
+      - os01
+    volumes:
+      - osdata02:/usr/share/opensearch/data
+
+  api:
+    <<: *search-engine
+
+  updater:
+    <<: *search-engine
+
+volumes:
+  osdata01:
+  osdata02:
