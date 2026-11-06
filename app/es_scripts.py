@@ -1,6 +1,7 @@
 """Module to manage ES scripts that can be used for personalized sorting"""
 
 from app import config
+from app.search_client import ApiError, error_body
 from app.utils import connection, get_logger
 
 logger = get_logger(__name__)
@@ -50,7 +51,6 @@ def _store_script(
 
 def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, int]:
     """Resync the scripts between configuration and elasticsearch."""
-    from app.search_client import ApiError
     # list existing
     current_ids = _list_stored_scripts(index_config, prefix=get_script_prefix(index_id))
     # remove them
@@ -67,6 +67,6 @@ def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, i
                     "Unable to store script %s, got exception %s: %s",
                     script_id,
                     e,
-                    getattr(e, 'body', None) or getattr(e, 'info', None),
+                    error_body(e),
                 )
     return {"removed": len(current_ids), "added": stored_scripts}

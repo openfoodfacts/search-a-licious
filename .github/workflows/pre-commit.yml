@@ -12,20 +12,60 @@ jobs:
       COMPOSE_PROGRESS: plain
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: install python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: 3.11
+          python-version: 3.13
       - name: build docker containers
         run: |
           echo "" > .envrc
           echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
           echo OFF_API_URL=https://world.openfoodfacts.org >> .envrc
-          echo USER_IID=$(id -u) >>.envrc
+          echo USER_UID=$(id -u) >>.envrc
           echo USER_GID=$(id -g) >>.envrc
           make build
       - name: Enforce pre-commit hook server side
         uses: pre-commit/action@v3.0.1
+
+      - name: Setup sysctl
+        run: |
+          sudo sysctl -w vm.max_map_count=262144
+          sudo sysctl -w fs.file-max=65536
+          sudo sysctl -w fs.nr_open=65536
+
+      # unit and frontend tests, integration tests run in the next job
       - name: run tests
-        run: make test
+        run: make _ensure_network check_poetry_lock test_api_unit test_front
+
+  # integration tests, on each search engine, in separate jobs
+  integration:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [elasticsearch, opensearch]
+    name: integration (${{ matrix.engine }})
+
+    env:
+      COMPOSE_PROGRESS: plain
+
+    steps:
+      - uses: actions/checkout@v7
+      - name: build docker containers
+        run: |
+          echo "" > .envrc
+          echo CONFIG_PATH=data/config/openfoodfacts.yml >> .envrc
+          echo OFF_API_URL=https://world.openfoodfacts.org >> .envrc
+          echo USER_UID=$(id -u) >>.envrc
+          echo USER_GID=$(id -g) >>.envrc
+          make build
+
+      - name: Setup sysctl
+        run: |
+          sudo sysctl -w vm.max_map_count=262144
+          sudo sysctl -w fs.file-max=65536
+          sudo sysctl -w fs.nr_open=65536
+
+      - name: run integration tests on ${{ matrix.engine }}
+        run: make _ensure_network test_api_integration ENGINE=${{ matrix.engine }}

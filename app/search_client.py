@@ -1,161 +1,189 @@
-import os
-from typing import Any, Dict, List, Optional
+"""Support for running against OpenSearch instead of Elasticsearch.
 
+Elasticsearch is the default engine and is used as is: nothing in this module
+wraps the Elasticsearch client.
+
+OpenSearch is opt-in (`SEARCH_ENGINE=opensearch`). Its client is wrapped by
+:class:`SearchClient`, which gives it the call style of `elasticsearch-py` 8
+used in the application, so the Elasticsearch DSL (`Search`, `Index`) keeps
+working. Everything the wrapper does not define is delegated to the native
+OpenSearch client.
+"""
+
+import functools
+from typing import Any
+
+import elastic_transport
 import elasticsearch
-import opensearchpy
-from elasticsearch.helpers import bulk as es_bulk
-from elasticsearch.helpers import parallel_bulk as es_parallel_bulk
-from opensearchpy.helpers import bulk as os_bulk
-from opensearchpy.helpers import parallel_bulk as os_parallel_bulk
+from elasticsearch import helpers as es_helpers
 
-from app.config import settings
+try:  # OpenSearch support is optional
+    import opensearchpy
+    from opensearchpy import exceptions as os_exceptions
+    from opensearchpy import helpers as os_helpers
+except ImportError:  # pragma: no cover
+    opensearchpy = None  # type: ignore[assignment]
+    os_exceptions = None  # type: ignore[assignment]
+    os_helpers = None  # type: ignore[assignment]
 
-_engine = os.getenv("SEARCH_ENGINE", "elasticsearch").lower()
+SUPPORTED_ENGINES = ("elasticsearch", "opensearch")
 
-if _engine not in ("elasticsearch", "opensearch"):
-    raise ValueError(
-        f"Unsupported SEARCH_ENGINE '{_engine}', "
-        "expected 'elasticsearch' or 'opensearch'"
-    )
 
-if _engine == "opensearch":
-    from opensearchpy.exceptions import ConnectionError as ConnectionError_
-    from opensearchpy.exceptions import NotFoundError
-    from opensearchpy.exceptions import TransportError as ApiError
-else:
-    from elastic_transport import ConnectionError as ConnectionError_
-    from elasticsearch import NotFoundError
-    from elasticsearch import ApiError
+def _exceptions(es_exc: type[Exception], os_name: str) -> Any:
+    """Exceptions to catch, whatever the engine (usable in `except`)"""
+    if os_exceptions is None:
+        return es_exc
+    return (es_exc, getattr(os_exceptions, os_name))
+
+
+# Exceptions to use in `except` clauses.
+# Keep the order `BadRequestError`, `ConnectionError_`, then `ApiError`:
+# for OpenSearch, all of them derive from `TransportError`.
+ApiError = _exceptions(elasticsearch.ApiError, "TransportError")
+BadRequestError = _exceptions(elasticsearch.BadRequestError, "RequestError")
+NotFoundError = _exceptions(elasticsearch.NotFoundError, "NotFoundError")
+ConnectionError_ = _exceptions(elastic_transport.ConnectionError, "ConnectionError")
+
+
+def error_body(error: Exception) -> Any:
+    """Body of an error response (`body` for Elasticsearch, `info` for OpenSearch)"""
+    return getattr(error, "body", None) or getattr(error, "info", None)
+
+
+class _Body(dict):
+    """A search response, with the `body` attribute of the Elasticsearch client
+    responses, as expected by the Elasticsearch DSL."""
+
+    @property
+    def body(self) -> dict:
+        return dict(self)
+
+
+class _IndicesAdapter:
+    """`client.indices` with Elasticsearch 8 style arguments"""
+
+    def __init__(self, indices):
+        self._indices = indices
+
+    def __getattr__(self, name: str):
+        return getattr(self._indices, name)
+
+    def create(self, index: str, body: dict | None = None, **kwargs):
+        # Elasticsearch takes `mappings`, `settings` and `aliases` as arguments
+        body = dict(body or {})
+        for key in ("mappings", "settings", "aliases"):
+            if key in kwargs:
+                body[key] = kwargs.pop(key)
+        return self._indices.create(index=index, body=body, **kwargs)
+
+    def update_aliases(self, actions: list[dict], **kwargs):
+        return self._indices.update_aliases(body={"actions": actions}, **kwargs)
+
+    def analyze(
+        self,
+        index: str | None = None,
+        body: dict | None = None,
+        **kwargs,
+    ):
+        # Elasticsearch takes `text`, `analyzer`, ... as arguments
+        body = dict(body or {})
+        for key in ("text", "analyzer", "tokenizer", "filter", "char_filter", "field"):
+            if key in kwargs:
+                body[key] = kwargs.pop(key)
+        return self._indices.analyze(index=index, body=body, **kwargs)
+
+
+class _Options:
+    """Per-request options, as returned by `Elasticsearch.options()`"""
+
+    def __init__(self, client: "SearchClient", options: dict):
+        self._client = client
+        self._options = options
+
+    def __getattr__(self, name: str):
+        attr = getattr(self._client, name)
+        if callable(attr):
+            return functools.partial(attr, **self._options)
+        return attr
 
 
 class SearchClient:
-    """Abstraction layer for Search Engine operations to support both Elasticsearch and OpenSearch."""
+    """Adapter that makes an OpenSearch client usable like an Elasticsearch 8 one.
 
-    def __init__(self, **kwargs):
-        self.engine = _engine
-        if self.engine == "opensearch":
-            # TLS behaviour comes from the endpoint URL scheme
-            # and from the options provided by the caller
-            self.client = opensearchpy.OpenSearch(
-                hosts=[settings.elasticsearch_url],
-                **kwargs,
-            )
-        else:
-            self.client = elasticsearch.Elasticsearch(
-                hosts=[settings.elasticsearch_url],
-                **kwargs,
-            )
+    Only the methods whose arguments differ are defined here,
+    anything else is delegated to the native client.
+    """
+
+    engine = "opensearch"
+
+    def __init__(self, client):
+        self.client = client
+        self.indices = _IndicesAdapter(client.indices)
+
+    def __getattr__(self, name: str):
+        # only called for what is not defined on the adapter
+        return getattr(self.client, name)
+
+    def options(self, request_timeout: float | None = None, **kwargs) -> _Options:
+        """Derive a client with other options, without altering this one"""
+        options = dict(kwargs)
+        if request_timeout is not None:
+            options["request_timeout"] = request_timeout
+        return _Options(self, options)
+
+    def search(self, *args, **kwargs) -> _Body:
+        return _Body(self.client.search(*args, **kwargs))
+
+    def put_script(self, id: str, script: dict, context: str | None = None, **kwargs):
+        return self.client.put_script(
+            id=id, body={"script": script}, context=context, **kwargs
+        )
 
     @property
-    def indices(self):
-        """Exposes the underlying indices client for both ES and OS."""
-        return self.client.indices
+    def synonyms(self):
+        raise NotImplementedError(
+            "The synonyms sets API is not available on OpenSearch, "
+            "use `synonyms_strategy: none`"
+        )
 
-    @property
-    def cluster(self):
-        """Exposes the underlying cluster client."""
-        return self.client.cluster
 
-    def delete_script(self, id: str, **kwargs) -> Dict[str, Any]:
-        """Delete a script."""
-        return dict(self.client.delete_script(id=id, **kwargs))
+def _opensearch_kwargs(kwargs: dict) -> dict:
+    """Translate Elasticsearch client arguments to OpenSearch ones.
 
-    def put_script(self, id: str, script: Dict[str, Any], context: str = None, **kwargs) -> Dict[str, Any]:
-        """Store a script."""
-        if self.engine == "elasticsearch":
-            return dict(self.client.put_script(id=id, script=script, context=context, **kwargs))
-        else:
-            return dict(self.client.put_script(id=id, body={"script": script}, context=context, **kwargs))
+    OpenSearch ignores `request_timeout` as a client argument, it is `timeout`.
+    """
+    kwargs = dict(kwargs)
+    if "request_timeout" in kwargs:
+        kwargs["timeout"] = kwargs.pop("request_timeout")
+    return kwargs
 
-    def search(self, index: str, body: Dict[str, Any], **kwargs) -> Dict[str, Any]:
-        """Perform a search query."""
-        if self.engine == "elasticsearch":
-            return dict(self.client.search(index=index, body=body, **kwargs))
-        else:
-            return dict(self.client.search(index=index, body=body, **kwargs))
 
-    def index(self, index: str, body: Dict[str, Any], id: Optional[str] = None, **kwargs) -> Dict[str, Any]:
-        """Index a document."""
-        if self.engine == "elasticsearch":
-            return dict(self.client.index(index=index, document=body, id=id, **kwargs))
-        else:
-            return dict(self.client.index(index=index, body=body, id=id, **kwargs))
+def create_client(engine: str, url: str, **kwargs):
+    """Create the client for an engine. Elasticsearch gets a native client."""
+    if engine == "elasticsearch":
+        return elasticsearch.Elasticsearch(hosts=[url], **kwargs)
+    if engine == "opensearch":
+        if opensearchpy is None:
+            raise RuntimeError(
+                "SEARCH_ENGINE=opensearch needs the opensearch-py package"
+            )
+        return SearchClient(
+            opensearchpy.OpenSearch(hosts=[url], **_opensearch_kwargs(kwargs))
+        )
+    raise ValueError(
+        f"Unsupported search engine '{engine}', expected one of {SUPPORTED_ENGINES}"
+    )
 
-    def delete(self, index: str, id: str, **kwargs) -> Dict[str, Any]:
-        """Delete a document."""
-        return dict(self.client.delete(index=index, id=id, **kwargs))
 
-    def bulk(self, actions: Any, raise_on_error: bool = False, **kwargs) -> tuple:
-        """Perform a bulk operation."""
-        if self.engine == "elasticsearch":
-            return es_bulk(self.client, actions, raise_on_error=raise_on_error, **kwargs)
-        else:
-            return os_bulk(self.client, actions, raise_on_error=raise_on_error, **kwargs)
+def bulk(client, *args, **kwargs):
+    """`helpers.bulk` for the engine of the client"""
+    if isinstance(client, SearchClient):
+        return os_helpers.bulk(client.client, *args, **kwargs)
+    return es_helpers.bulk(client, *args, **kwargs)
 
-    def parallel_bulk(self, actions: Any, **kwargs):
-        """Perform a parallel bulk operation."""
-        if self.engine == "elasticsearch":
-            return es_parallel_bulk(self.client, actions, **kwargs)
-        else:
-            return os_parallel_bulk(self.client, actions, **kwargs)
 
-    def update_aliases(self, actions: List[Dict[str, Any]], **kwargs) -> Dict[str, Any]:
-        """Update aliases."""
-        if self.engine == "elasticsearch":
-            return dict(self.client.indices.update_aliases(actions=actions, **kwargs))
-        else:
-            return dict(self.client.indices.update_aliases(body={"actions": actions}, **kwargs))
-
-    def get_alias(self, name: str, **kwargs) -> Dict[str, Any]:
-        """Get alias mapping."""
-        return dict(self.client.indices.get_alias(name=name, **kwargs))
-
-    def delete_index(self, index: str, **kwargs) -> Dict[str, Any]:
-        """Delete an index."""
-        return dict(self.client.indices.delete(index=index, **kwargs))
-
-    def create_index(self, index: str, body: Dict[str, Any], **kwargs) -> Dict[str, Any]:
-        """Create an index."""
-        if self.engine == "elasticsearch":
-            mappings = body.get("mappings")
-            settings_ = body.get("settings")
-            return dict(self.client.indices.create(index=index, mappings=mappings, settings=settings_, **kwargs))
-        else:
-            return dict(self.client.indices.create(index=index, body=body, **kwargs))
-
-    def refresh_index(self, index: str, **kwargs) -> Dict[str, Any]:
-        """Refresh an index."""
-        return dict(self.client.indices.refresh(index=index, **kwargs))
-
-    def analyze(self, index: str, body: Dict[str, Any] = None, text: str = None, analyzer: Any = None, **kwargs) -> Dict[str, Any]:
-        """Analyze text."""
-        if self.engine == "elasticsearch":
-            # For elasticsearch-py 8.x, indices.analyze kwargs are used
-            req_kwargs = kwargs.copy()
-            if text is not None:
-                req_kwargs["text"] = text
-            if analyzer is not None:
-                req_kwargs["analyzer"] = analyzer
-            if body:
-                req_kwargs.update(body)
-            return dict(self.client.indices.analyze(index=index, **req_kwargs))
-        else:
-            # opensearch py might still use body or text/analyzer kwargs
-            req_body = body or {}
-            if text is not None:
-                req_body["text"] = text
-            if analyzer is not None:
-                req_body["analyzer"] = analyzer
-            return dict(self.client.indices.analyze(index=index, body=req_body, **kwargs))
-
-    def exists(self, index: str, **kwargs) -> bool:
-        """Check if an index exists."""
-        return bool(self.client.indices.exists(index=index, **kwargs))
-
-    def reload_search_analyzers(self, index: str, **kwargs) -> Dict[str, Any]:
-        """Reload search analyzers."""
-        return dict(self.client.indices.reload_search_analyzers(index=index, **kwargs))
-
-    def clear_cache(self, index: str, **kwargs) -> Dict[str, Any]:
-        """Clear cache."""
-        return dict(self.client.indices.clear_cache(index=index, **kwargs))
+def parallel_bulk(client, *args, **kwargs):
+    """`helpers.parallel_bulk` for the engine of the client"""
+    if isinstance(client, SearchClient):
+        return os_helpers.parallel_bulk(client.client, *args, **kwargs)
+    return es_helpers.parallel_bulk(client, *args, **kwargs)

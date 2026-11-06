@@ -126,13 +126,35 @@ You will then need to import from a JSONL dump (see instructions below).
 ## Importing data into your development environment
 
 - Import Taxonomies: `make import-taxonomies`
+
+- Get sample data
+   ```bash
+   # get some sample data
+   curl https://world.openfoodfacts.org/data/exports/products.random-modulo-1000.jsonl.gz --output data/products.random-modulo-1000.jsonl.gz
+   gzip -d data/products.random-modulo-1000.jsonl.gz
+   ```
+
+- this sample data has products with mix schema version,
+  you should convert them to all the same schema version,
+  the one corresponding to expected API used in `openfoodfacts.py`.
+  At the time of writing it's 1002
+
+  - [Install Product Opener locally](https://openfoodfacts.github.io/documentation/docs/Product-Opener/dev/how-to-quick-start-guide/)
+
+  - then use the `convert_product_schema_dump.pl` script
+    ```bash
+    docker compose run --rm --no-deps \
+      -v /path/to/search/data:/tmp/data backend \
+        scripts/convert_product_schema_dump.pl \
+        /tmp/data/products.random-modulo-1000.jsonl
+        --to-version 1002
+        --output /tmp/data/products.random-modulo-1000.1002.jsonl
+    ```
+
 - Import products :
   ```bash
-   # get some sample data
-   curl https://world.openfoodfacts.org/data/exports/products.random-modulo-10000.jsonl.gz --output data/products.random-modulo-10000.jsonl.gz
-   gzip -d data/products.random-modulo-10000.jsonl.gz
    # we skip updates because we are not connected to any redis
-   make import-dataset filepath='products.random-modulo-10000.jsonl' args='--skip-updates'
+   make import-dataset filepath='products.random-modulo-1000.1002jsonl' args='--skip-updates'
   ```
 
 Verify you have data by going to http://search.localhost:8000/
@@ -145,3 +167,16 @@ When you need to explore the elasticsearch data, you can use elasticvue.
 - Click on "Add Elasticsearch cluster"
 - change the cluster name to "docker-cluster" at http://127.0.0.1:9200
 - Click on "Connect"
+
+
+## Running on OpenSearch (experimental)
+
+Elasticsearch is the default search engine. OpenSearch is an opt-in alternative,
+selected with the `SEARCH_ENGINE=opensearch` setting.
+
+- OpenSearch has no synonyms sets API, so only `synonyms_strategy: none` is supported
+  (any other value is rejected when the configuration is loaded).
+- `docker/opensearch.yml` replaces the Elasticsearch nodes by two OpenSearch nodes (`os01`, `os02`)
+  and sets `SEARCH_ENGINE` for the `api` and `updater` services.
+  The version is `OPENSEARCH_VERSION` in `.env`.
+- To run the integration tests on OpenSearch: `make test_api_integration ENGINE=opensearch`.

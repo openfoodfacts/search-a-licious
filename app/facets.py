@@ -14,7 +14,7 @@ from ._types import (
 from .taxonomy_es import get_taxonomy_names
 
 
-def _get_translations(
+def get_translations(
     lang: str, items: list[tuple[str, str]], index_config: config.IndexConfig
 ) -> dict[tuple[str, str], str]:
     """Get translations for a list of items
@@ -38,6 +38,8 @@ def _get_translations(
         for id, field_name in items
         if field_name in field_taxonomy
     ]
+    if not items_to_fetch:
+        return {}
     items_names = get_taxonomy_names(items_to_fetch, index_config)
     # compute best translations
     translations: dict[tuple[str, str], str] = {}
@@ -73,7 +75,7 @@ def translate_facets_values(
         for field_name, info in facets.items()
         for item in info.items
     ]
-    translations = _get_translations(lang, items, index_config)
+    translations = get_translations(lang, items, index_config)
     # translate facets
     for field_name, info in facets.items():
         for item in info.items:
@@ -109,7 +111,8 @@ def build_facets(
         facet_items.extend(
             FacetItem(
                 key=bucket["key"],
-                # TODO: compute value in target language if there is a taxonomy
+                # TECHDEBT(SAL-TECHDEBT-001):
+                # compute translated value when facet is taxonomy-backed.
                 name=bucket["key"],
                 count=bucket["doc_count"],
                 selected=bucket["key"] in selected_values,
@@ -120,7 +123,8 @@ def build_facets(
         facet_items.extend(
             FacetItem(
                 key=value,
-                # TODO: compute value in target language if there is a taxonomy
+                # TECHDEBT(SAL-TECHDEBT-001):
+                # compute translated value when facet is taxonomy-backed.
                 name=value,
                 count=None,  # undefined
                 selected=True,
@@ -132,7 +136,7 @@ def build_facets(
             facet_items.append(
                 FacetItem(
                     key="--other--",
-                    # TODO: translate in target language ?
+                    # TECHDEBT(SAL-TECHDEBT-002): localize built-in pseudo facet labels.
                     name="Other",
                     count=agg_data["sum_other_doc_count"],
                     selected=False,
@@ -149,11 +153,13 @@ def build_facets(
         #     facet_items.append(
         #         FacetItem(
         #             key="--none--",
-        #             # TODO: translate in target language ?
+        #             # TECHDEBT(SAL-TECHDEBT-002):
+        #             # localize built-in pseudo facet labels.
         #             name="None",
         #             # Note:translate_facets_values leave it to user to verify
         #             count=search_result.count - items_count,
-        #             # FIXME: compute selected !
+        #             # TECHDEBT(SAL-TECHDEBT-003):
+        #             #compute selected state for synthetic entries.
         #             selected=False,
         #         )
         #     )
@@ -167,7 +173,7 @@ def build_facets(
         ]
         # append our facet information
         facets[field_name] = FacetInfo(
-            # FIXME translate field name in target language
+            # TECHDEBT(SAL-TECHDEBT-004): support translated facet display names.
             name=field_name,
             items=facet_items,
             count_error_margin=count_error_margin,

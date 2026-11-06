@@ -15,131 +15,37 @@ from pydantic import (
     model_validator,
 )
 from pydantic.json_schema import GenerateJsonSchema
-from pydantic_settings import BaseSettings
+
+from .settings import settings
 
 log = logging.getLogger(__name__)
-
 ES_DOCS_URL = "https://www.elastic.co/guide/en/elasticsearch/reference/current"
 
+# this comes from ES, this is a hard limit at the time of writing
+MAX_SYNONYMS_SETS_RULES = 10000
 
-class LoggingLevel(StrEnum):
-    """Accepted logging levels
 
-    * NOTSET - means no los
-    * DEBUG / INFO / WARNING / ERROR / CRITICAL
-      - match standard Python logging levels
+class SynonymsStrategy(StrEnum):
+    """Strategy to use for synonyms.
+
+    * index: synonyms are implemented using the ElasticSearch synonyms sets strategy.
+      It can be efficient
+      but it is not well supported
+      if you have a lot of taxonomies and a lot of languages.
+      (ElasticSearch start will be very very slow)
+    * none: synonyms are not automatically accounted for during requests
+      (you still get the taxonomies separate indexes).
+      This means your queries have to use the taxonomy id,
+      instead of a synonym or a translation.
+
+    A "query" strategy might be implemented in the future,
+    acting before sending the query to ElasticSearch.
     """
 
-    NOTSET = "NOTSET"
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
-
-    def to_int(self):
-        if self is LoggingLevel.NOTSET:
-            return 0
-        elif self is LoggingLevel.DEBUG:
-            return 10
-        elif self is LoggingLevel.INFO:
-            return 20
-        elif self is LoggingLevel.WARNING:
-            return 30
-        elif self is LoggingLevel.ERROR:
-            return 40
-        elif self is LoggingLevel.CRITICAL:
-            return 50
+    INDEX = "index"
+    NONE = "none"
 
 
-class ScriptType(StrEnum):
-    expression = "expression"
-    painless = "painless"
-
-
-class Settings(BaseSettings):
-    """Settings for Search-a-licious
-
-    The most important settings is `config_path`.
-
-    Those settings can be overridden through environment
-    by using the name in capital letters.
-    If you use docker compose, a good way to do that
-    is to modify those values in your .env file.
-    """
-
-    config_path: Annotated[
-        Path | None,
-        Field(
-            description=cd_(
-                """Path to the search-a-licious yaml configuration file.
-
-                See [Explain configuration file](../explain-configuration/) for more information
-                """
-            )
-        ),
-    ] = None
-    elasticsearch_url: Annotated[
-        str,
-        Field(
-            description=cd_(
-                """URL to the ElasticSearch instance
-
-                Bare in mind this is from inside the container.
-                """
-            )
-        ),
-    ] = "http://localhost:9200"
-    redis_host: Annotated[
-        str,
-        Field(
-            description=cd_(
-                """Host for the Redis instance containing event stream
-
-                Bare in mind this is from inside the container.
-                """
-            )
-        ),
-    ] = "localhost"
-    redis_port: Annotated[
-        int,
-        Field(description="Port for the redis host instance containing event stream"),
-    ] = 6379
-    redis_reader_timeout: Annotated[
-        int, Field(description="timeout in seconds to read redis event stream")
-    ] = 5
-    sentry_dns: Annotated[
-        str | None,
-        Field(
-            description="Sentry DNS to report incident, if None no incident is reported"
-        ),
-    ] = None
-    log_level: Annotated[
-        LoggingLevel, Field(description=f"Log level. {LoggingLevel.__doc__}")
-    ] = LoggingLevel.INFO
-    taxonomy_cache_dir: Annotated[
-        Path,
-        Field(
-            description="Directory where to store taxonomies before ingestion to ElasticSearch"
-        ),
-    ] = Path("data/taxonomies")
-    user_agent: Annotated[
-        str,
-        Field(
-            description="User-Agent used when fetching resources (taxonomies) or documents"
-        ),
-    ] = "search-a-licious"
-    synonyms_path: Annotated[
-        Path,
-        Field(
-            description="Path of the directory that will contain synonyms for ElasticSearch instances"
-        ),
-    ] = Path("/opt/search/synonyms")
-
-
-settings = Settings()
-
-# Mapping from language 2-letter code to Elasticsearch language analyzer names
 ANALYZER_LANG_MAPPING = {
     "en": "english",
     "fr": "french",
@@ -154,7 +60,7 @@ ANALYZER_LANG_MAPPING = {
     "pt-BR": "brazilian",
     "bg": "bulgarian",
     "ca": "catalan",
-    "cz": "czech",
+    "cs": "czech",
     "da": "danish",
     "et": "estonian",
     "fi": "finnish",
@@ -187,14 +93,9 @@ class ConfigGenerateJsonSchema(GenerateJsonSchema):
         return json_schema
 
 
-class SettingsGenerateJsonSchema(GenerateJsonSchema):
-    """Config to add fields to generated JSON schema for Settings."""
-
-    def generate(self, schema, mode="validation"):
-        json_schema = super().generate(schema, mode=mode)
-        json_schema["title"] = "JSON schema for search-a-licious settings"
-        json_schema["$schema"] = self.schema_dialect
-        return json_schema
+class ScriptType(StrEnum):
+    expression = "expression"
+    painless = "painless"
 
 
 class TaxonomySourceConfig(BaseModel):
@@ -234,6 +135,24 @@ class TaxonomySourceConfig(BaseModel):
             )
         ),
     ]
+    # there is a limitation of 10 000 synonyms rules per synonyms set in ES
+    # we must add a filter for each synonym set in ES
+    # so we must evaluate beforehand how much synonyms set we will need
+    max_synonyms_entries: Annotated[
+        int,
+        Field(
+            description=cd_(
+                f"""The maximum synonyms to account for
+                above this threshold, some synonyms will be ignored.
+
+                Using a high value might lead to performance problems
+
+                If you change this setting and go above a {MAX_SYNONYMS_SETS_RULES} slice,
+                you will have to re-import your index for it to take effect
+                """
+            )
+        ),
+    ] = MAX_SYNONYMS_SETS_RULES
 
 
 class FieldType(StrEnum):
@@ -286,7 +205,7 @@ class FieldType(StrEnum):
 
 # add url to FieldType doc
 if FieldType.__doc__:
-    FieldType.__doc__ += f"\n\n[Elasticsearch help]: {ES_DOCS_URL}/enabled.html"
+    FieldType.__doc__ += f"\n\n[Elasticsearch help]({ES_DOCS_URL}/enabled.html)"
 
 
 class FieldConfig(BaseModel):
@@ -308,6 +227,18 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = False
+    index: Annotated[
+        bool,
+        Field(
+            description=cd_(
+                """if False the field is not indexed, but only stored.
+
+                That is it will be possible to retrieve it in results,
+                but not query on it.
+                """
+            )
+        ),
+    ] = True
     input_field: Annotated[
         str | None,
         Field(
@@ -392,6 +323,15 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = None
+
+    @model_validator(mode="after")
+    def no_index_false_for_object_and_nested(self):
+        """Validator that checks that `index` is not set to False for
+        fields with types `object` or `nested`.
+        (because ES does not support it)"""
+        if not self.index and self.type in (FieldType.object, FieldType.nested):
+            raise ValueError("index cannot be set to False for object or nested type")
+        return self
 
     @model_validator(mode="after")
     def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
@@ -578,6 +518,10 @@ class TaxonomyConfig(BaseModel):
         | None
     ) = None
 
+    @functools.cached_property
+    def sources_by_name(self) -> dict[str, TaxonomySourceConfig]:
+        return {source.name: source for source in self.sources}
+
 
 class ScriptConfig(BaseModel):
     """Scripts can be used to sort results of a search.
@@ -670,6 +614,10 @@ class IndexConfig(BaseModel):
         str,
         Field(description="Used for vega. Should be CSS color code."),
     ] = "#222"
+    synonyms_strategy: Annotated[
+        SynonymsStrategy,
+        Field(description=SynonymsStrategy.__doc__),
+    ] = SynonymsStrategy.INDEX
     taxonomy: Annotated[TaxonomyConfig, Field(description=TaxonomyConfig.__doc__)]
     supported_langs: Annotated[
         list[str],
@@ -827,6 +775,21 @@ class IndexConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def synonyms_strategy_must_be_supported_by_search_engine(self):
+        """Validator that checks the synonyms strategy can run on the search engine:
+        OpenSearch has no equivalent of the synonyms sets API."""
+        if (
+            settings.search_engine == "opensearch"
+            and self.synonyms_strategy != SynonymsStrategy.NONE
+        ):
+            raise ValueError(
+                "synonyms_strategy "
+                f"'{self.synonyms_strategy}' is not supported with SEARCH_ENGINE="
+                "opensearch (no synonyms sets API), use 'none'"
+            )
+        return self
+
+    @model_validator(mode="after")
     def field_references_must_exist_and_be_valid(self):
         """Validator that checks that every field reference in ESIndexConfig
         refers to an existing field and is valid."""
@@ -887,10 +850,13 @@ class IndexConfig(BaseModel):
     @functools.cached_property
     def lang_fields(self) -> dict[str, FieldConfig]:
         """Fully qualified name of fields that are translated"""
+        lang_fields_types = ["text_lang"]
+        if self.synonyms_strategy == SynonymsStrategy.INDEX:
+            lang_fields_types.append("taxonomy")
         return {
             fname: field
             for fname, field in self.fields.items()
-            if field.type in ["taxonomy", "text_lang"]
+            if field.type in lang_fields_types
         }
 
     @functools.cached_property
@@ -901,6 +867,12 @@ class IndexConfig(BaseModel):
             for fname, field in self.fields.items()
             if field.full_text_search
         }
+
+    def get_synonym_set_name(self, taxonomy_name: str, lang: str) -> str:
+        """Return the prefix
+        that the synonyms set for a taxonomy and language should have
+        """
+        return f"{self.index.name}-{taxonomy_name}-{lang}"
 
 
 CONFIG_DESCRIPTION_INDICES = """
@@ -973,35 +945,3 @@ class Config(BaseModel):
         with path.open("r") as f:
             data = yaml.safe_load(f)
         return cls(**data)
-
-
-# _CONFIG is a global variable that contains the search-a-licious configuration
-# used. It is specified by the envvar CONFIG_PATH.
-# use get_config() to access it.
-_CONFIG: Config | None = None
-
-
-def get_config() -> Config:
-    """Return the object containing global configuration
-
-    It raises if configuration was not yet set
-    """
-    if _CONFIG is None:
-        raise RuntimeError(
-            "No configuration is configured, set envvar "
-            "CONFIG_PATH with the path of the yaml configuration file"
-        )
-    return _CONFIG
-
-
-def set_global_config(config_path: Path):
-    global _CONFIG
-    _CONFIG = Config.from_yaml(config_path)
-    return _CONFIG
-
-
-if settings.config_path:
-    if not settings.config_path.is_file():
-        raise RuntimeError(f"config file does not exist: {settings.config_path}")
-
-    set_global_config(settings.config_path)

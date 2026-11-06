@@ -1,5 +1,9 @@
 import logging
+import threading
+import weakref
 from typing import cast
+
+from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
 
 from . import config
 from ._types import (
@@ -13,7 +17,7 @@ from ._types import (
     SuccessSearchResponse,
 )
 from .charts import build_charts
-from .exceptions import QueryCheckError
+from .exceptions import QueryAnalysisError
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
@@ -22,22 +26,61 @@ logger = logging.getLogger(__name__)
 
 
 # we cache query builder and result processor here for faster processing
-_ES_QUERY_BUILDERS = {}
-_RESULT_PROCESSORS = {}
+_ES_QUERY_BUILDERS: dict[str, ElasticsearchQueryBuilder] = {}
+_RESULT_PROCESSORS: dict[str, BaseResultProcessor] = {}
+_CACHED_CONFIG_REF: weakref.ReferenceType[config.Config] | None = None
+# protects the caches above (invalidation, check, build and lookup)
+_CACHE_LOCK = threading.RLock()
+
+
+def invalidate_runtime_caches():
+    """Clear in-process caches used by search runtime."""
+    global _CACHED_CONFIG_REF
+    with _CACHE_LOCK:
+        _ES_QUERY_BUILDERS.clear()
+        _RESULT_PROCESSORS.clear()
+        _CACHED_CONFIG_REF = None
+
+
+def _ensure_runtime_caches_match_config():
+    """Invalidate caches when global config object changed.
+
+    Must be called with `_CACHE_LOCK` held.
+
+    :return: the config object the caches are now consistent with
+    """
+    global _CACHED_CONFIG_REF
+    current_config = config.get_config()
+    if _CACHED_CONFIG_REF is None:
+        _CACHED_CONFIG_REF = weakref.ref(current_config)
+        return current_config
+
+    if _CACHED_CONFIG_REF() is not current_config:
+        logger.info("Global config changed, invalidating search runtime caches")
+        _ES_QUERY_BUILDERS.clear()
+        _RESULT_PROCESSORS.clear()
+        _CACHED_CONFIG_REF = weakref.ref(current_config)
+    return current_config
 
 
 def get_es_query_builder(index_id):
-    if index_id not in _ES_QUERY_BUILDERS:
-        index_config = config.get_config().indices[index_id]
-        _ES_QUERY_BUILDERS[index_id] = build_elasticsearch_query_builder(index_config)
-    return _ES_QUERY_BUILDERS[index_id]
+    with _CACHE_LOCK:
+        current_config = _ensure_runtime_caches_match_config()
+        if index_id not in _ES_QUERY_BUILDERS:
+            index_config = current_config.indices[index_id]
+            _ES_QUERY_BUILDERS[index_id] = build_elasticsearch_query_builder(
+                index_config
+            )
+        return _ES_QUERY_BUILDERS[index_id]
 
 
 def get_result_processor(index_id):
-    if index_id not in _RESULT_PROCESSORS:
-        index_config = config.get_config().indices[index_id]
-        _RESULT_PROCESSORS[index_id] = load_result_processor(index_config)
-    return _RESULT_PROCESSORS[index_id]
+    with _CACHE_LOCK:
+        current_config = _ensure_runtime_caches_match_config()
+        if index_id not in _RESULT_PROCESSORS:
+            index_config = current_config.indices[index_id]
+            _RESULT_PROCESSORS[index_id] = load_result_processor(index_config)
+        return _RESULT_PROCESSORS[index_id]
 
 
 def add_debug_info(
@@ -89,10 +132,16 @@ def search(
             # takes ~40ms to generate, build-it before hand to avoid this delay
             es_query_builder=get_es_query_builder(params.valid_index_id),
         )
-    except QueryCheckError as e:
+    except (QueryAnalysisError, ValueError) as e:
         return ErrorSearchResponse(
             debug=SearchResponseDebug(),
-            errors=[SearchResponseError(title="QueryCheckError", description=str(e))],
+            errors=[
+                SearchResponseError(
+                    title=e.__class__.__name__,
+                    description=str(e),
+                    status=400,
+                )
+            ],
         )
     (
         logger.debug(
@@ -116,7 +165,13 @@ def search(
         search_result.facets = build_facets(
             search_result, query, params.main_lang, index_config, params.facets
         )
-        search_result.charts = build_charts(search_result, index_config, params.charts)
+        search_result.charts = build_charts(
+            search_result,
+            index_config,
+            params.charts,
+            params.main_lang,
+            y_axis=params.charts_y_axis,
+        )
         search_result.debug = add_debug_info(search_result, query, params)
         # remove aggregations
         search_result.aggregations = None

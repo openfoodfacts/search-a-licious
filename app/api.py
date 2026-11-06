@@ -2,8 +2,6 @@ import json
 from pathlib import Path
 from typing import Annotated, Any, cast
 
-from urllib.parse import urlencode
-
 import starlette.status as status
 from elasticsearch_dsl import Search
 from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
@@ -15,6 +13,7 @@ import app.search as app_search
 from app import config
 from app._types import (
     CommonParametersQuery,
+    ErrorSearchResponse,
     GetSearchParameters,
     PostSearchParameters,
     SearchResponse,
@@ -23,6 +22,7 @@ from app._types import (
 from app.config import settings
 from app.postprocessing import process_taxonomy_completion_response
 from app.query import build_completion_query
+from app.search_client import NotFoundError
 from app.utils import connection, get_logger, init_sentry
 from app.validations import check_index_id_is_defined
 
@@ -84,17 +84,13 @@ def get_document(
     index_id, index_config = global_config.get_index_config(index_id)
 
     id_field_name = index_config.index.id_field_name
-    from app.utils.connection import current_es_client
-    search_client = current_es_client()
-
-    query = (
+    results = (
         Search(index=index_config.index.name)
         .query("term", **{id_field_name: identifier})
         .extra(size=1)
+        .execute()
     )
-    
-    results = search_client.search(index=index_config.index.name, body=query.to_dict())
-    results_dict = [hit["_source"] for hit in results.get("hits", {}).get("hits", [])]
+    results_dict = [r.to_dict() for r in results]
 
     if not results_dict:
         raise HTTPException(status_code=404, detail="code not found")
@@ -106,12 +102,37 @@ def get_document(
 def status_for_response(result: SearchResponse):
     if isinstance(result, SuccessSearchResponse):
         return status.HTTP_200_OK
-    else:
-        # TODO: should we refine that ?
-        return status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    if isinstance(result, ErrorSearchResponse) and result.errors:
+        first_error = result.errors[0]
+        if first_error.status:
+            return first_error.status
+
+        titles = {error.title for error in result.errors}
+
+        if titles & {
+            "QueryCheckError",
+            "InvalidLuceneQueryError",
+            "FreeWildCardError",
+            "UnknownFieldError",
+            "UnknownScriptError",
+            "ValueError",
+        }:
+            return status.HTTP_400_BAD_REQUEST
+
+        if titles & {"es_connection_error", "es_api_error"}:
+            return status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@app.post("/search")
+@app.post(
+    "/search",
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
+)
 def search(
     response: Response, search_parameters: Annotated[PostSearchParameters, Body()]
 ) -> SearchResponse:
@@ -126,7 +147,13 @@ def search(
     return result
 
 
-@app.get("/search")
+@app.get(
+    "/search",
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
+)
 def search_get(
     response: Response, search_parameters: Annotated[GetSearchParameters, Query()]
 ) -> SearchResponse:
@@ -177,12 +204,8 @@ def taxonomy_autocomplete(
         config=index_config,
         fuzziness=fuzziness,
     )
-    from app.utils.connection import current_es_client
-    search_client = current_es_client()
-
-    from app.search_client import NotFoundError
     try:
-        es_response = search_client.search(index=index_config.taxonomy.index.name, body=query.to_dict())
+        es_response = query.execute()
     except NotFoundError:
         raise HTTPException(
             status_code=500,
@@ -219,7 +242,7 @@ def html_search(
 ):
     """A demo page to test the search endpoint directly"""
     if not q:
-        return templates.TemplateResponse("search.html", {"request": request})
+        return templates.TemplateResponse(request, "search.html")
 
     results = search_get(
         q=q,
@@ -257,6 +280,7 @@ def html_search(
         template_data["pagination"] = pagination
 
     return templates.TemplateResponse(
+        request,
         "display_results.html",
         template_data,
     )
@@ -276,5 +300,5 @@ def healthcheck():
     from app.health import health
 
     message, status, _ = health.run()
-    logger.warning("HEALTH:", message, status)
+    logger.warning("HEALTH: %s %s", message, status)
     return Response(content=message, status_code=status, media_type="application/json")

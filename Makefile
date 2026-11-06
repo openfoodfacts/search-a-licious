@@ -25,7 +25,19 @@ endif
 
 DOCKER = $(SUDO) docker
 DOCKER_COMPOSE = $(DOCKER) compose --env-file=${ENV_FILE}
-DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test $(DOCKER_COMPOSE)
+# Search engine used by the tests: elasticsearch (default) or opensearch
+#   make test_api_integration ENGINE=opensearch
+ENGINE ?= elasticsearch
+ifeq (${ENGINE},opensearch)
+TEST_ES_SERVICES = os01 os02
+TEST_COMPOSE_FILE = COMPOSE_FILE='docker-compose.yml;docker/dev.yml;docker/opensearch.yml'
+else ifeq (${ENGINE},elasticsearch)
+TEST_ES_SERVICES = es01 es02 elasticvue
+TEST_COMPOSE_FILE =
+else
+$(error ENGINE must be elasticsearch or opensearch, got "${ENGINE}")
+endif
+DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test ${TEST_COMPOSE_FILE} $(DOCKER_COMPOSE)
 
 .PHONY: build create_external_volumes livecheck up down test test_front test_front_watch test_api import-dataset import-taxonomies sync-scripts build-translations generate-openapi check check_front check_translations lint lint_back lint_front
 #------------#
@@ -34,7 +46,7 @@ DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test $(DOCKER_COMPOSE)
 
 create_external_volumes:
 	@echo "🔎 Creating external volumes (production only) …"
-	@for vol_name in esdata01 esdata02 es_synonyms; \
+	@for vol_name in esdata01 esdata02; \
 	do \
 		vol_name=${COMPOSE_PROJECT_NAME}_$$vol_name; \
 		echo creating docker volume $$vol_name \
@@ -97,7 +109,7 @@ check_front:  _ensure_network
 # note: this is called by pre-commit, it will also extract translations
 check_translations:
 	@echo "🔎 Checking translations …"
-	cd frontend && npm install && npm run translations:extract
+	cd frontend && rm -rf node_modules && npm ci && npm run translations:extract
 
 lint: lint_back lint_front
 
@@ -115,7 +127,7 @@ tsc_watch:
 
 update_poetry_lock:
 	@echo "🔎 Updating poetry.lock"
-	${DOCKER_COMPOSE} run --rm api poetry lock --no-update
+	${DOCKER_COMPOSE} run --rm api poetry lock --regenerate
 
 #-------#
 # Tests #
@@ -135,11 +147,12 @@ test_api_unit:
 	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/int
 
 # you can use keep_es=1 to avoid stopping elasticsearch after tests (useful during development)
+# you can use ENGINE=opensearch to run the tests on OpenSearch
 test_api_integration:
-	@echo "🔎 Running API integration tests..."
-	${DOCKER_COMPOSE_TEST} up -d es01 es02 elasticvue
+	@echo "🔎 Running API integration tests on ${ENGINE}..."
+	${DOCKER_COMPOSE_TEST} up -d --wait ${TEST_ES_SERVICES}
 	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/unit
-	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop es01 es02 elasticvue || true
+	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop ${TEST_ES_SERVICES} || true
 
 
 test_front:

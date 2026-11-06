@@ -49,16 +49,16 @@ The query syntax is quite simple, you can either:
   Entries with text `dark chocolate`, labels containing `organic` or `vegan`, and Nutri-Score not `e` or `d`
 * you can query a sub field by using "." or ":":
   ```
-  nutrients.sugar_100g:[10 TO 15]
+  nutriments.sugars_100g:[10 TO 15]
   ```
   equivalent to:
   ```
-  nutrients:sugar_100g:[10 TO 15]
+  nutriments:sugars_100g:[10 TO 15]
   ```
   Entries with sugar between 10 and 15 grams per 100g
 * in range you can use * for unbounded values:
   ```
-  nutrients.sugar_100g:[* TO 20] AND nutrients.proteins_100g:[2 TO *]
+  nutriments.sugars_100g:[* TO 20] AND nutriments.proteins_100g:[2 TO *]
   ```
   Entries with sugar below 20 g and proteins above 2g for 100g
 * match field existence with `*`:

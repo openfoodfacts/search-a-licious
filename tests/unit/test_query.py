@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import pytest
@@ -7,7 +8,14 @@ from app._types import JSONType, QueryAnalysis, SearchParameters
 from app.config import IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
 from app.exceptions import QueryAnalysisError
-from app.query import boost_phrases, build_search_query, resolve_unknown_operation
+from app.query import (
+    add_languages_suffix,
+    boost_phrases,
+    build_search_query,
+    parse_query,
+    resolve_unknown_operation,
+)
+from app.query_transformers import QueryCheck
 
 
 def test_boost_phrases_none():
@@ -99,7 +107,18 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
         (
             "complex_query",
             'bacon de boeuf (countries:italy AND (categories:"en:beef" AND '
-            "(nutriments.salt_100g:[2 TO *] OR nutriments.salt_100g:[0 TO 0.05])))",
+            "(nutriments.fat_100g:[2 TO *] OR nutriments.fat_100g:[0 TO 0.05])))",
+            ["en"],
+            25,
+            2,
+            None,
+            None,
+            True,
+        ),
+        (
+            # a valid nested sub-field must not be rejected
+            "nested_subfield_group",
+            "nutriments:(fat_100g:>=3)",
             ["en"],
             25,
             2,
@@ -138,17 +157,6 @@ def test_boost_phrases(query: str, proximity: int | None, expected: str):
             True,
         ),
         (
-            # it should be ok for now, until we implement subfields
-            "non_existing_subfield",
-            "Milk AND nutriments:(nonexisting:>=3)",
-            ["en"],
-            25,
-            2,
-            None,
-            None,
-            True,
-        ),
-        (
             # * in a phrase is legit, it does not have the wildcard meaning
             "wildcard_in_phrase_is_legit",
             'Milk AND "*" AND categories:"*"',
@@ -178,6 +186,7 @@ def test_build_search_query(
     load_expected_result,
     default_config: IndexConfig,
     default_filter_query_builder: FullTextQueryBuilder,
+    query_builder_cache_is_empty: None,
 ):
     params = SearchParameters(
         q=q,
@@ -203,6 +212,23 @@ def test_build_search_query(
     [
         # non existing field
         ({"q": "nonexisting:Milk"}, "field 'nonexisting' not found in index config"),
+        # non existing sub-field
+        (
+            # goes past a leaf field
+            {"q": "nutriments.fat_100g.x:value"},
+            "field 'nutriments.fat_100g.x' not found in index config",
+        ),
+        # a language suffix is not valid under a field without lang sub-fields
+        (
+            {"q": "nutriments.fat_100g.en:1"},
+            "field 'nutriments.fat_100g.en' not found in index config",
+        ),
+        # a language code alone is not a field
+        ({"q": "en:foo"}, "field 'en' not found in index config"),
+        (
+            {"q": "Milk AND nutriments:(nonexisting:>=3)"},
+            "field 'nutriments.nonexisting' not found in index config",
+        ),
         # non existing field inside more complex request
         (
             {"q": "Milk AND (categories:en:Whole OR (nonexisting:Whole)^2)"},
@@ -247,3 +273,53 @@ def test_build_search_query_failure(
             es_query_builder=default_filter_query_builder,
         )
     assert error_msg in str(exc_info.value)
+
+
+def test_parse_query_is_thread_safe():
+    """The PLY lexer is stateful: parsing concurrently must give the same trees
+    as parsing sequentially."""
+    long_queries = [
+        " OR ".join(
+            f'(categories:"en:cat{i}" AND brands:brand{i}) OR product_name:foo{i}'
+            for i in range(start, start + 10)
+        )
+        for start in (0, 100)
+    ]
+    expected = {q: str(parse_query(q).luqum_tree) for q in long_queries}
+
+    def parse(q):
+        try:
+            return q, str(parse_query(q).luqum_tree)
+        except Exception as e:  # a race can raise parse errors
+            return q, repr(e)
+
+    # several rounds, so that a race is practically certain to show up
+    with ThreadPoolExecutor(max_workers=16) as executor:
+        for _ in range(3):
+            results = list(executor.map(parse, long_queries * 400))
+            wrong = [(q, r) for q, r in results if r != expected[q]]
+            assert not wrong, f"{len(wrong)} of {len(results)} parses are wrong"
+
+
+def test_add_languages_suffix_ignores_unsupported_langs(default_config: IndexConfig):
+    analysis = QueryAnalysis(luqum_tree=parser.parse("categories:organic"))
+    analysis = add_languages_suffix(analysis, ["en", "not_a_lang"], default_config)
+    assert "categories.en" in str(analysis.luqum_tree)
+    assert "not_a_lang" not in str(analysis.luqum_tree)
+
+
+def test_query_check_accepts_lang_suffix_on_nested_taxonomy(
+    default_config: IndexConfig,
+):
+    # the index generates `packagings.material.<lang>` sub-fields
+    checker = QueryCheck(index_config=default_config, zeal=1)
+    assert not checker.errors(parser.parse("packagings.material.en:plastic"))
+
+
+@pytest.mark.parametrize("q", ["milk", "categories:organic"])
+def test_add_languages_suffix_keeps_query_without_supported_langs(
+    q: str, default_config: IndexConfig
+):
+    analysis = QueryAnalysis(luqum_tree=parser.parse(q))
+    analysis = add_languages_suffix(analysis, ["not_a_lang"], default_config)
+    assert str(analysis.luqum_tree) == q

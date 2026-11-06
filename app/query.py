@@ -1,11 +1,8 @@
 import luqum.exceptions
 from elasticsearch_dsl import A, Search
 from elasticsearch_dsl.aggs import Agg
-from luqum import tree
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
-from luqum.parser import parser
-from luqum.utils import OpenRangeTransformer, UnknownOperationResolver
 
 from ._types import (
     ErrorSearchResponse,
@@ -21,14 +18,19 @@ from ._types import (
 from .config import FieldType, IndexConfig
 from .es_query_builder import FullTextQueryBuilder
 from .es_scripts import get_script_id
-from .exceptions import InvalidLuceneQueryError, QueryCheckError, UnknownScriptError
+from .exceptions import InvalidLuceneQueryError, UnknownScriptError
 from .indexing import generate_index_object
 from .postprocessing import BaseResultProcessor
-from .query_transformers import (
-    LanguageSuffixTransformer,
-    PhraseBoostTransformer,
-    QueryCheck,
+from .query_pipeline import (
+    add_languages_suffix,
+    boost_phrases,
+    check_query,
+    compute_facets_filters,
+    parse_query,
+    resolve_open_ranges,
+    resolve_unknown_operation,
 )
+from .search_client import ApiError, BadRequestError, ConnectionError_, error_body
 from .utils import get_logger, str_utils
 
 logger = get_logger(__name__)
@@ -44,74 +46,6 @@ def build_elasticsearch_query_builder(config: IndexConfig) -> ElasticsearchQuery
     # remove default_field
     options.pop("default_field", None)
     return FullTextQueryBuilder(**options)
-
-
-def parse_query(q: str | None) -> QueryAnalysis:
-    """Begin query analysis by parsing the query."""
-    analysis = QueryAnalysis(text_query=q)
-    if q is None or not q.strip():
-        return analysis
-    try:
-        analysis.luqum_tree = parser.parse(q)
-        # FIXME: resolve UnknownFilter (to AND)
-    except (
-        luqum.exceptions.ParseError,
-        luqum.exceptions.InconsistentQueryException,
-    ) as e:
-        raise InvalidLuceneQueryError("Request could not be analyzed by luqum") from e
-    return analysis
-
-
-def compute_facets_filters(q: QueryAnalysis) -> QueryAnalysis:
-    """Extract facets filters from the query
-
-    For now it only handles SearchField under a top AND operation,
-    which expression is a bare term or a OR operation of bare terms.
-
-    We do not verify if the field is an aggregation field or not,
-    that can be done at a later stage
-
-    :return: a new QueryAnalysis with facets_filters attribute
-       as a dictionary of field names and list of values to filter on
-    """
-    if q.luqum_tree is None:
-        return q
-
-    filters = {}
-
-    def _process_search_field(expr, field_name):
-        facet_filter = None
-        if isinstance(expr, tree.Term):
-            # simple term
-            facet_filter = [str(expr)]
-        elif isinstance(expr, tree.FieldGroup):
-            # use recursion
-            _process_search_field(expr.expr, field_name)
-        elif isinstance(expr, tree.OrOperation) and all(
-            isinstance(item, tree.Term) for item in expr.children
-        ):
-            # OR operation of simple terms
-            facet_filter = [str(item) for item in expr.children]
-        if facet_filter:
-            if field_name not in filters:
-                filters[field_name] = facet_filter
-            else:
-                # avoid the case of double expression, we don't handle it
-                filters.pop(field_name)
-
-    if isinstance(q.luqum_tree, (tree.AndOperation, tree.UnknownOperation)):
-        for child in q.luqum_tree.children:
-            if isinstance(child, tree.SearchField):
-                _process_search_field(child.expr, child.name)
-    # case of a single search field
-    elif isinstance(q.luqum_tree, tree.SearchField):
-        _process_search_field(q.luqum_tree.expr, q.luqum_tree.name)
-    # remove quotes around values
-    filters = {
-        field_name: [value.strip('"') for value in values]
-        for field_name, values in filters.items()
-    }
-    return q.clone(facets_filters=filters)
 
 
 def parse_sort_by_field(sort_by: str | None, config: IndexConfig) -> str | None:
@@ -184,62 +118,6 @@ def create_aggregation_clauses(
     return clauses
 
 
-def add_languages_suffix(
-    analysis: QueryAnalysis, langs: list[str], config: IndexConfig
-) -> QueryAnalysis:
-    """Add correct languages suffixes to fields of type text_lang or taxonomy
-
-    This match in a langage OR another
-    """
-    if analysis.luqum_tree is None:
-        return analysis
-    transformer = LanguageSuffixTransformer(
-        lang_fields=set(config.lang_fields), langs=langs
-    )
-    analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
-    return analysis
-
-
-def resolve_unknown_operation(analysis: QueryAnalysis) -> QueryAnalysis:
-    """Resolve unknown operations in the query to a AND"""
-    if analysis.luqum_tree is None:
-        return analysis
-    transformer = UnknownOperationResolver(resolve_to=tree.AndOperation)
-    analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
-    return analysis
-
-
-def boost_phrases(
-    analysis: QueryAnalysis, boost: float, proximity: int | None
-) -> QueryAnalysis:
-    """Boost all phrases in the query"""
-    if analysis.luqum_tree is None:
-        return analysis
-    transformer = PhraseBoostTransformer(boost=boost, proximity=proximity)
-    analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
-    return analysis
-
-
-def check_query(params: SearchParameters, analysis: QueryAnalysis) -> None:
-    """Run some sanity checks on the luqum query"""
-    if analysis.luqum_tree is None:
-        return
-    checker = QueryCheck(index_config=params.index_config, zeal=1)
-    errors = checker.errors(analysis.luqum_tree)
-    if errors:
-        raise QueryCheckError("Found errors while checking query", errors=errors)
-
-
-def resolve_open_ranges(analysis: QueryAnalysis) -> QueryAnalysis:
-    """We need to resolve open ranges to closed ranges
-    before using elasticsearch query builder"""
-    if analysis.luqum_tree is None:
-        return analysis
-    transformer = OpenRangeTransformer()
-    analysis.luqum_tree = transformer.visit(analysis.luqum_tree)
-    return analysis
-
-
 def build_search_query(
     params: SearchParameters,
     es_query_builder: ElasticsearchQueryBuilder,
@@ -284,7 +162,11 @@ def build_es_query(
             es_query = es_query.query(
                 es_query_builder(analysis.luqum_tree, params.index_config, params.langs)
             )
-        except luqum.exceptions.InconsistentQueryException as e:
+        except (
+            luqum.exceptions.InconsistentQueryException,
+            ValueError,
+            TypeError,
+        ) as e:
             raise InvalidLuceneQueryError(
                 "Request could not be transformed by luqum"
             ) from e
@@ -341,7 +223,6 @@ def build_completion_query(
     :return: the built Query
     """
     query = Search(index=config.taxonomy.index.name)
-    # import pdb;pdb.set_trace();
     for lang in langs:
         completion_clause = {
             "field": f"synonyms.{lang}",
@@ -372,22 +253,37 @@ def execute_query(
     errors = []
     debug = SearchResponseDebug(es_query=query.to_dict())
     try:
-        from app.utils.connection import current_es_client
-        from app.search_client import ApiError, ConnectionError_
-        search_client = current_es_client()
-        # Extract the index from the elasticsearch_dsl query object
-        index_name = query._index[0] if query._index else None
-        
-        # We pass the dictionary representation of the query
-        results = search_client.search(index=index_name, body=query.to_dict())
+        results = query.execute()
+    except BadRequestError as e:
+        logger.warning(
+            "Client query error from the search engine: %s %s",
+            str(e),
+            error_body(e),
+        )
+        errors.append(
+            SearchResponseError(
+                title="InvalidLuceneQueryError",
+                description=str(e),
+                status=400,
+            )
+        )
+        return ErrorSearchResponse(debug=debug, errors=errors)
     except ConnectionError_ as e:
+        # before ApiError: for OpenSearch, a connection error is a TransportError
         errors.append(
             SearchResponseError(title="es_connection_error", description=str(e))
         )
         return ErrorSearchResponse(debug=debug, errors=errors)
     except ApiError as e:
-        logger.error("Error while running query: %s %s", str(e), getattr(e, 'body', None) or getattr(e, 'info', None))
-        errors.append(SearchResponseError(title="es_api_error", description=str(e)))
+        logger.error("Error while running query: %s %s", str(e), error_body(e))
+        error_status = 400 if getattr(e, "status_code", None) == 400 else None
+        errors.append(
+            SearchResponseError(
+                title="es_api_error",
+                description=str(e),
+                status=error_status,
+            )
+        )
         return ErrorSearchResponse(debug=debug, errors=errors)
 
     response = result_processor.process(results, projection)
