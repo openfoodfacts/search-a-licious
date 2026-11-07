@@ -7,6 +7,7 @@ import {
 } from './interfaces/sort-interfaces';
 import {SearchActionMixin} from './mixins/search-action';
 import {EventRegistrationMixin} from './event-listener-setup';
+import {localized, msg} from '@lit/localize';
 import {SearchaliciousEvents} from './utils/enums';
 
 /**
@@ -20,6 +21,7 @@ import {SearchaliciousEvents} from './utils/enums';
  * @cssproperty --sort-options-background-color - The background color of the options.t
  */
 @customElement('searchalicious-sort')
+@localized()
 export class SearchaliciousSort
   extends SearchActionMixin(EventRegistrationMixin(LitElement))
   implements SearchaliciousSortInterface
@@ -125,7 +127,7 @@ export class SearchaliciousSort
   override render() {
     return html`
       <button @click=${this._onClick} part="button" role="button">
-        <slot name="label">Sort by ▾</slot>
+        <slot name="label">${msg('Sort by')} ▾</slot>
       </button>
       ${this.showOptions ? this._renderOptions() : nothing}
     `;
