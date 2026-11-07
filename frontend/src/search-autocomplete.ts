@@ -1,6 +1,7 @@
 import {LitElement, html, css} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import {classMap} from 'lit/directives/class-map.js';
+import {ifDefined} from 'lit/directives/if-defined.js';
 import {
   SuggestionSelectionMixin,
   SuggestionSelectionResult,
@@ -86,13 +87,25 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
     return this.options.length
       ? this.options.map(
           (option, index) => html` <li
+            id="${this.inputName}-option-${index + 1}"
+            role="option"
+            aria-selected=${index + 1 === this.currentIndex}
             class=${classMap({selected: index + 1 === this.currentIndex})}
             @click=${this.onClick(option)}
           >
             ${option.label}
           </li>`
         )
-      : html`<li>No results found</li>`;
+      : html`<li role="option" aria-disabled="true">
+          ${msg('No results found')}
+        </li>`;
+  }
+
+  /**
+   * Is the list of suggestions displayed ?
+   */
+  get isListVisible(): boolean {
+    return this.visible && !!this.inputValue.length;
   }
 
   /**
@@ -150,6 +163,15 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
           type="text"
           name="${this.inputName}"
           id="${this.inputName}"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded=${this.isListVisible}
+          aria-controls="${this.inputName}-listbox"
+          aria-activedescendant=${ifDefined(
+            this.isListVisible && this.options.length && this.currentIndex
+              ? `${this.inputName}-option-${this.currentIndex}`
+              : undefined
+          )}
           .value=${this.selectedOption?.value || ''}
           @input=${this.onInput}
           @keydown=${this.onKeyDown}
@@ -158,8 +180,10 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
           @blur=${this.onBlur}
         />
         <ul
+          id="${this.inputName}-listbox"
+          role="listbox"
           class=${classMap({
-            visible: this.visible && !!this.inputValue.length,
+            visible: this.isListVisible,
           })}
         >
           ${this.isLoading

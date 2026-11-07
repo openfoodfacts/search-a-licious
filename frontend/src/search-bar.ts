@@ -9,6 +9,7 @@ import {
   SearchaliciousSuggester /*SuggesterRegistry*/,
 } from './search-suggester';
 import {classMap} from 'lit/directives/class-map.js';
+import {ifDefined} from 'lit/directives/if-defined.js';
 import {searchBarInputAndButtonStyle} from './css/header';
 import {SearchaliciousEvents} from './utils/enums';
 import {isTheSameSearchName} from './utils/search';
@@ -198,19 +199,30 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
   }
 
   /**
+   * Are suggestions displayed ?
+   * They are when the input is focused, the value is not empty and there are suggestions
+   */
+  get hasVisibleSuggestions(): boolean {
+    return this.visible && !!this.query && this.options.length > 0;
+  }
+
+  /**
    * Render the suggestions when the input is focused and the value is not empty
    */
   renderSuggestions() {
     // Don't show suggestions if the input is not focused or the value is empty or there are no suggestions
-    if (!this.visible || !this.query || this.options.length === 0) {
+    if (!this.hasVisibleSuggestions) {
       return html``;
     }
 
     return html`
-      <ul>
+      <ul id="suggestions" role="listbox">
         ${this.options.map(
           (option, index) => html`
             <li
+              id="suggestion-${index + 1}"
+              role="option"
+              aria-selected=${index + 1 === this.currentIndex}
               class=${classMap({selected: index + 1 === this.currentIndex})}
               @click=${this.onClick(option)}
             >
@@ -269,6 +281,17 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
           class="search-input"
           type="text"
           name="q"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded=${this.hasVisibleSuggestions}
+          aria-controls=${ifDefined(
+            this.hasVisibleSuggestions ? 'suggestions' : undefined
+          )}
+          aria-activedescendant=${ifDefined(
+            this.hasVisibleSuggestions && this.currentIndex
+              ? `suggestion-${this.currentIndex}`
+              : undefined
+          )}
           @input=${this.onInput}
           @keydown=${this.onKeyDown}
           @focus="${this.onFocus}"
