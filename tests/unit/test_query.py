@@ -330,3 +330,16 @@ def test_add_languages_suffix_keeps_query_without_supported_langs(
     analysis = QueryAnalysis(luqum_tree=parser.parse(q))
     analysis = add_languages_suffix(analysis, ["not_a_lang"], default_config)
     assert str(analysis.luqum_tree) == q
+
+
+def test_query_check_accepts_hyphenated_field_names(default_config: IndexConfig):
+    # nutrient fields are named like `energy-kcal_100g`
+    checker = QueryCheck(index_config=default_config, zeal=1)
+    q = "nutriments.energy-kcal_100g:[* TO 100]"
+    assert not checker.errors(parser.parse(q))
+
+
+def test_query_check_rejects_unknown_hyphenated_field(default_config: IndexConfig):
+    checker = QueryCheck(index_config=default_config, zeal=1)
+    errors = checker.errors(parser.parse("nutriments.not-a-field_100g:[* TO 100]"))
+    assert "not found in index config" in str(errors)
