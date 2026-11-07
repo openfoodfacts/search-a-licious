@@ -69,10 +69,16 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
   taxonomies = '';
 
   /**
-   * Fuzziness level for suggestions
+   * Fuzziness level for suggestions (0, 1 or 2).
+   *
+   * It is sent to the API only when set: by default there is no fuzziness.
    */
   @property({type: Number})
-  fuzziness = 2;
+  fuzziness?: number;
+
+  override get termsFuzziness(): number | undefined {
+    return this.fuzziness;
+  }
 
   /**
    * language in which suggestions are to be found
@@ -116,17 +122,20 @@ export class SearchaliciousTaxonomySuggester extends SearchaliciousTermsMixin(
    * Query for options to suggest
    */
   override async getSuggestions(value: string): Promise<SuggestOption[]> {
-    return this.getTaxonomiesTerms(value, this.taxonomiesList).then(() => {
-      return this.terms.map((term) => ({
-        // we need to remove lang for some pseudo taxonomy fields don't have them…
-        value: removeLangFromTermId(term.id),
-        label: this.termLabel(term),
-        id: term.id,
-        source: this,
-        input: value,
-        taxonomy: term.taxonomy_name,
-      }));
-    });
+    return this.getTaxonomiesTerms(value, this.taxonomiesList).then(
+      (result) => {
+        // use the options of this very request
+        return result.options.map((term) => ({
+          // we need to remove lang for some pseudo taxonomy fields don't have them…
+          value: removeLangFromTermId(term.id),
+          label: this.termLabel(term),
+          id: term.id,
+          source: this,
+          input: value,
+          taxonomy: term.taxonomy_name,
+        }));
+      }
+    );
   }
 
   override async selectSuggestion(selected: SuggestionSelectionOption) {

@@ -173,7 +173,10 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
     this.updateSearchSignals();
     this.debounce(() => {
       this.getSuggestions(value).then((options) => {
-        this.options = options;
+        // ignore suggestions of an input that is not the current one
+        if (this.query === value) {
+          this.options = options;
+        }
       });
     });
   }
