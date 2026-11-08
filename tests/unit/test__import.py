@@ -10,6 +10,7 @@ from redis import Redis
 from app._import import (
     BaseDocumentFetcher,
     gen_documents,
+    gen_taxonomy_documents,
     get_document_dict,
     get_new_updates,
     get_processed_since,
@@ -20,6 +21,7 @@ from app._import import (
 from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import Config, IndexConfig
 from app.indexing import DocumentProcessor
+from app.taxonomy import Taxonomy, TaxonomyNode
 
 
 class RedisXrangeClient:
@@ -450,3 +452,27 @@ def test_run_update_daemon(default_global_config: Config):
     kwargs = mock_call.kwargs
     assert set(kwargs.keys()) == {"index", "id"}
     assert kwargs["id"] == "4"
+
+
+def test_gen_taxonomy_documents_synonyms_without_name(default_config: IndexConfig):
+    """A language may have synonyms but no name for an entry"""
+    taxonomy = Taxonomy("categories")
+    taxonomy.nodes["en:milk"] = TaxonomyNode(
+        id="en:milk",
+        names={"en": "Milk"},
+        # no name in French, but synonyms
+        synonyms={"en": ["Cow milk"], "fr": ["lait de vache", "lait"]},
+    )
+    default_config.taxonomy.preprocessor = None
+    with patch("app._import.iter_taxonomies", return_value=[taxonomy]):
+        documents = list(
+            gen_taxonomy_documents(default_config, "next-index", {"en", "fr"})
+        )
+
+    assert len(documents) == 1
+    source = documents[0]["_source"]
+    assert source["name"] == {"en": "Milk"}
+    # without a name, synonyms are only sorted by length
+    assert source["synonyms"]["fr"]["input"] == ["lait", "lait de vache"]
+    # the name comes first when there is one
+    assert source["synonyms"]["en"]["input"][0] == "Milk"
