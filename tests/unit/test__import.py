@@ -13,6 +13,7 @@ from app._import import (
     get_document_dict,
     get_new_updates,
     get_processed_since,
+    get_redis_updates,
     load_document_fetcher,
     run_update_daemon,
     update_alias,
@@ -450,3 +451,55 @@ def test_run_update_daemon(default_global_config: Config):
     kwargs = mock_call.kwargs
     assert set(kwargs.keys()) == {"index", "id"}
     assert kwargs["id"] == "4"
+
+
+def _patch_last_modified_search(hits: list[dict]):
+    """Make the search of the most recently modified document return `hits`"""
+    results = [MagicMock(to_dict=MagicMock(return_value=hit)) for hit in hits]
+    search = MagicMock()
+    search.return_value.sort.return_value.extra.return_value.execute.return_value = (
+        results
+    )
+    return search
+
+
+def test_get_redis_updates_catches_up_from_last_modified(default_config: IndexConfig):
+    last_modified = default_config.index.last_modified_field_name
+    products = MagicMock(return_value=iter([]))
+    with (
+        patch("app._import.Index"),
+        patch(
+            "app._import.Search", _patch_last_modified_search([{last_modified: 12.5}])
+        ),
+        patch("app._import.get_redis_products", products),
+        patch("app._import.parallel_bulk", return_value=[]) as bulk,
+    ):
+        assert get_redis_updates(MagicMock(), "idx", default_config) == 0
+    bulk.assert_called_once()
+    # timestamp in milliseconds
+    assert products.call_args.args[5] == 12500
+
+
+def test_get_redis_updates_skips_on_empty_index(default_config: IndexConfig):
+    """An empty index (eg. empty import) has no date to catch up from"""
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search", _patch_last_modified_search([])),
+        patch("app._import.get_redis_products") as products,
+        patch("app._import.parallel_bulk") as bulk,
+    ):
+        assert get_redis_updates(MagicMock(), "idx", default_config) == 0
+    products.assert_not_called()
+    bulk.assert_not_called()
+
+
+def test_get_redis_updates_skips_without_last_modified(default_config: IndexConfig):
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search", _patch_last_modified_search([{"code": "1"}])),
+        patch("app._import.get_redis_products") as products,
+        patch("app._import.parallel_bulk") as bulk,
+    ):
+        assert get_redis_updates(MagicMock(), "idx", default_config) == 0
+    products.assert_not_called()
+    bulk.assert_not_called()

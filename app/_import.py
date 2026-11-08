@@ -481,6 +481,14 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
     query._index = [index]
     results = query.execute()
     results_dict = [r.to_dict() for r in results]
+    if not results_dict or last_modified_field_name not in results_dict[0]:
+        # nothing to say from where to catch up (eg. an empty import)
+        logger.warning(
+            "No document with a %s in index %s, skipping updates from Redis",
+            last_modified_field_name,
+            index,
+        )
+        return 0
     last_updated_timestamp: int | float = results_dict[0][last_modified_field_name]
     last_updated_timestamp_ms = int(last_updated_timestamp * 1000)
     id_field_name = config.index.id_field_name
