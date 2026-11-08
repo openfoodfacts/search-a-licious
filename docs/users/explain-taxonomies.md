@@ -33,8 +33,16 @@ you can specify that a field is a taxonomy field (`type: taxonomy`).
 In this case, you also have to provide the following fields:
 * taxonomy_name: the name of the taxonomy (as defined in the configuration)
 
-* synonyms_search: if true,
-  this will add a full text subfield that will enable using synonyms and translations to match this term.
+The way synonyms and translations are used when searching is not set on the field,
+but for the whole index by the `synonyms_strategy` option:
+
+* `index` (the default): each taxonomy field also gets a full text subfield per language,
+  which enables using synonyms and translations to match a term
+  (see the technical details below)
+* `none`: the field only stores taxonomy ids, so queries must use the id,
+  with its language prefix (eg. `labels:"en:organic"`).
+  This is lighter, and better suited when you have a lot of taxonomies and languages
+  (the `index` strategy can make Elasticsearch very slow to start in that case).
 
 
 ## Autocompletion with taxonomies
@@ -53,6 +61,9 @@ you must import them using the [import-taxonomies command](../devs/ref-python/cl
 
 
 ## Technical details on taxonomy fields
+
+This section describes the `index` strategy.
+With `none`, a taxonomy field is simply a keyword field containing the ids.
 
 A taxonomy field is stored in Elasticsearch as an object.
 For each language it has a specific field, but in this field we just store the taxonomy entry id (eg. for organic, we always store `en:organic`). The analyzer is almost set to `keyword` which means it won't be tokenized (but it is not completely true, as we also transform hyphen to underscore).

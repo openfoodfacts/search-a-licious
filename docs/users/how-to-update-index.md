@@ -37,9 +37,14 @@ docker-compose up -d updater
 
 This will continuously fetch updates from the event stream, and update the index accordingly.
 
-At start it will compute last update time using
-the [`last_modified_field_name` from the configuration](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name)
-to know from where to start processing the event stream.
+The updater only processes events pushed **after it started**.
+It does not catch up on events pushed while it was stopped.
+
+To catch up after a downtime, run the [`import` command](../devs/ref-python/cli.html#python3-m-app-import)
+without `--skip-updates`: once the import is done, it processes the events of the stream
+since the most recent
+[`last_modified_field_name`](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name)
+found in the index.
 
 ## Updating the index from time to time with an export
 
