@@ -247,7 +247,7 @@ def html_search(
     results = app_search.search(
         GetSearchParameters(
             q=q,
-            langs=langs,
+            langs=langs.split(","),
             page_size=page_size,
             page=page,
             sort_by=sort_by,
