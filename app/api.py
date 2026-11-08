@@ -1,7 +1,9 @@
 import json
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Annotated, Any, cast
 
+import elastic_transport
 import elasticsearch
 import starlette.status as status
 from elasticsearch_dsl import Search
@@ -73,6 +75,30 @@ def check_index_id_is_defined_or_400(index_id: str | None, config: config.Config
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@contextmanager
+def es_errors_as_http_errors():
+    """Answer Elasticsearch failures with an HTTP error, as `/search` does,
+    instead of an unhandled 500 (without the details of the failure)."""
+    try:
+        yield
+    except elastic_transport.ConnectionError as e:
+        logger.error("Elasticsearch connection error: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The search backend is not reachable",
+        )
+    except elasticsearch.ApiError as e:
+        logger.error("Elasticsearch error: %s %s", e, e.body)
+        raise HTTPException(
+            status_code=(
+                status.HTTP_400_BAD_REQUEST
+                if e.status_code == 400
+                else status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            detail="The search backend returned an error",
+        )
+
+
 @app.get("/document/{identifier}")
 def get_document(
     identifier: str,
@@ -84,12 +110,13 @@ def get_document(
     index_id, index_config = global_config.get_index_config(index_id)
 
     id_field_name = index_config.index.id_field_name
-    results = (
-        Search(index=index_config.index.name)
-        .query("term", **{id_field_name: identifier})
-        .extra(size=1)
-        .execute()
-    )
+    with es_errors_as_http_errors():
+        results = (
+            Search(index=index_config.index.name)
+            .query("term", **{id_field_name: identifier})
+            .extra(size=1)
+            .execute()
+        )
     results_dict = [r.to_dict() for r in results]
 
     if not results_dict:
@@ -204,13 +231,14 @@ def taxonomy_autocomplete(
         config=index_config,
         fuzziness=fuzziness,
     )
-    try:
-        es_response = query.execute()
-    except elasticsearch.NotFoundError:
-        raise HTTPException(
-            status_code=500,
-            detail="taxonomy index not found, taxonomies need to be imported first",
-        )
+    with es_errors_as_http_errors():
+        try:
+            es_response = query.execute()
+        except elasticsearch.NotFoundError:
+            raise HTTPException(
+                status_code=500,
+                detail="taxonomy index not found, taxonomies need to be imported first",
+            )
 
     response = process_taxonomy_completion_response(es_response, q, langs.split(","))
 
