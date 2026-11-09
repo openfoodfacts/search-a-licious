@@ -1,10 +1,12 @@
 import datetime
 import json
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
+import pytest
 from elasticsearch import NotFoundError
 from redis import Redis
 
@@ -17,6 +19,7 @@ from app._import import (
     get_processed_since,
     get_redis_updates,
     load_document_fetcher,
+    run_items_import,
     run_update_daemon,
     update_alias,
 )
@@ -526,6 +529,60 @@ def test_run_update_daemon(default_global_config: Config):
     assert kwargs["id"] == "4"
 
 
+def _patch_last_modified_search(hits: list[dict]):
+    """Make the search of the most recently modified document return `hits`"""
+    results = [MagicMock(to_dict=MagicMock(return_value=hit)) for hit in hits]
+    search = MagicMock()
+    search.return_value.sort.return_value.extra.return_value.execute.return_value = (
+        results
+    )
+    return search
+
+
+def test_get_redis_updates_catches_up_from_last_modified(default_config: IndexConfig):
+    last_modified = default_config.index.last_modified_field_name
+    products = MagicMock(return_value=iter([]))
+    with (
+        patch("app._import.Index"),
+        patch(
+            "app._import.Search", _patch_last_modified_search([{last_modified: 12.5}])
+        ),
+        patch("app._import.get_redis_products", products),
+        patch("app._import.parallel_bulk", return_value=[]) as bulk,
+    ):
+        assert get_redis_updates(MagicMock(), "idx", default_config) == 0
+    bulk.assert_called_once()
+    # timestamp in milliseconds
+    assert products.call_args.args[5] == 12500
+
+
+def test_get_redis_updates_fails_on_empty_index(default_config: IndexConfig):
+    """An empty index has no date to catch up from: skipping would lose updates"""
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search", _patch_last_modified_search([])),
+        patch("app._import.get_redis_products") as products,
+        patch("app._import.parallel_bulk") as bulk,
+        pytest.raises(RuntimeError, match="--skip-updates"),
+    ):
+        get_redis_updates(MagicMock(), "idx", default_config)
+    products.assert_not_called()
+    bulk.assert_not_called()
+
+
+def test_get_redis_updates_fails_without_last_modified(default_config: IndexConfig):
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search", _patch_last_modified_search([{"code": "1"}])),
+        patch("app._import.get_redis_products") as products,
+        patch("app._import.parallel_bulk") as bulk,
+        pytest.raises(RuntimeError, match="--skip-updates"),
+    ):
+        get_redis_updates(MagicMock(), "idx", default_config)
+    products.assert_not_called()
+    bulk.assert_not_called()
+
+
 def test_gen_taxonomy_documents_synonyms_without_name(default_config: IndexConfig):
     """A language may have synonyms but no name for an entry"""
     taxonomy = Taxonomy("categories")
@@ -548,3 +605,39 @@ def test_gen_taxonomy_documents_synonyms_without_name(default_config: IndexConfi
     assert source["synonyms"]["fr"]["input"] == ["lait", "lait de vache"]
     # the name comes first when there is one
     assert source["synonyms"]["en"]["input"][0] == "Milk"
+
+
+@contextmanager
+def _mock_full_import():
+    """Mock everything of a full import but the catch-up and the alias update"""
+    pool = MagicMock()
+    pool.return_value.__enter__.return_value = pool.return_value
+    with (
+        patch("app._import.connection"),
+        patch("app._import.generate_index_object"),
+        patch("app._import.wait_index_health"),
+        patch("app._import.Pool", pool),
+        patch("app._import.import_parallel", return_value=(0, 0, [])),
+        patch("app._import.update_alias") as update_alias_mock,
+    ):
+        yield update_alias_mock
+
+
+def test_run_items_import_does_not_publish_empty_index_without_catch_up(
+    default_config: IndexConfig,
+):
+    """An empty import must not replace the live index while skipping updates"""
+    with (
+        _mock_full_import() as update_alias_mock,
+        patch("app._import.Index"),
+        patch("app._import.Search", _patch_last_modified_search([])),
+        pytest.raises(RuntimeError),
+    ):
+        run_items_import(Path("items.jsonl"), 1, default_config)
+    update_alias_mock.assert_not_called()
+
+
+def test_run_items_import_skip_updates_still_publishes(default_config: IndexConfig):
+    with _mock_full_import() as update_alias_mock:
+        run_items_import(Path("items.jsonl"), 1, default_config, skip_updates=True)
+    update_alias_mock.assert_called_once()
