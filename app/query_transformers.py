@@ -185,7 +185,10 @@ class QueryCheck(luqum.check.LuceneCheck):
     )
     FIELD_EXPR_FIELDS = SIMPLE_EXPR_FIELDS + (tree.FieldGroup,)
     # TECHDEBT(SAL-TECHDEBT-008): move dotted field-name support to luqum core.
-    field_name_re = re.compile(r"^[\w.]+$")
+    field_name_re = re.compile(r"^[\w.-]+$")
+    # remove zealous check on words,
+    # we use an expression redundant with spaces check (that comes before)
+    invalid_term_chars_re = re.compile(" ")
 
     def __init__(self, index_config: IndexConfig, **kwargs):
         super().__init__(**kwargs)
@@ -197,6 +200,13 @@ class QueryCheck(luqum.check.LuceneCheck):
 
     def check_open_range(self, item, parents):
         return iter([])
+
+    def _check_not_operator(self, item, parents):
+        # luqum reads `parents[-1]`, which does not exist for a query made
+        # only of a negation (`-sugar`, `NOT milk`)
+        if not parents:
+            return iter([])
+        return super()._check_not_operator(item, parents)
 
     def check_search_field(self, item, parents):
         """Check if the search field is valid"""

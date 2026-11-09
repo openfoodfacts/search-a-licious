@@ -200,7 +200,16 @@ class FieldType(StrEnum):
 
     def is_numeric(self):
         """Return wether this field type can be considered numeric"""
-        return self in (FieldType.integer, FieldType.float, FieldType.double)
+        return self in (
+            FieldType.half_float,
+            FieldType.scaled_float,
+            FieldType.float,
+            FieldType.double,
+            FieldType.short,
+            FieldType.integer,
+            FieldType.long,
+            FieldType.unsigned_long,
+        )
 
 
 # add url to FieldType doc
@@ -336,7 +345,7 @@ class FieldConfig(BaseModel):
     @model_validator(mode="after")
     def bucket_agg_should_be_used_for_keyword_and_numeric_types_only(self):
         """Validator that checks that `bucket_agg` is only provided for
-        fields with types `keyword`, `double`, `float`, `integer` or `bool`."""
+        fields with a numeric type, `keyword`, `taxonomy` or `bool`."""
         if self.bucket_agg and not (
             self.type.is_numeric()
             or self.type in (FieldType.keyword, FieldType.bool, FieldType.taxonomy)

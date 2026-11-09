@@ -21,7 +21,7 @@ from app.indexing import (
     generate_taxonomy_index_object,
     wait_index_health,
 )
-from app.search_client import bulk, parallel_bulk
+from app.search_client import NotFoundError, bulk, parallel_bulk
 from app.taxonomy import iter_taxonomies
 from app.taxonomy_es import check_synonyms_sets_size, refresh_synonyms
 from app.utils import connection, get_logger, load_class_object_from_string
@@ -300,7 +300,8 @@ def gen_taxonomy_documents(
             for lang, lang_synonyms in synonyms.items():
                 filtered_synonyms = filter(lambda s: s, lang_synonyms)
                 synonyms_list[lang] = sorted(
-                    filtered_synonyms, key=lambda s: 0 if s == names[lang] else len(s)
+                    filtered_synonyms,
+                    key=lambda s: 0 if s == names.get(lang) else len(s),
                 )
             yield {
                 "_index": next_index,
@@ -498,8 +499,13 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
             last_updated_timestamp_ms,
             document_gen_errors,
         ),
+        # a product created then deleted after the dump is absent from the index
+        ignore_status=404,
     ):
         if not success:
+            if "delete" in info and info["delete"].get("status") == 404:
+                # nothing to remove, not an error
+                continue
             logger.warning("A document failed: %s", info)
             num_errors += 1
     for error in document_gen_errors:
@@ -714,10 +720,14 @@ def run_update_daemon(config: Config) -> None:
         index_id = stream_name_to_index_id[stream_name]
         logger.debug("Document:\n%s", processed_document)
         if processed_result.status == FetcherStatus.REMOVED:
-            es_client.delete(
-                index=config.indices[index_id].index.name,
-                id=_id,
-            )
+            try:
+                es_client.delete(
+                    index=config.indices[index_id].index.name,
+                    id=_id,
+                )
+            except NotFoundError:
+                # already absent from the index, nothing to do
+                logger.info("Document %s to remove is not in the index", _id)
         else:
             es_client.index(
                 index=config.indices[index_id].index.name,

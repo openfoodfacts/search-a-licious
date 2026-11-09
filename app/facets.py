@@ -110,12 +110,13 @@ def build_facets(
         # best values
         facet_items.extend(
             FacetItem(
-                key=bucket["key"],
+                # numeric fields return numeric keys
+                key=str(bucket["key"]),
                 # TECHDEBT(SAL-TECHDEBT-001):
                 # compute translated value when facet is taxonomy-backed.
-                name=bucket["key"],
+                name=str(bucket["key"]),
                 count=bucket["doc_count"],
-                selected=bucket["key"] in selected_values,
+                selected=str(bucket["key"]) in selected_values,
             )
             for bucket in agg_buckets
         )

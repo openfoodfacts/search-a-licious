@@ -179,6 +179,8 @@ def synonyms_param(*args):
         # simple queries
         ({"q": "sugar"}, ALL_CODES),
         ({"q": "brown"}, ["3012345670005", "3012345670006"]),
+        # fuzzy search
+        ({"q": "sugr~1"}, ALL_CODES),
         # this also searches in labels (language sub-fields need synonyms)
         synonyms_param({"q": "organic"}, ORGANIC_CODES),
         # synonym of label organic, will work only if we boost phrase

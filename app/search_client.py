@@ -43,6 +43,12 @@ ApiError = _exceptions(elasticsearch.ApiError, "TransportError")
 BadRequestError = _exceptions(elasticsearch.BadRequestError, "RequestError")
 NotFoundError = _exceptions(elasticsearch.NotFoundError, "NotFoundError")
 ConnectionError_ = _exceptions(elastic_transport.ConnectionError, "ConnectionError")
+# The search backend can not be reached (a flat tuple, for `except`).
+# For Elasticsearch a timeout is not a `ConnectionError`,
+# for OpenSearch it is.
+Unreachable = (elastic_transport.ConnectionError, elastic_transport.ConnectionTimeout)
+if os_exceptions is not None:
+    Unreachable += (os_exceptions.ConnectionError,)
 
 
 def error_body(error: Exception) -> Any:
