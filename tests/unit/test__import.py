@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
+from elasticsearch import NotFoundError
 from redis import Redis
 
 from app._import import (
@@ -13,6 +14,7 @@ from app._import import (
     get_document_dict,
     get_new_updates,
     get_processed_since,
+    get_redis_updates,
     load_document_fetcher,
     run_update_daemon,
     update_alias,
@@ -350,6 +352,76 @@ def test_update_alias(default_config):
             {"add": {"alias": index_alias, "index": next_index}},
         ]
     )
+
+
+def test_run_update_daemon_ignores_removal_of_absent_document(
+    default_global_config: Config,
+):
+    off_config: IndexConfig = default_global_config.indices["off"]
+    es_client_mock = MagicMock()
+    es_client_mock.delete.side_effect = NotFoundError(
+        "not found", MagicMock(status=404), {}
+    )
+    connection_mock = MagicMock()
+    connection_mock.get_es_client.return_value = es_client_mock
+    updates = [
+        (
+            "product_updates_off",
+            1629878400000,
+            FetcherResult(status=FetcherStatus.REMOVED, document={"code": "4"}),
+        ),
+        (
+            "product_updates_off",
+            1629878400001,
+            FetcherResult(
+                status=FetcherStatus.FOUND, document={"code": "5", "name": "Doc 5"}
+            ),
+        ),
+    ]
+    with (
+        patch("app._import.connection", connection_mock),
+        patch(
+            "app._import.load_document_fetcher",
+            MagicMock(return_value=DocumentFetcher(off_config)),
+        ),
+        patch("app._import.get_new_updates", MagicMock(return_value=updates)),
+    ):
+        run_update_daemon(default_global_config)
+
+    es_client_mock.delete.assert_called_once()
+    # the daemon went on with the next update
+    es_client_mock.index.assert_called_once()
+
+
+def test_get_redis_updates_ignores_removal_of_absent_document(
+    default_global_config: Config,
+):
+    off_config: IndexConfig = default_global_config.indices["off"]
+    search_result = MagicMock()
+    search_result.to_dict.return_value = {
+        off_config.index.last_modified_field_name: 1629878400
+    }
+    results = [
+        # the document was created then deleted after the dump
+        (False, {"delete": {"_id": "4", "status": 404}}),
+        (False, {"index": {"_id": "5", "status": 400}}),
+    ]
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search") as search,
+        patch("app._import.load_document_fetcher"),
+        patch("app._import.get_redis_products", MagicMock(return_value=iter([]))),
+        patch("app._import.parallel_bulk", MagicMock(return_value=results)) as bulk,
+    ):
+        search.return_value.sort.return_value.extra.return_value.execute.return_value = [
+            search_result
+        ]
+        num_errors = get_redis_updates(MagicMock(), "off-index", off_config)
+
+    # parallel_bulk must not raise on a 404 delete
+    assert bulk.call_args.kwargs["ignore_status"] == 404
+    # only the real failure is counted
+    assert num_errors == 1
 
 
 def test_run_update_daemon(default_global_config: Config):

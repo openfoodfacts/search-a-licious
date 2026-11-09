@@ -229,11 +229,16 @@ class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
 
 class DocumentFetcher(BaseDocumentFetcher):
     def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
+        code = item["code"]
+        # a removed document must carry its id, or it can not be deleted
+        removed = FetcherResult(
+            status=FetcherStatus.REMOVED,
+            document={self.config.index.id_field_name: code},
+        )
         if item.get("action") == "deleted":
             # this is a deleted product, no need to fetch
-            return FetcherResult(status=FetcherStatus.REMOVED, document=None)
+            return removed
 
-        code = item["code"]
         url = f"{OFF_API_URL}/api/v3.3/product/{code}"
         try:
             response = http_session.get(url, timeout=OFF_API_TIMEOUT)
@@ -257,7 +262,7 @@ class DocumentFetcher(BaseDocumentFetcher):
             or not json_response.get("product")
         ):
             # consider it removed
-            return FetcherResult(status=FetcherStatus.REMOVED, document=None)
+            return removed
 
         return FetcherResult(
             status=FetcherStatus.FOUND, document=json_response["product"]
