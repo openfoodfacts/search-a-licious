@@ -81,15 +81,21 @@ def es_errors_as_http_errors():
     instead of an unhandled 500 (without the details of the failure)."""
     try:
         yield
-    except elastic_transport.ConnectionError as e:
-        logger.error("Elasticsearch connection error: %s", e)
+    except (
+        elastic_transport.ConnectionError,
+        elastic_transport.ConnectionTimeout,
+    ) as e:
+        # log only the type: the message may contain request data
+        logger.error("Elasticsearch connection error: %s", type(e).__name__)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="The search backend is not reachable",
         ) from e
     except elasticsearch.ApiError as e:
-        # the body is only logged (never returned to the client), but keep it short
-        logger.error("Elasticsearch error: %s %.500s", e, e.body)
+        # log only the type and status: the message and body may contain request data
+        logger.error(
+            "Elasticsearch error: %s (status %s)", type(e).__name__, e.status_code
+        )
         raise HTTPException(
             status_code=(
                 status.HTTP_400_BAD_REQUEST

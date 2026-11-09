@@ -82,6 +82,7 @@ def _es_api_error(status_code: int) -> elasticsearch.ApiError:
 
 ES_ERRORS = [
     (elastic_transport.ConnectionError("cannot connect to es01"), 503),
+    (elastic_transport.ConnectionTimeout("timeout on es01"), 503),
     (_es_api_error(500), 503),
     (_es_api_error(400), 400),
 ]
