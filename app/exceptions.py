@@ -10,6 +10,10 @@ class FreeWildCardError(QueryAnalysisError):
     """You can't use '*' alone without specifying a search field"""
 
 
+class FreeRangeError(QueryAnalysisError):
+    """You can't use a range without specifying a search field"""
+
+
 class UnknownFieldError(QueryAnalysisError):
     """An unknown field name was used in the query"""
 
