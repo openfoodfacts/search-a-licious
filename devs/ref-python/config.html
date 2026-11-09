@@ -140,7 +140,7 @@ mode: The mode in which to generate the schema. Defaults to ‘validation’.</p
 <dt class="sig sig-object py" id="app.config.FieldConfig.bucket_agg_should_be_used_for_keyword_and_numeric_types_only">
 <span class="sig-name descname"><span class="pre">bucket_agg_should_be_used_for_keyword_and_numeric_types_only</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/config.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.config.FieldConfig.bucket_agg_should_be_used_for_keyword_and_numeric_types_only" title="Link to this definition">¶</a></dt>
 <dd><p>Validator that checks that <cite>bucket_agg</cite> is only provided for
-fields with types <cite>keyword</cite>, <cite>double</cite>, <cite>float</cite>, <cite>integer</cite> or <cite>bool</cite>.</p>
+fields with a numeric type, <cite>keyword</cite>, <cite>taxonomy</cite> or <cite>bool</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
