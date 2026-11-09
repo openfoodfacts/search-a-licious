@@ -8,6 +8,7 @@ import pytest
 import requests
 
 import app.config
+import app.indexing
 import app.openfoodfacts
 from app._types import FetcherStatus
 from app.openfoodfacts import TaxonomyPreprocessor
@@ -181,12 +182,14 @@ def test_result_processor_skips_selected_images_without_language(language):
     assert result["selected_images"]["front"]["display"]["en"] == result["image_url"]
 
 
-def _fetch(monkeypatch, response=None, exc=None):
+def _fetch(monkeypatch, response=None, exc=None, item=None):
     """Run DocumentFetcher.fetch_document with a mocked HTTP session"""
     get = MagicMock(return_value=response, side_effect=exc)
     monkeypatch.setattr(app.openfoodfacts.http_session, "get", get)
-    result = app.openfoodfacts.DocumentFetcher(MagicMock()).fetch_document(
-        "stream", {"code": "123"}
+    config = MagicMock()
+    config.index.id_field_name = "code"
+    result = app.openfoodfacts.DocumentFetcher(config).fetch_document(
+        "stream", item or {"code": "123"}
     )
     return result, get
 
@@ -220,6 +223,24 @@ def test_fetcher_found(monkeypatch):
 def test_fetcher_removed(monkeypatch, response):
     result, _ = _fetch(monkeypatch, response)
     assert result.status == FetcherStatus.REMOVED
+    # the id is needed to delete the document
+    assert result.document == {"code": "123"}
+
+
+def test_fetcher_deleted_action_is_removed_with_id(monkeypatch):
+    result, get = _fetch(monkeypatch, item={"code": "123", "action": "deleted"})
+    assert result.status == FetcherStatus.REMOVED
+    assert result.document == {"code": "123"}
+    # no need to fetch a deleted product
+    get.assert_not_called()
+
+
+def test_removed_product_is_processed_as_a_deletion(monkeypatch):
+    result, _ = _fetch(monkeypatch, _response(404, {"status": 0}))
+    conf = app.config.Config.from_yaml(Path("data/config/openfoodfacts.yml"))
+    processed = app.indexing.DocumentProcessor(conf.indices["off"]).from_result(result)
+    assert processed.status == FetcherStatus.REMOVED
+    assert processed.document == {"_id": "123"}
 
 
 @pytest.mark.parametrize("status_code", [429, 500, 502, 503])
