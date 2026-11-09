@@ -73,6 +73,9 @@ class FullTextMixin:
                 # `milk~` gives 0.5, which Elasticsearch does not accept
                 "fuzziness": int(fuzziness) if fuzziness.is_integer() else "AUTO",
             }
+            if "boost" in inner_json:
+                # keep `milk~1^2` boosted, as on a field
+                query["multi_match"]["boost"] = inner_json["boost"]
         elif "match" in query or "match_phrase" in query:
             query_type = list(k for k in query.keys() if k.startswith("match"))[0]
             # go for multi_match

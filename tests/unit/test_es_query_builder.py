@@ -60,6 +60,14 @@ def test_fuzzy_free_text_query_searches_all_fields(
     assert "fuzzy" not in query
 
 
+def test_fuzzy_free_text_query_keeps_boost(
+    default_config, default_filter_query_builder
+):
+    query = _build("milk~1^2", default_filter_query_builder).es_query.to_dict()["query"]
+    assert query["multi_match"]["boost"] == 2
+    assert query["multi_match"]["fuzziness"] == 1
+
+
 def test_fuzzy_free_text_query_combines_with_other_terms(
     default_config, default_filter_query_builder
 ):
