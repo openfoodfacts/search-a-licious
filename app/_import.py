@@ -721,7 +721,7 @@ def run_update_daemon(config: Config) -> None:
                 )
             except NotFoundError:
                 # already absent from the index, nothing to do
-                logger.debug("Document %s to remove is not in the index", _id)
+                logger.info("Document %s to remove is not in the index", _id)
         else:
             es_client.index(
                 index=config.indices[index_id].index.name,
