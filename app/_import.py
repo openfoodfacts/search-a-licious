@@ -300,7 +300,8 @@ def gen_taxonomy_documents(
             for lang, lang_synonyms in synonyms.items():
                 filtered_synonyms = filter(lambda s: s, lang_synonyms)
                 synonyms_list[lang] = sorted(
-                    filtered_synonyms, key=lambda s: 0 if s == names[lang] else len(s)
+                    filtered_synonyms,
+                    key=lambda s: 0 if s == names.get(lang) else len(s),
                 )
             yield {
                 "_index": next_index,
