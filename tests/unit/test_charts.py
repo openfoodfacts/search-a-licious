@@ -6,6 +6,7 @@ from app._types import (
     DistributionChart,
     GetChartSearchParameters,
     PostChartSearchParameters,
+    QueryAnalysis,
     ScatterChart,
     SearchParameters,
     SuccessSearchResponse,
@@ -164,3 +165,24 @@ def test_chart_params_sort_script(default_config):
 def test_search_max_results_still_checked(default_config):
     with pytest.raises(ValidationError, match="Maximum number of returned results"):
         SearchParameters(q="milk", page=1001, page_size=10)
+
+
+def test_facets_numeric_keys(default_config, monkeypatch):
+    monkeypatch.setattr(facets, "get_taxonomy_names", lambda items, config: {})
+    nova_groups = _buckets((0, 3), (2, 1))
+    nova_groups["sum_other_doc_count"] = 0
+    result = _search_result({"nova_groups": nova_groups})
+
+    infos = facets.build_facets(
+        result,
+        QueryAnalysis(facets_filters={"nova_groups": ["2"]}),
+        "en",
+        default_config,
+        ["nova_groups"],
+    )
+
+    items = [item.model_dump() for item in infos["nova_groups"].items]
+    assert items == [
+        {"key": "2", "name": "2", "count": 1, "selected": True},
+        {"key": "0", "name": "0", "count": 3, "selected": False},
+    ]
