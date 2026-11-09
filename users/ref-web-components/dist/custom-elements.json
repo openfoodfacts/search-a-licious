@@ -7407,6 +7407,86 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/localization/main.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "getBrowserLocale",
+          "description": "Get the browser locale, it will keep only the language part"
+        },
+        {
+          "kind": "variable",
+          "name": "{getLocale, setLocale}",
+          "description": "Configure the localization, it will load the locale files and set the source and target locales"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "getBrowserLocale",
+          "declaration": {
+            "name": "getBrowserLocale",
+            "module": "src/localization/main.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "{getLocale, setLocale}",
+          "declaration": {
+            "name": "{getLocale, setLocale}",
+            "module": "src/localization/main.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/localization/translations.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "getPluralTranslation",
+          "parameters": [
+            {
+              "name": "value",
+              "type": {
+                "text": "number | undefined | null"
+              }
+            },
+            {
+              "name": "singleTranslation",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "pluralTranslation",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Utility functions to take the appropriate translation based on the value\nIf value is <= 1 or null or undefined, it will return the singleTranslation, otherwise the pluralTranslation",
+          "return": {
+            "type": {
+              "text": ""
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "getPluralTranslation",
+          "declaration": {
+            "name": "getPluralTranslation",
+            "module": "src/localization/translations.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/mixins/checked-input.ts",
       "declarations": [
         {
@@ -9758,120 +9838,6 @@
     },
     {
       "kind": "javascript-module",
-      "path": "src/localization/main.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "getBrowserLocale",
-          "description": "Get the browser locale, it will keep only the language part"
-        },
-        {
-          "kind": "variable",
-          "name": "{getLocale, setLocale}",
-          "description": "Configure the localization, it will load the locale files and set the source and target locales"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "getBrowserLocale",
-          "declaration": {
-            "name": "getBrowserLocale",
-            "module": "src/localization/main.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "{getLocale, setLocale}",
-          "declaration": {
-            "name": "{getLocale, setLocale}",
-            "module": "src/localization/main.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/localization/translations.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "getPluralTranslation",
-          "parameters": [
-            {
-              "name": "value",
-              "type": {
-                "text": "number | undefined | null"
-              }
-            },
-            {
-              "name": "singleTranslation",
-              "type": {
-                "text": "string"
-              }
-            },
-            {
-              "name": "pluralTranslation",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Utility functions to take the appropriate translation based on the value\nIf value is <= 1 or null or undefined, it will return the singleTranslation, otherwise the pluralTranslation",
-          "return": {
-            "type": {
-              "text": ""
-            }
-          }
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "getPluralTranslation",
-          "declaration": {
-            "name": "getPluralTranslation",
-            "module": "src/localization/translations.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/styles/index.ts",
-      "declarations": [
-        {
-          "kind": "variable",
-          "name": "WHITE_PANEL_STYLE",
-          "default": "css`\n  .white-panel {\n    margin-bottom: 1rem;\n    background-color: white;\n    padding: 0.5rem;\n    border-radius: 5px;\n  }\n`"
-        },
-        {
-          "kind": "variable",
-          "name": "HIDE_STYLE",
-          "default": "css`\n  .hidden {\n    display: none;\n  }\n`"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "WHITE_PANEL_STYLE",
-          "declaration": {
-            "name": "WHITE_PANEL_STYLE",
-            "module": "src/styles/index.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "HIDE_STYLE",
-          "declaration": {
-            "name": "HIDE_STYLE",
-            "module": "src/styles/index.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
       "path": "src/test/search-bar_test.ts",
       "declarations": [],
       "exports": []
@@ -10568,6 +10534,40 @@
           "declaration": {
             "name": "resetSignalToDefault",
             "module": "src/test/utils.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/styles/index.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "WHITE_PANEL_STYLE",
+          "default": "css`\n  .white-panel {\n    margin-bottom: 1rem;\n    background-color: white;\n    padding: 0.5rem;\n    border-radius: 5px;\n  }\n`"
+        },
+        {
+          "kind": "variable",
+          "name": "HIDE_STYLE",
+          "default": "css`\n  .hidden {\n    display: none;\n  }\n`"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "WHITE_PANEL_STYLE",
+          "declaration": {
+            "name": "WHITE_PANEL_STYLE",
+            "module": "src/styles/index.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "HIDE_STYLE",
+          "declaration": {
+            "name": "HIDE_STYLE",
+            "module": "src/styles/index.ts"
           }
         }
       ]
