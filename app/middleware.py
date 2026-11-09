@@ -1,5 +1,7 @@
 """Custom ASGI middlewares"""
 
+import time
+
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
@@ -35,9 +37,10 @@ class CatchAllErrorsMiddleware:
         try:
             await self.app(scope, receive, send_wrapper)
         except Exception:
-            logger.exception("Unhandled error on %s", scope.get("path"))
+            ts = time.monotonic()
+            logger.exception("Unhandled error on %s at %r", scope.get("path"), ts)
             if response_started:
                 # too late to send a clean error response
                 raise
-            response = JSONResponse({"detail": "Internal Server Error"}, 500)
+            response = JSONResponse({"detail": f"Internal Server Error - {ts}"}, 500)
             await response(scope, receive, send)

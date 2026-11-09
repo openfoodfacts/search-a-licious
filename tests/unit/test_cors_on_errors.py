@@ -28,7 +28,9 @@ def client():
 def test_unhandled_error_is_500_with_cors_headers(client):
     response = client.get("/test-unhandled-error", headers=ORIGIN)
     assert response.status_code == 500
-    assert response.json() == {"detail": "Internal Server Error"}
+    err = response.json()
+    assert list(err.keys()) == ["detail"]
+    assert response.json()["detail"].startswith("Internal Server Error")
     # without it, browsers report a CORS error instead of the real failure
     assert response.headers["access-control-allow-origin"] == ORIGIN["Origin"]
 
