@@ -13,6 +13,7 @@ from app._import import (
     gen_documents,
     get_document_dict,
     get_new_updates,
+    get_redis_updates,
     get_processed_since,
     load_document_fetcher,
     run_update_daemon,
@@ -390,6 +391,37 @@ def test_run_update_daemon_ignores_removal_of_absent_document(
     es_client_mock.delete.assert_called_once()
     # the daemon went on with the next update
     es_client_mock.index.assert_called_once()
+
+
+def test_get_redis_updates_ignores_removal_of_absent_document(
+    default_global_config: Config,
+):
+    off_config: IndexConfig = default_global_config.indices["off"]
+    search_result = MagicMock()
+    search_result.to_dict.return_value = {
+        off_config.index.last_modified_field_name: 1629878400
+    }
+    results = [
+        # the document was created then deleted after the dump
+        (False, {"delete": {"_id": "4", "status": 404}}),
+        (False, {"index": {"_id": "5", "status": 400}}),
+    ]
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search") as search,
+        patch("app._import.load_document_fetcher"),
+        patch("app._import.get_redis_products", MagicMock(return_value=iter([]))),
+        patch("app._import.parallel_bulk", MagicMock(return_value=results)) as bulk,
+    ):
+        search.return_value.sort.return_value.extra.return_value.execute.return_value = [
+            search_result
+        ]
+        num_errors = get_redis_updates(MagicMock(), "off-index", off_config)
+
+    # parallel_bulk must not raise on a 404 delete
+    assert bulk.call_args.kwargs["ignore_status"] == 404
+    # only the real failure is counted
+    assert num_errors == 1
 
 
 def test_run_update_daemon(default_global_config: Config):

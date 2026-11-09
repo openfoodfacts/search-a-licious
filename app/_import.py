@@ -498,8 +498,13 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
             last_updated_timestamp_ms,
             document_gen_errors,
         ),
+        # a product created then deleted after the dump is absent from the index
+        ignore_status=404,
     ):
         if not success:
+            if "delete" in info and info["delete"].get("status") == 404:
+                # nothing to remove, not an error
+                continue
             logger.warning("A document failed: %s", info)
             num_errors += 1
     for error in document_gen_errors:
