@@ -86,9 +86,10 @@ def es_errors_as_http_errors():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="The search backend is not reachable",
-        )
+        ) from e
     except elasticsearch.ApiError as e:
-        logger.error("Elasticsearch error: %s %s", e, e.body)
+        # the body is only logged (never returned to the client), but keep it short
+        logger.error("Elasticsearch error: %s %.500s", e, e.body)
         raise HTTPException(
             status_code=(
                 status.HTTP_400_BAD_REQUEST
@@ -96,7 +97,7 @@ def es_errors_as_http_errors():
                 else status.HTTP_503_SERVICE_UNAVAILABLE
             ),
             detail="The search backend returned an error",
-        )
+        ) from e
 
 
 @app.get("/document/{identifier}")
@@ -234,11 +235,11 @@ def taxonomy_autocomplete(
     with es_errors_as_http_errors():
         try:
             es_response = query.execute()
-        except elasticsearch.NotFoundError:
+        except elasticsearch.NotFoundError as e:
             raise HTTPException(
                 status_code=500,
                 detail="taxonomy index not found, taxonomies need to be imported first",
-            )
+            ) from e
 
     response = process_taxonomy_completion_response(es_response, q, langs.split(","))
 
