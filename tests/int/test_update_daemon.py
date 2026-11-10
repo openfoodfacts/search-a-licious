@@ -9,31 +9,56 @@ import time
 from unittest.mock import patch
 
 import pytest
-import redis
 
 from app import updates as app_updates
-from app.checkpoints import checkpoint_key, get_checkpoint
+from app.checkpoints import (
+    checkpoint_key,
+    get_checkpoint,
+    get_last_indexed_timestamp_ms,
+    stream_id_from_timestamp_ms,
+    updates_state_key,
+)
 from app.config import settings as app_settings
 
 STREAM_NAME = "product_updates_off"
+INDEX_NAME = "test_off"
 
 
 def _document(code: str, last_modified_t: int) -> dict:
     """Return a document suitable for the test index and the TestDocumentFetcher"""
     return {
         "code": code,
-        "product_type": "food",
+        "product_name": f"Product {code}",
         "last_modified_t": last_modified_t,
     }
 
 
+def _index_stream_id(
+    es_connection, offset_ms: int = 0, index_name: str = INDEX_NAME
+) -> str:
+    """Return the stream ID derived from the newest indexed document.
+
+    An offset of 0 is the position the daemon derives on a cold start; a
+    positive offset gives an ID after it.
+    """
+    timestamp_ms = get_last_indexed_timestamp_ms(
+        es_connection, index_name, "last_modified_t"
+    )
+    assert timestamp_ms is not None
+    return stream_id_from_timestamp_ms(timestamp_ms + offset_ms)
+
+
 def _reset_stream(redis_client):
-    """Delete the stream and the checkpoint so that each test starts clean
+    """Delete the stream and the daemon state so that each test starts clean
 
     This also avoids appending an ID lower than a previous one, which Redis
     rejects.
     """
-    redis_client.delete(STREAM_NAME, checkpoint_key(STREAM_NAME, "test_off"))
+    redis_client.delete(
+        STREAM_NAME,
+        checkpoint_key(STREAM_NAME, INDEX_NAME),
+        updates_state_key(STREAM_NAME, INDEX_NAME),
+    )
 
 
 def _wait_for(predicate, msg: str, timeout: float = 30.0, interval: float = 0.1):
@@ -122,13 +147,17 @@ def test_update_daemon_resumes_from_checkpoint(
     assert es_connection.count(index="test_off")["count"] == 9
 
     _reset_stream(redis_client)
-    alias = "test_off"
+    alias = INDEX_NAME
+    # the events must be after the newest indexed document, otherwise the
+    # daemon (which has no checkpoint yet) would ignore them
+    event_1_id = _index_stream_id(es_connection, offset_ms=1000)
+    event_2_id = _index_stream_id(es_connection, offset_ms=2000)
 
     # first run: event 1 is indexed, then the daemon is stopped
     redis_client.xadd(
         STREAM_NAME,
         _document("10000000000001", 1700000001),
-        id="1700000001000-0",
+        id=event_1_id,
     )
     _run_daemon_until(
         test_off_config,
@@ -137,13 +166,13 @@ def test_update_daemon_resumes_from_checkpoint(
         stop_events,
     )
     # the checkpoint is persisted for the handled event
-    assert get_checkpoint(redis_client, STREAM_NAME, alias) == "1700000001000-0"
+    assert get_checkpoint(redis_client, STREAM_NAME, alias) == event_1_id
 
     # event published while the daemon is not running
     redis_client.xadd(
         STREAM_NAME,
         _document("10000000000002", 1700000002),
-        id="1700000002000-0",
+        id=event_2_id,
     )
 
     # second run: the daemon must resume from the checkpoint and index event 2
@@ -153,33 +182,9 @@ def test_update_daemon_resumes_from_checkpoint(
         "daemon did not process new event in time, can't find document 10000000000002",
         stop_events,
     )
-    assert get_checkpoint(redis_client, STREAM_NAME, alias) == "1700000002000-0"
+    assert get_checkpoint(redis_client, STREAM_NAME, alias) == event_2_id
     # event 1 is still there
     assert es_connection.exists(index=alias, id="10000000000001")
-
-
-def test_xread_rejects_exclusive_id_prefix(redis_client):
-    """Guard on the Redis semantics relied on by the daemon
-
-    XREAD already returns the entries *after* the given ID, so the exclusive
-    range syntax of XRANGE (a "(" prefix) is not accepted: a cursor must be a
-    plain "ms-seq" ID. This is what makes it possible to resume from the ID of
-    the last handled event without reading it again.
-    """
-    _reset_stream(redis_client)
-    event_id = "1700000004000-0"
-    document = _document("10000000000008", 1700000008)
-    redis_client.xadd(STREAM_NAME, document, id=event_id)
-    try:
-        with pytest.raises(redis.exceptions.ResponseError, match="Invalid stream ID"):
-            redis_client.xread({STREAM_NAME: f"({event_id}"}, block=10)
-        # the plain ID is valid, and returns what was added after it only
-        assert redis_client.xread({STREAM_NAME: event_id}, block=10) in (None, [])
-        assert redis_client.xread({STREAM_NAME: "1700000003000-0"}, block=10) == [
-            (STREAM_NAME, [(event_id, document)])
-        ]
-    finally:
-        redis_client.delete(STREAM_NAME)
 
 
 def test_update_daemon_retries_transient_es_errors(
@@ -197,12 +202,16 @@ def test_update_daemon_retries_transient_es_errors(
     assert result.exit_code == 0
 
     _reset_stream(redis_client)
+    # the event must be after the newest indexed document, otherwise the
+    # daemon (which has no checkpoint yet) would ignore it
+    event_id = _index_stream_id(es_connection, offset_ms=1000)
     redis_client.xadd(
         STREAM_NAME,
         _document("10000000000003", 1700000003),
-        id="1700000003000-0",
+        id=event_id,
     )
 
+    # Patch the ES client's index() method to fail a few times, then succeed.
     real_index = es_connection.index
     failures = {"left": 2}
 
@@ -213,15 +222,22 @@ def test_update_daemon_retries_transient_es_errors(
             raise TransportError("connection reset")
         return real_index(*args, **kwargs)
 
-    # the daemon uses the (cached) connection returned by connection.get_es_client()
-    with patch.object(es_connection, "index", side_effect=flaky_index):
+    # connection.get_es_client() is per thread
+    # so the daemon would run on a new, unpatched client.
+    # Patch it to return the client whose index() is patched instead.
+    with (
+        patch.object(es_connection, "index", side_effect=flaky_index),
+        patch.object(
+            app_updates.connection, "get_es_client", return_value=es_connection
+        ),
+    ):
         _run_daemon_until(
             test_off_config,
             lambda: es_connection.exists(index="test_off", id="10000000000003"),
             "daemon did not process new event in time, can't find document 10000000000003",
             stop_events,
         )
-
+    # index was called three times: two failures, then one success
     assert failures["left"] == 0
     assert es_connection.exists(index="test_off", id="10000000000003")
 
@@ -240,35 +256,57 @@ def test_update_daemon_cold_start_from_last_indexed_document(
     )
     assert result.exit_code == 0
     _reset_stream(redis_client)
-    # an old event, before the last modified document (1700525044 s)
+    derived_start = _index_stream_id(es_connection, offset_ms=0)
+    recent_id = _index_stream_id(es_connection, offset_ms=1000)
+    # an old event, before the newest indexed document
     redis_client.xadd(
         STREAM_NAME,
         _document("10000000000004", 1700000004),
         id="1600000000000-0",
     )
-    # a recent event
-    redis_client.xadd(
-        STREAM_NAME,
-        _document("10000000000005", 1700000005),
-        id="1800000000000-0",
-    )
 
-    _run_daemon_until(
-        test_off_config,
-        lambda: es_connection.exists(index="test_off", id="10000000000005"),
-        "daemon did not process new event in time, can't find document 10000000000005",
-        stop_events,
-    )
-    # the daemon started after the newest indexed document
-    start = get_checkpoint(redis_client, STREAM_NAME, "test_off")
-    assert start is not None
-    assert int(start.split("-")[0]) >= 1700525044000
-    # the old event was not processed
-    assert not es_connection.exists(index="test_off", id="10000000000004")
+    runner = DaemonRunner(test_off_config)
+    runner.start()
+    try:
+        # the daemon started after the newest indexed document
+        _wait_for(
+            lambda: (
+                get_checkpoint(redis_client, STREAM_NAME, "test_off") == derived_start
+            ),
+            f"daemon did not start from the last indexed document {derived_start}",
+            timeout=30,
+        )
+        # the old event was not processed
+        assert not es_connection.exists(index="test_off", id="10000000000004")
+
+        redis_client.xadd(
+            STREAM_NAME,
+            _document("10000000000005", 1700000005),
+            id=recent_id,
+        )
+        _wait_for(
+            lambda: es_connection.exists(index="test_off", id="10000000000005"),
+            "daemon did not process new event in time, can't find document 10000000000005",
+            timeout=30,
+        )
+        _wait_for(
+            lambda: get_checkpoint(redis_client, STREAM_NAME, "test_off") == recent_id,
+            "daemon did not persist the checkpoint for the processed event",
+            timeout=30,
+        )
+    finally:
+        assert stop_events, "daemon did not install its signal handlers"
+        stop_events[-1].set()
+        runner.stop()
 
 
 def test_update_daemon_waits_for_empty_index_to_be_populated(
-    test_off_config, es_connection, redis_client, stop_events, monkeypatch
+    test_off_config,
+    es_connection,
+    redis_client,
+    stop_events,
+    monkeypatch,
+    synonyms_created,
 ):
     """Without a checkpoint nor data, the daemon waits for the index
 
@@ -289,14 +327,13 @@ def test_update_daemon_waits_for_empty_index_to_be_populated(
     def get_last_indexed_timestamp_ms(*args, **kwargs):
         if results["empty"]:
             return None
+        timestamp_ms = real_get_last_indexed_timestamp_ms(*args, **kwargs)
         started.set()
-        return real_get_last_indexed_timestamp_ms(*args, **kwargs)
+        return timestamp_ms
 
     monkeypatch.setattr(
         app_updates, "get_last_indexed_timestamp_ms", get_last_indexed_timestamp_ms
     )
-    # wait a short time between two checks of the index
-    monkeypatch.setattr(app_updates, "RETRY_INITIAL_DELAY", 0.01)
 
     _reset_stream(redis_client)
     # a pre-existing event must not be processed
@@ -319,18 +356,26 @@ def test_update_daemon_waits_for_empty_index_to_be_populated(
         )
         assert result.exit_code == 0
         results["empty"] = False
+        expected_start = _index_stream_id(es_connection, offset_ms=0)
+        new_event_id = _index_stream_id(es_connection, offset_ms=1000)
 
         # the daemon starts from the newest indexed document: the old event is
         # still ignored...
         assert started.wait(timeout=30)
-        assert get_checkpoint(redis_client, STREAM_NAME, "test_off") is not None
+        _wait_for(
+            lambda: (
+                get_checkpoint(redis_client, STREAM_NAME, "test_off") == expected_start
+            ),
+            f"daemon did not start from the last indexed document {expected_start}",
+            timeout=30,
+        )
         assert not es_connection.exists(index="test_off", id="10000000000006")
 
         # ...but new events are processed
         redis_client.xadd(
             STREAM_NAME,
             _document("10000000000007", 1700000007),
-            id="1900000000000-0",
+            id=new_event_id,
         )
         _wait_for(
             lambda: es_connection.exists(index="test_off", id="10000000000007"),

@@ -322,7 +322,8 @@ def track_event(
     :param processor: the document processor of the target index
     :param index_name: the index (alias) the documents are written to
     :param stop_event: if set while retrying, give up
-    :return: the stream cursor to use to read the next event
+    :return: the stream cursor to use to read the next event, or ``None`` if
+        the daemon was stopped before the event could be handled
     """
     what = f"processing event {stream_id} from {stream_name}"
     canceled = not retry_until_done(
@@ -341,9 +342,10 @@ def track_event(
         stop_event,
         skip_non_retryable=False,
     )
-    # The exclusive range starts *after* this event, so it is not read again
-    # by this generator (a rebuilt generator starts from the checkpoint).
-    return f"({stream_id}"
+    # XREAD returns the entries strictly after the given ID, so returning the
+    # ID of this event is enough to not read it again (a rebuilt generator
+    # starts from the checkpoint).
+    return stream_id
 
 
 def wait_for_start_position(

@@ -140,6 +140,8 @@ class RedisXreadClient:
 
     def xread(self, streams: dict, block: int, count: int | None = None):
         assert set(streams.keys()) == {"product_updates_off"}
+        # XREAD takes plain "ms-seq" IDs, the "(" prefix is only for XRANGE
+        assert all(not stream_id.startswith("(") for stream_id in streams.values())
         assert block > 0
         assert count == 100
         self.streams_history.append(dict(streams))
@@ -225,8 +227,15 @@ def test_get_new_updates(default_config: IndexConfig):
             status=FetcherStatus.FOUND, document={"code": "3", "name": "Document 3"}
         ),
     )
-    # we started from "$" (no position given) as there is no checkpoint
-    assert redis_client.streams_history[0] == {redis_stream_name: "$"}  # type: ignore
+    # we started from "$" (no position given) as there is no checkpoint, then
+    # used the plain ID of the last read entry as the cursor (XREAD is
+    # exclusive, unlike XRANGE)
+    assert redis_client.streams_history == [  # type: ignore
+        {redis_stream_name: "$"},
+        {redis_stream_name: "1629878400002-0"},
+        {redis_stream_name: "1629878400000-0"},
+        {redis_stream_name: "1629878400001-0"},
+    ]
 
 
 def test_get_new_updates_starts_from_given_position(default_config: IndexConfig):

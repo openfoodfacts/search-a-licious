@@ -17,6 +17,7 @@ from app.updates import (
     is_retryable_error,
     retry_delay,
     run_update_daemon,
+    track_event,
     wait_for_start_position,
 )
 
@@ -592,6 +593,36 @@ def test_run_update_daemon_raises_non_retryable_reader_error(
             run_update_daemon(default_global_config)
 
 
+def test_track_event_returns_plain_stream_id():
+    """The cursor is the event ID itself: XREAD is already exclusive"""
+    stream_id = "1629878400001-0"
+    processor = MagicMock()
+    processor.from_result.return_value = FetcherResult(
+        status=FetcherStatus.FOUND, document={"_id": "1", "code": "1"}
+    )
+    redis_client = MagicMock()
+    es_client = MagicMock()
+
+    cursor = track_event(
+        redis_client,
+        es_client,
+        "product_updates_off",
+        stream_id,
+        FetcherResult(status=FetcherStatus.FOUND, document={"code": "1"}),
+        processor,
+        "openfoodfacts",
+        threading.Event(),
+    )
+
+    assert cursor == stream_id
+    es_client.index.assert_called_once_with(
+        index="openfoodfacts", body={"code": "1"}, id="1"
+    )
+    redis_client.set.assert_called_once_with(
+        "searchalicious:checkpoint:product_updates_off:openfoodfacts", stream_id
+    )
+
+
 def test_is_retryable_error():
     """Transient errors are retried, document-level errors are not"""
     # Elasticsearch transient errors
@@ -770,8 +801,8 @@ def test_run_update_daemon_records_processing_state(
         "last_read_id": "1629878399999-0",
         "pending_events": 0,
     }
-    # the final flush records the last event read (a real stream ID, not the
-    # exclusive range cursor used internally to read the next event)
+    # the final flush records the last event read as a plain stream ID, which
+    # is also the cursor used to read the next event
     assert written[-1]["last_read_id"] == "1629878400001-0"
     assert written[-1]["pending_events"] == 0
 
