@@ -391,9 +391,15 @@ def wait_for_start_position(
 
     attempt = 0
     while not stop_event.is_set():
-        last_indexed_ms = get_last_indexed_timestamp_ms(
-            es_client, index_name, last_modified_field_name
-        )
+        try:
+            last_indexed_ms = get_last_indexed_timestamp_ms(
+                es_client, index_name, last_modified_field_name
+            )
+        except Exception as exc:
+            if not (isinstance(exc, NotFoundError) or is_retryable_error(exc)):
+                raise
+            logger.info("Index %s is not available yet: %s", index_name, exc)
+            last_indexed_ms = None
         if last_indexed_ms is not None:
             start_id = stream_id_from_timestamp_ms(last_indexed_ms)
             # Persist immediately: the derived position is meaningful, and this
