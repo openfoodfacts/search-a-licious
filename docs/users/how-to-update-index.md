@@ -104,6 +104,9 @@ It is reported by the `/health` API endpoint, in the `update-daemon-state` check
 `last_message_age_seconds` is computed when the endpoint is queried, from the timestamp of
 `last_read_id`: **it keeps growing if the daemon stops**, which is the signal to watch
 (beware that an idle stream naturally makes it grow as long as no event is published).
+Note that the check result is cached by the health check library for about 30 seconds:
+`last_message_age_seconds` is the age at the time reported in the `timestamp` field of
+the `update-daemon-state` check result, not at the time of the request.
 The fields are `null` if the daemon never recorded its state.
 
 ## Updating the index from time to time with an export

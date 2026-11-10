@@ -591,7 +591,7 @@ def run_update_daemon(config: Config) -> None:
                     index_name=stream_index_configs[stream_name].index.name,
                     stop_event=stop_event,
                 )
-                recorder.set(min_ids[stream_name], recorder.pending_events)
+                recorder.set(stream_id, recorder.pending_events)
                 # A retry may have been successful after several failures:
                 # reset the backoff.
                 attempt = 0

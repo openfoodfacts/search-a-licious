@@ -770,9 +770,9 @@ def test_run_update_daemon_records_processing_state(
         "last_read_id": "1629878399999-0",
         "pending_events": 0,
     }
-    # the final flush records the last event read, with nothing left pending
-    # (the daemon keeps the exclusive range cursor used to read the next event)
-    assert written[-1]["last_read_id"] == "(1629878400001-0"
+    # the final flush records the last event read (a real stream ID, not the
+    # exclusive range cursor used internally to read the next event)
+    assert written[-1]["last_read_id"] == "1629878400001-0"
     assert written[-1]["pending_events"] == 0
 
 

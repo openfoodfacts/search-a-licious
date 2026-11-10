@@ -81,7 +81,11 @@ def test_updates_state():
     logger.debug("health: reporting update daemon state")
     try:
         config = get_config()
-        redis_client = connection.get_redis_client(socket_connect_timeout=5)
+        # small socket timeout as it is only informational
+        # (don't clutter health check with long waits)
+        redis_client = connection.get_redis_client(
+            socket_connect_timeout=5, socket_timeout=5
+        )
         streams = [
             _updates_state_for(redis_client, index_config.redis_stream_name, index_name)
             for index_name, index_config in config.indices.items()
@@ -91,6 +95,8 @@ def test_updates_state():
         # never fail: this check is informational
         logger.warning("health: could not read the update daemon state: %s", exc)
         return True, {"streams": [], "error": str(exc)}
+    # Note that the check result is cached by py-healthcheck (27s by default):
+    # the age is therefore the one at capture time
     return True, {"streams": streams}
 
 
