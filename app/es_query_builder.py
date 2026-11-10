@@ -193,6 +193,17 @@ class FullTextQueryBuilder(ElasticsearchQueryBuilder):
         else:
             yield from super().visit_phrase(node, context)
 
+    @staticmethod
+    def _negative_bound(bound):
+        """luqum parses the `-5` of `[-5 TO 10]` as a prohibition of `5`,
+        which the elasticsearch visitor can not handle: give back the number
+        """
+        if isinstance(bound, luqum.tree.Prohibit) and isinstance(
+            bound.a, luqum.tree.Word
+        ):
+            return luqum.tree.Word(f"-{bound.a.value}")
+        return bound
+
     def visit_range(self, node, context):
         """A range needs a field, the default (full text) field is a placeholder"""
         if self._fields(context) == [DEFAULT_FIELD_MARKER]:
@@ -200,6 +211,12 @@ class FullTextQueryBuilder(ElasticsearchQueryBuilder):
                 "Free ranges are not allowed in full text queries, "
                 "specify a field, like 'nutriments.fat_100g:[1 TO 2]'"
             )
+        node = luqum.tree.Range(
+            self._negative_bound(node.low),
+            self._negative_bound(node.high),
+            include_low=node.include_low,
+            include_high=node.include_high,
+        )
         yield from super().visit_range(node, context)
 
     def __call__(
