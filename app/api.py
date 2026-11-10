@@ -205,7 +205,7 @@ def search_get(
 
 @app.get("/autocomplete")
 def taxonomy_autocomplete(
-    q: Annotated[str, Query(description="User autocomplete query.")],
+    q: Annotated[str, Query(min_length=1, description="User autocomplete query.")],
     # We can't yet use list[str] as there an error is raised when passing an
     # empty list:
     # https://github.com/tiangolo/fastapi/issues/9920

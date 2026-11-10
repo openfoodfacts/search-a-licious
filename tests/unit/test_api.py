@@ -205,3 +205,10 @@ def test_search_unknown_index_id_is_422(
         )
     assert response.status_code == 422
     assert "Index ID 'unknown' not found" in response.text
+
+
+def test_autocomplete_empty_query_is_422(default_global_config):
+    """An empty query used to crash in elasticsearch_dsl (KeyError, 500)"""
+    client = TestClient(app, raise_server_exceptions=True)
+    response = client.get("/autocomplete?q=&taxonomy_names=categories")
+    assert response.status_code == 422

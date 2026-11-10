@@ -41,19 +41,21 @@ The query syntax is quite simple, you can either:
   ```
   "dark chocolate" labels:organic
   ```
-  Entries with text `dark chocolate` and labels containing `organic`
+  Entries with text `dark chocolate` and labels containing `organic`.
+  This example assumes the `index` synonyms strategy, where `organic` is matched
+  through the synonyms of the taxonomy. With the `none` strategy, or if you want
+  to match a stored value exactly, use the value as stored in the index
+  (for Open Food Facts labels, the taxonomy id, eg. `labels:"en:organic"`).
+  See [taxonomy fields](./explain-taxonomies.md).
 * you can combine queries with `AND`, `OR` and `NOT` operators, and use parenthesis to group them:
   ```
-  "dark chocolate AND (labels:organic OR labels:vegan) AND NOT nutriscore:(e OR d)"
+  "dark chocolate" AND (labels:organic OR labels:vegan) AND NOT nutriscore_grade:(e OR d)
   ```
   Entries with text `dark chocolate`, labels containing `organic` or `vegan`, and Nutri-Score not `e` or `d`
-* you can query a sub field by using "." or ":":
+* you can query a sub field of an object by using "." between the field and the sub field
+  (the ":" form is not valid):
   ```
   nutriments.sugars_100g:[10 TO 15]
-  ```
-  equivalent to:
-  ```
-  nutriments:sugars_100g:[10 TO 15]
   ```
   Entries with sugar between 10 and 15 grams per 100g
 * in range you can use * for unbounded values:
@@ -63,7 +65,7 @@ The query syntax is quite simple, you can either:
   Entries with sugar below 20 g and proteins above 2g for 100g
 * match field existence with `*`:
   ```
-  nutriscore:*
+  nutriscore_grade:*
   ```
   Entries with Nutri-Score computed
 
@@ -78,6 +80,31 @@ In particular for text entries, there are two types of fields:
 
 There are also numeric and date fields, that can be used for range matching, or to make computations.
 
+### Taxonomy fields
+
+What you can write after `labels:` depends on the
+[`synonyms_strategy`](./explain-taxonomies.md#taxonomy-fields) of your index:
+
+* with `index`, you can use a name or a synonym, in any language of the request:
+  `labels:organic`, `labels:bio`
+* with `none`, the field only contains taxonomy ids, so you must use the id,
+  with its language prefix: `labels:"en:organic"`.
+  A bare `labels:organic` matches nothing.
+
 ## Full text queries
 
-**FIXME** add more on how we transform queries
+A word or a quoted phrase without a field name is searched in all the fields
+that have `full_text_search: true` in the configuration.
+For fields that have one text per language,
+only the languages of the request (the `langs` parameter) are searched.
+
+* a word matches if it is found in any of those fields
+* a quoted phrase matches if the words are found next to each other, in the same order
+* `*` and `?` can be used inside a word (`choco*`, `milk?`),
+  but `*` alone is refused because it would match everything
+* the `boost_phrase` parameter of the API favors entries where the words of the query
+  are consecutive, even if you did not use quotes.
+  It only applies to the default best-match order: it is ignored when `sort_by` is set.
+
+Queries are transformed before being sent to Elasticsearch,
+this is how the languages and your configuration are taken into account.
