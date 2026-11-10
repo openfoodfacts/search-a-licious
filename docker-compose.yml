@@ -73,6 +73,17 @@ services:
     volumes:
       - esdata02:/usr/share/elasticsearch/data
 
+  # redis holding the event streams
+  redis:
+    image: redis:7.2-alpine
+    restart: ${RESTART_POLICY:-always}
+    # we don't expose it: it's only used by search-a-licious
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   # elasticsearch browser
   elasticvue:
     image: cars10/elasticvue

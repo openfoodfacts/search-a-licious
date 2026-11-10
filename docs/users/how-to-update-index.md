@@ -37,9 +37,34 @@ docker-compose up -d updater
 
 This will continuously fetch updates from the event stream, and update the index accordingly.
 
-At start it will compute last update time using
-the [`last_modified_field_name` from the configuration](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name)
-to know from where to start processing the event stream.
+### Update daemon checkpoints
+
+The daemon records its position in the event stream in Redis, after each handled event:
+
+* the key is `searchalicious:checkpoint:<stream name>:<index name>`,
+  where the index name is the index (alias) the events are written to
+  (the same stream used for two indexes has therefore two checkpoints) ;
+* the value is the Redis stream ID of the last handled event.
+
+When the daemon restarts (deployment, crash, Elasticsearch or Redis outage),
+it resumes from this checkpoint, so events published while it was not running are not lost.
+Transient errors are retried with an exponential backoff instead of crashing the process.
+
+If there is no checkpoint yet (first run, or after deleting the key),
+the daemon starts from the most recent document of the index, using
+the [`last_modified_field_name` from the configuration](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name).
+**This means the index must be populated before the daemon is started**:
+if the index is empty, the daemon logs an error and only processes events published from now on.
+
+A successful import (`import` command, unless `--skip-updates` is used)
+moves the checkpoint to the most recent imported document,
+so the daemon does not replay events that the import already took into account.
+
+To force the daemon to start again from the most recent indexed document, delete the key:
+```bash
+# replace <stream name> and <index name> with your values
+docker-compose exec redis redis-cli DEL searchalicious:checkpoint:<stream name>:<index name>
+```
 
 ## Updating the index from time to time with an export
 

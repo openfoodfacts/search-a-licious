@@ -87,3 +87,33 @@ def data_ingester(index_config, es_connection, clean_es):
         save_state("test_off", index_config, es_connection)
 
     return _ingester
+
+
+REDIS_MAX_WAIT = 60  # 1 minute
+
+
+@pytest.fixture(scope="session")
+def redis_client(test_off_config):
+    """Wait for the Redis instance holding the event stream, and return a client"""
+    import redis
+
+    waited = 0
+    while True:
+        client = app.utils.connection.get_redis_client()
+        try:
+            if client.ping():
+                return client
+        except redis.exceptions.ConnectionError:
+            if waited > REDIS_MAX_WAIT:
+                raise
+        client.close()
+        waited += 1
+        time.sleep(1)
+
+
+@pytest.fixture
+def clean_redis(redis_client):
+    """Delete every key created by the tests (checkpoints, streams)"""
+    redis_client.flushdb()
+    yield redis_client
+    redis_client.flushdb()
