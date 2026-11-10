@@ -20,6 +20,7 @@ stream to catch up with the events published during a full import.
 import random
 import signal
 import threading
+import time
 from typing import Callable
 
 from elasticsearch import Elasticsearch, NotFoundError
@@ -38,6 +39,7 @@ from app.checkpoints import (
     get_checkpoint,
     get_last_indexed_timestamp_ms,
     set_checkpoint,
+    set_updates_state,
     stream_id_from_timestamp_ms,
 )
 from app.config import Config, IndexConfig
@@ -57,6 +59,106 @@ RETRY_JITTER = 0.2
 # HTTP statuses that mean "the cluster is temporarily unable to serve this
 # request" (rate limiting, shard/node unavailable, gateway timeouts).
 RETRYABLE_HTTP_STATUSES = frozenset({429, 502, 503, 504})
+
+# Minimum delay between two writes of the processing state in Redis (see
+# UpdatesStateRecorder). The state is informational only: throttling it avoids
+# a Redis write per event on a busy stream.
+UPDATES_STATE_WRITE_INTERVAL = 10.0
+
+
+class UpdatesStateRecorder:
+    """Record the processing state of the daemon for the health endpoint.
+
+    The state (the ID of the last event read by the daemon and the number of
+    read events still to be processed) is informational: writing it must never
+    slow down or break the daemon. Writes are therefore throttled to at most
+    one per ``UPDATES_STATE_WRITE_INTERVAL`` seconds, and errors are logged and
+    ignored.
+
+    A throttled write is "leading edge": the value is written as soon as it
+    changes after the interval, the intermediate values being skipped. The
+    stream being quiet is the signal to flush the latest value (see
+    :meth:`flush_if_due`), so that the state settles at its final value when
+    the daemon has nothing left to do.
+    """
+
+    def __init__(
+        self,
+        redis_client: Redis,
+        stream_name: str,
+        index_name: str,
+        interval: float = UPDATES_STATE_WRITE_INTERVAL,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        """
+        :param redis_client: the Redis client
+        :param stream_name: the name of the Redis stream
+        :param index_name: the name of the index (the alias)
+        :param interval: the minimum delay between two writes, in seconds
+        :param clock: the clock used to measure elapsed time
+        """
+        self.redis_client = redis_client
+        self.stream_name = stream_name
+        self.index_name = index_name
+        self.interval = interval
+        self.clock = clock
+        self.last_read_id: str | None = None
+        self.pending_events = 0
+        self._last_write: float | None = None
+
+    def set(self, last_read_id: str | None, pending_events: int) -> None:
+        """Record the current state, throttled.
+
+        :param last_read_id: the ID of the last event read by the daemon
+        :param pending_events: the number of read events still to be processed
+        """
+        self.last_read_id = last_read_id
+        self.pending_events = pending_events
+        self.flush_if_due()
+
+    def add_pending(self, delta: int) -> None:
+        """Update the number of pending events, keeping the last read ID.
+
+        The write is throttled like :meth:`set`.
+
+        :param delta: the number of events to add to (or remove from) the
+            pending count
+        """
+        self.pending_events = max(0, self.pending_events + delta)
+        self.flush_if_due()
+
+    def flush_if_due(self) -> None:
+        """Write the state if the throttle interval has elapsed.
+
+        Does nothing if a write happened less than ``interval`` seconds ago.
+        """
+        now = self.clock()
+        if self._last_write is not None and now - self._last_write < self.interval:
+            return
+        self.flush()
+
+    def flush(self) -> None:
+        """Write the state now, whatever the throttle says.
+
+        Failures are logged and ignored: the state is not critical.
+        """
+        try:
+            set_updates_state(
+                self.redis_client,
+                self.stream_name,
+                self.index_name,
+                self.last_read_id,
+                self.pending_events,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Could not record the processing state for stream %s and index %s: %s",
+                self.stream_name,
+                self.index_name,
+                exc,
+            )
+            return
+        self._last_write = self.clock()
 
 
 def is_retryable_error(exc: Exception) -> bool:
@@ -445,10 +547,25 @@ def run_update_daemon(config: Config) -> None:
             return
         min_ids[stream_name] = start_id
 
+    # Informational processing state, read by the health endpoint.
+    state_recorders = {
+        stream_name: UpdatesStateRecorder(
+            redis_client, stream_name, index_config.index.name
+        )
+        for stream_name, index_config in stream_index_configs.items()
+    }
+    for stream_name, recorder in state_recorders.items():
+        recorder.set(min_ids[stream_name], 0)
+
     # If the generator fails (e.g. a Redis error during xread), it is rebuilt
     # from the persisted checkpoints: the events of the in-flight batch that
     # were not handled yet are then read again.
     attempt = 0
+
+    def flush_state_if_due() -> None:
+        for recorder in state_recorders.values():
+            recorder.flush_if_due()
+
     while not stop_event.is_set():
         try:
             for stream_name, _, stream_id, result in get_new_updates(
@@ -458,7 +575,12 @@ def run_update_daemon(config: Config) -> None:
                 document_fetchers=document_fetchers,
                 min_ids=min_ids,
                 stop_event=stop_event,
+                # The stream is quiet: flush the state so that it settles at
+                # its final value instead of waiting for the next event.
+                on_batch_end=flush_state_if_due,
             ):
+                recorder = state_recorders[stream_name]
+                recorder.add_pending(-1)
                 min_ids[stream_name] = track_event(
                     redis_client,
                     es_client,
@@ -469,6 +591,7 @@ def run_update_daemon(config: Config) -> None:
                     index_name=stream_index_configs[stream_name].index.name,
                     stop_event=stop_event,
                 )
+                recorder.set(min_ids[stream_name], recorder.pending_events)
                 # A retry may have been successful after several failures:
                 # reset the backoff.
                 attempt = 0
@@ -497,5 +620,9 @@ def run_update_daemon(config: Config) -> None:
                 or min_ids[stream_name]
                 for stream_name in id_field_names
             }
+
+    # Flush the state one last time without throttling
+    for recorder in state_recorders.values():
+        recorder.flush()
 
     logger.info("Stop requested, exiting")

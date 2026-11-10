@@ -69,6 +69,43 @@ To force the daemon to start again from the most recent indexed document, delete
 docker-compose exec redis redis-cli DEL searchalicious:checkpoint:<stream name>:<index name>
 ```
 
+### Monitoring the update daemon
+
+Besides its checkpoint, the daemon stores some information about its processing in Redis,
+under the key `searchalicious:updates_state:<stream name>:<index name>` (a hash):
+
+* `last_read_id`: the Redis stream ID of the last event the daemon read ;
+* `pending_events`: how many events the daemon has read and still has to process.
+
+This state is informational only: writing it is throttled (at most once every 10 seconds,
+plus once when the stream is quiet and on shutdown) and a failure to record it never
+affects the indexing of the events.
+
+It is reported by the `/health` API endpoint, in the `update-daemon-state` check
+(these fields never change the health status of the API):
+
+```json
+{
+  "update-daemon-state": {
+    "streams": [
+      {
+        "index": "off",
+        "stream": "product_updates_off",
+        "last_read_id": "1762775912345-0",
+        "last_message_timestamp_ms": 1762775912345,
+        "last_message_age_seconds": 12.4,
+        "pending_events": 4
+      }
+    ]
+  }
+}
+```
+
+`last_message_age_seconds` is computed when the endpoint is queried, from the timestamp of
+`last_read_id`: **it keeps growing if the daemon stops**, which is the signal to watch
+(beware that an idle stream naturally makes it grow as long as no event is published).
+The fields are `null` if the daemon never recorded its state.
+
 ## Updating the index from time to time with an export
 
 Another way to update the index is to periodically re-import the all the data, or changed data.

@@ -13,7 +13,7 @@ from datetime import datetime
 from inspect import cleandoc as cd_
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Iterator, List, Tuple, cast
+from typing import Callable, Iterator, List, Tuple, cast
 
 import tqdm
 from elasticsearch import Elasticsearch
@@ -150,6 +150,7 @@ def get_new_updates(
     min_ids: dict[str, str] | None = None,
     batch_size: int = 100,
     stop_event: threading.Event | None = None,
+    on_batch_end: Callable[[], None] | None = None,
 ) -> Iterator[tuple[str, int, str, FetcherResult]]:
     """Reads new updates from Redis Stream, starting from the given positions.
 
@@ -173,6 +174,9 @@ def get_new_updates(
     :param batch_size: the size of the batch to fetch, defaults to 100.
     :param stop_event: if provided, the generator returns when this event is
         set (checked after each batch and each read timeout).
+    :param on_batch_end: if provided, called each time a batch coming from a
+        single ``xread`` has been fully consumed (also when the read timed out
+        without any new event), i.e. when the stream is quiet for now.
     :yield: a tuple containing the stream name, the timestamp (in
         milliseconds), the stream ID and the document
     """
@@ -231,6 +235,9 @@ def get_new_updates(
                     logger.debug(
                         f"Skipping ID {id_} in {stream_name} due to status {result.status.name}"
                     )
+
+        if on_batch_end is not None:
+            on_batch_end()
 
 
 def get_document_dict(

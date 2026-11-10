@@ -13,6 +13,7 @@ from app._import import BaseDocumentFetcher
 from app._types import FetcherResult, FetcherStatus
 from app.config import Config, IndexConfig
 from app.updates import (
+    UpdatesStateRecorder,
     is_retryable_error,
     retry_delay,
     run_update_daemon,
@@ -68,12 +69,13 @@ class StopWhenExhausted:
     daemon being stopped after the last event.
     """
 
-    def __init__(self, updates: list):
+    def __init__(self, updates: list, reader=None):
         self.updates = updates
         self.stop_event: threading.Event | None = None
+        self.reader = reader
 
     def __iter__(self):
-        yield from self.updates
+        yield from (self.reader() if self.reader is not None else iter(self.updates))
         assert self.stop_event is not None
         self.stop_event.set()
 
@@ -107,16 +109,39 @@ def empty_updates_then_stop(*args, **kwargs):
     return iter([])
 
 
+def with_batch_count(updates: list, pending_ref: list[int] | None = None):
+    """Yield updates while a shared counter mimics the events read in advance.
+
+    The real generator reads a whole batch from Redis before yielding its
+    entries, so the events of the batch that were not yielded yet are "in
+    memory". This fake reader reproduces that: `pending_ref` is incremented
+    for each event before the first one is yielded.
+    """
+
+    def _reader():
+        if pending_ref is not None:
+            pending_ref[0] += len(updates)
+        for update in updates:
+            if pending_ref is not None:
+                pending_ref[0] -= 1
+            yield update
+
+    return _reader
+
+
 def run_daemon_for_test(
     global_config: Config,
     off_config: IndexConfig,
     updates: list,
     connection_mock: MagicMock | None = None,
+    pending_ref: list[int] | None = None,
 ):
     """Run the daemon on a fixed list of updates, patching the exit paths."""
     if connection_mock is None:
         connection_mock, _, _ = make_daemon_mocks(off_config, updates)
-    updates_wrapper = StopWhenExhausted(updates)
+    updates_wrapper = StopWhenExhausted(
+        updates, reader=with_batch_count(updates, pending_ref)
+    )
     stop_events: list[threading.Event] = []
 
     def _install(stop_event):
@@ -611,3 +636,166 @@ def test_retry_delay():
         assert retry_delay(0) == 0.8
     with patch("app.updates.random.uniform", MagicMock(return_value=-1)):
         assert retry_delay(0) >= 0
+
+
+class FakeClock:
+    """A manually advanced clock"""
+
+    def __init__(self, now: float = 0.0) -> None:
+        self.now = now
+
+    def __call__(self) -> float:
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
+
+
+def make_recorder(interval: float = 10.0):
+    redis_client = MagicMock()
+    clock = FakeClock()
+    recorder = UpdatesStateRecorder(
+        redis_client, "stream", "off", interval=interval, clock=clock
+    )
+    return recorder, redis_client, clock
+
+
+def state_writes(redis_client) -> list[dict]:
+    """Return the mapping of each hset call on the updates state key"""
+    return [c.kwargs["mapping"] for c in redis_client.hset.mock_calls]
+
+
+def test_recorder_writes_once_per_interval():
+    """Writes are throttled: intermediate states are skipped"""
+    recorder, redis_client, clock = make_recorder(interval=10.0)
+
+    recorder.set("1000-0", 5)
+    assert state_writes(redis_client) == [
+        {"last_read_id": "1000-0", "pending_events": 5}
+    ]
+
+    clock.advance(1)
+    recorder.set("1001-0", 4)
+    clock.advance(1)
+    recorder.add_pending(-1)
+    # still within the interval: nothing written
+    assert len(state_writes(redis_client)) == 1
+
+    clock.advance(9)
+    recorder.set("1002-0", 2)
+    assert state_writes(redis_client)[-1] == {
+        "last_read_id": "1002-0",
+        "pending_events": 2,
+    }
+    assert len(state_writes(redis_client)) == 2
+
+
+def test_recorder_flush_bypasses_throttle():
+    """The idle flush writes the latest value whatever the throttle says"""
+    recorder, redis_client, clock = make_recorder(interval=10.0)
+    recorder.set("1000-0", 3)
+    recorder.add_pending(-3)
+
+    recorder.flush()
+
+    assert state_writes(redis_client)[-1] == {
+        "last_read_id": "1000-0",
+        "pending_events": 0,
+    }
+
+
+def test_recorder_flush_if_due_respects_throttle():
+    recorder, redis_client, clock = make_recorder(interval=10.0)
+    recorder.set("1000-0", 1)
+    recorder.pending_events = 0
+    recorder.flush_if_due()
+    assert len(state_writes(redis_client)) == 1
+
+    clock.advance(10)
+    recorder.flush_if_due()
+    assert len(state_writes(redis_client)) == 2
+
+
+def test_recorder_pending_never_negative():
+    recorder, _, _ = make_recorder()
+    recorder.add_pending(-1)
+    assert recorder.pending_events == 0
+
+
+def test_recorder_ignores_redis_errors():
+    """Recording the state is informational: a failure must not propagate"""
+    redis_client = MagicMock()
+    redis_client.hset.side_effect = RuntimeError("redis is down")
+    recorder = UpdatesStateRecorder(redis_client, "stream", "off", clock=FakeClock())
+
+    recorder.set("1000-0", 1)
+    recorder.flush()
+
+    # the failure is not remembered as a successful write
+    assert recorder._last_write is None
+
+
+def test_run_update_daemon_records_processing_state(
+    default_global_config: Config,
+):
+    """The daemon records the last read ID and the pending count"""
+    off_config: IndexConfig = default_global_config.indices["off"]
+    connection_mock, _, redis_client_mock = make_daemon_mocks(off_config, [])
+    updates = [
+        (
+            "product_updates_off",
+            1629878400000,
+            "1629878400000-0",
+            FetcherResult(status=FetcherStatus.FOUND, document={"code": "1"}),
+        ),
+        (
+            "product_updates_off",
+            1629878400001,
+            "1629878400001-0",
+            FetcherResult(status=FetcherStatus.FOUND, document={"code": "2"}),
+        ),
+    ]
+
+    run_daemon_for_test(
+        default_global_config, off_config, updates, connection_mock=connection_mock
+    )
+
+    state_keys = {c.args[0] for c in redis_client_mock.hset.mock_calls if c.args}
+    assert state_keys == {
+        "searchalicious:updates_state:product_updates_off:openfoodfacts"
+    }
+    written = state_writes(redis_client_mock)
+    # initial state: resuming from the checkpoint, nothing pending
+    assert written[0] == {
+        "last_read_id": "1629878399999-0",
+        "pending_events": 0,
+    }
+    # the final flush records the last event read, with nothing left pending
+    # (the daemon keeps the exclusive range cursor used to read the next event)
+    assert written[-1]["last_read_id"] == "(1629878400001-0"
+    assert written[-1]["pending_events"] == 0
+
+
+def test_get_new_updates_calls_on_batch_end():
+    """The reader reports the end of a batch, including on an empty read"""
+    from app._import import get_new_updates
+
+    redis_client = MagicMock()
+    redis_client.xread.return_value = []
+    stop_event = threading.Event()
+
+    def on_batch_end():
+        stop_event.set()
+
+    list(
+        get_new_updates(
+            redis_client,
+            ["stream"],
+            id_field_names={"stream": "id"},
+            document_fetchers={},
+            stop_event=stop_event,
+            on_batch_end=on_batch_end,
+        )
+    )
+
+    assert stop_event.is_set()
