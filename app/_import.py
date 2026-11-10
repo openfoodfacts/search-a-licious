@@ -523,21 +523,15 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
     last_updated_timestamp_ms = get_last_indexed_timestamp_ms(
         es_client, index, config.index.last_modified_field_name
     )
-    # Note that we can't use index() because we don't want to also query the
-    # main alias
-    query._index = [index]
-    results = query.execute()
-    results_dict = [r.to_dict() for r in results]
-    if not results_dict or last_modified_field_name not in results_dict[0]:
+    if last_updated_timestamp_ms is None:
         # Nothing says from where to catch up. Skipping would silently lose the
         # updates since the dump, and the alias would then point to this index.
         raise RuntimeError(
             f"Cannot catch up on Redis updates: no document with a "
-            f"{last_modified_field_name} in index {index} (is the import empty?). "
+            f"{config.index.last_modified_field_name} in index {index} "
+            "(is the import empty?). "
             "Use --skip-updates to import without them."
         )
-    last_updated_timestamp: int | float = results_dict[0][last_modified_field_name]
-    last_updated_timestamp_ms = int(last_updated_timestamp * 1000)
     id_field_name = config.index.id_field_name
     # Since this is only done by a single process, we can use parallel_bulk
     num_errors = 0

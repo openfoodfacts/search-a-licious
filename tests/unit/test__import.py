@@ -852,7 +852,8 @@ def test_get_redis_updates_catches_up_from_last_modified(default_config: IndexCo
     with (
         patch("app._import.Index"),
         patch(
-            "app._import.Search", _patch_last_modified_search([{last_modified: 12.5}])
+            "app.checkpoints.Search",
+            _patch_last_modified_search([{last_modified: 12.5}]),
         ),
         patch("app._import.get_redis_products", products),
         patch("app._import.parallel_bulk", return_value=[]) as bulk,
@@ -867,7 +868,7 @@ def test_get_redis_updates_fails_on_empty_index(default_config: IndexConfig):
     """An empty index has no date to catch up from: skipping would lose updates"""
     with (
         patch("app._import.Index"),
-        patch("app._import.Search", _patch_last_modified_search([])),
+        patch("app.checkpoints.Search", _patch_last_modified_search([])),
         patch("app._import.get_redis_products") as products,
         patch("app._import.parallel_bulk") as bulk,
         pytest.raises(RuntimeError, match="--skip-updates"),
@@ -880,7 +881,7 @@ def test_get_redis_updates_fails_on_empty_index(default_config: IndexConfig):
 def test_get_redis_updates_fails_without_last_modified(default_config: IndexConfig):
     with (
         patch("app._import.Index"),
-        patch("app._import.Search", _patch_last_modified_search([{"code": "1"}])),
+        patch("app.checkpoints.Search", _patch_last_modified_search([{"code": "1"}])),
         patch("app._import.get_redis_products") as products,
         patch("app._import.parallel_bulk") as bulk,
         pytest.raises(RuntimeError, match="--skip-updates"),
@@ -937,7 +938,7 @@ def test_run_items_import_does_not_publish_empty_index_without_catch_up(
     with (
         _mock_full_import() as update_alias_mock,
         patch("app._import.Index"),
-        patch("app._import.Search", _patch_last_modified_search([])),
+        patch("app.checkpoints.Search", _patch_last_modified_search([])),
         pytest.raises(RuntimeError),
     ):
         run_items_import(Path("items.jsonl"), 1, default_config)
