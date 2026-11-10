@@ -151,6 +151,7 @@ def get_new_updates(
     batch_size: int = 100,
     stop_event: threading.Event | None = None,
     on_batch_end: Callable[[], None] | None = None,
+    on_batch_read: Callable[[str, list[tuple[str, dict]]], None] | None = None,
 ) -> Iterator[tuple[str, int, str, FetcherResult]]:
     """Reads new updates from Redis Stream, starting from the given positions.
 
@@ -177,6 +178,9 @@ def get_new_updates(
     :param on_batch_end: if provided, called each time a batch coming from a
         single ``xread`` has been fully consumed (also when the read timed out
         without any new event), i.e. when the stream is quiet for now.
+    :param on_batch_read: if provided, called each time a batch coming from a
+        single ``xread`` has been read (before processing the entries).
+        with the stream name and the list of read entries.
     :yield: a tuple containing the stream name, the timestamp (in
         milliseconds), the stream ID and the document
     """
@@ -200,6 +204,8 @@ def get_new_updates(
         response = cast(List[Tuple[str, List[Tuple[str, dict]]]], raw_response)
 
         for stream_name, batch in response:
+            if on_batch_read is not None:
+                on_batch_read(stream_name, batch)
             id_field_name = id_field_names[stream_name]
             document_fetcher = document_fetchers[stream_name]
             # Note: the in-memory cursor is advanced *before* yielding an entry,

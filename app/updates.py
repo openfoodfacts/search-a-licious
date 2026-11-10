@@ -584,6 +584,9 @@ def run_update_daemon(config: Config) -> None:
                 # The stream is quiet: flush the state so that it settles at
                 # its final value instead of waiting for the next event.
                 on_batch_end=flush_state_if_due,
+                on_batch_read=lambda name, entries: state_recorders[name].add_pending(
+                    len(entries)
+                ),
             ):
                 recorder = state_recorders[stream_name]
                 recorder.add_pending(-1)
