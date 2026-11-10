@@ -163,3 +163,10 @@ def test_autocomplete_missing_taxonomy_index_message_is_kept(default_config):
         response = TestClient(app).get("/autocomplete?q=mil&taxonomy_names=categories")
     assert response.status_code == 500
     assert "taxonomies need to be imported" in response.text
+
+
+def test_autocomplete_empty_query_is_422(default_global_config):
+    """An empty query used to crash in elasticsearch_dsl (KeyError, 500)"""
+    client = TestClient(app, raise_server_exceptions=True)
+    response = client.get("/autocomplete?q=&taxonomy_names=categories")
+    assert response.status_code == 422
