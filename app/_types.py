@@ -21,28 +21,6 @@ from .validations import (
 JSONType = dict[str, Any]
 
 
-class CommonParametersQuery:
-    """Documentation and constraints for some common query parameters"""
-
-    index_id = Query(
-        description=cd_(
-            """Index ID to use for the search, if not provided, the default index is used.
-            If there is only one index, this parameter is not needed.
-            """
-        )
-    )
-
-    max_entries = Query(
-        ge=1,
-        le=10_000,
-        description=cd_(
-            """Maximum number of points to plot, taken from the whole result set
-            (not only a page), after sorting. Only used by the chart endpoint.
-            """
-        ),
-    )
-
-
 class DistributionChart(BaseModel):
     """Describes an entry for a distribution chart"""
 
@@ -56,7 +34,6 @@ class ScatterChart(BaseModel):
     chart_type: Literal["ScatterChart"] = "ScatterChart"
     x: str
     y: str
-    max_entries: Annotated[int, CommonParametersQuery.max_entries] = 1000
 
 
 ChartType = Union[DistributionChart, ScatterChart]
@@ -183,6 +160,18 @@ class QueryAnalysis(BaseModel):
             "es_query": self.es_query.to_dict(),
             "facets_filters": self.facets_filters,
         }
+
+
+class CommonParametersQuery:
+    """Documentation and constraints for some common query parameters"""
+
+    index_id = Query(
+        description=cd_(
+            """Index ID to use for the search, if not provided, the default index is used.
+            If there is only one index, this parameter is not needed.
+            """
+        )
+    )
 
 
 class QuerySearchParameters(BaseModel):
@@ -630,25 +619,42 @@ class PostSearchParameters(SearchParameters, PostBaseSearchParameters):
 
 
 class ChartSearchParameters(BaseSearchParameters):
-    """Parameters for a scatter chart over the whole result set,
+    """Parameters for scatter charts over the whole result set,
     common to GET and POST
     """
 
-    chart: Annotated[
-        ScatterChart,
+    charts: Annotated[
+        list[ScatterChart],
         Query(
+            min_length=1,
             description=cd_(
-                """The scatter chart to build: two numeric fields
-                (`x_axis_field:y_axis_field` when using GET).
+                """The scatter charts to build, each with two numeric fields
+                (`x_axis_field:y_axis_field`, separated by `,` when using GET).
                 """
-            )
+            ),
         ),
     ]
 
+    max_entries: Annotated[
+        int,
+        Query(
+            ge=1,
+            le=10_000,
+            description=cd_(
+                """Maximum number of results to plot, taken from the whole result set
+                (not only a page), after sorting.
+                A result is plotted on each chart for which it has both values.
+                """
+            ),
+        ),
+    ] = 1000
+
     @model_validator(mode="after")
-    def check_chart_is_valid(self):
+    def check_charts_are_valid(self):
         """Check that the chart fields are valid."""
-        errors = check_fields_are_numeric(self.index_id, [self.chart.x, self.chart.y])
+        errors = check_fields_are_numeric(
+            self.index_id, [field for c in self.charts for field in (c.x, c.y)]
+        )
         if errors:
             raise ValueError(errors)
         return self
@@ -657,24 +663,22 @@ class ChartSearchParameters(BaseSearchParameters):
 class GetChartSearchParameters(ChartSearchParameters, GetBaseSearchParameters):
     """GET parameters for chart"""
 
-    max_entries: Annotated[int, CommonParametersQuery.max_entries] = 1000
-
-    @field_validator("chart", mode="before")
+    @field_validator("charts", mode="before")
     @classmethod
-    def parse_chart_str(cls, chart: str | ScatterChart) -> ScatterChart:
-        """Parse for get params 'xfield:yfield'"""
-        if isinstance(chart, str):
-            parts = chart.split(":")
+    def parse_charts_str(
+        cls, charts: str | list[str] | list[ScatterChart]
+    ) -> list[ScatterChart]:
+        """Parse for get params 'xfield:yfield' separated by ','"""
+        str_charts = _prepare_str_list(charts)
+        if str_charts is None:
+            return cast(list[ScatterChart], charts)
+        parsed_charts: list[ScatterChart] = []
+        for c in str_charts.split(","):
+            parts = c.split(":")
             if len(parts) != 2:
-                raise ValueError("`chart` must be 'xfield:yfield'")
-            return ScatterChart(x=parts[0], y=parts[1])
-        return chart
-
-    @model_validator(mode="after")
-    def set_chart_max_entries(self):
-        """Apply the flat GET `max_entries` to the chart"""
-        self.chart.max_entries = self.max_entries
-        return self
+                raise ValueError("`charts` must be 'xfield:yfield' separated by ','")
+            parsed_charts.append(ScatterChart(x=parts[0], y=parts[1]))
+        return parsed_charts
 
 
 class PostChartSearchParameters(ChartSearchParameters, PostBaseSearchParameters):

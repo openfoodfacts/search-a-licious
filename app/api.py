@@ -215,8 +215,8 @@ def search_get(
 def chart(
     response: Response, chart_parameters: Annotated[PostChartSearchParameters, Body()]
 ) -> SearchResponse:
-    """Build one scatter chart from the whole result set (up to `max_entries`
-    points, after sorting), not only from a page of results.
+    """Build scatter charts from the whole result set (up to `max_entries`
+    results, after sorting), not only from a page of results.
 
     Under the hood, it calls the :py:func:`app.search.chart` function
     """
@@ -235,7 +235,7 @@ def chart(
 def chart_get(
     response: Response, chart_parameters: Annotated[GetChartSearchParameters, Query()]
 ) -> SearchResponse:
-    """Build a scatter chart when using GET request
+    """Build scatter charts when using GET request
 
     Under the hood, it calls the :py:func:`app.search.chart` function
     """

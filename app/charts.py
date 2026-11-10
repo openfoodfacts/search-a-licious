@@ -6,6 +6,7 @@ from ._types import (
     ChartsInfos,
     ChartType,
     DistributionChart,
+    JSONType,
     ScatterChart,
     SuccessSearchResponse,
 )
@@ -151,6 +152,15 @@ def build_distribution_chart(
     return vega_chart
 
 
+def _get(v, path):
+    return reduce(lambda c, k: c.get(k, {}), path.split("."), v)
+
+
+def has_scatter_values(hit: JSONType, chart_option: ScatterChart) -> bool:
+    """Whether the hit has both values of the scatter chart"""
+    return _get(hit, chart_option.x) != {} and _get(hit, chart_option.y) != {}
+
+
 def build_scatter_chart(
     chart_option: ScatterChart, search_result, index_config: config.IndexConfig
 ):
@@ -158,9 +168,6 @@ def build_scatter_chart(
     Build a scatter plot for the values of search_result hits
     Inspiration: https://vega.github.io/vega/examples/scatter-plot/
     """
-
-    def _get(v, path):
-        return reduce(lambda c, k: c.get(k, {}), path.split("."), v)
 
     chart = empty_chart(f"{chart_option.x} x {chart_option.y}")
 

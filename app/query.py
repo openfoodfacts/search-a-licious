@@ -1,7 +1,7 @@
 import elastic_transport
 import elasticsearch
 import luqum.exceptions
-from elasticsearch_dsl import A, Search
+from elasticsearch_dsl import A, Q, Search
 from elasticsearch_dsl.aggs import Agg
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
@@ -189,12 +189,17 @@ def build_es_query(
         es_query = es_query.sort(sort_by)
 
     if isinstance(params, ChartSearchParameters):
-        chart = params.chart
-        for field in (chart.x, chart.y):
-            es_query = es_query.filter("exists", field=field)
-        es_query = es_query.source([chart.x, chart.y]).extra(
-            size=chart.max_entries, from_=0
+        # keep results that can be plotted on at least one chart
+        es_query = es_query.filter(
+            "bool",
+            should=[
+                Q("bool", filter=[Q("exists", field=c.x), Q("exists", field=c.y)])
+                for c in params.charts
+            ],
+            minimum_should_match=1,
         )
+        fields = list(dict.fromkeys(f for c in params.charts for f in (c.x, c.y)))
+        es_query = es_query.source(fields).extra(size=params.max_entries, from_=0)
     elif isinstance(params, SearchParameters):
         agg_fields = set(params.facets) if params.facets is not None else set()
         if params.charts is not None:

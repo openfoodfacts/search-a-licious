@@ -9,6 +9,7 @@ from . import config
 from ._types import (
     BaseSearchParameters,
     ChartSearchParameters,
+    ChartsInfos,
     DebugInfo,
     ErrorSearchResponse,
     QueryAnalysis,
@@ -18,7 +19,7 @@ from ._types import (
     SearchResponseError,
     SuccessSearchResponse,
 )
-from .charts import build_charts
+from .charts import build_charts, has_scatter_values
 from .exceptions import QueryAnalysisError
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
@@ -187,11 +188,10 @@ def search(
 
 
 def chart(params: ChartSearchParameters) -> SearchResponse:
-    """Build a scatter chart from the first `max_entries` results"""
+    """Build scatter charts from the first `max_entries` results"""
     query = _build_query(params)
     if isinstance(query, ErrorSearchResponse):
         return query
-    chart_option = params.chart
     result_processor = cast(
         BaseResultProcessor, get_result_processor(params.valid_index_id)
     )
@@ -199,13 +199,23 @@ def chart(params: ChartSearchParameters) -> SearchResponse:
         query.es_query,
         result_processor,
         page=1,
-        page_size=chart_option.max_entries,
-        projection={chart_option.x.split(".")[0], chart_option.y.split(".")[0]},
+        page_size=params.max_entries,
+        projection={f.split(".")[0] for c in params.charts for f in (c.x, c.y)},
     )
     if isinstance(search_result, SuccessSearchResponse):
-        search_result.charts = build_charts(
-            search_result, params.index_config, [chart_option], params.main_lang
-        )
+        all_hits = search_result.hits
+        charts: ChartsInfos = {}
+        for chart_option in params.charts:
+            # each chart only plots the hits that have both of its values
+            search_result.hits = [
+                h for h in all_hits if has_scatter_values(h, chart_option)
+            ]
+            charts.update(
+                build_charts(
+                    search_result, params.index_config, [chart_option], params.main_lang
+                )
+            )
+        search_result.charts = charts
         search_result.debug = add_debug_info(search_result, query, params)
         search_result.hits = []
         search_result.aggregations = None
