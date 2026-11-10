@@ -19,6 +19,7 @@ from app._import import (
     get_processed_since,
     get_redis_updates,
     load_document_fetcher,
+    perform_refresh_synonyms,
     run_items_import,
     run_update_daemon,
     update_alias,
@@ -527,6 +528,19 @@ def test_run_update_daemon(default_global_config: Config):
     kwargs = mock_call.kwargs
     assert set(kwargs.keys()) == {"index", "id"}
     assert kwargs["id"] == "4"
+
+
+def test_perform_refresh_synonyms_uses_elasticsearch_index_name(
+    default_config: IndexConfig,
+):
+    """Search analyzers are reloaded on the index (alias) name, not on the config id"""
+    assert default_config.index.name != "off"
+    with (
+        patch("app._import.refresh_synonyms") as refresh,
+        patch("app._import.check_synonyms_sets_size"),
+    ):
+        perform_refresh_synonyms("off", default_config)
+    refresh.assert_called_once_with(default_config.index.name, default_config)
 
 
 def _patch_last_modified_search(hits: list[dict]):
