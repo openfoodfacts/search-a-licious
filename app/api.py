@@ -278,20 +278,24 @@ def html_search(
     if not q:
         return templates.TemplateResponse(request, "search.html")
 
-    results = search_get(
-        q=q,
-        langs=langs,
-        page_size=page_size,
-        page=page,
-        sort_by=sort_by,
-        index_id=index_id,
+    results = app_search.search(
+        GetSearchParameters(
+            q=q,
+            langs=langs.split(","),
+            page_size=page_size,
+            page=page,
+            sort_by=sort_by,
+            index_id=index_id,
+        )
     )
     template_data: dict[str, Any] = {
         "q": q or "",
         "request": request,
         "sort_by": sort_by,
         "results": results,
-        "es_query": json.dumps(results.debug.query, indent=4),
+        "es_query": json.dumps(
+            results.debug.es_query if results.debug else None, indent=4
+        ),
         "display_debug": display_debug,
     }
     if results.is_success():
