@@ -163,3 +163,15 @@ def test_autocomplete_missing_taxonomy_index_message_is_kept(default_config):
         response = TestClient(app).get("/autocomplete?q=mil&taxonomy_names=categories")
     assert response.status_code == 500
     assert "taxonomies need to be imported" in response.text
+
+
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_search_unknown_index_id_is_422(default_global_config, method):
+    """An unknown index_id is a client error, not an unhandled KeyError (500)"""
+    client = TestClient(app, raise_server_exceptions=True)
+    if method == "get":
+        response = client.get("/search?q=milk&index_id=unknown")
+    else:
+        response = client.post("/search", json={"q": "milk", "index_id": "unknown"})
+    assert response.status_code == 422
+    assert "Index ID 'unknown' not found" in response.text
