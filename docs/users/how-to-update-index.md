@@ -53,8 +53,11 @@ Transient errors are retried with an exponential backoff instead of crashing the
 If there is no checkpoint yet (first run, or after deleting the key),
 the daemon starts from the most recent document of the index, using
 the [`last_modified_field_name` from the configuration](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name).
-**This means the index must be populated before the daemon is started**:
-if the index is empty, the daemon logs an error and only processes events published from now on.
+
+Hence, the index must be populated before the daemon can start.
+**If the index is empty, the daemon waits for it to be filled** (by an import),
+checking regularly, instead of skipping the events published until then.
+It processes no event until the index has at least one document.
 
 A successful import (`import` command, unless `--skip-updates` is used)
 moves the checkpoint to the most recent imported document,

@@ -10,8 +10,9 @@ from unittest.mock import patch
 
 import pytest
 
-from app import _import as app_import
+from app import updates as app_updates
 from app.checkpoints import checkpoint_key, get_checkpoint
+from app.config import settings as app_settings
 
 STREAM_NAME = "product_updates_off"
 
@@ -48,7 +49,7 @@ class DaemonRunner:
     """Run the update daemon in a background thread, and stop it cleanly"""
 
     def __init__(self, config):
-        from app._import import run_update_daemon
+        from app.updates import run_update_daemon
 
         self._run = run_update_daemon
         self._config = config
@@ -84,11 +85,11 @@ def stop_events(monkeypatch):
     def _install(stop_event):
         events.append(stop_event)
 
-    monkeypatch.setattr(app_import, "_install_signal_handlers", _install)
+    monkeypatch.setattr(app_updates, "_install_signal_handlers", _install)
     # make the daemon check for a stop request frequently
-    monkeypatch.setattr(app_import.settings, "redis_reader_timeout", 0.2)
+    monkeypatch.setattr(app_settings, "redis_reader_timeout", 0.2)
     # don't wait for minutes when testing the retries
-    monkeypatch.setattr(app_import, "RETRY_INITIAL_DELAY", 0.01)
+    monkeypatch.setattr(app_updates, "RETRY_INITIAL_DELAY", 0.01)
     return events
 
 
@@ -237,29 +238,36 @@ def test_update_daemon_cold_start_from_last_indexed_document(
     assert not es_connection.exists(index="test_off", id="10000000000004")
 
 
-def test_update_daemon_cold_start_with_empty_index(
+def test_update_daemon_waits_for_empty_index_to_be_populated(
     test_off_config, es_connection, redis_client, stop_events, monkeypatch
 ):
-    """Without a checkpoint nor data, the daemon starts from the end of the stream
+    """Without a checkpoint nor data, the daemon waits for the index
 
-    It must not persist a checkpoint in that case: it would freeze the position
-    at "$" even once the index would be populated.
+    It must neither start from the end of the stream (the events published
+    until then would be lost) nor skip the pre-existing events: once the index
+    is populated, it starts from the newest indexed document.
 
     Note that we don't delete the real index (other tests need it): we only
     make the "newest indexed document" lookup return nothing, which is what
     happens on an empty index.
     """
-    captured = {}
-    real_get_new_updates = app_import.get_new_updates
+    from tests.cli_utils import runner_invoke
 
-    def wrapping_get_new_updates(*args, **kwargs):
-        captured["min_ids"] = kwargs.get("min_ids")
-        return real_get_new_updates(*args, **kwargs)
+    results = {"empty": True}
+    real_get_last_indexed_timestamp_ms = app_updates.get_last_indexed_timestamp_ms
+    started = threading.Event()
 
-    monkeypatch.setattr(app_import, "get_new_updates", wrapping_get_new_updates)
+    def get_last_indexed_timestamp_ms(*args, **kwargs):
+        if results["empty"]:
+            return None
+        started.set()
+        return real_get_last_indexed_timestamp_ms(*args, **kwargs)
+
     monkeypatch.setattr(
-        app_import, "get_last_indexed_timestamp_ms", lambda *args, **kwargs: None
+        app_updates, "get_last_indexed_timestamp_ms", get_last_indexed_timestamp_ms
     )
+    # wait a short time between two checks of the index
+    monkeypatch.setattr(app_updates, "RETRY_INITIAL_DELAY", 0.01)
 
     _reset_stream(redis_client)
     # a pre-existing event must not be processed
@@ -272,12 +280,36 @@ def test_update_daemon_cold_start_with_empty_index(
     runner = DaemonRunner(test_off_config)
     runner.start()
     try:
-        _wait_for(lambda: captured.get("min_ids") is not None, timeout=30)
+        # the daemon waits: it does not even read the stream
+        assert not started.wait(timeout=2)
+        assert not es_connection.exists(index="test_off", id="10000000000006")
+
+        # populate the index, as an import would do
+        result = runner_invoke(
+            "import", "/opt/search/tests/int/data/test_off_data.jsonl", "--skip-updates"
+        )
+        assert result.exit_code == 0
+        results["empty"] = False
+
+        # the daemon starts from the newest indexed document: the old event is
+        # still ignored...
+        assert started.wait(timeout=30)
+        assert get_checkpoint(redis_client, STREAM_NAME, "test_off") is not None
+        assert not es_connection.exists(index="test_off", id="10000000000006")
+
+        # ...but new events are processed
+        redis_client.xadd(
+            STREAM_NAME,
+            _document("10000000000007", 1700000007),
+            id="1900000000000-0",
+        )
+        _wait_for(
+            lambda: es_connection.exists(index="test_off", id="10000000000007"),
+            timeout=30,
+        )
     finally:
         assert stop_events, "daemon did not install its signal handlers"
         stop_events[-1].set()
         runner.stop()
 
-    assert captured["min_ids"] == {STREAM_NAME: "$"}
-    assert get_checkpoint(redis_client, STREAM_NAME, "test_off") is None
-    assert not es_connection.exists(index="test_off", id="10000000000006")
+    assert es_connection.exists(index="test_off", id="10000000000007")

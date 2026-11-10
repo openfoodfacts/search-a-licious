@@ -26,8 +26,10 @@ endif
 DOCKER = $(SUDO) docker
 DOCKER_COMPOSE = $(DOCKER) compose --env-file=${ENV_FILE}
 DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test $(DOCKER_COMPOSE)
+# for integration tests we also add the services of docker/test.yml
+DOCKER_COMPOSE_TEST_INT = $(SUDO) COMPOSE_PROJECT_NAME=search_test COMPOSE_FILE=docker-compose.yml;docker/dev.yml;docker/test.yml $(DOCKER_COMPOSE)
 
-.PHONY: build create_external_volumes livecheck up down test test_front test_front_watch test_api import-dataset import-taxonomies sync-scripts build-translations generate-openapi check check_front check_translations lint lint_back lint_front
+.PHONY: build create_external_volumes livecheck up down test test_front test_front_watch test_api test_api_unit test_api_integration test_clean import-dataset import-taxonomies sync-scripts build-translations generate-openapi check check_front check_translations lint lint_back lint_front
 #------------#
 # Production #
 #------------#
@@ -137,9 +139,9 @@ test_api_unit:
 # you can use keep_es=1 to avoid stopping elasticsearch after tests (useful during development)
 test_api_integration:
 	@echo "🔎 Running API integration tests..."
-	${DOCKER_COMPOSE_TEST} up -d --wait es01 es02 elasticvue redis
-	${DOCKER_COMPOSE_TEST} run --rm api pytest ${args} tests/ --ignore=tests/unit
-	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST} stop es01 es02 elasticvue redis || true
+	${DOCKER_COMPOSE_TEST_INT} up -d --wait es01 es02 elasticvue redis
+	${DOCKER_COMPOSE_TEST_INT} run --rm api pytest ${args} tests/ --ignore=tests/unit
+	test -z "${keep_es}" && ${DOCKER_COMPOSE_TEST_INT} stop es01 es02 elasticvue redis || true
 
 
 test_front:
