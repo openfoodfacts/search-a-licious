@@ -556,7 +556,7 @@ def _consume_streams(
     id_field_names: dict[str, str],
     stream_index_configs: dict[str, IndexConfig],
     state_recorders: dict[str, UpdatesStateRecorder],
-    min_ids: dict[str, str],
+    min_ids: dict[str, str] | None,
     stop_event: threading.Event,
 ) -> None:
     """Read the streams and track the events until a stop is requested.
@@ -590,6 +590,14 @@ def _consume_streams(
     attempt = 0
     while not stop_event.is_set():
         try:
+            if min_ids is None:
+                # ask for min_ids to be re-read from the persisted checkpoints
+                min_ids = _init_min_ids(
+                    redis_client, es_client, stream_index_configs, stop_event
+                )
+                if min_ids is None:
+                    logger.info("Stop requested before the index was ready, exiting")
+                    return
             for stream_name, _, stream_id, result in get_new_updates(
                 redis_client,
                 list(id_field_names.keys()),
@@ -636,15 +644,8 @@ def _consume_streams(
                 break
             # The connection may be dead after an outage: open a new one.
             es_client = connection.get_es_client()
-            min_ids = {
-                stream_name: get_checkpoint(
-                    redis_client,
-                    stream_name,
-                    stream_index_configs[stream_name].index.name,
-                )
-                or min_ids[stream_name]
-                for stream_name in id_field_names
-            }
+            # ask for min_ids to be re-read from the persisted checkpoints
+            min_ids = None
 
 
 def run_update_daemon(config: Config) -> None:
