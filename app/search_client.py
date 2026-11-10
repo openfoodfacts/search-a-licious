@@ -46,7 +46,10 @@ ConnectionError_ = _exceptions(elastic_transport.ConnectionError, "ConnectionErr
 # The search backend can not be reached (a flat tuple, for `except`).
 # For Elasticsearch a timeout is not a `ConnectionError`,
 # for OpenSearch it is.
-Unreachable = (elastic_transport.ConnectionError, elastic_transport.ConnectionTimeout)
+Unreachable: tuple[type[Exception], ...] = (
+    elastic_transport.ConnectionError,
+    elastic_transport.ConnectionTimeout,
+)
 if os_exceptions is not None:
     Unreachable += (os_exceptions.ConnectionError,)
 
