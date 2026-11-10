@@ -163,3 +163,52 @@ def test_autocomplete_missing_taxonomy_index_message_is_kept(default_config):
         response = TestClient(app).get("/autocomplete?q=mil&taxonomy_names=categories")
     assert response.status_code == 500
     assert "taxonomies need to be imported" in response.text
+
+
+@pytest.mark.parametrize(
+    "extra_get, extra_post",
+    [
+        ({}, {}),
+        ({"facets": "brands_tags"}, {"facets": ["brands_tags"]}),
+        (
+            {"charts": "brands_tags"},
+            {"charts": [{"chart_type": "DistributionChart", "field": "brands_tags"}]},
+        ),
+        (
+            {"charts": "nova_group:unique_scans_n"},
+            {
+                "charts": [
+                    {
+                        "chart_type": "ScatterChart",
+                        "x": "nova_group",
+                        "y": "unique_scans_n",
+                    }
+                ]
+            },
+        ),
+        ({"sort_by": "-unique_scans_n"}, {"sort_by": "-unique_scans_n"}),
+    ],
+)
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_search_unknown_index_id_is_422(
+    default_global_config, method, extra_get, extra_post
+):
+    """An unknown index_id is a client error, not an unhandled KeyError (500)"""
+    client = TestClient(app, raise_server_exceptions=True)
+    if method == "get":
+        response = client.get(
+            "/search", params={"q": "milk", "index_id": "unknown", **extra_get}
+        )
+    else:
+        response = client.post(
+            "/search", json={"q": "milk", "index_id": "unknown", **extra_post}
+        )
+    assert response.status_code == 422
+    assert "Index ID 'unknown' not found" in response.text
+
+
+def test_autocomplete_empty_query_is_422(default_global_config):
+    """An empty query used to crash in elasticsearch_dsl (KeyError, 500)"""
+    client = TestClient(app, raise_server_exceptions=True)
+    response = client.get("/autocomplete?q=&taxonomy_names=categories")
+    assert response.status_code == 422

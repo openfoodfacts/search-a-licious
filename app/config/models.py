@@ -925,10 +925,16 @@ class Config(BaseModel):
         """Return a (index_id, IndexConfig) for the given index_id.
 
         If no index_id is provided, the default index is used.
-        If the index_id is not found, (index_id, None) is returned.
+
+        :raises ValueError: if the index_id is not found
         """
         if index_id is None:
             index_id = self.default_index
+        if index_id not in self.indices:
+            raise ValueError(
+                f"Index ID '{index_id}' not found, "
+                f"available indices: {list(self.indices.keys())}"
+            )
         return index_id, self.indices[index_id]
 
     @classmethod

@@ -19,7 +19,9 @@ from app._import import (
     get_new_updates,
     get_processed_since,
     get_redis_updates,
+    import_taxonomies,
     load_document_fetcher,
+    perform_refresh_synonyms,
     run_items_import,
     update_alias,
 )
@@ -438,6 +440,19 @@ def test_get_redis_updates_ignores_removal_of_absent_document(
     assert num_errors == 1
 
 
+def test_perform_refresh_synonyms_uses_elasticsearch_index_name(
+    default_config: IndexConfig,
+):
+    """Search analyzers are reloaded on the index (alias) name, not on the config id"""
+    assert default_config.index.name != "off"
+    with (
+        patch("app._import.refresh_synonyms") as refresh,
+        patch("app._import.check_synonyms_sets_size"),
+    ):
+        perform_refresh_synonyms("off", default_config)
+    refresh.assert_called_once_with(default_config.index.name, default_config)
+
+
 def _patch_last_modified_search(hits: list[dict]):
     """Make the search of the most recently modified document return `hits`"""
     results = [MagicMock(to_dict=MagicMock(return_value=hit)) for hit in hits]
@@ -607,3 +622,28 @@ def test_reset_checkpoint_after_import_redis_failure(default_config: IndexConfig
     ):
         # must not raise
         reset_checkpoint_after_import(MagicMock(), default_config)
+
+
+@pytest.mark.parametrize("success", [0, 5])
+def test_import_taxonomies_logs_errors(default_config: IndexConfig, success, caplog):
+    """Errors are logged when some, not only when all, documents failed"""
+    errors = [{"index": {"_id": "en:x", "status": 400, "error": "mapping"}}]
+    with (
+        patch("app._import.connection.current_es_client"),
+        patch("app._import.gen_taxonomy_documents", return_value=iter([])),
+        patch("app._import.bulk", return_value=(success, errors)),
+        caplog.at_level("ERROR"),
+    ):
+        import_taxonomies(default_config, "next-index")
+    assert "Encountered 1 errors while importing taxonomies" in caplog.text
+
+
+def test_import_taxonomies_no_error_no_log(default_config: IndexConfig, caplog):
+    with (
+        patch("app._import.connection.current_es_client"),
+        patch("app._import.gen_taxonomy_documents", return_value=iter([])),
+        patch("app._import.bulk", return_value=(5, [])),
+        caplog.at_level("ERROR"),
+    ):
+        import_taxonomies(default_config, "next-index")
+    assert caplog.text == ""
