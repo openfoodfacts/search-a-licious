@@ -27,7 +27,7 @@ DOCKER = $(SUDO) docker
 DOCKER_COMPOSE = $(DOCKER) compose --env-file=${ENV_FILE}
 DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test $(DOCKER_COMPOSE)
 # for integration tests we also add the services of docker/test.yml
-DOCKER_COMPOSE_TEST_INT = $(SUDO) COMPOSE_PROJECT_NAME=search_test COMPOSE_FILE=docker-compose.yml;docker/dev.yml;docker/test.yml $(DOCKER_COMPOSE)
+DOCKER_COMPOSE_TEST_INT = $(SUDO) COMPOSE_PATH_SEPARATOR=";" COMPOSE_PROJECT_NAME=search_test COMPOSE_FILE="docker-compose.yml;docker/dev.yml;docker/test.yml" $(DOCKER_COMPOSE)
 
 .PHONY: build create_external_volumes livecheck up down test test_front test_front_watch test_api test_api_unit test_api_integration test_clean import-dataset import-taxonomies sync-scripts build-translations generate-openapi check check_front check_translations lint lint_back lint_front
 #------------#

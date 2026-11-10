@@ -1,4 +1,5 @@
 import json
+import logging
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Annotated, Any, cast
@@ -342,5 +343,10 @@ def healthcheck():
     from app.health import health
 
     message, status, _ = health.run()
-    logger.warning("HEALTH: %s %s", message, status)
+    logger.log(
+        logging.DEBUG if status == 200 else logging.WARNING,
+        "HEALTH: %s %s",
+        message,
+        status,
+    )
     return Response(content=message, status_code=status, media_type="application/json")

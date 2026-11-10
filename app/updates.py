@@ -251,7 +251,7 @@ def retry_until_done(
     func: Callable[[], None],
     stop_event: threading.Event,
     skip_non_retryable: bool = True,
-) -> None:
+) -> bool:
     """Call func, retrying on transient errors until it is done.
 
     Transient errors (see :func:`is_retryable_error`) are retried with an
@@ -267,18 +267,19 @@ def retry_until_done(
     :param skip_non_retryable: if True (the default), a non-retryable error is
         logged and the operation is skipped. If False, it is re-raised to the
         caller (used for operations that must not be silently dropped).
+    :return: True if the operation was not canceled, False otherwise
     """
     attempt = 0
     while True:
         try:
             func()
-            return
+            return True
         except Exception as exc:
             if not is_retryable_error(exc):
                 if not skip_non_retryable:
                     raise
                 logger.exception("Non-retryable error while %s, skipping it", what)
-                return
+                return True
             delay = retry_delay(attempt)
             attempt += 1
             logger.warning(
@@ -292,7 +293,7 @@ def retry_until_done(
             # does not have to wait for the whole backoff delay.
             if stop_event.wait(delay):
                 logger.info("Stop requested, giving up retries")
-                return
+                return False
 
 
 def track_event(
@@ -304,7 +305,7 @@ def track_event(
     processor: DocumentProcessor,
     index_name: str,
     stop_event: threading.Event,
-) -> str:
+) -> str | None:
     """Index an event and persist the position it allows to resume from.
 
     Both steps are retried on transient errors (see :func:`retry_until_done`).
@@ -324,11 +325,14 @@ def track_event(
     :return: the stream cursor to use to read the next event
     """
     what = f"processing event {stream_id} from {stream_name}"
-    retry_until_done(
+    canceled = not retry_until_done(
         what,
         lambda: process_event(stream_name, result, processor, es_client, index_name),
         stop_event,
     )
+    if canceled:
+        # not handled: keep the previous cursor and checkpoint
+        return None
     # A checkpoint failure must not be silently ignored: without it, a restart
     # would replay the event, which is safe but hides the problem.
     retry_until_done(
@@ -581,7 +585,7 @@ def run_update_daemon(config: Config) -> None:
             ):
                 recorder = state_recorders[stream_name]
                 recorder.add_pending(-1)
-                min_ids[stream_name] = track_event(
+                _min_id = track_event(
                     redis_client,
                     es_client,
                     stream_name=stream_name,
@@ -591,10 +595,12 @@ def run_update_daemon(config: Config) -> None:
                     index_name=stream_index_configs[stream_name].index.name,
                     stop_event=stop_event,
                 )
-                recorder.set(stream_id, recorder.pending_events)
-                # A retry may have been successful after several failures:
-                # reset the backoff.
-                attempt = 0
+                if _min_id is not None:
+                    min_ids[stream_name] = _min_id
+                    recorder.set(stream_id, recorder.pending_events)
+                    # A retry may have been successful after several failures:
+                    # reset the backoff.
+                    attempt = 0
         except Exception as exc:
             if not is_retryable_error(exc):
                 raise

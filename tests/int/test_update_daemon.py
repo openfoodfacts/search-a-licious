@@ -9,6 +9,7 @@ import time
 from unittest.mock import patch
 
 import pytest
+import redis
 
 from app import updates as app_updates
 from app.checkpoints import checkpoint_key, get_checkpoint
@@ -21,7 +22,7 @@ def _document(code: str, last_modified_t: int) -> dict:
     """Return a document suitable for the test index and the TestDocumentFetcher"""
     return {
         "code": code,
-        "product_name": {"en": f"Product {code}"},
+        "product_type": "food",
         "last_modified_t": last_modified_t,
     }
 
@@ -35,14 +36,14 @@ def _reset_stream(redis_client):
     redis_client.delete(STREAM_NAME, checkpoint_key(STREAM_NAME, "test_off"))
 
 
-def _wait_for(predicate, timeout: float = 30.0, interval: float = 0.1):
+def _wait_for(predicate, msg: str, timeout: float = 30.0, interval: float = 0.1):
     """Wait until predicate() is truthy, or fail the test"""
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if predicate():
             return
         time.sleep(interval)
-    raise AssertionError("condition not met in time")
+    raise AssertionError(f"condition not met in time: {msg}")
 
 
 class DaemonRunner:
@@ -93,12 +94,12 @@ def stop_events(monkeypatch):
     return events
 
 
-def _run_daemon_until(config, predicate, stop_events, timeout=60.0):
+def _run_daemon_until(config, predicate, msg: str, stop_events, timeout=60.0):
     """Run the daemon until predicate() holds, then stop it"""
     runner = DaemonRunner(config)
     runner.start()
     try:
-        _wait_for(predicate, timeout=timeout)
+        _wait_for(predicate, msg, timeout=timeout)
     finally:
         # ask for a clean stop, like SIGTERM does
         assert stop_events, "daemon did not install its signal handlers"
@@ -132,6 +133,7 @@ def test_update_daemon_resumes_from_checkpoint(
     _run_daemon_until(
         test_off_config,
         lambda: es_connection.exists(index=alias, id="10000000000001"),
+        "daemon did not process new event in time, can't find document 10000000000001",
         stop_events,
     )
     # the checkpoint is persisted for the handled event
@@ -148,11 +150,36 @@ def test_update_daemon_resumes_from_checkpoint(
     _run_daemon_until(
         test_off_config,
         lambda: es_connection.exists(index=alias, id="10000000000002"),
+        "daemon did not process new event in time, can't find document 10000000000002",
         stop_events,
     )
     assert get_checkpoint(redis_client, STREAM_NAME, alias) == "1700000002000-0"
     # event 1 is still there
     assert es_connection.exists(index=alias, id="10000000000001")
+
+
+def test_xread_rejects_exclusive_id_prefix(redis_client):
+    """Guard on the Redis semantics relied on by the daemon
+
+    XREAD already returns the entries *after* the given ID, so the exclusive
+    range syntax of XRANGE (a "(" prefix) is not accepted: a cursor must be a
+    plain "ms-seq" ID. This is what makes it possible to resume from the ID of
+    the last handled event without reading it again.
+    """
+    _reset_stream(redis_client)
+    event_id = "1700000004000-0"
+    document = _document("10000000000008", 1700000008)
+    redis_client.xadd(STREAM_NAME, document, id=event_id)
+    try:
+        with pytest.raises(redis.exceptions.ResponseError, match="Invalid stream ID"):
+            redis_client.xread({STREAM_NAME: f"({event_id}"}, block=10)
+        # the plain ID is valid, and returns what was added after it only
+        assert redis_client.xread({STREAM_NAME: event_id}, block=10) in (None, [])
+        assert redis_client.xread({STREAM_NAME: "1700000003000-0"}, block=10) == [
+            (STREAM_NAME, [(event_id, document)])
+        ]
+    finally:
+        redis_client.delete(STREAM_NAME)
 
 
 def test_update_daemon_retries_transient_es_errors(
@@ -191,6 +218,7 @@ def test_update_daemon_retries_transient_es_errors(
         _run_daemon_until(
             test_off_config,
             lambda: es_connection.exists(index="test_off", id="10000000000003"),
+            "daemon did not process new event in time, can't find document 10000000000003",
             stop_events,
         )
 
@@ -228,6 +256,7 @@ def test_update_daemon_cold_start_from_last_indexed_document(
     _run_daemon_until(
         test_off_config,
         lambda: es_connection.exists(index="test_off", id="10000000000005"),
+        "daemon did not process new event in time, can't find document 10000000000005",
         stop_events,
     )
     # the daemon started after the newest indexed document
@@ -305,6 +334,7 @@ def test_update_daemon_waits_for_empty_index_to_be_populated(
         )
         _wait_for(
             lambda: es_connection.exists(index="test_off", id="10000000000007"),
+            "daemon did not process new event in time, can't find document 10000000000007",
             timeout=30,
         )
     finally:

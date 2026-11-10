@@ -203,9 +203,9 @@ def get_new_updates(
             id_field_name = id_field_names[stream_name]
             document_fetcher = document_fetchers[stream_name]
             # Note: the in-memory cursor is advanced *before* yielding an entry,
-            # because the caller may rebuild the generator after an error. The
-            # caller resets the cursor to the last persisted checkpoint when it
-            # does so, which is what guarantees that no entry is skipped.
+            # because the caller may rebuild the generator after an error.
+            # The caller resets the cursor to the last persisted checkpoint
+            #  when it does so, which is what guarantees that no entry is skipped.
             for timestamp_id, item in batch:
                 min_ids[stream_name] = f"({timestamp_id}"
                 id_ = item[id_field_name]
