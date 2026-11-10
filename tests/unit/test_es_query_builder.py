@@ -109,3 +109,27 @@ def test_range_on_a_field_still_works(default_config, default_filter_query_build
     assert query.es_query.to_dict()["query"] == {
         "range": {"nutriments.fat_100g": {"gte": "1", "lte": "2"}}
     }
+
+
+@pytest.mark.parametrize(
+    "q, expected",
+    [
+        ("nutriscore_score:[-5 TO 10]", {"gte": "-5", "lte": "10"}),
+        ("nutriscore_score:[1 TO -1]", {"gte": "1", "lte": "-1"}),
+        ("nutriscore_score:[-15 TO -5]", {"gte": "-15", "lte": "-5"}),
+        ("nutriscore_score:[* TO -5]", {"lte": "-5"}),
+        ("nutriscore_score:{-5 TO 10}", {"gt": "-5", "lt": "10"}),
+        ("nutriscore_score:[1 TO 10]", {"gte": "1", "lte": "10"}),
+    ],
+)
+def test_range_with_negative_bounds(
+    q, expected, default_config, default_filter_query_builder
+):
+    """luqum parses `-5` as a prohibition: it used to crash (HTTP 500)"""
+    analysis = build_search_query(
+        SearchParameters(q=q, langs=["en"], page_size=5, page=1),
+        es_query_builder=default_filter_query_builder,
+    )
+    assert analysis.es_query.to_dict()["query"] == {
+        "range": {"nutriscore_score": expected}
+    }

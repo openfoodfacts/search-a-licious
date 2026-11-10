@@ -291,6 +291,9 @@ class QuerySearchParameters(BaseModel):
     def index_config(self):
         """Get the index config once and for all"""
         global_config = config.get_config()
+        # model validators run in an arbitrary order:
+        # an unknown index_id must be a validation error, not a KeyError
+        check_index_id_is_defined(self.index_id, global_config)
         _, index_config = global_config.get_index_config(self.index_id)
         return index_config
 
