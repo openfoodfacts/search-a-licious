@@ -18,6 +18,7 @@ from app._import import (
     get_new_updates,
     get_processed_since,
     get_redis_updates,
+    import_taxonomies,
     load_document_fetcher,
     run_items_import,
     run_update_daemon,
@@ -641,3 +642,28 @@ def test_run_items_import_skip_updates_still_publishes(default_config: IndexConf
     with _mock_full_import() as update_alias_mock:
         run_items_import(Path("items.jsonl"), 1, default_config, skip_updates=True)
     update_alias_mock.assert_called_once()
+
+
+@pytest.mark.parametrize("success", [0, 5])
+def test_import_taxonomies_logs_errors(default_config: IndexConfig, success, caplog):
+    """Errors are logged when some, not only when all, documents failed"""
+    errors = [{"index": {"_id": "en:x", "status": 400, "error": "mapping"}}]
+    with (
+        patch("app._import.connection.current_es_client"),
+        patch("app._import.gen_taxonomy_documents", return_value=iter([])),
+        patch("app._import.bulk", return_value=(success, errors)),
+        caplog.at_level("ERROR"),
+    ):
+        import_taxonomies(default_config, "next-index")
+    assert "Encountered 1 errors while importing taxonomies" in caplog.text
+
+
+def test_import_taxonomies_no_error_no_log(default_config: IndexConfig, caplog):
+    with (
+        patch("app._import.connection.current_es_client"),
+        patch("app._import.gen_taxonomy_documents", return_value=iter([])),
+        patch("app._import.bulk", return_value=(5, [])),
+        caplog.at_level("ERROR"),
+    ):
+        import_taxonomies(default_config, "next-index")
+    assert caplog.text == ""

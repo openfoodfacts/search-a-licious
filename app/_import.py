@@ -412,8 +412,15 @@ def import_taxonomies(config: IndexConfig, next_index: str):
         ),
         raise_on_error=False,
     )
-    if not success:
-        logger.error("Encountered errors: %s", errors)
+    # `success` is a count: it is not zero when only some documents failed
+    if errors:
+        logger.error(
+            "Encountered %d errors while importing taxonomies "
+            "(%d documents indexed): %s",
+            len(errors),
+            success,
+            errors,
+        )
 
 
 def get_redis_products(
