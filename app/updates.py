@@ -483,6 +483,164 @@ def _install_signal_handlers(stop_event: threading.Event) -> None:
         signal.signal(sig, _handler)
 
 
+def _init_min_ids(
+    redis_client: Redis,
+    es_client: Elasticsearch,
+    stream_index_configs: dict[str, IndexConfig],
+    stop_event: threading.Event,
+) -> dict[str, str] | None:
+    """Read the start position of each stream from the persisted checkpoints.
+
+    Checkpoints are read once at startup. After that, the daemon keeps track
+    of its position itself and persists it after each handled event.
+
+    :param redis_client: the Redis client
+    :param es_client: the Elasticsearch client
+    :param stream_index_configs: the index configuration of each stream
+    :param stop_event: if set while waiting for an index, give up
+    :return: the stream ID to start reading from, for each stream, or ``None``
+        if a stop was requested before an index was ready
+    """
+    min_ids: dict[str, str] = {}
+    for stream_name, index_config in stream_index_configs.items():
+        start_id = wait_for_start_position(
+            redis_client,
+            es_client,
+            stream_name,
+            index_config.index.name,
+            index_config.index.last_modified_field_name,
+            stop_event,
+        )
+        if start_id is None:
+            return None
+        min_ids[stream_name] = start_id
+    return min_ids
+
+
+def _init_state_recorders(
+    redis_client: Redis,
+    stream_index_configs: dict[str, IndexConfig],
+    min_ids: dict[str, str],
+) -> dict[str, UpdatesStateRecorder]:
+    """Create the processing state recorders, read by the health endpoint.
+
+    :param redis_client: the Redis client
+    :param stream_index_configs: the index configuration of each stream
+    :param min_ids: the stream ID the daemon starts reading from, for each
+        stream
+    :return: the state recorder of each stream, initialized with the start
+        position and no pending event
+    """
+    state_recorders = {
+        stream_name: UpdatesStateRecorder(
+            redis_client, stream_name, index_config.index.name
+        )
+        for stream_name, index_config in stream_index_configs.items()
+    }
+    for stream_name, recorder in state_recorders.items():
+        recorder.set(min_ids[stream_name], 0)
+    return state_recorders
+
+
+def _consume_streams(
+    redis_client: Redis,
+    es_client: Elasticsearch,
+    processors: dict[str, DocumentProcessor],
+    document_fetchers: dict[str, BaseDocumentFetcher],
+    id_field_names: dict[str, str],
+    stream_index_configs: dict[str, IndexConfig],
+    state_recorders: dict[str, UpdatesStateRecorder],
+    min_ids: dict[str, str],
+    stop_event: threading.Event,
+) -> None:
+    """Read the streams and track the events until a stop is requested.
+
+    If the generator fails (e.g. a Redis error during xread), it is rebuilt
+    from the persisted checkpoints: the events of the in-flight batch that
+    were not handled yet are then read again. Transient errors are retried
+    with a backoff (see :func:`is_retryable_error`), while other errors are
+    re-raised.
+
+    :param redis_client: the Redis client
+    :param es_client: the Elasticsearch client
+    :param processors: the document processor of each stream
+    :param document_fetchers: the document fetcher of each stream
+    :param id_field_names: the name of the ID field of each stream
+    :param stream_index_configs: the index configuration of each stream
+    :param state_recorders: the processing state recorder of each stream
+    :param min_ids: the stream ID to start reading from, for each stream
+    :param stop_event: the event requesting a clean stop
+    """
+
+    def flush_state_if_due() -> None:
+        for recorder in state_recorders.values():
+            recorder.flush_if_due()
+
+    def track_pending_entries(
+        stream_name: str, entries: list[tuple[str, dict]]
+    ) -> None:
+        state_recorders[stream_name].add_pending(len(entries))
+
+    attempt = 0
+    while not stop_event.is_set():
+        try:
+            for stream_name, _, stream_id, result in get_new_updates(
+                redis_client,
+                list(id_field_names.keys()),
+                id_field_names=id_field_names,
+                document_fetchers=document_fetchers,
+                min_ids=min_ids,
+                stop_event=stop_event,
+                # The stream is quiet: flush the state so that it settles at
+                # its final value instead of waiting for the next event.
+                on_batch_end=flush_state_if_due,
+                on_batch_read=track_pending_entries,
+            ):
+                recorder = state_recorders[stream_name]
+                recorder.add_pending(-1)
+                _min_id = track_event(
+                    redis_client,
+                    es_client,
+                    stream_name=stream_name,
+                    stream_id=stream_id,
+                    result=result,
+                    processor=processors[stream_name],
+                    index_name=stream_index_configs[stream_name].index.name,
+                    stop_event=stop_event,
+                )
+                if _min_id is not None:
+                    min_ids[stream_name] = _min_id
+                    recorder.set(stream_id, recorder.pending_events)
+                    # A retry may have been successful after several failures:
+                    # reset the backoff.
+                    attempt = 0
+        except Exception as exc:
+            if not is_retryable_error(exc):
+                raise
+            delay = retry_delay(attempt)
+            attempt += 1
+            logger.warning(
+                "Transient error while reading updates, restarting from the "
+                "checkpoint in %.1fs (attempt %d): %s",
+                delay,
+                attempt,
+                exc,
+            )
+            if stop_event.wait(delay):
+                break
+            # The connection may be dead after an outage: open a new one.
+            es_client = connection.get_es_client()
+            min_ids = {
+                stream_name: get_checkpoint(
+                    redis_client,
+                    stream_name,
+                    stream_index_configs[stream_name].index.name,
+                )
+                or min_ids[stream_name]
+                for stream_name in id_field_names
+            }
+
+
 def run_update_daemon(config: Config) -> None:
     """Run the update import daemon.
 
@@ -536,101 +694,24 @@ def run_update_daemon(config: Config) -> None:
     stop_event = threading.Event()
     _install_signal_handlers(stop_event)
 
-    # Checkpoints are read once at startup. After that, the daemon keeps track
-    # of its position itself and persists it after each handled event.
-    min_ids: dict[str, str] = {}
-    for stream_name, index_config in stream_index_configs.items():
-        start_id = wait_for_start_position(
-            redis_client,
-            es_client,
-            stream_name,
-            index_config.index.name,
-            index_config.index.last_modified_field_name,
-            stop_event,
-        )
-        if start_id is None:
-            logger.info("Stop requested before the index was ready, exiting")
-            return
-        min_ids[stream_name] = start_id
+    min_ids = _init_min_ids(redis_client, es_client, stream_index_configs, stop_event)
+    if min_ids is None:
+        logger.info("Stop requested before the index was ready, exiting")
+        return
 
-    # Informational processing state, read by the health endpoint.
-    state_recorders = {
-        stream_name: UpdatesStateRecorder(
-            redis_client, stream_name, index_config.index.name
-        )
-        for stream_name, index_config in stream_index_configs.items()
-    }
-    for stream_name, recorder in state_recorders.items():
-        recorder.set(min_ids[stream_name], 0)
+    state_recorders = _init_state_recorders(redis_client, stream_index_configs, min_ids)
 
-    # If the generator fails (e.g. a Redis error during xread), it is rebuilt
-    # from the persisted checkpoints: the events of the in-flight batch that
-    # were not handled yet are then read again.
-    attempt = 0
-
-    def flush_state_if_due() -> None:
-        for recorder in state_recorders.values():
-            recorder.flush_if_due()
-
-    while not stop_event.is_set():
-        try:
-            for stream_name, _, stream_id, result in get_new_updates(
-                redis_client,
-                list(id_field_names.keys()),
-                id_field_names=id_field_names,
-                document_fetchers=document_fetchers,
-                min_ids=min_ids,
-                stop_event=stop_event,
-                # The stream is quiet: flush the state so that it settles at
-                # its final value instead of waiting for the next event.
-                on_batch_end=flush_state_if_due,
-                on_batch_read=lambda name, entries: state_recorders[name].add_pending(
-                    len(entries)
-                ),
-            ):
-                recorder = state_recorders[stream_name]
-                recorder.add_pending(-1)
-                _min_id = track_event(
-                    redis_client,
-                    es_client,
-                    stream_name=stream_name,
-                    stream_id=stream_id,
-                    result=result,
-                    processor=processors[stream_name],
-                    index_name=stream_index_configs[stream_name].index.name,
-                    stop_event=stop_event,
-                )
-                if _min_id is not None:
-                    min_ids[stream_name] = _min_id
-                    recorder.set(stream_id, recorder.pending_events)
-                    # A retry may have been successful after several failures:
-                    # reset the backoff.
-                    attempt = 0
-        except Exception as exc:
-            if not is_retryable_error(exc):
-                raise
-            delay = retry_delay(attempt)
-            attempt += 1
-            logger.warning(
-                "Transient error while reading updates, restarting from the "
-                "checkpoint in %.1fs (attempt %d): %s",
-                delay,
-                attempt,
-                exc,
-            )
-            if stop_event.wait(delay):
-                break
-            # The connection may be dead after an outage: open a new one.
-            es_client = connection.get_es_client()
-            min_ids = {
-                stream_name: get_checkpoint(
-                    redis_client,
-                    stream_name,
-                    stream_index_configs[stream_name].index.name,
-                )
-                or min_ids[stream_name]
-                for stream_name in id_field_names
-            }
+    _consume_streams(
+        redis_client,
+        es_client,
+        processors,
+        document_fetchers,
+        id_field_names,
+        stream_index_configs,
+        state_recorders,
+        min_ids,
+        stop_event,
+    )
 
     # Flush the state one last time without throttling
     for recorder in state_recorders.values():
