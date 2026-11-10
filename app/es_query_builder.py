@@ -8,7 +8,7 @@ from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
 
 from ._types import JSONType
 from .config import IndexConfig
-from .exceptions import FreeWildCardError, QueryAnalysisError
+from .exceptions import FreeRangeError, FreeWildCardError, QueryAnalysisError
 
 DEFAULT_FIELD_MARKER = "_searchalicious_text"
 
@@ -60,6 +60,22 @@ class FullTextMixin:
             # (ES refuses `fields` together with `default_field`)
             query["query_string"].pop("default_field", None)
             query["query_string"]["fields"] = fields
+        elif "fuzzy" in query:
+            if not fields:
+                return {"match_none": {}}
+            # fuzzy on a single field would not be a full text search
+            inner_json = query.pop("fuzzy")[self.field]
+            fuzziness = float(inner_json["fuzziness"])
+            query["multi_match"] = {
+                "query": inner_json["value"],
+                "fields": fields,
+                "type": "best_fields",
+                # `milk~` gives 0.5, which Elasticsearch does not accept
+                "fuzziness": int(fuzziness) if fuzziness.is_integer() else "AUTO",
+            }
+            if "boost" in inner_json:
+                # keep `milk~1^2` boosted, as on a field
+                query["multi_match"]["boost"] = inner_json["boost"]
         elif "match" in query or "match_phrase" in query:
             query_type = list(k for k in query.keys() if k.startswith("match"))[0]
             # go for multi_match
@@ -176,6 +192,15 @@ class FullTextQueryBuilder(ElasticsearchQueryBuilder):
             )
         else:
             yield from super().visit_phrase(node, context)
+
+    def visit_range(self, node, context):
+        """A range needs a field, the default (full text) field is a placeholder"""
+        if self._fields(context) == [DEFAULT_FIELD_MARKER]:
+            raise FreeRangeError(
+                "Free ranges are not allowed in full text queries, "
+                "specify a field, like 'nutriments.fat_100g:[1 TO 2]'"
+            )
+        yield from super().visit_range(node, context)
 
     def __call__(
         self, tree: luqum.tree.Item, index_config: IndexConfig, query_langs: list[str]
