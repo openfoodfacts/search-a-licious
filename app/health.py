@@ -91,10 +91,10 @@ def test_updates_state():
             for index_name, index_config in config.indices.items()
             if index_config.redis_stream_name is not None
         ]
-    except Exception as exc:
+    except Exception:
         # never fail: this check is informational
-        logger.warning("health: could not read the update daemon state: %s", exc)
-        return True, {"streams": [], "error": str(exc)}
+        logger.warning("health: could not read the update daemon state", exc_info=True)
+        return True, {"streams": [], "error": "update daemon state unavailable"}
     # Note that the check result is cached by py-healthcheck (27s by default):
     # the age is therefore the one at capture time
     return True, {"streams": streams}

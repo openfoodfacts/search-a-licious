@@ -120,4 +120,4 @@ def test_updates_state_failure_is_not_fatal(default_global_config: Config):
 
     assert ok
     assert details["streams"] == []
-    assert "redis is down" in details["error"]
+    assert "update daemon state unavailable" in details["error"]
