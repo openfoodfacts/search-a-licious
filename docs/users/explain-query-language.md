@@ -46,7 +46,7 @@ The query syntax is quite simple, you can either:
   through the synonyms of the taxonomy. With the `none` strategy, or if you want
   to match a stored value exactly, use the value as stored in the index
   (for Open Food Facts labels, the taxonomy id, eg. `labels:"en:organic"`).
-  See [taxonomy fields](./explain-taxonomies.html).
+  See [taxonomy fields](./explain-taxonomies.md).
 * you can combine queries with `AND`, `OR` and `NOT` operators, and use parenthesis to group them:
   ```
   "dark chocolate" AND (labels:organic OR labels:vegan) AND NOT nutriscore_grade:(e OR d)
