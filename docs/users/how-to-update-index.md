@@ -46,6 +46,15 @@ since the most recent
 [`last_modified_field_name`](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name)
 found in the index.
 
+Replay relies on the ids of the Redis stream being Unix timestamps in milliseconds
+(the default `<ms>-<seq>` ids): events with ids that are not compatible timestamps
+(eg. `0-1`) would be skipped.
+
+An event pushed after the replay ended, but before the new index is switched in
+as the alias, would be written to the old index and missed by the new one.
+To be safe, pause the production of events until the import is finished
+and the updater is listening to the stream, then resume it.
+
 ## Updating the index from time to time with an export
 
 Another way to update the index is to periodically re-import the all the data, or changed data.

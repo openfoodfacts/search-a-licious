@@ -37,10 +37,13 @@ The way synonyms and translations are used when searching is not set on the fiel
 but for the whole index by the `synonyms_strategy` option:
 
 * `index` (the default): each taxonomy field also gets a full text subfield per language,
-  which enables using synonyms and translations to match a term
+  which enables using synonyms and translations to match a term.
+  Matching uses the `synonyms` of each taxonomy entry (and the id without its prefix),
+  not its `name`: a translated name that is not also in `synonyms` will not match.
   (see the technical details below)
-* `none`: the field only stores taxonomy ids, so queries must use the id,
-  with its language prefix (eg. `labels:"en:organic"`).
+* `none`: the field only stores the values it is given, so queries must use the value as stored.
+  For prefixed taxonomy ids this includes the language prefix (eg. `labels:"en:organic"`),
+  but some fields store unprefixed values (eg. `brands` may contain `coca-cola`).
   This is lighter, and better suited when you have a lot of taxonomies and languages
   (the `index` strategy can make Elasticsearch very slow to start in that case).
 

@@ -41,7 +41,12 @@ The query syntax is quite simple, you can either:
   ```
   "dark chocolate" labels:organic
   ```
-  Entries with text `dark chocolate` and labels containing `organic`
+  Entries with text `dark chocolate` and labels containing `organic`.
+  This example assumes the `index` synonyms strategy, where `organic` is matched
+  through the synonyms of the taxonomy. With the `none` strategy, or if you want
+  to match a stored value exactly, use the value as stored in the index
+  (for Open Food Facts labels, the taxonomy id, eg. `labels:"en:organic"`).
+  See [taxonomy fields](./explain-taxonomies.html).
 * you can combine queries with `AND`, `OR` and `NOT` operators, and use parenthesis to group them:
   ```
   "dark chocolate" AND (labels:organic OR labels:vegan) AND NOT nutriscore_grade:(e OR d)
@@ -98,7 +103,8 @@ only the languages of the request (the `langs` parameter) are searched.
 * `*` and `?` can be used inside a word (`choco*`, `milk?`),
   but `*` alone is refused because it would match everything
 * the `boost_phrase` parameter of the API favors entries where the words of the query
-  are consecutive, even if you did not use quotes
+  are consecutive, even if you did not use quotes.
+  It only applies to the default best-match order: it is ignored when `sort_by` is set.
 
 Queries are transformed before being sent to Elasticsearch,
 this is how the languages and your configuration are taken into account.
