@@ -206,7 +206,6 @@ def chart(params: ChartSearchParameters) -> SearchResponse:
         all_hits = search_result.hits
         charts: ChartsInfos = {}
         for chart_option in params.charts:
-            # each chart only plots the hits that have both of its values
             search_result.hits = [
                 h for h in all_hits if has_scatter_values(h, chart_option)
             ]

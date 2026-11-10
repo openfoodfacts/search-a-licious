@@ -198,7 +198,7 @@ def build_es_query(
             ],
             minimum_should_match=1,
         )
-        fields = list(dict.fromkeys(f for c in params.charts for f in (c.x, c.y)))
+        fields = sorted({f for c in params.charts for f in (c.x, c.y)})
         es_query = es_query.source(fields).extra(size=params.max_entries, from_=0)
     elif isinstance(params, SearchParameters):
         agg_fields = set(params.facets) if params.facets is not None else set()

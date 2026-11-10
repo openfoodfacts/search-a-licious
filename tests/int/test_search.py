@@ -505,9 +505,9 @@ def test_chart_several_charts(req_type, sample_data, test_client):
     assert chart_values(data, "nutriments.energy-kj_100g:completeness") == []
     assert data["count"] == 6
     assert data["debug"]["es_query"]["_source"] == [
-        "unique_scans_n",
         "completeness",
         "nutriments.energy-kj_100g",
+        "unique_scans_n",
     ]
 
 
@@ -555,7 +555,7 @@ def test_chart_debug_info(req_type, sample_data, test_client):
     )
     es_query = data["debug"]["es_query"]
     assert es_query["size"] == 3
-    assert es_query["_source"] == ["unique_scans_n", "completeness"]
+    assert es_query["_source"] == ["completeness", "unique_scans_n"]
 
 
 @pytest.mark.parametrize("req_type", GET_POST)

@@ -400,7 +400,7 @@ def test_build_chart_query(
     )._dict_dump()["es_query"]
     assert es_query["size"] == 7
     assert es_query["from"] == 0
-    assert es_query["_source"] == ["nutriments.fat_100g", "completeness", "scans_n"]
+    assert es_query["_source"] == ["completeness", "nutriments.fat_100g", "scans_n"]
     assert "aggs" not in es_query
     assert es_query["sort"] == [{"scans_n": {"order": "desc"}}]
     should = [

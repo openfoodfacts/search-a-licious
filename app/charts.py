@@ -153,7 +153,9 @@ def build_distribution_chart(
 
 
 def _get(v, path):
-    return reduce(lambda c, k: c.get(k, {}), path.split("."), v)
+    return reduce(
+        lambda c, k: c.get(k, {}) if isinstance(c, dict) else {}, path.split("."), v
+    )
 
 
 def has_scatter_values(hit: JSONType, chart_option: ScatterChart) -> bool:

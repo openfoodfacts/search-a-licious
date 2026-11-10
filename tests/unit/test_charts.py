@@ -178,6 +178,9 @@ def test_has_scatter_values():
     assert has_scatter_values({"nutriments": {"fat_100g": 0}, "completeness": 1}, chart)
     assert not has_scatter_values({"nutriments": {}, "completeness": 1}, chart)
     assert not has_scatter_values({"nutriments": {"fat_100g": 2}}, chart)
+    deeper = ScatterChart(x="nutriments.fat_100g.value", y="completeness")
+    hit = {"nutriments": {"fat_100g": 2}, "completeness": 1}
+    assert not has_scatter_values(hit, deeper)
 
 
 def test_search_max_results_still_checked(default_config):
