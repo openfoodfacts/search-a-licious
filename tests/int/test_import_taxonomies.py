@@ -1,6 +1,9 @@
+import pytest
+
 from tests.cli_utils import runner_invoke
 
 
+@pytest.mark.requires_synonyms_sets
 def test_import_taxonomies(test_off_config, es_connection):
     result = runner_invoke("import-taxonomies")
     assert result.exit_code == 0

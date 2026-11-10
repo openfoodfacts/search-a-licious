@@ -16,6 +16,8 @@ from pydantic import (
 )
 from pydantic.json_schema import GenerateJsonSchema
 
+from .settings import settings
+
 log = logging.getLogger(__name__)
 ES_DOCS_URL = "https://www.elastic.co/guide/en/elasticsearch/reference/current"
 
@@ -779,6 +781,21 @@ class IndexConfig(BaseModel):
                 raise ValueError(
                     f"'{field.taxonomy_name}' should be defined in `taxonomy.sources`"
                 )
+        return self
+
+    @model_validator(mode="after")
+    def synonyms_strategy_must_be_supported_by_search_engine(self):
+        """Validator that checks the synonyms strategy can run on the search engine:
+        OpenSearch has no equivalent of the synonyms sets API."""
+        if (
+            settings.search_engine == "opensearch"
+            and self.synonyms_strategy != SynonymsStrategy.NONE
+        ):
+            raise ValueError(
+                "synonyms_strategy "
+                f"'{self.synonyms_strategy}' is not supported with SEARCH_ENGINE="
+                "opensearch (no synonyms sets API), use 'none'"
+            )
         return self
 
     @model_validator(mode="after")

@@ -1,8 +1,7 @@
 """Module to manage ES scripts that can be used for personalized sorting"""
 
-import elasticsearch
-
 from app import config
+from app.search_client import ApiError, error_body
 from app.utils import connection, get_logger
 
 logger = get_logger(__name__)
@@ -63,11 +62,11 @@ def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, i
             try:
                 _store_script(get_script_id(index_id, script_id), script, index_config)
                 stored_scripts += 1
-            except elasticsearch.ApiError as e:
+            except ApiError as e:
                 logger.error(
                     "Unable to store script %s, got exception %s: %s",
                     script_id,
                     e,
-                    e.body,
+                    error_body(e),
                 )
     return {"removed": len(current_ids), "added": stored_scripts}

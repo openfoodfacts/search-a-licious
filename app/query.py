@@ -1,5 +1,3 @@
-import elastic_transport
-import elasticsearch
 import luqum.exceptions
 from elasticsearch_dsl import A, Search
 from elasticsearch_dsl.aggs import Agg
@@ -32,6 +30,7 @@ from .query_pipeline import (
     resolve_open_ranges,
     resolve_unknown_operation,
 )
+from .search_client import ApiError, BadRequestError, ConnectionError_, error_body
 from .utils import get_logger, str_utils
 
 logger = get_logger(__name__)
@@ -255,9 +254,11 @@ def execute_query(
     debug = SearchResponseDebug(es_query=query.to_dict())
     try:
         results = query.execute()
-    except elasticsearch.BadRequestError as e:
+    except BadRequestError as e:
         logger.warning(
-            "Client query error from Elasticsearch: %s %s", str(e), str(e.body)
+            "Client query error from the search engine: %s %s",
+            str(e),
+            error_body(e),
         )
         errors.append(
             SearchResponseError(
@@ -267,8 +268,14 @@ def execute_query(
             )
         )
         return ErrorSearchResponse(debug=debug, errors=errors)
-    except elasticsearch.ApiError as e:
-        logger.error("Error while running query: %s %s", str(e), str(e.body))
+    except ConnectionError_ as e:
+        # before ApiError: for OpenSearch, a connection error is a TransportError
+        errors.append(
+            SearchResponseError(title="es_connection_error", description=str(e))
+        )
+        return ErrorSearchResponse(debug=debug, errors=errors)
+    except ApiError as e:
+        logger.error("Error while running query: %s %s", str(e), error_body(e))
         error_status = 400 if getattr(e, "status_code", None) == 400 else None
         errors.append(
             SearchResponseError(
@@ -276,11 +283,6 @@ def execute_query(
                 description=str(e),
                 status=error_status,
             )
-        )
-        return ErrorSearchResponse(debug=debug, errors=errors)
-    except elastic_transport.ConnectionError as e:
-        errors.append(
-            SearchResponseError(title="es_connection_error", description=str(e))
         )
         return ErrorSearchResponse(debug=debug, errors=errors)
 

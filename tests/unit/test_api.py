@@ -163,3 +163,26 @@ def test_autocomplete_missing_taxonomy_index_message_is_kept(default_config):
         response = TestClient(app).get("/autocomplete?q=mil&taxonomy_names=categories")
     assert response.status_code == 500
     assert "taxonomies need to be imported" in response.text
+
+
+@pytest.mark.parametrize(
+    "error_name,args,expected_status",
+    [
+        ("ConnectionError", ("N/A", "cannot connect to os01", Exception()), 503),
+        ("ConnectionTimeout", ("TIMEOUT", "timeout on os01", Exception()), 503),
+        ("TransportError", (500, "secret", {"error": "secret"}), 503),
+        ("RequestError", (400, "secret", {"error": "secret"}), 400),
+    ],
+)
+def test_document_opensearch_failure(default_config, error_name, args, expected_status):
+    """OpenSearch failures are answered as the Elasticsearch ones"""
+    exceptions = pytest.importorskip("opensearchpy.exceptions")
+    error = getattr(exceptions, error_name)(*args)
+    with mock.patch("app.api.Search") as search:
+        search.return_value.query.return_value.extra.return_value.execute.side_effect = (
+            error
+        )
+        response = TestClient(app).get("/document/123")
+    assert response.status_code == expected_status
+    assert "secret" not in response.text
+    assert "os01" not in response.text

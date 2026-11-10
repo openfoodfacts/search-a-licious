@@ -3,8 +3,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Annotated, Any, cast
 
-import elastic_transport
-import elasticsearch
 import starlette.status as status
 from elasticsearch_dsl import Search
 from fastapi import Body, FastAPI, HTTPException, Query, Request, Response
@@ -26,6 +24,7 @@ from app.config import settings
 from app.middleware import CatchAllErrorsMiddleware
 from app.postprocessing import process_taxonomy_completion_response
 from app.query import build_completion_query
+from app.search_client import ApiError, NotFoundError, Unreachable
 from app.utils import connection, get_logger, init_sentry
 from app.validations import check_index_id_is_defined
 
@@ -84,17 +83,14 @@ def es_errors_as_http_errors():
     instead of an unhandled 500 (without the details of the failure)."""
     try:
         yield
-    except (
-        elastic_transport.ConnectionError,
-        elastic_transport.ConnectionTimeout,
-    ) as e:
+    except Unreachable as e:
         # log only the type: the message may contain request data
         logger.error("Elasticsearch connection error: %s", type(e).__name__)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="The search backend is not reachable",
         ) from e
-    except elasticsearch.ApiError as e:
+    except ApiError as e:
         # log only the type and status: the message and body may contain request data
         logger.error(
             "Elasticsearch error: %s (status %s)", type(e).__name__, e.status_code
@@ -244,7 +240,7 @@ def taxonomy_autocomplete(
     with es_errors_as_http_errors():
         try:
             es_response = query.execute()
-        except elasticsearch.NotFoundError as e:
+        except NotFoundError as e:
             raise HTTPException(
                 status_code=500,
                 detail="taxonomy index not found, taxonomies need to be imported first",

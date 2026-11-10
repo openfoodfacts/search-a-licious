@@ -1,6 +1,26 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import settings
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "requires_synonyms_sets: needs the Elasticsearch synonyms sets API, "
+        "skipped with OpenSearch",
+    )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Skip the tests that need the Elasticsearch synonyms sets API on OpenSearch"""
+    if settings.search_engine != "opensearch":
+        return
+    skip = pytest.mark.skip(reason="synonyms sets API is not available on OpenSearch")
+    for item in items:
+        if "requires_synonyms_sets" in item.keywords:
+            item.add_marker(skip)
+
 
 def pytest_addoption(parser):
     """Add an option to update test result JSON files,

@@ -165,6 +165,11 @@ def xfail_param(*args):
     return pytest.param(*args, marks=pytest.mark.xfail)
 
 
+def synonyms_param(*args):
+    """Case that needs the synonyms sets API (not available on OpenSearch)"""
+    return pytest.param(*args, marks=pytest.mark.requires_synonyms_sets)
+
+
 @pytest.mark.parametrize("req_type", GET_POST)
 @pytest.mark.parametrize(
     "req,codes",
@@ -176,27 +181,27 @@ def xfail_param(*args):
         ({"q": "brown"}, ["3012345670005", "3012345670006"]),
         # fuzzy search
         ({"q": "sugr~1"}, ALL_CODES),
-        # this also searches in labels
-        ({"q": "organic"}, ORGANIC_CODES),
+        # this also searches in labels (language sub-fields need synonyms)
+        synonyms_param({"q": "organic"}, ORGANIC_CODES),
         # synonym of label organic, will work only if we boost phrase
-        ({"q": "organically grown", "boost_phrase": True}, ORGANIC_CODES),
+        synonyms_param({"q": "organically grown", "boost_phrase": True}, ORGANIC_CODES),
         # also works for translations
-        ({"q": "bio", "langs": ["fr"]}, ORGANIC_CODES),
-        ({"q": "bio", "langs": ["en,fr"]}, ORGANIC_CODES),
+        synonyms_param({"q": "bio", "langs": ["fr"]}, ORGANIC_CODES),
+        synonyms_param({"q": "bio", "langs": ["en,fr"]}, ORGANIC_CODES),
         # with more terms this does not work, yet, see
         xfail_param(
             {"q": "organically grown plants", "boost_phrase": True}, ORGANIC_CODES
         ),
         # as phrase
-        ({"q": '"organically grown"'}, ORGANIC_CODES),
-        (
+        synonyms_param({"q": '"organically grown"'}, ORGANIC_CODES),
+        synonyms_param(
             {"q": '"issu de l\'agriculture biologique"', "langs": ["fr"]},
             ORGANIC_CODES,
         ),
         # handling of '-'
         ({"q": 'labels:"en:no-lactose"', "langs": ["fr"]}, NO_LACTOSE_CODES),
         # synonyms on label field
-        ({"q": 'labels:"organically grown"'}, ORGANIC_CODES),
+        synonyms_param({"q": 'labels:"organically grown"'}, ORGANIC_CODES),
         # search a field
         ({"q": "product_name:brown sugar"}, BROWN_SUGAR_CODES),
         ({"q": 'product_name:"brown sugar"'}, BROWN_SUGAR_CODES),

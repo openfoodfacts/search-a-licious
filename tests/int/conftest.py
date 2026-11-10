@@ -1,11 +1,13 @@
 import pathlib
 import time
 
-import elasticsearch
 import pytest
+import yaml
 
 import app.config
 import app.utils.connection
+from app.config import settings
+from app.search_client import ConnectionError_
 
 from .data_generation import (
     delete_es_indices,
@@ -21,9 +23,19 @@ DEFAULT_CONFIG_PATH = DATA_DIR / "test_off.yml"
 
 
 @pytest.fixture(scope="session")
-def test_off_config():
-    """Fixture that sets default config to DEFAULT_CONFIG_PATH"""
-    return app.config.set_global_config(DEFAULT_CONFIG_PATH)
+def test_off_config(tmp_path_factory):
+    """Fixture that sets default config to DEFAULT_CONFIG_PATH
+
+    With OpenSearch (no synonyms sets API), synonyms are disabled.
+    """
+    config_path = DEFAULT_CONFIG_PATH
+    if settings.search_engine == "opensearch":
+        data = yaml.safe_load(DEFAULT_CONFIG_PATH.read_text())
+        for index in data["indices"].values():
+            index["synonyms_strategy"] = "none"
+        config_path = tmp_path_factory.mktemp("config") / "test_off.yml"
+        config_path.write_text(yaml.safe_dump(data))
+    return app.config.set_global_config(config_path)
 
 
 @pytest.fixture(scope="session")
@@ -35,9 +47,13 @@ def index_config(test_off_config):
 ES_MAX_WAIT = 60  # 1 minute
 
 
+class _NotReady(Exception):
+    """The search engine is up but not ready yet"""
+
+
 @pytest.fixture(scope="session")
 def es_connection(test_off_config):
-    """Fixture that get's an Elasticsearch connection"""
+    """Fixture that get's a connection to the search engine"""
     es = None
     waited = 0
     while es is None:
@@ -45,11 +61,9 @@ def es_connection(test_off_config):
             es = app.utils.connection.get_es_client()
             health = es.cluster.health()
             if health.get("status") != "green":
-                raise elasticsearch.exceptions.ConnectionError(
-                    "Elasticsearch not ready"
-                )
+                raise _NotReady("Search engine not ready")
             return es
-        except elasticsearch.exceptions.ConnectionError:
+        except (ConnectionError_, _NotReady):
             waited += 1
             if waited > ES_MAX_WAIT:
                 raise
@@ -73,7 +87,8 @@ def data_ingester(index_config, es_connection, clean_es):
     """
     if clean_es:
         delete_es_indices(es_connection)
-        delete_es_synonyms(es_connection)
+        if settings.search_engine != "opensearch":
+            delete_es_synonyms(es_connection)
     else:
         load_state("test_off", index_config, es_connection)
 

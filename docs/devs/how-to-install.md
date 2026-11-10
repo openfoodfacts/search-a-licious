@@ -167,3 +167,16 @@ When you need to explore the elasticsearch data, you can use elasticvue.
 - Click on "Add Elasticsearch cluster"
 - change the cluster name to "docker-cluster" at http://127.0.0.1:9200
 - Click on "Connect"
+
+
+## Running on OpenSearch (experimental)
+
+Elasticsearch is the default search engine. OpenSearch is an opt-in alternative,
+selected with the `SEARCH_ENGINE=opensearch` setting.
+
+- OpenSearch has no synonyms sets API, so only `synonyms_strategy: none` is supported
+  (any other value is rejected when the configuration is loaded).
+- `docker/opensearch.yml` replaces the Elasticsearch nodes by two OpenSearch nodes (`os01`, `os02`)
+  and sets `SEARCH_ENGINE` for the `api` and `updater` services.
+  The version is `OPENSEARCH_VERSION` in `.env`.
+- To run the integration tests on OpenSearch: `make test_api_integration ENGINE=opensearch`.

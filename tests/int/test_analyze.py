@@ -55,6 +55,7 @@ def test_czech_text_search(es_connection, index_config):
         index.delete(using=es_connection)
 
 
+@pytest.mark.requires_synonyms_sets
 def test_taxonomy_indexing_analyzer(es_connection, data_ingester):
     # create the index, with synonyms
     data_ingester([])
@@ -84,6 +85,7 @@ def test_taxonomy_indexing_analyzer(es_connection, data_ingester):
     assert _tokens(result) == ["en:organic_farming_2"]
 
 
+@pytest.mark.requires_synonyms_sets
 def test_taxonomy_search_analyzer_with_synonyms(
     es_connection, index_config, data_ingester
 ):

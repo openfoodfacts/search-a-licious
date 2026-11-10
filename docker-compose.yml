@@ -35,6 +35,8 @@ x-api-common: &api-common
   restart: ${RESTART_POLICY:-always}
   environment:
     - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://es01:9200}
+    # elasticsearch (default) or opensearch, see docker/opensearch.yml
+    - SEARCH_ENGINE=${SEARCH_ENGINE:-elasticsearch}
     - SENTRY_DNS
     - LOG_LEVEL
     - REDIS_HOST
