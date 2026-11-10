@@ -1,4 +1,4 @@
-from .config import Config, get_config
+from .config import Config, FieldType, get_config
 
 
 def check_index_id_is_defined(index_id: str | None, config: Config) -> None:
@@ -62,11 +62,9 @@ def check_fields_are_numeric(
         field_name = field_path_list[0]
         if field_name not in index_config.fields:
             errors.append(f"Unknown field name: {field_name}")
-        elif len(field_path_list) == 1 and index_config.fields[field_name].type not in (
-            "integer",
-            "float",
-            "long",
-            "bool",
+        elif len(field_path_list) == 1 and not (
+            index_config.fields[field_name].type.is_numeric()
+            or index_config.fields[field_name].type == FieldType.bool
         ):
             errors.append(f"Non numeric field name: {field_name}")
         elif (

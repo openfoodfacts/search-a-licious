@@ -73,8 +73,7 @@ COPY --chown=off:off poetry.lock pyproject.toml /opt/search/
 
 USER off:off
 WORKDIR /opt/search
-ENTRYPOINT /docker-entrypoint.sh $0 $@
-
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["uvicorn", "app.api:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 
 
