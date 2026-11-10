@@ -1104,9 +1104,20 @@ if you have another way of getting changes, but this part is up to you.</p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>updater
 </code></pre></div></p>
 <p>This will continuously fetch updates from the event stream, and update the index accordingly.</p>
-<p>At start it will compute last update time using
-the <a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name"><code>last_modified_field_name</code> from the configuration</a>
-to know from where to start processing the event stream.</p>
+<p>The updater only processes events pushed <strong>after it started</strong>.
+It does not catch up on events pushed while it was stopped.</p>
+<p>To catch up after a downtime, run the <a href="../../devs/ref-python/cli.html#python3-m-app-import"><code>import</code> command</a>
+without <code>--skip-updates</code>: once the import is done, it processes the events of the stream
+since the most recent
+<a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name"><code>last_modified_field_name</code></a>
+found in the index.</p>
+<p>Replay relies on the ids of the Redis stream being Unix timestamps in milliseconds
+(the default <code>&lt;ms&gt;-&lt;seq&gt;</code> ids): events with ids that are not compatible timestamps
+(eg. <code>0-1</code>) would be skipped.</p>
+<p>An event pushed after the replay ended, but before the new index is switched in
+as the alias, would be written to the old index and missed by the new one.
+To be safe, pause the production of events until the import is finished
+and the updater is listening to the stream, then resume it.</p>
 <h2 id="updating-the-index-from-time-to-time-with-an-export">Updating the index from time to time with an export<a class="headerlink" href="#updating-the-index-from-time-to-time-with-an-export" title="Permanent link">#</a></h2>
 <p>Another way to update the index is to periodically re-import the all the data, or changed data.</p>
 <p>This is less compelling to your users, but this might be the best way

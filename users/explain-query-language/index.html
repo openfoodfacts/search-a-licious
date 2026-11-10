@@ -551,6 +551,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Different type of fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#taxonomy-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Taxonomy fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1016,6 +1033,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Different type of fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#taxonomy-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Taxonomy fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1086,16 +1120,19 @@ without the need to complexify the query to much at API level.</p>
 <li>you can have more than one term, the query will try to match all terms:
   <div class="highlight"><pre><span></span><code>"dark chocolate" labels:organic
 </code></pre></div>
-  Entries with text <code>dark chocolate</code> and labels containing <code>organic</code></li>
+  Entries with text <code>dark chocolate</code> and labels containing <code>organic</code>.
+  This example assumes the <code>index</code> synonyms strategy, where <code>organic</code> is matched
+  through the synonyms of the taxonomy. With the <code>none</code> strategy, or if you want
+  to match a stored value exactly, use the value as stored in the index
+  (for Open Food Facts labels, the taxonomy id, eg. <code>labels:"en:organic"</code>).
+  See <a href="../explain-taxonomies/">taxonomy fields</a>.</li>
 <li>you can combine queries with <code>AND</code>, <code>OR</code> and <code>NOT</code> operators, and use parenthesis to group them:
-  <div class="highlight"><pre><span></span><code>"dark chocolate AND (labels:organic OR labels:vegan) AND NOT nutriscore:(e OR d)"
+  <div class="highlight"><pre><span></span><code>"dark chocolate" AND (labels:organic OR labels:vegan) AND NOT nutriscore_grade:(e OR d)
 </code></pre></div>
   Entries with text <code>dark chocolate</code>, labels containing <code>organic</code> or <code>vegan</code>, and Nutri-Score not <code>e</code> or <code>d</code></li>
-<li>you can query a sub field by using "." or ":":
+<li>you can query a sub field of an object by using "." between the field and the sub field
+  (the ":" form is not valid):
   <div class="highlight"><pre><span></span><code>nutriments.sugars_100g:[10 TO 15]
-</code></pre></div>
-  equivalent to:
-  <div class="highlight"><pre><span></span><code>nutriments:sugars_100g:[10 TO 15]
 </code></pre></div>
   Entries with sugar between 10 and 15 grams per 100g</li>
 <li>in range you can use * for unbounded values:
@@ -1103,7 +1140,7 @@ without the need to complexify the query to much at API level.</p>
 </code></pre></div>
   Entries with sugar below 20 g and proteins above 2g for 100g</li>
 <li>match field existence with <code>*</code>:
-  <div class="highlight"><pre><span></span><code>nutriscore:*
+  <div class="highlight"><pre><span></span><code>nutriscore_grade:*
 </code></pre></div>
   Entries with Nutri-Score computed</li>
 </ul>
@@ -1116,8 +1153,32 @@ It's important because the matching possibilities are not the same.</p>
 <li>full text fields, where part of the text can be matched, with complex matching possibilities</li>
 </ul>
 <p>There are also numeric and date fields, that can be used for range matching, or to make computations.</p>
+<h3 id="taxonomy-fields">Taxonomy fields<a class="headerlink" href="#taxonomy-fields" title="Permanent link">#</a></h3>
+<p>What you can write after <code>labels:</code> depends on the
+<a href="../explain-taxonomies/#taxonomy-fields"><code>synonyms_strategy</code></a> of your index:</p>
+<ul>
+<li>with <code>index</code>, you can use a name or a synonym, in any language of the request:
+  <code>labels:organic</code>, <code>labels:bio</code></li>
+<li>with <code>none</code>, the field only contains taxonomy ids, so you must use the id,
+  with its language prefix: <code>labels:"en:organic"</code>.
+  A bare <code>labels:organic</code> matches nothing.</li>
+</ul>
 <h2 id="full-text-queries">Full text queries<a class="headerlink" href="#full-text-queries" title="Permanent link">#</a></h2>
-<p><strong>FIXME</strong> add more on how we transform queries</p>
+<p>A word or a quoted phrase without a field name is searched in all the fields
+that have <code>full_text_search: true</code> in the configuration.
+For fields that have one text per language,
+only the languages of the request (the <code>langs</code> parameter) are searched.</p>
+<ul>
+<li>a word matches if it is found in any of those fields</li>
+<li>a quoted phrase matches if the words are found next to each other, in the same order</li>
+<li><code>*</code> and <code>?</code> can be used inside a word (<code>choco*</code>, <code>milk?</code>),
+  but <code>*</code> alone is refused because it would match everything</li>
+<li>the <code>boost_phrase</code> parameter of the API favors entries where the words of the query
+  are consecutive, even if you did not use quotes.
+  It only applies to the default best-match order: it is ignored when <code>sort_by</code> is set.</li>
+</ul>
+<p>Queries are transformed before being sent to Elasticsearch,
+this is how the languages and your configuration are taken into account.</p>
 
 
 

@@ -1127,9 +1127,19 @@ you can specify that a field is a taxonomy field (<code>type: taxonomy</code>).<
 <ul>
 <li>taxonomy_name: the name of the taxonomy (as defined in the configuration)</li>
 </ul>
+<p>The way synonyms and translations are used when searching is not set on the field,
+but for the whole index by the <code>synonyms_strategy</code> option:</p>
 <ul>
-<li>synonyms_search: if true,
-  this will add a full text subfield that will enable using synonyms and translations to match this term.</li>
+<li><code>index</code> (the default): each taxonomy field also gets a full text subfield per language,
+  which enables using synonyms and translations to match a term.
+  Matching uses the <code>synonyms</code> of each taxonomy entry (and the id without its prefix),
+  not its <code>name</code>: a translated name that is not also in <code>synonyms</code> will not match.
+  (see the technical details below)</li>
+<li><code>none</code>: the field only stores the values it is given, so queries must use the value as stored.
+  For prefixed taxonomy ids this includes the language prefix (eg. <code>labels:"en:organic"</code>),
+  but some fields store unprefixed values (eg. <code>brands</code> may contain <code>coca-cola</code>).
+  This is lighter, and better suited when you have a lot of taxonomies and languages
+  (the <code>index</code> strategy can make Elasticsearch very slow to start in that case).</li>
 </ul>
 <h2 id="autocompletion-with-taxonomies">Autocompletion with taxonomies<a class="headerlink" href="#autocompletion-with-taxonomies" title="Permanent link">#</a></h2>
 <p>When you import taxonomies, they can be used to provide autocompletion in multiple ways.</p>
@@ -1140,6 +1150,8 @@ or to provide suggestions in the search bar.</p>
 <p>If you defined taxonomies,
 you must import them using the <a href="../../devs/ref-python/cli.html#python3-m-app-import-taxonomies">import-taxonomies command</a>.</p>
 <h2 id="technical-details-on-taxonomy-fields">Technical details on taxonomy fields<a class="headerlink" href="#technical-details-on-taxonomy-fields" title="Permanent link">#</a></h2>
+<p>This section describes the <code>index</code> strategy.
+With <code>none</code>, a taxonomy field is simply a keyword field containing the ids.</p>
 <p>A taxonomy field is stored in Elasticsearch as an object.
 For each language it has a specific field, but in this field we just store the taxonomy entry id (eg. for organic, we always store <code>en:organic</code>). The analyzer is almost set to <code>keyword</code> which means it won't be tokenized (but it is not completely true, as we also transform hyphen to underscore).</p>
 <p>Note that the value of this field must be considered a unique token by elasticsearch standard tokenizer.
