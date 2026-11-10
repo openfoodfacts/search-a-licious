@@ -63,10 +63,12 @@ A successful import (`import` command, unless `--skip-updates` is used)
 moves the checkpoint to the most recent imported document,
 so the daemon does not replay events that the import already took into account.
 
-To force the daemon to start again from the most recent indexed document, delete the key:
-```bash
+To force the daemon to start again from the most recent indexed document,
+delete the key.
+For this use `redis-cli` on your redis instance, with:
+```
 # replace <stream name> and <index name> with your values
-docker-compose exec redis redis-cli DEL searchalicious:checkpoint:<stream name>:<index name>
+DEL searchalicious:checkpoint:<stream name>:<index name>
 ```
 
 ### Monitoring the update daemon
