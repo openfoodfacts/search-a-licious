@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterator, cast
 
 import tqdm
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.helpers import bulk, parallel_bulk
 from elasticsearch_dsl import Index, Search
 from redis import Redis
@@ -300,7 +300,8 @@ def gen_taxonomy_documents(
             for lang, lang_synonyms in synonyms.items():
                 filtered_synonyms = filter(lambda s: s, lang_synonyms)
                 synonyms_list[lang] = sorted(
-                    filtered_synonyms, key=lambda s: 0 if s == names[lang] else len(s)
+                    filtered_synonyms,
+                    key=lambda s: 0 if s == names.get(lang) else len(s),
                 )
             yield {
                 "_index": next_index,
@@ -481,6 +482,14 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
     query._index = [index]
     results = query.execute()
     results_dict = [r.to_dict() for r in results]
+    if not results_dict or last_modified_field_name not in results_dict[0]:
+        # Nothing says from where to catch up. Skipping would silently lose the
+        # updates since the dump, and the alias would then point to this index.
+        raise RuntimeError(
+            f"Cannot catch up on Redis updates: no document with a "
+            f"{last_modified_field_name} in index {index} (is the import empty?). "
+            "Use --skip-updates to import without them."
+        )
     last_updated_timestamp: int | float = results_dict[0][last_modified_field_name]
     last_updated_timestamp_ms = int(last_updated_timestamp * 1000)
     id_field_name = config.index.id_field_name
@@ -498,8 +507,13 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
             last_updated_timestamp_ms,
             document_gen_errors,
         ),
+        # a product created then deleted after the dump is absent from the index
+        ignore_status=404,
     ):
         if not success:
+            if "delete" in info and info["delete"].get("status") == 404:
+                # nothing to remove, not an error
+                continue
             logger.warning("A document failed: %s", info)
             num_errors += 1
     for error in document_gen_errors:
@@ -709,10 +723,14 @@ def run_update_daemon(config: Config) -> None:
         index_id = stream_name_to_index_id[stream_name]
         logger.debug("Document:\n%s", processed_document)
         if processed_result.status == FetcherStatus.REMOVED:
-            es_client.delete(
-                index=config.indices[index_id].index.name,
-                id=_id,
-            )
+            try:
+                es_client.delete(
+                    index=config.indices[index_id].index.name,
+                    id=_id,
+                )
+            except NotFoundError:
+                # already absent from the index, nothing to do
+                logger.info("Document %s to remove is not in the index", _id)
         else:
             es_client.index(
                 index=config.indices[index_id].index.name,
