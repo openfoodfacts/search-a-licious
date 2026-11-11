@@ -3,7 +3,12 @@ from unittest import mock
 
 import pytest
 
-from app._types import DistributionChart, GetSearchParameters, ScatterChart
+from app._types import (
+    DistributionChart,
+    GetSearchParameters,
+    PostSearchParameters,
+    ScatterChart,
+)
 from app.config import FieldConfig
 from app.validations import check_fields_are_numeric
 
@@ -73,3 +78,27 @@ def test_scatter_chart_refuses_non_numeric_fields(field_type):
     global_config.get_index_config.return_value = ("off", index_config)
     with mock.patch("app.validations.get_config", return_value=global_config):
         assert check_fields_are_numeric("off", ["x"]) == ["Non numeric field name: x"]
+
+
+@pytest.mark.parametrize("params_cls", [GetSearchParameters, PostSearchParameters])
+@pytest.mark.parametrize(
+    "langs,expected",
+    [
+        ("de, fr,", ["de", "fr"]),
+        (["de", " fr", ""], ["de", "fr"]),
+        ("", []),
+        (" , ", []),
+        ([], []),
+        ([" main "], ["main"]),
+    ],
+)
+def test_langs_are_normalized(params_cls, langs, expected, default_global_config):
+    """GET and structured language lists share the same normalization."""
+    assert params_cls(q="milk", langs=langs).langs == expected
+
+
+@pytest.mark.parametrize("langs", [None, 42, {"en": 1}])
+def test_invalid_langs_are_validation_errors(langs, default_global_config):
+    """Invalid language values remain validation errors rather than TypeErrors."""
+    with pytest.raises(ValueError):
+        GetSearchParameters(q="milk", langs=langs)

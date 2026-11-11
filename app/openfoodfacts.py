@@ -551,29 +551,17 @@ class ResultProcessor(BaseResultProcessor):
                 for language_code in product["languages_codes"]:
                     image_id = f"{image_type}_{language_code}"
                     if images and images.get(image_id) and images[image_id]["sizes"]:
-                        if "selected_images" not in fields:
-                            fields["selected_images"] = {}
-                        rev_id = images[image_id]["rev"]
-                        fields["selected_images"].update(
-                            {
-                                image_type: {
-                                    "display": {
-                                        language_code: generate_image_url(
-                                            code, f"{image_id}.{rev_id}.400"
-                                        )
-                                    },
-                                    "small": {
-                                        language_code: generate_image_url(
-                                            code, f"{image_id}.{rev_id}.200"
-                                        )
-                                    },
-                                    "thumb": {
-                                        language_code: generate_image_url(
-                                            code, f"{image_id}.{rev_id}.100"
-                                        )
-                                    },
-                                },
-                            }
+                        selected = fields.setdefault("selected_images", {}).setdefault(
+                            image_type, {"display": {}, "small": {}, "thumb": {}}
                         )
+                        rev_id = images[image_id]["rev"]
+                        for size_name, size in (
+                            ("display", 400),
+                            ("small", 200),
+                            ("thumb", 100),
+                        ):
+                            selected[size_name][language_code] = generate_image_url(
+                                code, f"{image_id}.{rev_id}.{size}"
+                            )
 
         return fields

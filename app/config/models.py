@@ -600,6 +600,11 @@ class IndexConfig(BaseModel):
             )
         ),
     ]
+    lang_filter_field: str | None = Field(
+        default=None,
+        description="Indexed keyword field containing language codes for filter_by_langs. "
+        "None disables language filtering for this index.",
+    )
     split_separator: Annotated[
         str,
         Field(
@@ -765,6 +770,17 @@ class IndexConfig(BaseModel):
             )
         ),
     ] = None
+
+    @model_validator(mode="after")
+    def language_filter_field_must_be_indexed_keyword(self):
+        """Require a searchable language-code field when filtering is enabled."""
+        if self.lang_filter_field is not None:
+            field = self.fields.get(self.lang_filter_field)
+            if field is None or field.type != FieldType.keyword or not field.index:
+                raise ValueError(
+                    "lang_filter_field must name an indexed keyword field in fields"
+                )
+        return self
 
     @model_validator(mode="after")
     def taxonomy_name_should_be_defined(self):

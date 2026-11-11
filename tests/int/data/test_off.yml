@@ -48,6 +48,7 @@ indices:
         type: float
       languages_codes:
         type: keyword
+    lang_filter_field: languages_codes
     lang_separator: _
     match_phrase_boost: 2.0
     # todo ?

@@ -488,26 +488,41 @@ def langs_filter_sample():
     return data
 
 
-@pytest.fixture
-def langs_filter_data(data_ingester):
+@pytest.fixture(params=["test", "production"])
+def langs_filter_data(request, data_ingester, index_config, monkeypatch):
+    """Exercise both existing lists and the production dictionary preprocessor."""
     data = langs_filter_sample()
+    if request.param == "production":
+        monkeypatch.setattr(
+            index_config, "preprocessor", "app.openfoodfacts.DocumentPreprocessor"
+        )
+        for product in data:
+            product["languages_codes"] = {
+                language: 1 for language in product["languages_codes"]
+            }
     data_ingester(data)
     yield data
 
 
 @pytest.mark.parametrize("req_type", GET_POST)
+@pytest.mark.parametrize(
+    "langs,expected_codes",
+    [
+        (["de"], {"9900000000001"}),
+        (["de", " fr", ""], {"9900000000001", "9900000000002"}),
+        (["main", "de"], {"9900000000001"}),
+    ],
+)
 def test_filter_by_langs_returns_matching_only(
-    req_type, langs_filter_data, test_client
+    req_type, langs, expected_codes, langs_filter_data, test_client
 ):
     _, data = do_search(
         test_client,
         req_type,
-        {"sort_by": "unique_scans_n", "langs": ["de"], "filter_by_langs": True},
+        {"sort_by": "unique_scans_n", "langs": langs, "filter_by_langs": True},
     )
     codes = set(hits_attr(data, "code"))
-    assert "9900000000001" in codes
-    assert "9900000000002" not in codes
-    assert "9900000000003" not in codes
+    assert codes == expected_codes
 
 
 @pytest.mark.parametrize("req_type", GET_POST)

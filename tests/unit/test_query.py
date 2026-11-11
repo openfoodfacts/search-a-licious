@@ -378,43 +378,46 @@ def test_filter_by_langs_only_main_skips_filter(
     assert "filter" not in bool_clause
 
 
-def test_filter_by_langs_missing_field_raises(
-    default_config: IndexConfig,
-    default_filter_query_builder: FullTextQueryBuilder,
+def test_filter_by_langs_unsupported_index(default_config, monkeypatch):
+    """Use real parameters and a config with language filtering disabled."""
+    monkeypatch.setattr(default_config, "lang_filter_field", None)
+    with pytest.raises(ValueError, match="lang_filter_field"):
+        SearchParameters(langs=["de"], filter_by_langs=True)
+    assert not SearchParameters(langs=["de"]).filter_by_langs
+    assert SearchParameters(langs=["main"], filter_by_langs=True)
+    assert SearchParameters(langs=[], filter_by_langs=True)
+
+
+def test_filter_by_langs_uses_configured_field(
+    default_config, default_filter_query_builder, monkeypatch
 ):
-    import types
-    from typing import Any
-
-    from app.exceptions import QueryCheckError
-    from app.query import build_es_query
-
-    fields_no_lang_codes = {
-        k: v for k, v in default_config.fields.items() if k != "languages_codes"
-    }
-    fake_index_config = types.SimpleNamespace(
-        index=default_config.index,
-        fields=fields_no_lang_codes,
-        scripts=None,
+    """The query builder must not depend on an Open Food Facts field name."""
+    monkeypatch.setitem(
+        default_config.fields,
+        "available_languages",
+        default_config.fields["languages_codes"],
     )
-    fake_params: Any = types.SimpleNamespace(
-        langs=["de"],
-        filter_by_langs=True,
-        facets=None,
-        charts=None,
-        sort_by=None,
-        page_size=10,
-        page=1,
-        index_config=fake_index_config,
-        valid_index_id="off",
-        uses_sort_script=False,
-        sign_sort_by=("+", None),
-    )
+    monkeypatch.delitem(default_config.fields, "languages_codes")
+    monkeypatch.setattr(default_config, "lang_filter_field", "available_languages")
+    params = SearchParameters(langs=["de", "fr"], filter_by_langs=True)
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    assert query.es_query.to_dict()["query"]["bool"]["filter"] == [
+        {"terms": {"available_languages": ["de", "fr"]}}
+    ]
 
-    analysis = QueryAnalysis(text_query="Apfel")
 
-    with pytest.raises(QueryCheckError) as exc_info:
-        build_es_query(analysis, fake_params, default_filter_query_builder)
-    assert "languages_codes" in str(exc_info.value)
+@pytest.mark.parametrize("langs", ["en, fr, ", ["en", " fr", ""]])
+def test_normalized_languages_used_for_matching_and_filtering(
+    langs, default_config, default_filter_query_builder
+):
+    """Whitespace must not select a different text subfield than the filter."""
+    params = SearchParameters(q="milk", langs=langs, filter_by_langs=True)
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    body = query.es_query.to_dict()["query"]["bool"]
+    assert body["filter"] == [{"terms": {"languages_codes": ["en", "fr"]}}]
+    assert "product_name.fr" in body["must"][0]["multi_match"]["fields"]
 
 
 def test_parse_query_is_thread_safe():

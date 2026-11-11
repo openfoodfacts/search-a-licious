@@ -2089,6 +2089,7 @@
         "number_of_replicas": 1,
         "number_of_shards": 4
       },
+      "lang_filter_field": "languages_codes",
       "lang_separator": "_",
       "match_phrase_boost": 2.0,
       "match_phrase_boost_proximity": null,

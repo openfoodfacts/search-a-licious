@@ -258,3 +258,53 @@ def test_fetcher_retries_on_timeout(monkeypatch):
 def test_fetcher_invalid_json(monkeypatch):
     result, _ = _fetch(monkeypatch, _response(200, json_error=True))
     assert result.status == FetcherStatus.OTHER
+
+
+@pytest.mark.parametrize("projection", [None, {"code", "selected_images"}])
+def test_selected_images_keep_each_language(projection):
+    """Every language retains its own revision and all three image sizes."""
+    conf = app.config.Config.from_yaml(Path("data/config/openfoodfacts.yml"))
+    processor = app.openfoodfacts.ResultProcessor(config=conf.indices["off"])
+    product = {
+        "code": "3168930010265",
+        "lang": "en",
+        "languages_codes": ["en", "fr", "de"],
+        "selected_images": {
+            "front": [
+                {"lc": "en", "rev": 299, "full_size": {"h": 400, "w": 400}},
+                {"lc": "fr", "rev": 300, "full_size": {"h": 400, "w": 400}},
+            ],
+        },
+    }
+    result = processor.process_result(product, projection=projection)
+    assert result["selected_images"] == {
+        "front": {
+            size_name: {
+                lc: f"https://images.openfoodfacts.org/images/products/316/893/001/0265/front_{lc}.{rev}.{size}.jpg"
+                for lc, rev in [("en", 299), ("fr", 300)]
+            }
+            for size_name, size in [("display", 400), ("small", 200), ("thumb", 100)]
+        }
+    }
+
+
+def test_no_generated_selected_images_without_languages():
+    """An empty language list must not generate image URL entries."""
+    conf = app.config.Config.from_yaml(Path("data/config/openfoodfacts.yml"))
+    processor = app.openfoodfacts.ResultProcessor(config=conf.indices["off"])
+    fields = processor.build_image_fields(
+        {"code": "3168930010265", "languages_codes": []}, projection=None
+    )
+    assert "selected_images" not in fields
+
+
+@pytest.mark.parametrize("languages", [{"en": 1, "fr": 2}, ["en", "fr"], {}])
+def test_preprocess_language_codes(languages):
+    """Production preprocessing accepts source dictionaries and existing lists."""
+    conf = app.config.Config.from_yaml(Path("data/config/openfoodfacts.yml"))
+    processor = app.openfoodfacts.DocumentPreprocessor(config=conf.indices["off"])
+    result = processor.preprocess(
+        {"code": "1234567890123", "languages_codes": languages}
+    )
+    assert result.document is not None
+    assert result.document["languages_codes"] == list(languages)
