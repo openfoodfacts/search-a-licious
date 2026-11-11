@@ -1,3 +1,4 @@
+import types
 from unittest import mock
 
 import elastic_transport
@@ -212,3 +213,69 @@ def test_autocomplete_empty_query_is_422(default_global_config):
     client = TestClient(app, raise_server_exceptions=True)
     response = client.get("/autocomplete?q=&taxonomy_names=categories")
     assert response.status_code == 422
+
+
+def _suggestion_response(**scores_by_lang: list[float]):
+    """The response of Elasticsearch to the suggesters (one per language), each
+    with the options `en:<lang>-<i>` of the scores given"""
+    return types.SimpleNamespace(
+        took=2,
+        timed_out=False,
+        suggest=types.SimpleNamespace(
+            **{
+                f"taxonomy_suggest_{lang}": [
+                    types.SimpleNamespace(
+                        options=[
+                            types.SimpleNamespace(
+                                text=f"{lang} {i}",
+                                _score=score,
+                                _source={
+                                    "id": f"en:{lang}-{i}",
+                                    "taxonomy_name": "categories",
+                                    "name": types.SimpleNamespace(en=f"{lang} {i}"),
+                                },
+                            )
+                            for i, score in enumerate(scores)
+                        ]
+                    )
+                ]
+                for lang, scores in scores_by_lang.items()
+            }
+        ),
+    )
+
+
+def _autocomplete(response, **params):
+    with mock.patch("app.api.build_completion_query") as build:
+        build.return_value.execute.return_value = response
+        build.return_value.to_dict.return_value = {}
+        return TestClient(app).get(
+            "/autocomplete",
+            params={"q": "x", "taxonomy_names": "categories", **params},
+        )
+
+
+def test_autocomplete_returns_at_most_size_options(default_config):
+    """There is a suggester per language, each one giving `size` options"""
+    response = _suggestion_response(en=[9, 5, 1], fr=[8, 7, 2])
+    result = _autocomplete(response, langs="en,fr", size=3)
+    assert result.status_code == 200
+    # the 3 best, whatever their language
+    assert [o["id"] for o in result.json()["options"]] == [
+        "en:en-0",
+        "en:fr-0",
+        "en:fr-1",
+    ]
+
+
+@pytest.mark.parametrize("size, expected", [(1, 1), (6, 6), (10, 6), (0, 0)])
+def test_autocomplete_size_limits_the_options(default_config, size, expected):
+    response = _suggestion_response(en=[9, 5, 1], fr=[8, 7, 2])
+    result = _autocomplete(response, langs="en,fr", size=size)
+    assert len(result.json()["options"]) == expected
+
+
+def test_autocomplete_size_defaults_to_10(default_config):
+    response = _suggestion_response(en=list(range(8)), fr=list(range(8)))
+    result = _autocomplete(response, langs="en,fr")
+    assert len(result.json()["options"]) == 10
