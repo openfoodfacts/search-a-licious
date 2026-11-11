@@ -72,16 +72,19 @@ def process_taxonomy_completion_response(
 ) -> JSONType:
     output = {"took": response.took, "timed_out": response.timed_out}
     options = []
-    ids = set()
+    # the same entry is found by the suggesters of several languages,
+    # but an id is not unique across taxonomies
+    seen = set()
     lang = langs[0]
     for suggestion_id in dir(response.suggest):
         if not suggestion_id.startswith("taxonomy_suggest_"):
             continue
         for suggestion in getattr(response.suggest, suggestion_id):
             for option in suggestion.options:
-                if option._source["id"] in ids:
+                entry = (option._source["id"], option._source["taxonomy_name"])
+                if entry in seen:
                     continue
-                ids.add(option._source["id"])
+                seen.add(entry)
                 result = {
                     "id": option._source["id"],
                     "text": option.text,
