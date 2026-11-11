@@ -1,0 +1,4 @@
+# Shell scripts are run by Linux (containers, CI): keep LF line endings
+# whatever the OS and the git settings (core.autocrlf) of the checkout,
+# or the script fails to start ("exec ...: no such file or directory").
+*.sh text eol=lf
