@@ -232,12 +232,17 @@ def gen_documents(
     num_items: int | None,
     num_processes: int,
     process_num: int,
-    gen_document_errors: list[Exception] | None = None,
+    gen_document_errors: list[dict[str, str | None]] | None = None,
 ):
     """Generate documents to index for process number process_num
 
     We chunk documents based on document num % process_num
+
+    A document that can not be prepared is skipped, and described
+    in `gen_document_errors` (if provided) by its id (if known)
+    and the error.
     """
+    id_field_name = processor.config.index.id_field_name
     for i, row in enumerate(tqdm.tqdm(jsonl_iter(file_path))):
         if num_items is not None and i >= num_items:
             break
@@ -253,7 +258,16 @@ def gen_documents(
             )
         except Exception as e:
             if gen_document_errors is not None:
-                gen_document_errors.append(e)
+                gen_document_errors.append(
+                    {
+                        "id": (
+                            str(row[id_field_name])
+                            if isinstance(row, dict) and id_field_name in row
+                            else None
+                        ),
+                        "error": f"{type(e).__name__}: {e}",
+                    }
+                )
             continue
         if not document_dict:
             continue
@@ -369,8 +383,8 @@ def import_parallel(
     processor = DocumentProcessor(config)
     # open a connection for this process
     es = connection.get_es_client(request_timeout=120, retry_on_timeout=True)
-    # a list of errors that occurs during document generation
-    gen_document_errors: list[Exception] = []
+    # the documents that could not be prepared (they are skipped)
+    gen_document_errors: list[dict[str, str | None]] = []
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to
     # parallelize that. If we then do parallel_bulk here, this causes queueing
@@ -388,7 +402,13 @@ def import_parallel(
         ),
         raise_on_error=False,
     )
-    return process_num, success, errors
+    # skipped documents are errors too: report them with the indexing ones,
+    # so that they are logged and counted
+    all_errors = [
+        *cast(list, errors),
+        *({"document_preparation_error": error} for error in gen_document_errors),
+    ]
+    return process_num, success, all_errors
 
 
 def import_taxonomies(config: IndexConfig, next_index: str):

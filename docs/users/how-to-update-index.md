@@ -17,6 +17,9 @@ and [`import` reference documentation](../devs/ref-python/cli.html#python3-m-app
 It's important to note that if you don't use the *continous updates* strategy,
 you need to use `--skip-updates` option.
 
+A document that can not be prepared or indexed is skipped, not fatal.
+It is logged and counted, and the command exits with a non-zero code if there was any.
+
 ## Continuous updates
 
 To have continuous updates, you need to push events to the redis stream.
