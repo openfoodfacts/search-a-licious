@@ -12,11 +12,18 @@ configuration and coerces values in place to the expected Python types,
 so that what reaches Elasticsearch matches the index mapping.
 """
 
+import re
+
 from app._types import JSONType
 from app.config import FieldConfig, FieldType, IndexConfig
 from app.utils.log import get_logger
 
 logger = get_logger(__name__)
+
+# A date written year first with slashes, like ``2025/02/04`` (found in
+# ``obsolete_since_date``). Elasticsearch does not parse it, but it can only
+# mean year/month/day.
+_SLASH_DATE_RE = re.compile(r"(\d{4})/(\d{1,2})/(\d{1,2})")
 
 # Values that should be interpreted as boolean ``False`` under Perl-style
 # truthiness. Anything not in this set (and not None) is considered ``True``.
@@ -95,12 +102,15 @@ def _to_number(value, *, to_int: bool) -> int | float | None:
 def _to_date(value) -> int | float | str | None:
     """Coerce a date field value.
 
-    Only stringified epoch values are fixed (e.g. ``"1700000000"`` →
-    ``1700000000``). Already-numeric values and ISO date strings are left
+    Stringified epoch values are fixed (e.g. ``"1700000000"`` →
+    ``1700000000``), and so are dates written year first with slashes
+    (``"2025/02/04"`` → ``"2025-02-04"``), which Elasticsearch does not parse.
+    Already-numeric values and ISO date strings are left
     untouched (returned as-is) because Elasticsearch accepts both natively.
 
-    :return: the conformed value (an ``int`` for epochs, the original value
-        otherwise), or ``None`` if a numeric-looking string failed to parse.
+    :return: the conformed value (an ``int`` for epochs, an ISO string for
+        slash dates, the original value otherwise), or ``None`` if the value
+        is empty or an unexpected boolean.
     """
     if isinstance(value, bool):
         # an unexpected bool; treat as a parse failure.
@@ -117,6 +127,10 @@ def _to_date(value) -> int | float | str | None:
             try:
                 return float(stripped)
             except ValueError:
+                slash_date = _SLASH_DATE_RE.fullmatch(stripped)
+                if slash_date:
+                    year, month, day = slash_date.groups()
+                    return f"{year}-{int(month):02d}-{int(day):02d}"
                 # An ISO date string or anything else: leave it to ES.
                 return value
     return value
@@ -262,7 +276,8 @@ def conform_json_to_config(document: JSONType, config: IndexConfig) -> None:
       ``scaled_float``, ``integer``, ``short``, ``long``,
       ``unsigned_long``): cross-coerce between int and float flavors and
       parse numeric strings.
-    * ``date`` fields: only stringified epoch values are cast to numbers;
+    * ``date`` fields: stringified epoch values are cast to numbers and
+      ``YYYY/MM/DD`` dates are written ``YYYY-MM-DD``;
       ISO date strings and already-numeric values are left untouched.
 
     Fields whose value cannot be conformed are dropped from the document
