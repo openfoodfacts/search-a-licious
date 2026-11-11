@@ -295,3 +295,17 @@ def test_autocomplete_size_defaults_to_10(default_config):
     response = _suggestion_response(en=list(range(8)), fr=list(range(8)))
     result = _autocomplete(response, langs="en,fr")
     assert len(result.json()["options"]) == 10
+
+
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_search_language_filter_unsupported_is_422(default_config, monkeypatch, method):
+    """Both endpoints reject an unsupported filter before contacting Elasticsearch."""
+    monkeypatch.setattr(default_config, "lang_filter_field", None)
+    client = TestClient(app, raise_server_exceptions=True)
+    params = {"q": "milk", "langs": "fr", "filter_by_langs": True}
+    if method == "get":
+        response = client.get("/search", params=params)
+    else:
+        response = client.post("/search", json={**params, "langs": ["fr"]})
+    assert response.status_code == 422
+    assert "lang_filter_field" in response.text
