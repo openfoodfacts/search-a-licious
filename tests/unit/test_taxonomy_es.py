@@ -1,3 +1,6 @@
+import types
+from unittest import mock
+
 import cachetools
 import elastic_transport
 import pytest
@@ -26,12 +29,18 @@ class FakeFetch:
     def __init__(self):
         self.searches: list[list[tuple[str, str]]] = []
         self.fail_with: Exception | None = None
+        # whether the response has all the entries that match
+        self.complete = True
+        # something that happens while Elasticsearch is searching
+        self.meanwhile = None
 
     def __call__(self, items, config):
         self.searches.append(list(items))
+        if self.meanwhile is not None:
+            self.meanwhile()
         if self.fail_with is not None:
             raise self.fail_with
-        return {item: KNOWN[item] for item in items if item in KNOWN}
+        return {item: KNOWN[item] for item in items if item in KNOWN}, self.complete
 
 
 @pytest.fixture
@@ -135,3 +144,81 @@ def test_runtime_cache_invalidation_clears_names(default_config, fetch):
     search.invalidate_runtime_caches()
     get_taxonomy_names(ITEMS, default_config)
     assert fetch.searches == [ITEMS, ITEMS]
+
+
+def test_absence_is_not_cached_when_the_response_is_incomplete(default_config, fetch):
+    """A term without language prefix matches many entries: they can fill the
+    response and leave another item out, which is then not known to be absent"""
+    fetch.complete = False
+    items = [CHOCOLATES, ("xx:unknown-brand", "brands")]
+    assert set(get_taxonomy_names(items, default_config)) == {CHOCOLATES}
+    get_taxonomy_names(items, default_config)
+    # what was found is kept, what was not found is searched for again
+    assert fetch.searches == [items, [("xx:unknown-brand", "brands")]]
+
+
+def test_lookup_started_before_invalidation_does_not_fill_the_cache(
+    default_config, fetch
+):
+    """The names it found may be outdated: the next lookup searches again"""
+    fetch.meanwhile = taxonomy_es.clear_taxonomy_names_cache
+    # the names are returned to the caller, but not kept
+    assert set(get_taxonomy_names(ITEMS, default_config)) == set(ITEMS)
+    fetch.meanwhile = None
+    get_taxonomy_names(ITEMS, default_config)
+    get_taxonomy_names(ITEMS, default_config)
+    assert fetch.searches == [ITEMS, ITEMS]
+
+
+class FakeHits(list):
+    """The hits of a response: a list that knows how many entries matched"""
+
+    def __init__(self, entries, total):
+        super().__init__(entries)
+        self.total = {"value": total, "relation": "eq"}
+
+
+def _entry(id_, taxonomy_name, names):
+    return types.SimpleNamespace(
+        id=id_,
+        taxonomy_name=taxonomy_name,
+        name=types.SimpleNamespace(to_dict=lambda: names),
+    )
+
+
+def _search_returning(monkeypatch, hits):
+    search = mock.MagicMock()
+    chain = search.return_value.filter.return_value.params.return_value
+    chain.execute.return_value.hits = hits
+    monkeypatch.setattr(taxonomy_es, "Search", search)
+    return search
+
+
+def test_fetch_gives_names_by_the_id_that_was_asked(default_config, monkeypatch):
+    entry = _entry("en:milk", "categories", {"en": "Milk"})
+    search = _search_returning(monkeypatch, FakeHits([entry], total=1))
+    names, complete = taxonomy_es._fetch_taxonomy_names(
+        [("milk", "categories"), ("en:milk", "categories")], default_config
+    )
+    assert names == {
+        ("en:milk", "categories"): {"en": "Milk"},
+        ("milk", "categories"): {"en": "Milk"},
+    }
+    assert complete
+    # the size of the response is the number of items
+    search.return_value.filter.return_value.params.assert_called_once_with(size=2)
+
+
+@pytest.mark.parametrize("total, complete", [(1, True), (2, True), (3, False)])
+def test_fetch_tells_if_the_response_is_complete(
+    default_config, monkeypatch, total, complete
+):
+    entries = [
+        _entry("en:milk", "categories", {"en": "Milk"}),
+        _entry("fr:milk", "categories", {"fr": "Lait"}),
+    ]
+    _search_returning(monkeypatch, FakeHits(entries[: min(total, 2)], total=total))
+    _, is_complete = taxonomy_es._fetch_taxonomy_names(
+        [("milk", "categories"), ("xx:other", "brands")], default_config
+    )
+    assert is_complete is complete

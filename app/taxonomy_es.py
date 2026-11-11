@@ -29,13 +29,18 @@ _NAMES_CACHE: cachetools.TTLCache = cachetools.TTLCache(
 )
 # the API serves requests in several threads
 _NAMES_CACHE_LOCK = threading.Lock()
+# changed each time the cache is cleared: a search that started before
+# must not fill the cache with what it found (it may be outdated)
+_NAMES_CACHE_GENERATION = 0
 _NOT_CACHED = object()
 
 
 def clear_taxonomy_names_cache() -> None:
     """Forget the names that were already looked up"""
+    global _NAMES_CACHE_GENERATION
     with _NAMES_CACHE_LOCK:
         _NAMES_CACHE.clear()
+        _NAMES_CACHE_GENERATION += 1
 
 
 def get_taxonomy_names(
@@ -56,6 +61,7 @@ def get_taxonomy_names(
     translations: dict[tuple[str, str], dict[str, str]] = {}
     missing: list[tuple[str, str]] = []
     with _NAMES_CACHE_LOCK:
+        generation = _NAMES_CACHE_GENERATION
         for item in dict.fromkeys(items):
             names = _NAMES_CACHE.get((index_name, *item), _NOT_CACHED)
             if names is _NOT_CACHED:
@@ -63,10 +69,17 @@ def get_taxonomy_names(
             elif names is not None:
                 translations[item] = names
     if missing:
-        fetched = _fetch_taxonomy_names(missing, config)
+        fetched, complete = _fetch_taxonomy_names(missing, config)
         with _NAMES_CACHE_LOCK:
-            for item in missing:
-                _NAMES_CACHE[(index_name, *item)] = fetched.get(item)
+            if generation == _NAMES_CACHE_GENERATION:
+                for item in missing:
+                    names = fetched.get(item)
+                    # An item that is not in the response is known to be in no
+                    # taxonomy only if the response was complete: a term
+                    # without language prefix matches many entries, which can
+                    # fill the response and leave another item out.
+                    if names is not None or complete:
+                        _NAMES_CACHE[(index_name, *item)] = names
         translations.update(fetched)
     return translations
 
@@ -74,8 +87,13 @@ def get_taxonomy_names(
 def _fetch_taxonomy_names(
     items: list[tuple[str, str]],
     config: IndexConfig,
-) -> dict[tuple[str, str], dict[str, str]]:
-    """Search the names of terms in different taxonomies in Elasticsearch"""
+) -> tuple[dict[tuple[str, str], dict[str, str]], bool]:
+    """Search the names of terms in different taxonomies in Elasticsearch
+
+    :return: the names found, and whether the response was complete
+        (all the entries matching the search were returned, so an item that
+        is not in the names is in no taxonomy)
+    """
     filters = []
     no_lang_prefix_ids = {id_ for id_, _ in items if ":" not in id_}
     for id, taxonomy_name in items:
@@ -106,7 +124,9 @@ def _fetch_taxonomy_names(
             if no_lang_prefix[result.id] in no_lang_prefix_ids
         }
     )
-    return translations
+    # `size` is the number of items: matches can exceed it (see above)
+    complete = results.total["value"] <= len(results)
+    return translations, complete
 
 
 def _normalize_synonym(token: str) -> str:
