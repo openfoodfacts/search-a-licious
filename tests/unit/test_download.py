@@ -1,3 +1,4 @@
+import io
 import json
 from pathlib import Path
 
@@ -16,13 +17,18 @@ URL = "https://example.org/data/origins.full.json"
 BODY = b'{"en:france": {"name": {"en": "France"}}}'
 
 
-def _response(status: int = 200, body: bytes = BODY, headers: dict | None = None):
-    response = requests.Response()
+def _response(
+    status: int = 200,
+    body: bytes = BODY,
+    headers: dict | None = None,
+    cls: type[requests.Response] = requests.Response,
+) -> requests.Response:
+    """A response like the one of a real server: the body is read from `raw`"""
+    response = cls()
     response.status_code = status
     response.reason = {429: "Too Many Requests", 404: "Not Found"}.get(status, "")
     response.url = URL
-    response._content = body
-    response._content_consumed = True
+    response.raw = io.BytesIO(body)
     response.headers.update(headers or {})
     return response
 
@@ -152,10 +158,7 @@ def test_download_file_connection_error_is_raised_in_the_end(server, tmp_path):
 def test_download_file_body_failure_leaves_no_file(server, tmp_path):
     output = tmp_path / "cache" / "origins.json"
     output.parent.mkdir()
-    broken = _BrokenBody()
-    broken.status_code = 200
-    broken._content_consumed = True  # (no real connection behind it to close)
-    server.answers = [broken]
+    server.answers = [_response(cls=_BrokenBody)]
     with pytest.raises(requests.exceptions.ChunkedEncodingError):
         download_file(URL, output)
     _nothing_left(output)
