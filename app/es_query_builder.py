@@ -8,7 +8,7 @@ from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
 
 from ._types import JSONType
 from .config import IndexConfig
-from .exceptions import FreeWildCardError, QueryAnalysisError
+from .exceptions import FreeRangeError, FreeWildCardError, QueryAnalysisError
 
 DEFAULT_FIELD_MARKER = "_searchalicious_text"
 
@@ -53,8 +53,29 @@ class FullTextMixin:
                 "Free wildcards are not allowed in full text queries"
             )
         if "query_string" in query:
+            if not fields:
+                # no full-text field applies, do not let ES fall back to `*`
+                return {"match_none": {}}
             # no need to transform, just add fields
+            # (ES refuses `fields` together with `default_field`)
+            query["query_string"].pop("default_field", None)
             query["query_string"]["fields"] = fields
+        elif "fuzzy" in query:
+            if not fields:
+                return {"match_none": {}}
+            # fuzzy on a single field would not be a full text search
+            inner_json = query.pop("fuzzy")[self.field]
+            fuzziness = float(inner_json["fuzziness"])
+            query["multi_match"] = {
+                "query": inner_json["value"],
+                "fields": fields,
+                "type": "best_fields",
+                # `milk~` gives 0.5, which Elasticsearch does not accept
+                "fuzziness": int(fuzziness) if fuzziness.is_integer() else "AUTO",
+            }
+            if "boost" in inner_json:
+                # keep `milk~1^2` boosted, as on a field
+                query["multi_match"]["boost"] = inner_json["boost"]
         elif "match" in query or "match_phrase" in query:
             query_type = list(k for k in query.keys() if k.startswith("match"))[0]
             # go for multi_match
@@ -171,6 +192,32 @@ class FullTextQueryBuilder(ElasticsearchQueryBuilder):
             )
         else:
             yield from super().visit_phrase(node, context)
+
+    @staticmethod
+    def _negative_bound(bound):
+        """luqum parses the `-5` of `[-5 TO 10]` as a prohibition of `5`,
+        which the elasticsearch visitor can not handle: give back the number
+        """
+        if isinstance(bound, luqum.tree.Prohibit) and isinstance(
+            bound.a, luqum.tree.Word
+        ):
+            return luqum.tree.Word(f"-{bound.a.value}")
+        return bound
+
+    def visit_range(self, node, context):
+        """A range needs a field, the default (full text) field is a placeholder"""
+        if self._fields(context) == [DEFAULT_FIELD_MARKER]:
+            raise FreeRangeError(
+                "Free ranges are not allowed in full text queries, "
+                "specify a field, like 'nutriments.fat_100g:[1 TO 2]'"
+            )
+        node = luqum.tree.Range(
+            self._negative_bound(node.low),
+            self._negative_bound(node.high),
+            include_low=node.include_low,
+            include_high=node.include_high,
+        )
+        yield from super().visit_range(node, context)
 
     def __call__(
         self, tree: luqum.tree.Item, index_config: IndexConfig, query_langs: list[str]

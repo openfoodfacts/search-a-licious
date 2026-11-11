@@ -47,7 +47,9 @@ export class SearchCount extends SearchaliciousResultCtlMixin(LitElement) {
    * Render the component
    */
   override render() {
-    if (this.searchResultDetail.count > 0) {
+    if (this.searchResultDetail.error) {
+      return html``;
+    } else if (this.searchResultDetail.count > 0) {
       return html`<div part="result-found">${this.renderResultsFound()}</div>`;
     } else if (this.searchResultDetail.isSearchLaunch) {
       return html`<slot name="no-results">${this.noResults}</slot>`;

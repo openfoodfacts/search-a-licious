@@ -315,6 +315,9 @@ class QuerySearchParameters(BaseModel):
     def index_config(self):
         """Get the index config once and for all"""
         global_config = config.get_config()
+        # model validators run in an arbitrary order:
+        # an unknown index_id must be a validation error, not a KeyError
+        check_index_id_is_defined(self.index_id, global_config)
         _, index_config = global_config.get_index_config(self.index_id)
         return index_config
 
@@ -541,20 +544,20 @@ class GetSearchParameters(SearchParameters):
         Directly the dictionnaries in POST request
         """
         str_charts = _prepare_str_list(charts)
-        if str_charts:
-            parsed_charts: list[DistributionChart | ScatterChart] = []
-            charts_list = str_charts.split(",")
-            for c in charts_list:
-                if ":" in c:
-                    [x, y] = c.split(":")
-                    parsed_charts.append(ScatterChart(x=x, y=y))
-                else:
-                    parsed_charts.append(DistributionChart(field=c))
-        if parsed_charts is not None:
-            # we already know because of code logic that charts is the right type
-            # but we need to cast for mypy type checking
-            result_charts = cast(list[ChartType], parsed_charts)
-        return result_charts
+        if str_charts is None:
+            return cast(list[ChartType] | None, charts)
+        if not str_charts:
+            return []
+
+        parsed_charts: list[DistributionChart | ScatterChart] = []
+        charts_list = str_charts.split(",")
+        for c in charts_list:
+            if ":" in c:
+                x, y = c.split(":", 1)
+                parsed_charts.append(ScatterChart(x=x, y=y))
+            else:
+                parsed_charts.append(DistributionChart(field=c))
+        return cast(list[ChartType], parsed_charts)
 
     @model_validator(mode="after")
     def validate_q_or_sort_by(self):
