@@ -51,23 +51,35 @@ def _store_script(
 
 
 def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, int]:
-    """Resync the scripts between configuration and elasticsearch."""
+    """Resync the scripts between configuration and elasticsearch.
+
+    The configured scripts are stored first (a script is created, or replaced
+    if it exists), then the scripts of this index that are not configured any
+    more are removed. So a configured script is never missing, and one that
+    can not be stored keeps its previous version.
+
+    :return: the number of scripts `removed` (the ones no longer configured)
+        and `added` (the ones stored)
+    """
     # list existing
     current_ids = _list_stored_scripts(index_config, prefix=get_script_prefix(index_id))
-    # remove them
-    _remove_scripts(current_ids, index_config)
     # store scripts
+    configured_ids = set()
     stored_scripts = 0
-    if index_config.scripts:
-        for script_id, script in index_config.scripts.items():
-            try:
-                _store_script(get_script_id(index_id, script_id), script, index_config)
-                stored_scripts += 1
-            except elasticsearch.ApiError as e:
-                logger.error(
-                    "Unable to store script %s, got exception %s: %s",
-                    script_id,
-                    e,
-                    e.body,
-                )
-    return {"removed": len(current_ids), "added": stored_scripts}
+    for script_id, script in (index_config.scripts or {}).items():
+        stored_id = get_script_id(index_id, script_id)
+        configured_ids.add(stored_id)
+        try:
+            _store_script(stored_id, script, index_config)
+            stored_scripts += 1
+        except elasticsearch.ApiError as e:
+            logger.error(
+                "Unable to store script %s, got exception %s: %s",
+                script_id,
+                e,
+                e.body,
+            )
+    # remove the scripts that are not configured any more
+    removed_ids = [id_ for id_ in current_ids if id_ not in configured_ids]
+    _remove_scripts(removed_ids, index_config)
+    return {"removed": len(removed_ids), "added": stored_scripts}
