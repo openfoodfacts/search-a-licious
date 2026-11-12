@@ -52,9 +52,38 @@
         <target state="translated">Rechercher</target>
         <note from="lit-localize">Search button</note>
       </trans-unit>
-<trans-unit id="s2c8e2b8956c4bf47">
-  <source>Search failed. Please try again.</source>
-</trans-unit>
+      <trans-unit id="s2c8e2b8956c4bf47">
+        <source>Search failed. Please try again.</source>
+        <target state="translated">La recherche a échoué. Veuillez réessayer.</target>
+      </trans-unit>
+      <trans-unit id="s3606b9d856cdbafe">
+        <source>Sort by</source>
+        <target state="translated">Trier par</target>
+      </trans-unit>
+      <trans-unit id="scfabade43c1504da">
+        <source>Reset <x id="0" equiv-text="${this.name}"/></source>
+        <target state="translated">Réinitialiser <x id="0" equiv-text="${this.name}"/></target>
+      </trans-unit>
+      <trans-unit id="s187528426100c44e">
+        <source>No data</source>
+        <target state="translated">Aucune donnée</target>
+      </trans-unit>
+      <trans-unit id="s17d7735daef94b08">
+        <source>First page</source>
+        <target state="translated">Première page</target>
+      </trans-unit>
+      <trans-unit id="s5b6a1140834aa043">
+        <source>Previous page</source>
+        <target state="translated">Page précédente</target>
+      </trans-unit>
+      <trans-unit id="s542ffff558768ea3">
+        <source>Next page</source>
+        <target state="translated">Page suivante</target>
+      </trans-unit>
+      <trans-unit id="s2c4b1cc433fce2d0">
+        <source>Last page</source>
+        <target state="translated">Dernière page</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
