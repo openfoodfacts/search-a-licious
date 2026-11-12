@@ -311,6 +311,27 @@ class FieldConfig(BaseModel):
             )
         ),
     ] = None
+    date_format: Annotated[
+        str | None,
+        Field(
+            description=cd_(
+                """The Elasticsearch format(s) of the dates of this field.
+
+                It must only be provided for date field type.
+
+                By default Elasticsearch uses
+                `strict_date_optional_time||epoch_millis`:
+                a number is read as milliseconds since the epoch.
+                If your data holds seconds (like Open Food Facts `*_t` fields),
+                use `epoch_second`, or `strict_date_optional_time||epoch_second`
+                to also accept ISO dates in queries.
+
+                Changing the format of an existing field needs a full re-index.
+                See [Elasticsearch help](https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-date-format.html)
+                """
+            )
+        ),
+    ] = None
     fields: Annotated[
         dict[str, "FieldConfig"] | None,
         Field(
@@ -351,6 +372,15 @@ class FieldConfig(BaseModel):
             raise ValueError(
                 "bucket_agg should be provided for taxonomy or numeric type only"
             )
+        return self
+
+    @model_validator(mode="after")
+    def date_format_only_for_dates(self):
+        """`date_format` only makes sense for date fields"""
+        if self.date_format is not None and self.type != FieldType.date:
+            raise ValueError("date_format is only valid for date type")
+        if self.date_format is not None and not self.date_format.strip():
+            raise ValueError("date_format must not be empty")
         return self
 
     @model_validator(mode="after")

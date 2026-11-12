@@ -121,3 +121,27 @@ def test_bucket_agg_is_accepted_on_every_numeric_type(field_type):
 def test_bucket_agg_is_refused_on_text():
     with pytest.raises(ValueError, match="bucket_agg"):
         app.config.FieldConfig(type="text", bucket_agg=True)
+
+
+@pytest.mark.parametrize(
+    "date_format", ["epoch_second", "strict_date_optional_time||epoch_second"]
+)
+def test_date_format_is_accepted_on_a_date(date_format):
+    field = app.config.FieldConfig(type="date", date_format=date_format)
+    assert field.date_format == date_format
+
+
+def test_date_format_defaults_to_none():
+    assert app.config.FieldConfig(type="date").date_format is None
+
+
+@pytest.mark.parametrize("field_type", ["keyword", "text", "integer", "float", "bool"])
+def test_date_format_is_refused_on_other_types(field_type):
+    with pytest.raises(ValueError, match="date_format is only valid for date"):
+        app.config.FieldConfig(type=field_type, date_format="epoch_second")
+
+
+@pytest.mark.parametrize("date_format", ["", "  "])
+def test_date_format_must_not_be_empty(date_format):
+    with pytest.raises(ValueError, match="date_format must not be empty"):
+        app.config.FieldConfig(type="date", date_format=date_format)

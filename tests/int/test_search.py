@@ -155,6 +155,23 @@ def test_search_sort_by_created_t(req_type, sample_data, test_client):
     assert sorted(created_t) == list(reversed(created_t))
 
 
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_search_date_range_with_epoch_seconds(req_type, sample_data, test_client):
+    """`last_modified_t` holds seconds and its `date_format` says so:
+    a range with an ISO date works (it matched nothing when read as milliseconds)"""
+    # last_modified_t is 2023-11-21 00:04:04 UTC plus one day per product
+    _, data = do_search(
+        test_client, req_type, {"q": "last_modified_t:[2023-11-23 TO *]"}
+    )
+    assert data["count"] == 4
+    _, data = do_search(
+        test_client,
+        req_type,
+        {"q": "last_modified_t:[2023-11-21 TO 2023-11-22]", "fields": ["code"]},
+    )
+    assert data["count"] == 2
+
+
 ALL_CODES = [s["code"] for s in search_sample()]
 ORGANIC_CODES = ["3012345670001", "3012345670002", "3012345670005"]
 NO_LACTOSE_CODES = ["3012345670001", "3012345670003"]
