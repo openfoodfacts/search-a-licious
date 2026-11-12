@@ -233,6 +233,30 @@ class QuerySearchParameters(BaseModel):
         ),
     ] = ["en"]
 
+    filter_by_langs: Annotated[
+        bool,
+        Query(
+            description=cd_(
+                """When True, restrict results to products available in any of
+                the requested languages (OR semantics).
+
+                Note: ``langs`` alone only selects language-specific subfields
+                for matching; it does **not** filter results. Set this flag to
+                True to also add an Elasticsearch ``terms`` filter on the
+                index configuration's ``lang_filter_field``.
+
+                The pseudo-language ``main`` is excluded from the filter. If
+                the effective language list is empty after removing ``main``,
+                no filter is applied.
+
+                Requires ``lang_filter_field`` to name an indexed keyword field
+                containing language codes. Adding that field requires a full
+                re-index before enabling filtering.
+                """
+            )
+        ),
+    ] = False
+
     index_id: Annotated[
         str | None,
         CommonParametersQuery.index_id,
@@ -245,14 +269,10 @@ class QuerySearchParameters(BaseModel):
         Parse for get params 'langs'
         """
         value_str = _prepare_str_list(langs)
-        if value_str:
-            langs = value_str.split(",")
-        else:
-            # we already know because of code logic that langs is the right type
-            # but we need to cast for mypy type checking
-            langs = cast(list[str], langs)
-
-        return langs
+        if value_str is None:
+            # Leave invalid input to Pydantic's list[str] validation.
+            return cast(list[str], langs)
+        return [lang.strip() for lang in value_str.split(",") if lang.strip()]
 
     @model_validator(mode="after")
     def validate_index_id(self):
@@ -266,6 +286,20 @@ class QuerySearchParameters(BaseModel):
         global_config = config.get_config()
         check_index_id_is_defined(self.index_id, global_config)
         self.index_id, _ = global_config.get_index_config(self.index_id)
+        return self
+
+    @model_validator(mode="after")
+    def check_language_filter_supported(self):
+        """Reject language filtering on indices that have not enabled it."""
+        if (
+            self.filter_by_langs
+            and any(lang != "main" for lang in self.langs)
+            and self.index_config.lang_filter_field is None
+        ):
+            raise ValueError(
+                "Language filtering is not supported by this index: "
+                "configure lang_filter_field and re-index before using filter_by_langs"
+            )
         return self
 
     @property

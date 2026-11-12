@@ -108,3 +108,36 @@ only the languages of the request (the `langs` parameter) are searched.
 
 Queries are transformed before being sent to Elasticsearch,
 this is how the languages and your configuration are taken into account.
+
+## Filtering by language
+
+By default, the `langs` parameter only selects which language-specific
+subfields are searched (e.g., `product_name.de` instead of `product_name.fr`).
+It does **not** restrict which products appear in results.
+
+To restrict results to products actually available in the requested languages,
+use the `filter_by_langs=true` parameter alongside `langs`:
+
+```
+GET /search?q=Apfel&langs=de&filter_by_langs=true
+```
+
+This adds an Elasticsearch `terms` filter on the configured `lang_filter_field`
+(`languages_codes` for Open Food Facts),
+using OR semantics (a product is included if it is available in *any* of the
+requested languages).
+
+**Important notes:**
+
+- The pseudo-language `main` is ignored when building the filter.
+- If all requested languages are `main` (or the list is empty after excluding
+  `main`), no filter is applied.
+- Set `lang_filter_field` in the index configuration to an indexed keyword field
+  containing language codes. It defaults to `null` (filtering is disabled).
+  Open Food Facts uses `lang_filter_field: languages_codes`.
+- Requests for a non-`main` language return a validation error if filtering is
+  disabled for the index. Configuration validation rejects missing, non-keyword,
+  or unindexed filter fields. Neither check can detect an index that has not
+  yet been re-indexed.
+- Adding `languages_codes` to an existing index requires a **full re-index**. Only use `filter_by_langs=true` once the re-index has completed and the alias has switched to the new index; until then, filtered searches may silently return no results.
+  See [How to update an index](how-to-update-index.md) for details.

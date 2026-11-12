@@ -121,3 +121,30 @@ def test_bucket_agg_is_accepted_on_every_numeric_type(field_type):
 def test_bucket_agg_is_refused_on_text():
     with pytest.raises(ValueError, match="bucket_agg"):
         app.config.FieldConfig(type="text", bucket_agg=True)
+
+
+@pytest.mark.parametrize(
+    "field_name,field_update",
+    [
+        ("missing", None),
+        ("languages_codes", {"type": "text"}),
+        ("languages_codes", {"index": False}),
+    ],
+)
+def test_language_filter_requires_indexed_keyword(
+    default_config, field_name, field_update
+):
+    """Invalid filter configuration fails at load time, before serving searches."""
+    data = default_config.model_dump()
+    data["lang_filter_field"] = field_name
+    if field_update:
+        data["fields"][field_name].update(field_update)
+    with pytest.raises(ValueError, match="lang_filter_field"):
+        app.config.IndexConfig.model_validate(data)
+
+
+def test_language_filter_is_optional(default_config):
+    """Existing configurations need not opt into language filtering."""
+    data = default_config.model_dump()
+    data.pop("lang_filter_field")
+    assert app.config.IndexConfig.model_validate(data).lang_filter_field is None

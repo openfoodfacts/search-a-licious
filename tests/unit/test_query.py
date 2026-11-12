@@ -276,6 +276,150 @@ def test_build_search_query_failure(
     assert error_msg in str(exc_info.value)
 
 
+def test_filter_by_langs_adds_filter(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Apfel",
+        langs=["de"],
+        filter_by_langs=True,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    es_dict = query.es_query.to_dict()
+    filter_clauses = es_dict["query"]["bool"]["filter"]
+    assert any(
+        clause.get("terms", {}).get("languages_codes") == ["de"]
+        for clause in filter_clauses
+    )
+
+
+def test_filter_by_langs_disabled_has_no_filter(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Apfel",
+        langs=["de"],
+        filter_by_langs=False,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    es_dict = query.es_query.to_dict()
+    bool_clause = es_dict.get("query", {}).get("bool", {})
+    assert "filter" not in bool_clause
+
+
+def test_filter_by_langs_excludes_main(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Milk",
+        langs=["fr", "main"],
+        filter_by_langs=True,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    es_dict = query.es_query.to_dict()
+    filter_clauses = es_dict["query"]["bool"]["filter"]
+    terms_values = None
+    for clause in filter_clauses:
+        if "terms" in clause and "languages_codes" in clause["terms"]:
+            terms_values = clause["terms"]["languages_codes"]
+    assert terms_values is not None
+    assert "main" not in terms_values
+    assert "fr" in terms_values
+
+
+def test_filter_by_langs_trims_values(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Milk",
+        langs=["de", " fr", ""],
+        filter_by_langs=True,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    es_dict = query.es_query.to_dict()
+    filter_clauses = es_dict["query"]["bool"]["filter"]
+    assert any(
+        clause.get("terms", {}).get("languages_codes") == ["de", "fr"]
+        for clause in filter_clauses
+    )
+
+
+def test_filter_by_langs_only_main_skips_filter(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = SearchParameters(
+        q="Milk",
+        langs=["main"],
+        filter_by_langs=True,
+        page_size=10,
+        page=1,
+    )
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    es_dict = query.es_query.to_dict()
+    bool_clause = es_dict.get("query", {}).get("bool", {})
+    assert "filter" not in bool_clause
+
+
+def test_filter_by_langs_unsupported_index(default_config, monkeypatch):
+    """Use real parameters and a config with language filtering disabled."""
+    monkeypatch.setattr(default_config, "lang_filter_field", None)
+    with pytest.raises(ValueError, match="lang_filter_field"):
+        SearchParameters(langs=["de"], filter_by_langs=True)
+    assert not SearchParameters(langs=["de"]).filter_by_langs
+    assert SearchParameters(langs=["main"], filter_by_langs=True)
+    assert SearchParameters(langs=[], filter_by_langs=True)
+
+
+def test_filter_by_langs_uses_configured_field(
+    default_config, default_filter_query_builder, monkeypatch
+):
+    """The query builder must not depend on an Open Food Facts field name."""
+    monkeypatch.setitem(
+        default_config.fields,
+        "available_languages",
+        default_config.fields["languages_codes"],
+    )
+    monkeypatch.delitem(default_config.fields, "languages_codes")
+    monkeypatch.setattr(default_config, "lang_filter_field", "available_languages")
+    params = SearchParameters(langs=["de", "fr"], filter_by_langs=True)
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    assert query.es_query.to_dict()["query"]["bool"]["filter"] == [
+        {"terms": {"available_languages": ["de", "fr"]}}
+    ]
+
+
+@pytest.mark.parametrize("langs", ["en, fr, ", ["en", " fr", ""]])
+def test_normalized_languages_used_for_matching_and_filtering(
+    langs, default_config, default_filter_query_builder
+):
+    """Whitespace must not select a different text subfield than the filter."""
+    params = SearchParameters(q="milk", langs=langs, filter_by_langs=True)
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    assert query.es_query is not None
+    body = query.es_query.to_dict()["query"]["bool"]
+    assert body["filter"] == [{"terms": {"languages_codes": ["en", "fr"]}}]
+    assert "product_name.fr" in body["must"][0]["multi_match"]["fields"]
+
+
 def test_parse_query_is_thread_safe():
     """The PLY lexer is stateful: parsing concurrently must give the same trees
     as parsing sequentially."""
