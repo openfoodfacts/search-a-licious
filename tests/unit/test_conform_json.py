@@ -259,6 +259,50 @@ def test_date_empty_string_dropped():
     assert "last_modified_t" not in doc
 
 
+@pytest.mark.parametrize(
+    "value, expected",
+    [
+        # year first with slashes (seen in obsolete_since_date): ISO date
+        ("2025/02/04", "2025-02-04"),
+        ("2025/2/4", "2025-02-04"),
+        (" 2025/02/04 ", "2025-02-04"),
+        # already fine, or not a slash date: left to Elasticsearch as before
+        ("2025-02-04", "2025-02-04"),
+        ("2025-02", "2025-02"),
+        # ambiguous (day and month order unknown): not guessed
+        ("10/1/22", "10/1/22"),
+        ("04/02/2025", "04/02/2025"),
+        ("2025/02/04 10:00", "2025/02/04 10:00"),
+    ],
+)
+def test_date_slash_separated(value, expected):
+    config = _make_config(
+        {"obsolete_since_date": _field("obsolete_since_date", FieldType.date)}
+    )
+    doc = {"obsolete_since_date": value}
+    conform_json_to_config(doc, config)
+    assert doc == {"obsolete_since_date": expected}
+
+
+def test_date_slash_separated_in_list_and_subfield():
+    config = _make_config(
+        {
+            "dates": _field("dates", FieldType.date),
+            "obj": _field(
+                "obj",
+                FieldType.object,
+                {"day": _field("day", FieldType.date)},
+            ),
+        }
+    )
+    doc = {"dates": ["2025/02/04", "2025-03-05"], "obj": {"day": "2024/12/31"}}
+    conform_json_to_config(doc, config)
+    assert doc == {
+        "dates": ["2025-02-04", "2025-03-05"],
+        "obj": {"day": "2024-12-31"},
+    }
+
+
 # ---------------------------------------------------------------------------
 # untouched types
 # ---------------------------------------------------------------------------
