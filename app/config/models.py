@@ -821,6 +821,31 @@ class IndexConfig(BaseModel):
             field_item.name = field_name
         return fields
 
+    def is_sortable_subfield(self, path: str) -> bool:
+        """Is `path` the dotted path of a sub-field of an `object` field,
+        with a type Elasticsearch can sort on?
+
+        Sub-fields of `nested` fields are not accepted: sorting on them
+        needs a nested sort clause.
+        """
+        field: FieldConfig | None = None
+        fields: dict[str, FieldConfig] | None = self.fields
+        for part in path.split("."):
+            if not fields or part not in fields:
+                return False
+            if field is not None and field.type != FieldType.object:
+                return False
+            field = fields[part]
+            fields = field.fields
+        return (
+            field is not None
+            and "." in path
+            and (
+                field.type.is_numeric()
+                or field.type in (FieldType.date, FieldType.bool, FieldType.keyword)
+            )
+        )
+
     def get_fields_with_bucket_agg(self):
         return [
             field_name for field_name, field in self.fields.items() if field.bucket_agg
