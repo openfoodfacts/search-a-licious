@@ -1,4 +1,5 @@
 import abc
+import collections
 import math
 from datetime import datetime
 from inspect import cleandoc as cd_
@@ -28,6 +29,28 @@ from app.utils import connection, get_logger, load_class_object_from_string
 from app.utils.io import jsonl_iter
 
 logger = get_logger(__name__)
+
+# Number of errors of an import process that are written in full in the log:
+# an error is about 600 bytes, and there can be thousands of them
+MAX_LOGGED_ERRORS = 10
+
+
+def _error_kind(error: JSONType) -> str:
+    """A short name for the kind of an error of an import, to count them.
+
+    For an error of Elasticsearch bulk (`{"index": {"error": {"type": ...}}}`)
+    this is like `index/document_parsing_exception`.
+    """
+    if not isinstance(error, dict) or not error:
+        return "unknown"
+    action, detail = next(iter(error.items()))
+    reason = detail.get("error") if isinstance(detail, dict) else None
+    if isinstance(reason, dict):
+        reason = reason.get("type")
+    elif isinstance(reason, str):
+        # "TypeError: message" is of kind "TypeError"
+        reason = reason.split(":", 1)[0]
+    return f"{action}/{reason}" if reason else str(action)
 
 
 class BaseDocumentFetcher(abc.ABC):
@@ -590,6 +613,8 @@ def run_items_import(
         )
     # run in parallel
     num_errors = 0
+    num_indexed = 0
+    error_kinds: collections.Counter[str] = collections.Counter()
     with Pool(num_processes) as pool:
         if num_processes > 1:
             logger.info("Running in parallel with %d processes", num_processes)
@@ -603,9 +628,31 @@ def run_items_import(
             # Note: we log here instead of in sub-process because
             # it's easier to avoid mixing logs, and it works better for pytest
             logger.info("[%d] Indexed %d documents", i, success)
+            num_indexed += success
             if errors:
-                logger.error("[%d] Encountered %d errors: %s", i, len(errors), errors)
+                logger.error(
+                    "[%d] Encountered %d errors%s: %s",
+                    i,
+                    len(errors),
+                    (
+                        f" (the first {MAX_LOGGED_ERRORS} are shown)"
+                        if len(errors) > MAX_LOGGED_ERRORS
+                        else ""
+                    ),
+                    errors[:MAX_LOGGED_ERRORS],
+                )
                 num_errors += len(errors)
+                error_kinds.update(_error_kind(error) for error in errors)
+    logger.info(
+        "Import of the file: %d documents indexed, %d errors%s",
+        num_indexed,
+        num_errors,
+        (
+            ": " + ", ".join(f"{n} x {kind}" for kind, n in error_kinds.most_common())
+            if error_kinds
+            else ""
+        ),
+    )
     # update with last index updates (hopefully since the jsonl)
     if not skip_updates:
         num_errors += get_redis_updates(es_client, next_index, config)
