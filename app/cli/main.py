@@ -233,6 +233,10 @@ def cleanup_indexes(
     (in the case you want to roll back or compare).
 
     This command will remove all indexes that are not active anymore.
+
+    Do not run it while an import is in progress:
+    the index being filled has no alias until the end of the import,
+    so it would be deleted too.
     """
     import time
 

@@ -34,7 +34,7 @@ This section provides some important fields to control the way it is used.
 
 `id_field_name` is particularly important as it must contain a field that uniquely identifies each items.
 If you don't have such field, you might use `preprocessor` to compute one.
-It is important to have such an id to be able to use [continuous updates](FIXME).
+It is important to have such an id to be able to use [continuous updates](./how-to-update-index.md).
 
 `last_modified_field_name` is also important for continuous updates to decide
 where to start the event stream processing.
