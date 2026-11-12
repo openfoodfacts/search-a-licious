@@ -4,7 +4,9 @@ See also :py:mod:`app.taxonomy`
 """
 
 import re
+import threading
 
+import cachetools
 import elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
@@ -15,12 +17,83 @@ from app.taxonomy import Taxonomy, iter_taxonomies
 from app.utils import connection
 from app.utils.lists import batch
 
+# Names already looked up, by (taxonomy index, id, taxonomy name).
+# The value is the names, or None if the id is in no taxonomy (it is not
+# searched for again either).
+# Taxonomies change only when they are imported, which is done by another
+# process, so the entries expire instead of being invalidated.
+TAXONOMY_NAMES_CACHE_SIZE = 10_000
+TAXONOMY_NAMES_CACHE_TTL = 600  # seconds
+_NAMES_CACHE: cachetools.TTLCache = cachetools.TTLCache(
+    maxsize=TAXONOMY_NAMES_CACHE_SIZE, ttl=TAXONOMY_NAMES_CACHE_TTL
+)
+# the API serves requests in several threads
+_NAMES_CACHE_LOCK = threading.Lock()
+# changed each time the cache is cleared: a search that started before
+# must not fill the cache with what it found (it may be outdated)
+_NAMES_CACHE_GENERATION = 0
+_NOT_CACHED = object()
+
+
+def clear_taxonomy_names_cache() -> None:
+    """Forget the names that were already looked up"""
+    global _NAMES_CACHE_GENERATION
+    with _NAMES_CACHE_LOCK:
+        _NAMES_CACHE.clear()
+        _NAMES_CACHE_GENERATION += 1
+
 
 def get_taxonomy_names(
     items: list[tuple[str, str]],
     config: IndexConfig,
 ) -> dict[tuple[str, str], dict[str, str]]:
-    """Given a set of terms in different taxonomies, return their names"""
+    """Given a set of terms in different taxonomies, return their names
+
+    Names that were looked up recently are not searched for again:
+    only the missing ones are fetched from Elasticsearch.
+    A failed lookup raises and caches nothing.
+
+    :param items: a list of (id, taxonomy name)
+    :param config: the index configuration
+    :return: the names of the items that were found, by (id, taxonomy name)
+    """
+    index_name = config.taxonomy.index.name
+    translations: dict[tuple[str, str], dict[str, str]] = {}
+    missing: list[tuple[str, str]] = []
+    with _NAMES_CACHE_LOCK:
+        generation = _NAMES_CACHE_GENERATION
+        for item in dict.fromkeys(items):
+            names = _NAMES_CACHE.get((index_name, *item), _NOT_CACHED)
+            if names is _NOT_CACHED:
+                missing.append(item)
+            elif names is not None:
+                translations[item] = names
+    if missing:
+        fetched, complete = _fetch_taxonomy_names(missing, config)
+        with _NAMES_CACHE_LOCK:
+            if generation == _NAMES_CACHE_GENERATION:
+                for item in missing:
+                    names = fetched.get(item)
+                    # An item that is not in the response is known to be in no
+                    # taxonomy only if the response was complete: a term
+                    # without language prefix matches many entries, which can
+                    # fill the response and leave another item out.
+                    if names is not None or complete:
+                        _NAMES_CACHE[(index_name, *item)] = names
+        translations.update(fetched)
+    return translations
+
+
+def _fetch_taxonomy_names(
+    items: list[tuple[str, str]],
+    config: IndexConfig,
+) -> tuple[dict[tuple[str, str], dict[str, str]], bool]:
+    """Search the names of terms in different taxonomies in Elasticsearch
+
+    :return: the names found, and whether the response was complete
+        (all the entries matching the search were returned, so an item that
+        is not in the names is in no taxonomy)
+    """
     filters = []
     no_lang_prefix_ids = {id_ for id_, _ in items if ":" not in id_}
     for id, taxonomy_name in items:
@@ -51,7 +124,9 @@ def get_taxonomy_names(
             if no_lang_prefix[result.id] in no_lang_prefix_ids
         }
     )
-    return translations
+    # `size` is the number of items: matches can exceed it (see above)
+    complete = results.total["value"] <= len(results)
+    return translations, complete
 
 
 def _normalize_synonym(token: str) -> str:

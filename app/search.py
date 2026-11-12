@@ -21,6 +21,7 @@ from .exceptions import QueryAnalysisError
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
 from .query import build_elasticsearch_query_builder, build_search_query, execute_query
+from .taxonomy_es import clear_taxonomy_names_cache
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ def invalidate_runtime_caches():
         _ES_QUERY_BUILDERS.clear()
         _RESULT_PROCESSORS.clear()
         _CACHED_CONFIG_REF = None
+    clear_taxonomy_names_cache()
 
 
 def _ensure_runtime_caches_match_config():
