@@ -4,7 +4,7 @@ from inspect import cleandoc as cd_
 from pathlib import Path
 from typing import Annotated
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic.json_schema import GenerateJsonSchema
 from pydantic_settings import BaseSettings
 
@@ -132,6 +132,15 @@ class Settings(BaseSettings):
             description="User-Agent used when fetching resources (taxonomies) or documents"
         ),
     ] = "search-a-licious"
+
+    @field_validator("config_path", mode="before")
+    @classmethod
+    def empty_config_path_is_not_set(cls, value):
+        """An empty value (like `CONFIG_PATH=` in a `.env` file)
+        means no configuration, not the current directory (`Path("")`)"""
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
 
 settings = Settings()
