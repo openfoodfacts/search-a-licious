@@ -45,6 +45,26 @@ properties:
       Bare in mind this is from inside the container.'
     title: Elasticsearch Url
     type: string
+  elasticsearch_request_timeout:
+    default: 10.0
+    description: 'Timeout in seconds of the requests the API sends to Elasticsearch
+
+      (search, autocomplete, document, scripts).
+
+
+      A request that is not answered in this time gets a 503 error,
+
+      and the worker thread is free again.
+
+      The default is the one of the Elasticsearch client.
+
+
+      It does not apply to imports and to the update daemon,
+
+      which set their own timeouts.'
+    exclusiveMinimum: 0
+    title: Elasticsearch Request Timeout
+    type: number
   redis_host:
     default: localhost
     description: 'Host for the Redis instance containing event stream
