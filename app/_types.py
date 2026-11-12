@@ -285,6 +285,11 @@ class QuerySearchParameters(BaseModel):
             raise ValueError(
                 f"Maximum number of returned results is 10 000 (here: page * page_size = {self.page * self.page_size})",
             )
+        max_page_size = config.settings.max_page_size
+        if max_page_size is not None and self.page_size > max_page_size:
+            raise ValueError(
+                f"Maximum page_size is {max_page_size} (here: page_size = {self.page_size})",
+            )
         return self
 
     @cached_property

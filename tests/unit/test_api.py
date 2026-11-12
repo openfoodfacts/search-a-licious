@@ -16,6 +16,7 @@ from app._types import (
     SuccessSearchResponse,
 )
 from app.api import app, status_for_response
+from app.config import settings
 
 
 def _error_response(title: str) -> ErrorSearchResponse:
@@ -228,3 +229,18 @@ def test_autocomplete_empty_query_is_422(default_global_config):
     client = TestClient(app, raise_server_exceptions=True)
     response = client.get("/autocomplete?q=&taxonomy_names=categories")
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_search_page_size_over_the_maximum_is_422(
+    monkeypatch, default_global_config, method
+):
+    """The maximum is a setting; it is checked before any call to Elasticsearch"""
+    monkeypatch.setattr(settings, "max_page_size", 100)
+    client = TestClient(app, raise_server_exceptions=True)
+    if method == "get":
+        response = client.get("/search", params={"q": "milk", "page_size": 101})
+    else:
+        response = client.post("/search", json={"q": "milk", "page_size": 101})
+    assert response.status_code == 422
+    assert "Maximum page_size is 100" in response.text
