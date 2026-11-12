@@ -152,6 +152,72 @@ class TestTaxonomyPreprocessor:
         assert result.node.names["main"] == "NAT&vie"
         assert result.node.synonyms["main"] == ["NAT&vie", "NAT&vie veggie"]
 
+    def test_preprocess_brands_for_every_supported_language(self):
+        """Brands only exist under `xx`: every language must find them"""
+        preprocessor = TaxonomyPreprocessor(
+            MagicMock(supported_langs=["main", "en", "fr"])
+        )
+        brand_taxonomy = Taxonomy.from_dict(
+            "brands",
+            {
+                "xx:nat-vie": {
+                    "name": {"xx": "NAT&vie"},
+                    "synonyms": {"xx": ["NAT&vie", "NAT&vie veggie"]},
+                },
+            },
+        )
+        node = brand_taxonomy["xx:nat-vie"]
+        assert node is not None
+        result = preprocessor.preprocess(brand_taxonomy, node)
+        for lang in ("main", "en", "fr"):
+            assert result.node.names[lang] == "NAT&vie"
+            # no duplicate, even for main which was filled before
+            assert result.node.synonyms[lang] == ["NAT&vie", "NAT&vie veggie"]
+
+    def test_preprocess_brands_keeps_a_language_name(self):
+        preprocessor = TaxonomyPreprocessor(MagicMock(supported_langs=["main", "fr"]))
+        brand_taxonomy = Taxonomy.from_dict(
+            "brands",
+            {
+                "xx:x": {
+                    "name": {"xx": "X", "fr": "Ixe"},
+                    "synonyms": {"xx": ["X"], "fr": ["Ixe"]},
+                },
+            },
+        )
+        node = brand_taxonomy["xx:x"]
+        assert node is not None
+        result = preprocessor.preprocess(brand_taxonomy, node)
+        assert result.node.names["fr"] == "Ixe"
+        assert result.node.synonyms["fr"] == ["Ixe", "X"]
+
+    def test_preprocess_other_taxonomies_still_add_xx_to_every_language(self):
+        preprocessor = TaxonomyPreprocessor(
+            MagicMock(supported_langs=["main", "en", "fr"])
+        )
+        taxonomy = Taxonomy.from_dict(
+            "labels",
+            {
+                "en:max-havelaar": {
+                    "name": {"en": "Max Havelaar Fairtrade", "xx": "Max Havelaar"},
+                    "synonyms": {
+                        "en": ["Max Havelaar Fairtrade"],
+                        "xx": ["Max Havelaar"],
+                    },
+                },
+            },
+        )
+        node = taxonomy["en:max-havelaar"]
+        assert node is not None
+        result = preprocessor.preprocess(taxonomy, node)
+        assert result.node.names["fr"] == "Max Havelaar"
+        assert result.node.synonyms["fr"] == ["Max Havelaar"]
+        assert result.node.synonyms["en"] == ["Max Havelaar Fairtrade", "Max Havelaar"]
+        assert result.node.synonyms["main"] == [
+            "Max Havelaar Fairtrade",
+            "Max Havelaar",
+        ]
+
 
 @pytest.mark.parametrize(
     "language", [pytest.param({}, id="missing"), {"lc": ""}, {"lc": None}]

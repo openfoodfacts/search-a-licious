@@ -63,6 +63,8 @@ indices:
         url: file:///opt/search/tests/int/data/test_categories.full.json
       - name: labels
         url: file:///opt/search/tests/int/data/test_labels.full.json
+      - name: brands
+        url: file:///opt/search/tests/int/data/test_brands.full.json
       index:
         number_of_replicas: 1
         number_of_shards: 4

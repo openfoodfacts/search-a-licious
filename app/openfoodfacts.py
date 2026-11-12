@@ -215,15 +215,17 @@ class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
             if node_names := node.names.get(id_lang):
                 node.names.update(main=node_names)
             node.synonyms.update(main=list(node.synonyms.get(id_lang, [])))
-            # add eventual xx entries as synonyms to all languages
-            xx_name = node.names.get("xx")
-            xx_names = [xx_name] if xx_name else []
-            xx_names += node.synonyms.get("xx", [])
-            if xx_names:
-                for lang in self.config.supported_langs:
-                    node.names.setdefault(lang, xx_names[0])
-                    lang_synonyms = node.synonyms.setdefault(lang, [])
-                    lang_synonyms += xx_names
+        # add eventual xx entries as synonyms to all languages
+        # (brands have only these, so without it no language finds them)
+        xx_name = node.names.get("xx")
+        xx_names = [xx_name] if xx_name else []
+        xx_names += node.synonyms.get("xx", [])
+        xx_names = list(dict.fromkeys(xx_names))
+        if xx_names:
+            for lang in self.config.supported_langs:
+                node.names.setdefault(lang, xx_names[0])
+                lang_synonyms = node.synonyms.setdefault(lang, [])
+                lang_synonyms += [s for s in xx_names if s not in lang_synonyms]
         return TaxonomyNodeResult(status=FetcherStatus.FOUND, node=node)
 
 
