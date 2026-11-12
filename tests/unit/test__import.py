@@ -18,6 +18,7 @@ from app._import import (
     get_new_updates,
     get_processed_since,
     get_redis_updates,
+    import_parallel,
     import_taxonomies,
     load_document_fetcher,
     perform_refresh_synonyms,
@@ -681,3 +682,125 @@ def test_import_taxonomies_no_error_no_log(default_config: IndexConfig, caplog):
     ):
         import_taxonomies(default_config, "next-index")
     assert caplog.text == ""
+
+
+def _write_items(tmp_path: Path, codes: list[str]) -> Path:
+    path = tmp_path / "items.jsonl"
+    path.write_text(
+        "\n".join(
+            json.dumps({"code": code, "categories_tags": ["en:beverages"]})
+            for code in codes
+        )
+    )
+    return path
+
+
+def _fail_for_code_002(real_get_document_dict):
+    """get_document_dict failing (like a preprocessor would) for one code"""
+
+    def get_document_dict_or_fail(processor, result, index_name):
+        if result.document and result.document["code"] == "002":
+            raise ValueError("boom")
+        return real_get_document_dict(processor, result, index_name)
+
+    return get_document_dict_or_fail
+
+
+def _bulk_consuming_actions(es, actions, **kwargs):
+    """A bulk() that reads its actions, like the real one"""
+    return len(list(actions)), []
+
+
+def test_gen_documents_describes_documents_that_fail(
+    default_config: IndexConfig, tmp_path: Path
+):
+    path = _write_items(tmp_path, ["001", "002", "003"])
+    errors: list = []
+    with patch("app._import.get_document_dict", _fail_for_code_002(get_document_dict)):
+        documents = list(
+            gen_documents(
+                DocumentProcessor(default_config), path, "index1", None, 1, 0, errors
+            )
+        )
+    assert [d["_id"] for d in documents] == ["001", "003"]
+    assert errors == [{"id": "002", "error": "ValueError: boom"}]
+
+
+def test_gen_documents_describes_row_that_is_not_an_object(
+    default_config: IndexConfig, tmp_path: Path
+):
+    """A failing row without an id is described with `id: None`"""
+    path = tmp_path / "items.jsonl"
+    path.write_text("[1, 2]")
+    errors: list = []
+    documents = list(
+        gen_documents(
+            DocumentProcessor(default_config), path, "index1", None, 1, 0, errors
+        )
+    )
+    assert documents == []
+    assert len(errors) == 1
+    assert errors[0]["id"] is None
+    assert errors[0]["error"]
+
+
+def test_import_parallel_reports_documents_that_fail(
+    default_config: IndexConfig, tmp_path: Path
+):
+    path = _write_items(tmp_path, ["001", "002", "003"])
+    with (
+        patch("app._import.connection"),
+        patch("app._import.bulk", _bulk_consuming_actions),
+        patch("app._import.get_document_dict", _fail_for_code_002(get_document_dict)),
+    ):
+        process_num, success, errors = import_parallel(
+            default_config, path, "index1", None, 1, 0
+        )
+    assert (process_num, success) == (0, 2)
+    assert errors == [
+        {"document_preparation_error": {"id": "002", "error": "ValueError: boom"}}
+    ]
+
+
+def test_import_parallel_keeps_indexing_errors(
+    default_config: IndexConfig, tmp_path: Path
+):
+    """Indexing and preparation errors are reported together"""
+    path = _write_items(tmp_path, ["001", "002"])
+    indexing_error = {"index": {"_id": "001", "status": 400, "error": "mapping"}}
+
+    def bulk(es, actions, **kwargs):
+        return len(list(actions)), [indexing_error]
+
+    with (
+        patch("app._import.connection"),
+        patch("app._import.bulk", bulk),
+        patch("app._import.get_document_dict", _fail_for_code_002(get_document_dict)),
+    ):
+        _, _, errors = import_parallel(default_config, path, "index1", None, 1, 0)
+    assert len(errors) == 2
+    assert errors[0] == indexing_error
+    assert "document_preparation_error" in errors[1]
+
+
+def test_run_items_import_counts_documents_that_fail(
+    default_config: IndexConfig, tmp_path: Path, caplog
+):
+    """The import error count (hence the exit code) includes skipped documents"""
+    path = _write_items(tmp_path, ["001", "002", "003"])
+    pool = MagicMock()
+    pool.return_value.__enter__.return_value = pool.return_value
+    with (
+        patch("app._import.connection"),
+        patch("app._import.generate_index_object"),
+        patch("app._import.wait_index_health"),
+        patch("app._import.Pool", pool),
+        patch("app._import.bulk", _bulk_consuming_actions),
+        patch("app._import.get_document_dict", _fail_for_code_002(get_document_dict)),
+        patch("app._import.update_alias"),
+        caplog.at_level("ERROR"),
+    ):
+        num_errors = run_items_import(path, 1, default_config, skip_updates=True)
+    assert num_errors == 1
+    assert "document_preparation_error" in caplog.text
+    assert "'id': '002'" in caplog.text
