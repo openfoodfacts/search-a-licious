@@ -155,6 +155,32 @@ def test_search_sort_by_created_t(req_type, sample_data, test_client):
     assert sorted(created_t) == list(reversed(created_t))
 
 
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_search_sort_by_object_subfield(req_type, sample_data, test_client):
+    """A sub-field of an object field (a nutriment) can be used to sort"""
+    sort_by = "nutriments.energy-kcal_100g"
+
+    _, data = do_search(test_client, req_type, {"sort_by": sort_by})
+    values = [hit["nutriments"]["energy-kcal_100g"] for hit in data["hits"]]
+    # two brown sugars with 350 kcal, four others with the default 400
+    assert values == [350, 350, 400, 400, 400, 400]
+
+    _, data = do_search(test_client, req_type, {"sort_by": f"-{sort_by}"})
+    values = [hit["nutriments"]["energy-kcal_100g"] for hit in data["hits"]]
+    assert values == [400, 400, 400, 400, 350, 350]
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+@pytest.mark.parametrize(
+    "sort_by", ["nutriments", "nutriments.unknown", "nutriments.energy-kcal_100g.x"]
+)
+def test_search_sort_by_invalid_object_subfield(
+    req_type, sort_by, sample_data, test_client
+):
+    resp, _ = do_search(test_client, req_type, {"sort_by": sort_by}, code=422)
+    assert "`sort_by` must be a valid field name" in resp.text
+
+
 ALL_CODES = [s["code"] for s in search_sample()]
 ORGANIC_CODES = ["3012345670001", "3012345670002", "3012345670005"]
 NO_LACTOSE_CODES = ["3012345670001", "3012345670003"]

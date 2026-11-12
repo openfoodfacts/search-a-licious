@@ -331,6 +331,8 @@ class ResultSearchParameters(BaseModel):
             description=cd_(
                 """Field name to use to sort results,
                 the field should exist and be sortable.
+                A sub-field of an object field can be used
+                with its dotted path, like `nutriments.sugars_100g`.
                 If it is not provided, results are sorted by descending relevance score.
                 (aka best match)
 
@@ -358,11 +360,19 @@ class ResultSearchParameters(BaseModel):
         """Verify sort_by is a valid field or script name"""
         index_config = self.index_config
         _, sort_by = self.sign_sort_by
-        is_field = sort_by in index_config.fields
+        field = index_config.fields.get(sort_by) if sort_by is not None else None
+        # an object or nested field has no value of its own to sort on,
+        # only its sub-fields do
+        is_field = (
+            field is not None
+            and field.type not in (config.FieldType.object, config.FieldType.nested)
+        ) or (sort_by is not None and index_config.is_sortable_subfield(sort_by))
         # TODO: verify field type is compatible with sorting
         if not (self.sort_by is None or is_field or self.uses_sort_script):
             raise ValueError(
-                "`sort_by` must be a valid field name or script name or None"
+                "`sort_by` must be a valid field name, the name of a sub-field "
+                "of an object field (like `nutriments.sugars_100g`), "
+                "a script name or None"
             )
         return self
 
