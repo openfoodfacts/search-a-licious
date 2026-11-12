@@ -2,6 +2,9 @@
 A module to help building facets from aggregations
 """
 
+import elastic_transport
+import elasticsearch
+
 from . import config
 from ._types import (
     FacetInfo,
@@ -12,12 +15,20 @@ from ._types import (
     SuccessSearchResponse,
 )
 from .taxonomy_es import get_taxonomy_names
+from .utils import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_translations(
     lang: str, items: list[tuple[str, str]], index_config: config.IndexConfig
 ) -> dict[tuple[str, str], str]:
     """Get translations for a list of items
+
+    The names are a nicety: if they can not be fetched (for example the
+    taxonomy index is missing, or Elasticsearch fails on this second query),
+    no translation is returned, so that callers keep the ids,
+    instead of failing a search that otherwise succeeded.
 
     :param lang: target language
     :param items: list of (entry id, field_name)
@@ -40,7 +51,16 @@ def get_translations(
     ]
     if not items_to_fetch:
         return {}
-    items_names = get_taxonomy_names(items_to_fetch, index_config)
+    try:
+        items_names = get_taxonomy_names(items_to_fetch, index_config)
+    except (elasticsearch.ApiError, elastic_transport.TransportError) as e:
+        # log only the type and status: the message may contain request data
+        logger.warning(
+            "Could not get the names of facet values, keeping their ids: %s (status %s)",
+            type(e).__name__,
+            getattr(e, "status_code", None),
+        )
+        return {}
     # compute best translations
     translations: dict[tuple[str, str], str] = {}
     for id, field_name in items:
