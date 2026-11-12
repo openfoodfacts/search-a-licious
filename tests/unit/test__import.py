@@ -363,7 +363,7 @@ def test_gen_documents(default_config):
     items[0].pop("code")
     tmp_path.write_text("\n".join(json.dumps(item) for item in items))
     next_index = "index1"
-    start_datetime = datetime.datetime.utcnow()
+    start_datetime = datetime.datetime.now(datetime.UTC)
     num_items = 100
     num_processes = 4
     process_id = 0

@@ -295,7 +295,9 @@ class DocumentProcessor:
             # initial field
             fields = self.config.fields.values()
             inputs = {
-                "last_indexed_datetime": datetime.datetime.utcnow().isoformat(),
+                "last_indexed_datetime": datetime.datetime.now(
+                    datetime.UTC
+                ).isoformat(),
                 "_id": id_,
             }
         for field in fields:
