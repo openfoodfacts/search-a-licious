@@ -240,7 +240,8 @@ def build_completion_query(
             completion=completion_clause,
         )
     # limit returned fields
-    query.source(fields=["id", "taxonomy_name", "name"])
+    # (`source` returns a new query, it does not change this one)
+    query = query.source(fields=["id", "taxonomy_name", "name"])
     return query
 
 

@@ -12,6 +12,7 @@ from app.exceptions import QueryAnalysisError
 from app.query import (
     add_languages_suffix,
     boost_phrases,
+    build_completion_query,
     build_search_query,
     parse_query,
     resolve_unknown_operation,
@@ -376,3 +377,15 @@ def test_query_check_rejects_unknown_hyphenated_field(default_config: IndexConfi
     checker = QueryCheck(index_config=default_config, zeal=1)
     errors = checker.errors(parser.parse("nutriments.not-a-field_100g:[* TO 100]"))
     assert "not found in index config" in str(errors)
+
+
+def test_completion_query_only_asks_for_the_fields_it_uses(default_config: IndexConfig):
+    """`Search.source()` returns a new query: without keeping it, the whole
+    document (all synonyms in all languages) was returned for each option"""
+    query = build_completion_query(
+        "milk", ["categories"], ["en", "fr"], 5, default_config
+    )
+    body = query.to_dict()
+    assert body["_source"] == ["id", "taxonomy_name", "name"]
+    # the suggestions are still all there
+    assert set(body["suggest"]) == {"taxonomy_suggest_en", "taxonomy_suggest_fr"}
