@@ -64,7 +64,13 @@
         ]
       }
     },
-    "size": 10
+    "size": 10,
+    "sort": [
+      "_score",
+      {
+        "code": "asc"
+      }
+    ]
   },
   "facets_filters": {},
   "luqum_tree": "((flocons AND d'avoine) OR \"flocons d'avoine\"^2)",

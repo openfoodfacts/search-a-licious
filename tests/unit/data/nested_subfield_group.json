@@ -8,7 +8,13 @@
         }
       }
     },
-    "size": 25
+    "size": 25,
+    "sort": [
+      "_score",
+      {
+        "code": "asc"
+      }
+    ]
   },
   "facets_filters": {},
   "luqum_tree": "nutriments:(fat_100g:[3 TO *])",

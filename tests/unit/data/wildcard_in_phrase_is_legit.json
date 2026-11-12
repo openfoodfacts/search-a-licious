@@ -43,7 +43,13 @@
         ]
       }
     },
-    "size": 25
+    "size": 25,
+    "sort": [
+      "_score",
+      {
+        "code": "asc"
+      }
+    ]
   },
   "facets_filters": {
     "categories": [

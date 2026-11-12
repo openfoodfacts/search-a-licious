@@ -150,6 +150,19 @@ def build_search_query(
     return build_es_query(analysis, params, es_query_builder)
 
 
+def _tiebreak_sort(config: IndexConfig) -> JSONType | None:
+    """Last sort key: the id field, which is unique,
+    when its type can be sorted on (Elasticsearch cannot sort on a text field).
+    """
+    field = config.fields.get(config.index.id_field_name)
+    if field is None or not (
+        field.type.is_numeric()
+        or field.type in (FieldType.keyword, FieldType.date, FieldType.bool)
+    ):
+        return None
+    return {field.name: "asc"}
+
+
 def build_es_query(
     analysis: QueryAnalysis,
     params: SearchParameters,
@@ -195,7 +208,12 @@ def build_es_query(
         )
     else:
         sort_by = parse_sort_by_field(params.sort_by, config)
-    if sort_by is not None:
+    tiebreak = _tiebreak_sort(config)
+    if tiebreak is not None:
+        # results that tie must always come in the same order,
+        # or the same product can be on two pages and another on none
+        es_query = es_query.sort(sort_by if sort_by is not None else "_score", tiebreak)
+    elif sort_by is not None:
         es_query = es_query.sort(sort_by)
 
     es_query = es_query.extra(

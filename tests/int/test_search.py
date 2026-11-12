@@ -155,6 +155,39 @@ def test_search_sort_by_created_t(req_type, sample_data, test_client):
     assert sorted(created_t) == list(reversed(created_t))
 
 
+@pytest.mark.parametrize("req_type", GET_POST)
+@pytest.mark.parametrize("sort_by", [None, "nova_groups", "-nova_groups"])
+def test_pages_of_tied_results_do_not_overlap(
+    req_type, sort_by, data_ingester, test_client
+):
+    """Every product ties (same score, same sort value): a fixed order is needed,
+    or a product can be on two pages and another on none"""
+    products = [Product(code=f"30123459{i:04d}", unique_scans_n=15) for i in range(25)]
+    # indexed in the reverse order of the codes: without a tie-break, ties come
+    # in indexing order
+    data_ingester(list(reversed(products)))
+    params = {"q": "", "page_size": 7, "fields": ["code"]}
+    if sort_by:
+        params["sort_by"] = sort_by
+    codes = []
+    for page in range(1, 5):
+        _, data = do_search(test_client, req_type, {**params, "page": page})
+        codes += hits_attr(data, "code")
+    assert len(codes) == 25
+    assert sorted(codes) == sorted(p["code"] for p in products)
+    # ties are ordered by code
+    assert codes == sorted(codes)
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_relevance_score_is_still_returned(req_type, sample_data, test_client):
+    _, data = do_search(test_client, req_type, {"q": "sugar", "fields": ["code"]})
+    scores = [hit["_score"] for hit in data["hits"]]
+    assert scores and all(isinstance(score, float) and score > 0 for score in scores)
+    # best match first
+    assert scores == sorted(scores, reverse=True)
+
+
 ALL_CODES = [s["code"] for s in search_sample()]
 ORGANIC_CODES = ["3012345670001", "3012345670002", "3012345670005"]
 NO_LACTOSE_CODES = ["3012345670001", "3012345670003"]
