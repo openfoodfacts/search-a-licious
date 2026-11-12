@@ -12,12 +12,15 @@ def test_import_taxonomies(test_off_config, es_connection):
     index_name = list(aliases.keys())[0]
     assert index_name.startswith("test_off_taxonomy-")
     assert aliases[index_name]["aliases"] == {"test_off_taxonomy": {}}
-    # and the right number of entries, 33 categories and 20 labels
-    assert es_connection.count(index="test_off_taxonomy")["count"] == 20 + 33
+    # and the right number of entries, 33 categories, 20 labels and 3 brands
+    assert es_connection.count(index="test_off_taxonomy")["count"] == 20 + 33 + 3
     # assert synonyms sets where created with the right number of items
     result = es_connection.synonyms.get_synonyms_sets(size=1000)
-    assert result["count"] == 6
+    assert result["count"] == 9
     assert sorted((r["synonyms_set"], r["count"]) for r in result["results"]) == [
+        ("test_off-brands-en-0", 3),
+        ("test_off-brands-fr-0", 3),
+        ("test_off-brands-main-0", 3),
         ("test_off-categories-en-0", 33),
         ("test_off-categories-fr-0", 33),
         ("test_off-categories-main-0", 33),
