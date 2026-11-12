@@ -166,6 +166,22 @@ def test_autocomplete_missing_taxonomy_index_message_is_kept(default_config):
 
 
 @pytest.mark.parametrize(
+    "error",
+    [
+        elastic_transport.ConnectionError("cannot connect to es01"),
+        elastic_transport.ConnectionTimeout("timeout on es01"),
+    ],
+)
+def test_search_unreachable_backend_is_503(default_global_config, error):
+    """A search timeout used to be an unhandled error (HTTP 500)"""
+    client = TestClient(app, raise_server_exceptions=True)
+    with mock.patch("elasticsearch_dsl.Search.execute", side_effect=error):
+        response = client.get("/search?q=milk")
+    assert response.status_code == 503
+    assert response.json()["errors"][0]["title"] == "es_connection_error"
+
+
+@pytest.mark.parametrize(
     "extra_get, extra_post",
     [
         ({}, {}),
