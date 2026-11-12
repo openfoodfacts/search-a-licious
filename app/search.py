@@ -143,6 +143,19 @@ def search(
                 )
             ],
         )
+    except RecursionError:
+        # the parser and the transformers of the query are recursive:
+        # a query nested too deeply (from about 330 levels) is a client error
+        return ErrorSearchResponse(
+            debug=SearchResponseDebug(),
+            errors=[
+                SearchResponseError(
+                    title="QueryTooComplexError",
+                    description="The query is nested too deeply",
+                    status=400,
+                )
+            ],
+        )
     (
         logger.debug(
             "Luqum query: %s\nElasticsearch query: %s",
