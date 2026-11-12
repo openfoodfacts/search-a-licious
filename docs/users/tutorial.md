@@ -371,6 +371,21 @@ the `en:fair-trade` label would be selected, as it is an active filter.
 
 You can try and ask both facets by using `nutriscore_grade,labels_tags` as the facets parameter.
 
+### Finding alternatives to a product
+
+There is no special endpoint to suggest alternatives, but the search API already does it:
+keep the category of the product, ask for a better grade, and put the most popular first.
+For a chocolate bar graded E, with the configuration of this tutorial:
+
+* `q` = `categories:"en:chocolates" AND nutriscore_grade:(a OR b)`
+* `sort_by` = `-unique_scans_n` (the most scanned products first)
+* `fields` = `code,product_name,nutriscore_grade` (only what the page shows)
+
+The more precise the category, the closer the alternatives are
+(`en:chocolates` is closer than `en:snacks`).
+The filters are normal queries, so you can add `AND NOT brands:...`
+to leave out the brand of the product.
+
 ## Creating a search Page using web components
 
 Now that we have played around with the API,
