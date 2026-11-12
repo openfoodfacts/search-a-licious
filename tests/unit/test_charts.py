@@ -1,6 +1,17 @@
+import pytest
+from pydantic import ValidationError
+
 from app import facets
-from app._types import DistributionChart, QueryAnalysis, SuccessSearchResponse
-from app.charts import build_charts
+from app._types import (
+    DistributionChart,
+    GetChartSearchParameters,
+    PostChartSearchParameters,
+    QueryAnalysis,
+    ScatterChart,
+    SearchParameters,
+    SuccessSearchResponse,
+)
+from app.charts import build_charts, has_scatter_values
 
 
 def _search_result(aggregations) -> SuccessSearchResponse:
@@ -103,6 +114,78 @@ def test_numeric_keys(default_config, monkeypatch):
         {"category": 2, "amount": 2},
         {"category": 10, "amount": 6},
     ]
+
+
+SCANS_CHART = {"x": "scans_n", "y": "completeness"}
+
+
+def test_chart_max_entries_bounds(default_config):
+    charts = [SCANS_CHART]
+    assert PostChartSearchParameters(q="milk", charts=charts).max_entries == 1000
+    params = PostChartSearchParameters(q="milk", charts=charts, max_entries=10_000)
+    assert params.max_entries == 10_000
+    for bad in (0, 10_001):
+        with pytest.raises(ValidationError):
+            PostChartSearchParameters(q="milk", charts=charts, max_entries=bad)
+
+
+def test_chart_needs_a_chart(default_config):
+    with pytest.raises(ValidationError, match="too_short"):
+        PostChartSearchParameters(q="milk", charts=[])
+
+
+def test_chart_get_params_parse_charts_string(default_config):
+    params = GetChartSearchParameters(
+        q="milk", charts="nutriments.fat_100g:completeness,scans_n:completeness"
+    )
+    assert params.charts == [
+        ScatterChart(x="nutriments.fat_100g", y="completeness"),
+        ScatterChart(x="scans_n", y="completeness"),
+    ]
+    for bad in ("fat_100g", "a:b:c", "scans_n:completeness,fat_100g"):
+        with pytest.raises(ValidationError):
+            GetChartSearchParameters(q="milk", charts=bad)
+
+
+def test_chart_params_non_numeric_field(default_config):
+    with pytest.raises(ValidationError, match="Non numeric field name"):
+        PostChartSearchParameters(
+            q="milk", charts=[SCANS_CHART, {"x": "labels", "y": "completeness"}]
+        )
+
+
+def test_chart_params_forbid_page(default_config):
+    with pytest.raises(ValidationError, match="extra_forbidden"):
+        PostChartSearchParameters(q="milk", charts=[SCANS_CHART], page=2)
+
+
+def test_chart_params_sort_script(default_config):
+    charts = [SCANS_CHART]
+    with pytest.raises(ValidationError, match="must not be a script"):
+        GetChartSearchParameters(
+            q="milk", charts="scans_n:completeness", sort_by="personal_score"
+        )
+    with pytest.raises(ValidationError, match="sort_params"):
+        PostChartSearchParameters(charts=charts, sort_by="personal_score")
+    sort_params = {"environmental_score": 1, "nutri_score": 1, "nova_group": 1}
+    PostChartSearchParameters(
+        charts=charts, sort_by="personal_score", sort_params=sort_params
+    )
+
+
+def test_has_scatter_values():
+    chart = ScatterChart(x="nutriments.fat_100g", y="completeness")
+    assert has_scatter_values({"nutriments": {"fat_100g": 0}, "completeness": 1}, chart)
+    assert not has_scatter_values({"nutriments": {}, "completeness": 1}, chart)
+    assert not has_scatter_values({"nutriments": {"fat_100g": 2}}, chart)
+    deeper = ScatterChart(x="nutriments.fat_100g.value", y="completeness")
+    hit = {"nutriments": {"fat_100g": 2}, "completeness": 1}
+    assert not has_scatter_values(hit, deeper)
+
+
+def test_search_max_results_still_checked(default_config):
+    with pytest.raises(ValidationError, match="Maximum number of returned results"):
+        SearchParameters(q="milk", page=1001, page_size=10)
 
 
 def test_facets_numeric_keys(default_config, monkeypatch):

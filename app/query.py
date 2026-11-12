@@ -1,15 +1,17 @@
 import elastic_transport
 import elasticsearch
 import luqum.exceptions
-from elasticsearch_dsl import A, Search
+from elasticsearch_dsl import A, Q, Search
 from elasticsearch_dsl.aggs import Agg
 from luqum.elasticsearch.schema import SchemaAnalyzer
 from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
 
 from ._types import (
+    BaseSearchParameters,
+    ChartSearchParameters,
     ErrorSearchResponse,
     JSONType,
-    PostSearchParameters,
+    PostBaseSearchParameters,
     QueryAnalysis,
     SearchParameters,
     SearchResponse,
@@ -120,7 +122,7 @@ def create_aggregation_clauses(
 
 
 def build_search_query(
-    params: SearchParameters,
+    params: BaseSearchParameters,
     es_query_builder: ElasticsearchQueryBuilder,
 ) -> QueryAnalysis:
     """Build an elasticsearch_dsl Query.
@@ -152,7 +154,7 @@ def build_search_query(
 
 def build_es_query(
     analysis: QueryAnalysis,
-    params: SearchParameters,
+    params: BaseSearchParameters,
     es_query_builder: ElasticsearchQueryBuilder,
 ) -> QueryAnalysis:
     config = params.index_config
@@ -172,21 +174,9 @@ def build_es_query(
                 "Request could not be transformed by luqum"
             ) from e
 
-    agg_fields = set(params.facets) if params.facets is not None else set()
-    if params.charts is not None:
-        agg_fields.update(
-            [
-                chart.field
-                for chart in params.charts
-                if chart.chart_type == "DistributionChart"
-            ]
-        )
-    for agg_name, agg in create_aggregation_clauses(config, agg_fields).items():
-        es_query.aggs.bucket(agg_name, agg)
-
     sort_by: JSONType | str | None = None
     if (
-        isinstance(params, PostSearchParameters)
+        isinstance(params, PostBaseSearchParameters)
         and params.uses_sort_script
         and params.sort_by is not None
     ):
@@ -198,10 +188,34 @@ def build_es_query(
     if sort_by is not None:
         es_query = es_query.sort(sort_by)
 
-    es_query = es_query.extra(
-        size=params.page_size,
-        from_=params.page_size * (params.page - 1),
-    )
+    if isinstance(params, ChartSearchParameters):
+        # keep results that can be plotted on at least one chart
+        es_query = es_query.filter(
+            "bool",
+            should=[
+                Q("bool", filter=[Q("exists", field=c.x), Q("exists", field=c.y)])
+                for c in params.charts
+            ],
+            minimum_should_match=1,
+        )
+        fields = sorted({f for c in params.charts for f in (c.x, c.y)})
+        es_query = es_query.source(fields).extra(size=params.max_entries, from_=0)
+    elif isinstance(params, SearchParameters):
+        agg_fields = set(params.facets) if params.facets is not None else set()
+        if params.charts is not None:
+            agg_fields.update(
+                [
+                    chart.field
+                    for chart in params.charts
+                    if chart.chart_type == "DistributionChart"
+                ]
+            )
+        for agg_name, agg in create_aggregation_clauses(config, agg_fields).items():
+            es_query.aggs.bucket(agg_name, agg)
+        es_query = es_query.extra(
+            size=params.page_size,
+            from_=params.page_size * (params.page - 1),
+        )
     return analysis.clone(es_query=es_query)
 
 

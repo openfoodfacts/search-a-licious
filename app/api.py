@@ -17,7 +17,9 @@ from app import config
 from app._types import (
     CommonParametersQuery,
     ErrorSearchResponse,
+    GetChartSearchParameters,
     GetSearchParameters,
+    PostChartSearchParameters,
     PostSearchParameters,
     SearchResponse,
     SuccessSearchResponse,
@@ -199,6 +201,45 @@ def search_get(
     Under the hood, it calls the :py:func:`app.search.search` function
     """
     result = app_search.search(search_parameters)
+    response.status_code = status_for_response(result)
+    return result
+
+
+@app.post(
+    "/chart",
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
+)
+def chart(
+    response: Response, chart_parameters: Annotated[PostChartSearchParameters, Body()]
+) -> SearchResponse:
+    """Build scatter charts from the whole result set (up to `max_entries`
+    results, after sorting), not only from a page of results.
+
+    Under the hood, it calls the :py:func:`app.search.chart` function
+    """
+    result = app_search.chart(chart_parameters)
+    response.status_code = status_for_response(result)
+    return result
+
+
+@app.get(
+    "/chart",
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
+)
+def chart_get(
+    response: Response, chart_parameters: Annotated[GetChartSearchParameters, Query()]
+) -> SearchResponse:
+    """Build scatter charts when using GET request
+
+    Under the hood, it calls the :py:func:`app.search.chart` function
+    """
+    result = app_search.chart(chart_parameters)
     response.status_code = status_for_response(result)
     return result
 

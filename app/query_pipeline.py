@@ -3,7 +3,7 @@ from luqum import tree
 from luqum.thread import parse as thread_safe_parse
 from luqum.utils import OpenRangeTransformer, UnknownOperationResolver
 
-from ._types import QueryAnalysis, SearchParameters
+from ._types import BaseSearchParameters, QueryAnalysis
 from .config import IndexConfig
 from .exceptions import InvalidLuceneQueryError, QueryCheckError
 from .query_transformers import (
@@ -126,7 +126,7 @@ def boost_phrases(
     return analysis
 
 
-def check_query(params: SearchParameters, analysis: QueryAnalysis) -> None:
+def check_query(params: BaseSearchParameters, analysis: QueryAnalysis) -> None:
     """Run some sanity checks on the luqum query"""
     if analysis.luqum_tree is None:
         return
