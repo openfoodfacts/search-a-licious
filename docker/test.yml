@@ -1,0 +1,29 @@
+# Services needed by the integration tests (tests/int).
+#
+# It is added on top of docker-compose.yml (and docker/dev.yml for the image
+# to build and the code/tests to mount) by the test_api_integration Makefile
+# target, with COMPOSE_FILE=docker-compose.yml;docker/dev.yml;docker/test.yml.
+#
+# Only the services the tests talk to are started (see the Makefile): the api,
+# updater and frontend are not needed, the tests run in a one-shot "api"
+# container instead.
+
+services:
+  es01:
+    # the tests talk to this node directly
+    ports:
+      - "${ES_EXPOSE}:9200"
+
+  # redis holding the event streams
+  redis:
+    image: redis:7.2-alpine
+    restart: ${RESTART_POLICY:-always}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # published so that the tests run outside docker (e.g. from an IDE) can
+    # reach it at REDIS_HOST/REDIS_PORT
+    ports:
+      - "${REDIS_EXPOSE:-127.0.0.1:6379}:6379"

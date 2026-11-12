@@ -14,3 +14,12 @@ Health check
 ============
 .. automodule:: app.health
    :members:
+
+Index updates
+=============
+
+.. automodule:: app.updates
+   :members:
+
+.. automodule:: app.checkpoints
+   :members:
