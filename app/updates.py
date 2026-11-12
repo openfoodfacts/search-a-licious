@@ -26,7 +26,7 @@ from typing import Callable
 from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.exceptions import ApiError, ConflictError
 from elasticsearch.exceptions import ConnectionError as ESConnectionError
-from elasticsearch.exceptions import TransportError
+from elasticsearch.exceptions import SerializationError, TransportError
 from redis import Redis
 from redis.exceptions import BusyLoadingError
 from redis.exceptions import ConnectionError as RedisConnectionError
@@ -181,6 +181,10 @@ def is_retryable_error(exc: Exception) -> bool:
     if isinstance(exc, ESConnectionError):
         # Covers TimeoutError and SSLError, which are subclasses
         return True
+    if isinstance(exc, SerializationError):
+        # Place before TransportError as it is a subclass of it,
+        # but it is not retryable: we have a malformed JSON
+        return False
     if isinstance(exc, TransportError):
         # Status-less transport error (e.g. malformed/unexpected response):
         # usually the cluster is in a bad state, give it a chance to recover.

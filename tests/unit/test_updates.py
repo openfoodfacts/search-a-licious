@@ -359,13 +359,23 @@ def test_run_update_daemon_retries_transient_errors(default_global_config: Confi
     assert es_client_mock.index.call_count == 2
 
 
-def test_run_update_daemon_skips_non_retryable_errors(default_global_config: Config):
+@pytest.mark.parametrize(
+    "es_exception",
+    [
+        elasticsearch.ConflictError("conflict", api_meta_response(409), {}),
+        elasticsearch.BadRequestError("bad", api_meta_response(400), {}),
+        elasticsearch.SerializationError("malformed"),
+    ],
+)
+def test_run_update_daemon_skips_non_retryable_errors(
+    es_exception, default_global_config: Config
+):
     """A document rejected by Elasticsearch must be skipped, not block the stream"""
     off_config: IndexConfig = default_global_config.indices["off"]
     connection_mock, _, redis_client_mock = make_daemon_mocks(off_config, [])
     es_client_mock = connection_mock.get_es_client.return_value
     es_client_mock.index.side_effect = [
-        elasticsearch.BadRequestError("bad request", api_meta_response(400), {}),
+        es_exception,
         None,
     ]
     updates = [
