@@ -68,7 +68,7 @@ app.add_middleware(
 )
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 init_sentry(settings.sentry_dns)
-connection.get_es_client()
+connection.get_api_es_client()
 
 
 def check_index_id_is_defined_or_400(index_id: str | None, config: config.Config):
