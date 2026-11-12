@@ -57,6 +57,28 @@ or to provide suggestions in the search bar.
 
 You can also use the [autocompletion API](../ref-openapi/#operation/taxonomy_autocomplete_autocomplete_get)
 
+### Using the autocompletion API
+
+`GET /autocomplete` needs `q` (what the user typed) and `taxonomy_names`,
+a comma-separated list of taxonomy names.
+The names are the `name` of the entries of `taxonomy.sources` in your configuration
+(not the field names), for example `categories` or `brands`.
+Optional parameters: `langs` (comma-separated, default `en`), `size` (default 10)
+and `fuzziness` (none by default).
+
+    /autocomplete?q=choc&taxonomy_names=categories,labels&langs=fr
+
+A taxonomy name that is not configured (or not imported) is not an error:
+you just get no options. If you get none, check the spelling first
+(for example `brands`, not `brand` or `brands_tags`).
+
+With the Open Food Facts configuration (`data/config/openfoodfacts.yml`), the names are:
+`categories`, `labels`, `additives`, `allergens`, `amino_acids`, `countries`, `data_quality`,
+`food_groups`, `improvements`, `ingredients`, `ingredients_analysis`, `ingredients_processing`,
+`languages`, `minerals`, `misc`, `nova_groups`, `nucleotides`, `nutrients`, `origins`,
+`other_nutritional_substances`, `packaging_materials`, `packaging_recycling`, `packaging_shapes`,
+`periods_after_opening`, `preservation`, `states`, `vitamins`, `brands` and `stores`.
+
 ## Importing taxonomies
 
 If you defined taxonomies,
