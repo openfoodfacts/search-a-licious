@@ -173,9 +173,13 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
      */
     handleEnter(event: KeyboardEvent) {
       let isSuggestion = false;
-      if (this.currentIndex) {
+      // currentIndex may point to nothing if options changed since
+      const highlighted = this.currentIndex
+        ? this.options[this.currentIndex - 1]
+        : undefined;
+      if (highlighted) {
         isSuggestion = true;
-        this.selectedOption = this.options[this.currentIndex - 1];
+        this.selectedOption = highlighted;
       } else {
         // direct suggestion
         const value = (event.target as HTMLInputElement).value;
@@ -193,6 +197,7 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
      * This method is used to handle the escape key event.
      */
     handleEscape() {
+      this.currentIndex = 0;
       this.blurInput();
     }
 
@@ -203,10 +208,12 @@ export const SuggestionSelectionMixin = <T extends Constructor<LitElement>>(
     onKeyDown(event: KeyboardEvent) {
       switch (event.key) {
         case 'ArrowDown':
-          this.handleArrowKey('down');
-          return;
         case 'ArrowUp':
-          this.handleArrowKey('up');
+          // do not move the caret in the input, and show the list again
+          // if it was closed
+          event.preventDefault();
+          this.visible = true;
+          this.handleArrowKey(event.key === 'ArrowDown' ? 'down' : 'up');
           return;
         case 'Enter':
           this.handleEnter(event);
