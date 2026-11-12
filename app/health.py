@@ -17,7 +17,7 @@ health = HealthCheck()
 def test_connect_redis():
     """Test connection to REDIS."""
     logger.debug("health: testing redis connection")
-    client = connection.get_redis_client(socket_connect_timeout=5)
+    client = connection.get_redis_probe_client()
     if client.ping():
         return True, "Redis connection check succedded!"
     return False, "Redis connection check failed!"
