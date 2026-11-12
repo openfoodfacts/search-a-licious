@@ -3,7 +3,10 @@
     "from": 25,
     "size": 25,
     "sort": [
-      "unique_scans_n"
+      "unique_scans_n",
+      {
+        "code": "asc"
+      }
     ]
   },
   "facets_filters": null,

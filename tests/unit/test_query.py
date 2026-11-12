@@ -6,10 +6,11 @@ import pytest
 from luqum.parser import parser
 
 from app._types import JSONType, QueryAnalysis, SearchParameters
-from app.config import ANALYZER_LANG_MAPPING, Config, IndexConfig
+from app.config import ANALYZER_LANG_MAPPING, Config, FieldType, IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
 from app.exceptions import QueryAnalysisError
 from app.query import (
+    _tiebreak_sort,
     add_languages_suffix,
     boost_phrases,
     build_search_query,
@@ -376,3 +377,52 @@ def test_query_check_rejects_unknown_hyphenated_field(default_config: IndexConfi
     checker = QueryCheck(index_config=default_config, zeal=1)
     errors = checker.errors(parser.parse("nutriments.not-a-field_100g:[* TO 100]"))
     assert "not found in index config" in str(errors)
+
+
+def _sort_of(params_kwargs, default_filter_query_builder):
+    params = SearchParameters(**{"q": "milk", "langs": ["en"], **params_kwargs})
+    query = build_search_query(params, es_query_builder=default_filter_query_builder)
+    return query.es_query.to_dict().get("sort")
+
+
+@pytest.mark.parametrize(
+    "params_kwargs, expected",
+    [
+        # relevance: the score, then the id
+        ({}, ["_score", {"code": "asc"}]),
+        ({"q": None, "sort_by": "unique_scans_n"}, ["unique_scans_n", {"code": "asc"}]),
+        (
+            {"sort_by": "-unique_scans_n"},
+            [{"unique_scans_n": {"order": "desc"}}, {"code": "asc"}],
+        ),
+    ],
+)
+def test_results_are_sorted_by_id_last(
+    params_kwargs,
+    expected,
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    """Results that tie need a fixed order, or pages can overlap"""
+    assert _sort_of(params_kwargs, default_filter_query_builder) == expected
+
+
+@pytest.mark.parametrize(
+    "field_type, expected",
+    [
+        ("keyword", {"code": "asc"}),
+        ("integer", {"code": "asc"}),
+        ("long", {"code": "asc"}),
+        # Elasticsearch cannot sort on these
+        ("text", None),
+        ("text_lang", None),
+        ("taxonomy", None),
+        ("disabled", None),
+    ],
+)
+def test_tiebreak_sort_depends_on_the_type_of_the_id_field(
+    field_type, expected, default_config: IndexConfig
+):
+    config = default_config.model_copy(deep=True)
+    config.fields[config.index.id_field_name].type = FieldType(field_type)
+    assert _tiebreak_sort(config) == expected

@@ -127,7 +127,13 @@
         ]
       }
     },
-    "size": 25
+    "size": 25,
+    "sort": [
+      "_score",
+      {
+        "code": "asc"
+      }
+    ]
   },
   "facets_filters": {},
   "luqum_tree": "((bacon AND de AND boeuf) OR \"bacon de boeuf\"^2) AND (countries.en:italy AND (categories.en:\"en:beef\" AND (nutriments.fat_100g:[2 TO *] OR nutriments.fat_100g:[0 TO 0.05])))",
