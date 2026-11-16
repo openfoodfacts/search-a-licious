@@ -278,7 +278,11 @@ def execute_query(
             )
         )
         return ErrorSearchResponse(debug=debug, errors=errors)
-    except elastic_transport.ConnectionError as e:
+    except (
+        elastic_transport.ConnectionError,
+        elastic_transport.ConnectionTimeout,
+    ) as e:
+        # a timeout is not a ConnectionError for the Elasticsearch client
         errors.append(
             SearchResponseError(title="es_connection_error", description=str(e))
         )
