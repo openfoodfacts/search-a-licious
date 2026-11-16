@@ -12,12 +12,13 @@ from elasticsearch import NotFoundError
 from app._import import BaseDocumentFetcher
 from app._types import FetcherResult, FetcherStatus
 from app.config import Config, IndexConfig
+from app.exceptions import TransientFetcherError
 from app.updates import (
     UpdatesStateRecorder,
+    index_result_and_track_event,
     is_retryable_error,
     retry_delay,
     run_update_daemon,
-    track_event,
     wait_for_start_position,
 )
 
@@ -330,6 +331,38 @@ def test_run_update_daemon(default_global_config: Config):
     )
 
 
+def test_run_update_daemon_handles_skipped_events(default_global_config: Config):
+    """A skipped event (None result) is checkpointed without being indexed"""
+    off_config: IndexConfig = default_global_config.indices["off"]
+    connection_mock, es_client_mock, redis_client_mock = make_daemon_mocks(
+        off_config, []
+    )
+    updates = [
+        ("product_updates_off", None, "1629878400000-0", None),
+        (
+            "product_updates_off",
+            1629878400001,
+            "1629878400001-0",
+            FetcherResult(
+                status=FetcherStatus.FOUND, document={"code": "1", "name": "Document 1"}
+            ),
+        ),
+    ]
+
+    run_daemon_for_test(
+        default_global_config, off_config, updates, connection_mock=connection_mock
+    )
+
+    # the skipped event did not reach Elasticsearch...
+    es_client_mock.index.assert_called_once()
+    # ...but it was checkpointed, and the daemon went on with the next event
+    set_calls = [c.args for c in redis_client_mock.set.mock_calls]
+    assert [c[1] for c in set_calls] == [
+        "1629878400000-0",
+        "1629878400001-0",
+    ]
+
+
 def test_run_update_daemon_retries_transient_errors(default_global_config: Config):
     """An Elasticsearch outage must not make the daemon skip an event"""
     off_config: IndexConfig = default_global_config.indices["off"]
@@ -357,6 +390,67 @@ def test_run_update_daemon_retries_transient_errors(default_global_config: Confi
         )
 
     assert es_client_mock.index.call_count == 2
+
+
+def test_run_update_daemon_retries_fetcher_retry_status(
+    default_global_config: Config,
+):
+    """A RETRY result must be retried from the checkpoint, not skipped"""
+    off_config: IndexConfig = default_global_config.indices["off"]
+    connection_mock, es_client_mock, redis_client_mock = make_daemon_mocks(
+        off_config, []
+    )
+    stream_id = "1629878400000-0"
+    calls: list[int] = []
+    STOP_EVENTS.clear()
+
+    def get_new_updates_side_effect(*args, **kwargs):
+        calls.append(1)
+        if len(calls) == 1:
+
+            def _retry():
+                yield (
+                    "product_updates_off",
+                    1629878400000,
+                    stream_id,
+                    FetcherResult(status=FetcherStatus.RETRY, document=None),
+                )
+
+            return _retry()
+
+        def _success():
+            yield (
+                "product_updates_off",
+                1629878400000,
+                stream_id,
+                FetcherResult(
+                    status=FetcherStatus.FOUND,
+                    document={"code": "1", "name": "Document 1"},
+                ),
+            )
+            STOP_EVENTS[-1].set()
+
+        return _success()
+
+    get_new_updates_mock = MagicMock(side_effect=get_new_updates_side_effect)
+    with (
+        patch("app.updates.connection", connection_mock),
+        patch("app.updates.load_document_fetcher", MagicMock()),
+        patch("app.updates.get_new_updates", get_new_updates_mock),
+        patch("app.updates._install_signal_handlers", _install_stop_after_first_read),
+        patch("app.updates.retry_delay", MagicMock(return_value=0)),
+    ):
+        run_update_daemon(default_global_config)
+
+    # the reader was rebuilt after the RETRY...
+    assert get_new_updates_mock.call_count == 2
+    # ...the event was indexed once, and only the successful attempt was
+    # checkpointed
+    assert es_client_mock.index.call_count == 1
+    set_calls = [c.args for c in redis_client_mock.set.mock_calls]
+    assert set_calls == [
+        ("searchalicious:checkpoint:product_updates_off:openfoodfacts", stream_id)
+    ]
 
 
 @pytest.mark.parametrize(
@@ -613,7 +707,7 @@ def test_track_event_returns_plain_stream_id():
     redis_client = MagicMock()
     es_client = MagicMock()
 
-    cursor = track_event(
+    cursor = index_result_and_track_event(
         redis_client,
         es_client,
         "product_updates_off",
@@ -635,6 +729,8 @@ def test_track_event_returns_plain_stream_id():
 
 def test_is_retryable_error():
     """Transient errors are retried, document-level errors are not"""
+    # the fetcher asked for a retry
+    assert is_retryable_error(TransientFetcherError("retry"))
     # Elasticsearch transient errors
     assert is_retryable_error(elasticsearch.ConnectionError("boom"))
     assert is_retryable_error(elasticsearch.ConnectionTimeout("timeout"))

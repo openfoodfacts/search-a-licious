@@ -65,6 +65,24 @@ class DocumentFetcher(BaseDocumentFetcher):
         )
 
 
+class RetryThenFoundDocumentFetcher(BaseDocumentFetcher):
+    """A fetcher that asks for a retry the first time it is called."""
+
+    def __init__(self, config: IndexConfig) -> None:
+        super().__init__(config)
+        self.calls = 0
+
+    def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
+        assert stream_name == "product_updates_off"
+        self.calls += 1
+        if self.calls == 1:
+            return FetcherResult(status=FetcherStatus.RETRY, document=None)
+        return FetcherResult(
+            status=FetcherStatus.FOUND,
+            document={"code": item["code"], "name": f"Document {item['code']}"},
+        )
+
+
 def test_get_processed_since(default_config: IndexConfig):
     id_field_name = default_config.index.id_field_name
     return_values = [
@@ -130,6 +148,44 @@ def test_get_processed_since(default_config: IndexConfig):
     )
     # Check that results are empty
     assert not results
+
+
+def test_get_processed_since_does_not_cache_retry_results(
+    default_config: IndexConfig,
+):
+    """A RETRY result is skipped, but a later event for the same ID is fetched"""
+    id_field_name = default_config.index.id_field_name
+    return_values = [
+        [
+            ("1629878400000-0", {"code": "1"}),
+            # the first fetch asked for a retry: the second event for the same
+            # document must be fetched again instead of being deduplicated
+            ("1629878400001-0", {"code": "1"}),
+        ]
+    ]
+    redis_client = cast(Redis, RedisXrangeClient(return_values))
+    document_fetcher = RetryThenFoundDocumentFetcher(default_config)
+
+    results = list(
+        get_processed_since(
+            redis_client,
+            cast(str, default_config.redis_stream_name),
+            1629878400000,
+            id_field_name,
+            document_fetcher,
+        )
+    )
+
+    assert results == [
+        (
+            1629878400001,
+            FetcherResult(
+                status=FetcherStatus.FOUND,
+                document={"code": "1", "name": "Document 1"},
+            ),
+        )
+    ]
+    assert document_fetcher.calls == 2
 
 
 class RedisXreadClient:
@@ -236,6 +292,45 @@ def test_get_new_updates(default_config: IndexConfig):
         {redis_stream_name: "1629878400000-0"},
         {redis_stream_name: "1629878400001-0"},
     ]
+
+
+def test_get_new_updates_yields_retry_and_does_not_cache_it(
+    default_config: IndexConfig,
+):
+    """RETRY results reach the daemon, and the ID is not marked as fetched"""
+    redis_stream_name = cast(str, default_config.redis_stream_name)
+    return_values = [
+        [(redis_stream_name, [("1629878400000-0", {"code": "1"})])],
+        [(redis_stream_name, [("1629878400001-0", {"code": "1"})])],
+    ]
+    redis_client = cast(Redis, RedisXreadClient(return_values))
+    document_fetcher = RetryThenFoundDocumentFetcher(default_config)
+
+    updates_iter = get_new_updates(
+        redis_client,
+        [redis_stream_name],
+        {redis_stream_name: default_config.index.id_field_name},
+        {redis_stream_name: document_fetcher},
+    )
+
+    assert next(updates_iter) == (
+        redis_stream_name,
+        1629878400000,
+        "1629878400000-0",
+        FetcherResult(status=FetcherStatus.RETRY, document=None),
+    )
+    # the RETRY result was not cached: the next event for the same document is
+    # fetched and yielded
+    assert next(updates_iter) == (
+        redis_stream_name,
+        1629878400001,
+        "1629878400001-0",
+        FetcherResult(
+            status=FetcherStatus.FOUND,
+            document={"code": "1", "name": "Document 1"},
+        ),
+    )
+    assert document_fetcher.calls == 2
 
 
 def test_get_new_updates_starts_from_given_position(default_config: IndexConfig):

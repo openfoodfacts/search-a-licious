@@ -43,6 +43,7 @@ from app.checkpoints import (
     stream_id_from_timestamp_ms,
 )
 from app.config import Config, IndexConfig
+from app.exceptions import TransientFetcherError
 from app.indexing import DocumentProcessor
 from app.utils import connection, get_logger
 
@@ -172,6 +173,8 @@ def is_retryable_error(exc: Exception) -> bool:
     :param exc: the exception raised
     :return: True if waiting and retrying may succeed
     """
+    if isinstance(exc, TransientFetcherError):
+        return True
     if isinstance(exc, (NotFoundError, ConflictError)):
         # Document-level errors: retrying the same request will not help.
         return False
@@ -300,12 +303,12 @@ def retry_until_done(
                 return False
 
 
-def track_event(
+def index_result_and_track_event(
     redis_client: Redis,
     es_client: Elasticsearch,
     stream_name: str,
     stream_id: str,
-    result: FetcherResult,
+    result: FetcherResult | None,
     processor: DocumentProcessor,
     index_name: str,
     stop_event: threading.Event,
@@ -322,30 +325,40 @@ def track_event(
     :param es_client: the Elasticsearch client
     :param stream_name: the name of the Redis stream
     :param stream_id: the ID of the event in the stream
-    :param result: the document fetched from the stream
+    :param result: the document fetched from the stream,
+      or None if the document is not to be indexed (e.g. because it was already handled)
     :param processor: the document processor of the target index
     :param index_name: the index (alias) the documents are written to
     :param stop_event: if set while retrying, give up
-    :return: the stream cursor to use to read the next event, or ``None`` if
-        the daemon was stopped before the event could be handled
+    :return: the stream cursor to use to read the next event,
+        or ``None`` if the daemon was stopped before the event could be handled
     """
     what = f"processing event {stream_id} from {stream_name}"
-    canceled = not retry_until_done(
-        what,
-        lambda: process_event(stream_name, result, processor, es_client, index_name),
-        stop_event,
-    )
-    if canceled:
-        # not handled: keep the previous cursor and checkpoint
-        return None
+    if result is not None:
+        canceled = not retry_until_done(
+            what,
+            lambda: process_event(
+                stream_name, result, processor, es_client, index_name
+            ),
+            stop_event,
+        )
+        if canceled:
+            # we received a stop event
+            # current events was not handled: keep the previous cursor and checkpoint
+            return None
     # A checkpoint failure must not be silently ignored: without it, a restart
     # would replay the event, which is safe but hides the problem.
-    retry_until_done(
+    canceled = not retry_until_done(
         f"persisting the checkpoint after event {stream_id} from {stream_name}",
         lambda: set_checkpoint(redis_client, stream_name, index_name, stream_id),
         stop_event,
         skip_non_retryable=False,
     )
+    if canceled:
+        # we received a stop event
+        # current events was handled, but the checkpoint might not have been persisted:
+        # keep the previous cursor and checkpoint
+        return None
     # XREAD returns the entries strictly after the given ID, so returning the
     # ID of this event is enough to not read it again (a rebuilt generator
     # starts from the checkpoint).
@@ -602,7 +615,7 @@ def _consume_streams(
                 if min_ids is None:
                     logger.info("Stop requested before the index was ready, exiting")
                     return
-            for stream_name, _, stream_id, result in get_new_updates(
+            new_updates_iterator = get_new_updates(
                 redis_client,
                 list(id_field_names.keys()),
                 id_field_names=id_field_names,
@@ -613,10 +626,16 @@ def _consume_streams(
                 # its final value instead of waiting for the next event.
                 on_batch_end=flush_state_if_due,
                 on_batch_read=track_pending_entries,
-            ):
+            )
+            for stream_name, _, stream_id, result in new_updates_iterator:
                 recorder = state_recorders[stream_name]
                 recorder.add_pending(-1)
-                _min_id = track_event(
+                if result is not None and result.status == FetcherStatus.RETRY:
+                    raise TransientFetcherError(
+                        f"Fetcher requested a retry for stream {stream_name} "
+                        f"and ID {stream_id}"
+                    )
+                _min_id = index_result_and_track_event(
                     redis_client,
                     es_client,
                     stream_name=stream_name,
@@ -632,6 +651,11 @@ def _consume_streams(
                     # A retry may have been successful after several failures:
                     # reset the backoff.
                     attempt = 0
+                else:
+                    # index_result_and_track_event returned None,
+                    # which means the daemon was asked to stop while handling the event.
+                    # stop also here
+                    return
         except Exception as exc:
             if not is_retryable_error(exc):
                 raise
@@ -650,6 +674,9 @@ def _consume_streams(
             es_client = connection.get_es_client()
             # ask for min_ids to be re-read from the persisted checkpoints
             min_ids = None
+            # we will rebuild batch so put remove pending events
+            for recorder in state_recorders.values():
+                recorder.add_pending(-recorder.pending_events)
 
 
 def run_update_daemon(config: Config) -> None:
