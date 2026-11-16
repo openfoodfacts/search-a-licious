@@ -168,7 +168,10 @@ export class SearchaliciousAutocomplete extends SuggestionSelectionMixin(
           aria-expanded=${this.isListVisible}
           aria-controls="${this.inputName}-listbox"
           aria-activedescendant=${ifDefined(
-            this.isListVisible && this.options.length && this.currentIndex
+            this.isListVisible &&
+              !this.isLoading &&
+              this.currentIndex &&
+              this.currentIndex <= this.options.length
               ? `${this.inputName}-option-${this.currentIndex}`
               : undefined
           )}

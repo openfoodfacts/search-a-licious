@@ -117,6 +117,20 @@ suite('search bar suggestions accessibility', () => {
     assert.equal(el.query, 'typed');
   });
 
+  test('the active option points to an option that exists', async () => {
+    const el = await bar();
+    const input = inputOf(el);
+    press(input, 'ArrowDown');
+    press(input, 'ArrowDown');
+    press(input, 'ArrowDown');
+    await el.updateComplete;
+    assert.equal(input.getAttribute('aria-activedescendant'), 'suggestion-3');
+    // the list became shorter, option 3 is gone
+    el.options = [option('a')];
+    await el.updateComplete;
+    assert.isFalse(input.hasAttribute('aria-activedescendant'));
+  });
+
   test('escape forgets the highlighted option', async () => {
     const el = await bar();
     press(inputOf(el), 'ArrowDown');
@@ -166,6 +180,30 @@ suite('autocomplete accessibility', () => {
       el.shadowRoot!.getElementById(active)!.getAttribute('aria-selected'),
       'true'
     );
+  });
+
+  test('the active option points to an option that exists', async () => {
+    const el = await autocomplete();
+    el.options = [
+      {id: 'a', value: 'a', label: 'A', input: 'a'},
+      {id: 'b', value: 'b', label: 'B', input: 'a'},
+    ];
+    const input = await type(el, 'a');
+    el.currentIndex = 2;
+    await el.updateComplete;
+    assert.equal(
+      input.getAttribute('aria-activedescendant'),
+      'add-term-option-2'
+    );
+    // the list became shorter, option 2 is gone
+    el.options = [{id: 'a', value: 'a', label: 'A', input: 'a'}];
+    await el.updateComplete;
+    assert.isFalse(input.hasAttribute('aria-activedescendant'));
+    // while loading, the options are not rendered
+    el.currentIndex = 1;
+    el.isLoading = true;
+    await el.updateComplete;
+    assert.isFalse(input.hasAttribute('aria-activedescendant'));
   });
 
   test('collapsed when the input is empty', async () => {

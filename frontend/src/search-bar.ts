@@ -288,7 +288,9 @@ export class SearchaliciousBar extends SuggestionSelectionMixin(
             this.hasVisibleSuggestions ? 'suggestions' : undefined
           )}
           aria-activedescendant=${ifDefined(
-            this.hasVisibleSuggestions && this.currentIndex
+            this.hasVisibleSuggestions &&
+              this.currentIndex &&
+              this.currentIndex <= this.options.length
               ? `suggestion-${this.currentIndex}`
               : undefined
           )}
