@@ -23,16 +23,16 @@ from app.utils.lists import batch
 # Taxonomies change only when they are imported, which is done by another
 # process, so the entries expire instead of being invalidated.
 TAXONOMY_NAMES_CACHE_SIZE = 10_000
-TAXONOMY_NAMES_CACHE_TTL = 600  # seconds
+TAXONOMY_NAMES_CACHE_TTL = 3600  # seconds
 _NAMES_CACHE: cachetools.TTLCache = cachetools.TTLCache(
     maxsize=TAXONOMY_NAMES_CACHE_SIZE, ttl=TAXONOMY_NAMES_CACHE_TTL
 )
-# the API serves requests in several threads
+# the API serves requests in several threads: the lock protects the writes,
+# reading a name that is slightly outdated or just evicted is harmless
 _NAMES_CACHE_LOCK = threading.Lock()
 # changed each time the cache is cleared: a search that started before
 # must not fill the cache with what it found (it may be outdated)
 _NAMES_CACHE_GENERATION = 0
-_NOT_CACHED = object()
 
 
 def clear_taxonomy_names_cache() -> None:
@@ -60,25 +60,28 @@ def get_taxonomy_names(
     index_name = config.taxonomy.index.name
     translations: dict[tuple[str, str], dict[str, str]] = {}
     missing: list[tuple[str, str]] = []
-    with _NAMES_CACHE_LOCK:
-        generation = _NAMES_CACHE_GENERATION
-        for item in dict.fromkeys(items):
-            names = _NAMES_CACHE.get((index_name, *item), _NOT_CACHED)
-            if names is _NOT_CACHED:
-                missing.append(item)
-            elif names is not None:
-                translations[item] = names
+    # read before the names: if the cache is cleared meanwhile,
+    # it is detected below and nothing is stored
+    generation = _NAMES_CACHE_GENERATION
+    for item in dict.fromkeys(items):
+        try:
+            names = _NAMES_CACHE[(index_name, *item)]
+        except KeyError:  # not cached, expired, or evicted by another thread
+            missing.append(item)
+            continue
+        if names is not None:
+            translations[item] = names
     if missing:
-        fetched, complete = _fetch_taxonomy_names(missing, config)
+        fetched = _fetch_taxonomy_names(missing, config)
+        # An id without language prefix matches many entries, which can fill
+        # the response and leave another item out: only without such an id,
+        # an item that is not in the response is known to be in no taxonomy.
+        absence_is_known = all(":" in id_ for id_, _ in missing)
         with _NAMES_CACHE_LOCK:
             if generation == _NAMES_CACHE_GENERATION:
                 for item in missing:
                     names = fetched.get(item)
-                    # An item that is not in the response is known to be in no
-                    # taxonomy only if the response was complete: a term
-                    # without language prefix matches many entries, which can
-                    # fill the response and leave another item out.
-                    if names is not None or complete:
+                    if names is not None or absence_is_known:
                         _NAMES_CACHE[(index_name, *item)] = names
         translations.update(fetched)
     return translations
@@ -87,13 +90,8 @@ def get_taxonomy_names(
 def _fetch_taxonomy_names(
     items: list[tuple[str, str]],
     config: IndexConfig,
-) -> tuple[dict[tuple[str, str], dict[str, str]], bool]:
-    """Search the names of terms in different taxonomies in Elasticsearch
-
-    :return: the names found, and whether the response was complete
-        (all the entries matching the search were returned, so an item that
-        is not in the names is in no taxonomy)
-    """
+) -> dict[tuple[str, str], dict[str, str]]:
+    """Search the names of terms in different taxonomies in Elasticsearch"""
     filters = []
     no_lang_prefix_ids = {id_ for id_, _ in items if ":" not in id_}
     for id, taxonomy_name in items:
@@ -124,9 +122,7 @@ def _fetch_taxonomy_names(
             if no_lang_prefix[result.id] in no_lang_prefix_ids
         }
     )
-    # `size` is the number of items: matches can exceed it (see above)
-    complete = results.total["value"] <= len(results)
-    return translations, complete
+    return translations
 
 
 def _normalize_synonym(token: str) -> str:
