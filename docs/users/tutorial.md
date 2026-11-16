@@ -375,7 +375,7 @@ You can try and ask both facets by using `nutriscore_grade,labels_tags` as the f
 
 There is no special endpoint to suggest alternatives, but the search API already does it:
 keep the category of the product, ask for a better grade, and put the most popular first.
-For a chocolate bar graded E, with the configuration of this tutorial:
+For a chocolate bar graded E, with `data/config/openfoodfacts.yml`:
 
 * `q` = `categories:"en:chocolates" AND nutriscore_grade:(a OR b)`
 * `sort_by` = `-unique_scans_n` (the most scanned products first)
