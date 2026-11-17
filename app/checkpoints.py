@@ -141,6 +141,9 @@ def get_last_indexed_timestamp_ms(
     This is used to derive a starting position in the Redis stream, both at
     the end of a full import and when the daemon has no checkpoint yet.
 
+    To account for possible errors,
+    it removes all timestamp that are in the future.
+
     :param es_client: the Elasticsearch client
     :param index: the index (or alias) to query
     :param last_modified_field_name: the name of the field holding the last
@@ -150,6 +153,7 @@ def get_last_indexed_timestamp_ms(
     """
     query = (
         Search(index=index, using=es_client)
+        .filter(range={last_modified_field_name: {"lte": "now"}})
         .sort(f"-{last_modified_field_name}")
         .extra(size=1)
     )

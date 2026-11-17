@@ -47,13 +47,17 @@ def test_get_last_indexed_timestamp_ms():
     search_result.to_dict.return_value = {"last_modified": 1629878400.123}
 
     with patch("app.checkpoints.Search") as search:
-        search.return_value.sort.return_value.extra.return_value.execute.return_value = [
+        search.return_value.filter.return_value.sort.return_value.extra.return_value.execute.return_value = [
             search_result
         ]
         timestamp_ms = get_last_indexed_timestamp_ms(
             MagicMock(), "off", "last_modified"
         )
 
+    # dates in the future are ignored
+    search.return_value.filter.assert_called_once_with(
+        range={"last_modified": {"lte": "now"}}
+    )
     assert timestamp_ms == 1629878400123
 
 

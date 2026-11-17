@@ -628,7 +628,7 @@ def _patch_last_modified_search(hits: list[dict]):
     """Make the search of the most recently modified document return `hits`"""
     results = [MagicMock(to_dict=MagicMock(return_value=hit)) for hit in hits]
     search = MagicMock()
-    search.return_value.sort.return_value.extra.return_value.execute.return_value = (
+    search.return_value.filter.return_value.sort.return_value.extra.return_value.execute.return_value = (
         results
     )
     return search
