@@ -9,7 +9,7 @@ This leverage a possibility of Elasticsearch of [script based sorting](https://w
 Using scripts needs the following steps:
 
 1. [declare the scripts than can be used in the configuration](#declare-the-script-in-the-configuration)
-2. [import the scripts in Elasticsearch](#import-the-script-in-elasticsearch)
+2. [import the scripts in Elasticsearch](#import-the-scripts-in-elasticsearch)
 3. either use web-components to sort using scripts or call the search API using the script name, and providing parameters
 
 
