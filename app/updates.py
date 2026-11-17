@@ -482,7 +482,10 @@ def reset_checkpoint_after_import(
             return
         stream_id = stream_id_from_timestamp_ms(last_indexed_ms)
         redis_client = connection.get_redis_client(
-            socket_timeout=REDIS_READER_TIMEOUT * 2
+            # timeout is in s read timeout is in ms
+            socket_timeout=REDIS_READER_TIMEOUT
+            / 1000
+            * 2
         )
         set_checkpoint(
             redis_client, config.redis_stream_name, config.index.name, stream_id
@@ -709,7 +712,12 @@ def run_update_daemon(config: Config) -> None:
     # xread raise. We use a finite block timeout instead (see
     # settings.redis_reader_timeout), so that the daemon can react to a stop
     # request even when the stream is idle.
-    redis_client = connection.get_redis_client(socket_timeout=None)
+    redis_client = connection.get_redis_client(
+        # timeout is in s read timeout is in ms
+        socket_timeout=REDIS_READER_TIMEOUT
+        / 1000
+        * 2
+    )
 
     if redis_client.ping():
         logger.info("Connected to Redis")
