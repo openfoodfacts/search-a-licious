@@ -18,6 +18,7 @@ from typing import Any, cast
 
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
+from elasticsearch_dsl.query import Range
 from redis import Redis
 
 CHECKPOINT_KEY_PREFIX = "searchalicious:checkpoint"
@@ -153,7 +154,7 @@ def get_last_indexed_timestamp_ms(
     """
     query = (
         Search(index=index, using=es_client)
-        .filter(range={last_modified_field_name: {"lte": "now"}})
+        .filter(Range(**{last_modified_field_name: {"lte": "now"}}))
         .sort(f"-{last_modified_field_name}")
         .extra(size=1)
     )
@@ -165,7 +166,12 @@ def get_last_indexed_timestamp_ms(
         timestamp = result.to_dict().get(last_modified_field_name)
         if timestamp is None:
             continue
-        return int(timestamp * 1000)
+        # do we have milliseconds or seconds ?
+        # we are after 2002 so we can use 1e12 as a threshold
+        if timestamp < 1e12:
+            # convert seconds to ms
+            timestamp *= 1000
+        return int(timestamp)
     return None
 
 
