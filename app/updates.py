@@ -629,7 +629,6 @@ def _consume_streams(
             )
             for stream_name, _, stream_id, result in new_updates_iterator:
                 recorder = state_recorders[stream_name]
-                recorder.add_pending(-1)
                 if result is not None and result.status == FetcherStatus.RETRY:
                     raise TransientFetcherError(
                         f"Fetcher requested a retry for stream {stream_name} "
@@ -645,6 +644,7 @@ def _consume_streams(
                     index_name=stream_index_configs[stream_name].index.name,
                     stop_event=stop_event,
                 )
+                recorder.add_pending(-1)
                 if _min_id is not None:
                     min_ids[stream_name] = _min_id
                     recorder.set(stream_id, recorder.pending_events)
