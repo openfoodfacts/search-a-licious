@@ -64,12 +64,15 @@ moves the checkpoint to the most recent imported document,
 so the daemon does not replay events that the import already took into account.
 
 To force the daemon to start again from the most recent indexed document,
-delete the key.
-For this use `redis-cli` on your redis instance, with:
-```
-# replace <stream name> and <index name> with your values
-DEL searchalicious:checkpoint:<stream name>:<index name>
-```
+* first stop all updates daemons
+* then delete the key.
+  
+  For this use `redis-cli` on your redis instance, with:
+  ```
+  # replace <stream name> and <index name> with your values
+  DEL searchalicious:checkpoint:<stream name>:<index name>
+  ```
+* restart updates daemons
 
 ### Monitoring the update daemon
 
