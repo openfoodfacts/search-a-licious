@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
 
+from elasticsearch_dsl.query import Range
+
 from app.checkpoints import (
     checkpoint_key,
     get_checkpoint,
@@ -56,7 +58,7 @@ def test_get_last_indexed_timestamp_ms():
 
     # dates in the future are ignored
     search.return_value.filter.assert_called_once_with(
-        range={"last_modified": {"lte": "now"}}
+        Range(last_modified={"lte": "now"})
     )
     assert timestamp_ms == 1629878400123
 
