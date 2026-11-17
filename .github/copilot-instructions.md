@@ -14,7 +14,6 @@ export USER_GID=$(id -g)
 export USER_UID=$(id -u)
 export CONFIG_PATH=data/config/openfoodfacts.yml
 export OFF_API_URL=https://world.openfoodfacts.org
-export ALLOWED_ORIGINS='http://localhost,http://127.0.0.1'
 ```
 
 ### Frontend Development (TypeScript/Lit Web Components)
@@ -29,7 +28,7 @@ export ALLOWED_ORIGINS='http://localhost,http://127.0.0.1'
 ### Backend Development (Python FastAPI)
 - **Install dependencies**: `poetry install` -- takes ~4 seconds for dev dependencies
 - **Run API server locally**: `poetry run uvicorn app.api:app --reload --host 0.0.0.0 --port 8000`
-- **Unit tests**: `poetry run pytest tests/unit/` -- takes ~6 seconds, 42 tests run in ~2.3 seconds. NEVER CANCEL. Set timeout to 30+ seconds.
+- **Unit tests**: `poetry run pytest tests/unit/` -- takes less than a minute. NEVER CANCEL. Set timeout to 30+ seconds.
 - **Integration tests**: Requires Elasticsearch running: `poetry run pytest tests/int/`
 - **Lint with black**: `poetry run black --check app/` or use pre-commit (see below)
 - **Type checking**: `poetry run mypy app/`

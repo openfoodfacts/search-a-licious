@@ -21,6 +21,11 @@ type htmlType = typeof html;
  * considered as a template, with variable interpolation (using tag-params library).
  *
  * It reacts to the `searchalicious-result` event fired by the search controller.
+ * @slot result - Template for each search result.
+ * @slot loading - Content displayed while searching.
+ * @slot no-results - Content displayed for an empty successful search.
+ * @slot before-search - Content displayed before the first search.
+ * @slot error - Message displayed when the search request fails.
  */
 @customElement('searchalicious-results')
 @localized()
@@ -162,7 +167,11 @@ export class SearchaliciousResults extends SignalWatcher(
   }
 
   override render() {
-    if (this.searchResultDetail.results.length) {
+    if (this.searchResultDetail.error) {
+      return html`<div role="alert">
+        <slot name="error">${msg('Search failed. Please try again.')}</slot>
+      </div>`;
+    } else if (this.searchResultDetail.results.length) {
       return this.renderResults();
       // if we are loading, we display the loading cards
     } else if (isSearchLoading(this.searchName).value) {

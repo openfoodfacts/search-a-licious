@@ -7,7 +7,8 @@ x-api-base: &api-base
     args:
       USER_UID: ${USER_UID:-1000}
       USER_GID: ${USER_GID:-1000}
-      PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
+      PYTHON_VERSION: ${PYTHON_VERSION:-3.13}
+      POETRY_REGEN_LOCK: ${POETRY_REGEN_LOCK:-0}
   volumes:
     # mount code dynamically
     - "./app:/opt/search/app"

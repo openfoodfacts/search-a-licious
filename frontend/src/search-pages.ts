@@ -157,7 +157,9 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   }
 
   override render() {
-    if (this.searchResultDetail.pageCount) {
+    if (this.searchResultDetail.error) {
+      return html``;
+    } else if (this.searchResultDetail.pageCount) {
       return this.renderPagination();
     } else if (this.searchResultDetail.isSearchLaunch) {
       return html`<slot name="no-results">${this.noResults}</slot>`;

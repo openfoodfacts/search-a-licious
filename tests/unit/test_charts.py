@@ -1,5 +1,5 @@
 from app import facets
-from app._types import DistributionChart, SuccessSearchResponse
+from app._types import DistributionChart, QueryAnalysis, SuccessSearchResponse
 from app.charts import build_charts
 
 
@@ -102,4 +102,25 @@ def test_numeric_keys(default_config, monkeypatch):
     assert _chart_values(charts["nova_groups"]) == [
         {"category": 2, "amount": 2},
         {"category": 10, "amount": 6},
+    ]
+
+
+def test_facets_numeric_keys(default_config, monkeypatch):
+    monkeypatch.setattr(facets, "get_taxonomy_names", lambda items, config: {})
+    nova_groups = _buckets((0, 3), (2, 1))
+    nova_groups["sum_other_doc_count"] = 0
+    result = _search_result({"nova_groups": nova_groups})
+
+    infos = facets.build_facets(
+        result,
+        QueryAnalysis(facets_filters={"nova_groups": ["2"]}),
+        "en",
+        default_config,
+        ["nova_groups"],
+    )
+
+    items = [item.model_dump() for item in infos["nova_groups"].items]
+    assert items == [
+        {"key": "2", "name": "2", "count": 1, "selected": True},
+        {"key": "0", "name": "0", "count": 3, "selected": False},
     ]

@@ -1,25 +1,34 @@
 import datetime
 import json
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
+import pytest
+from elasticsearch import NotFoundError
 from redis import Redis
 
 from app._import import (
     BaseDocumentFetcher,
     gen_documents,
+    gen_taxonomy_documents,
     get_document_dict,
     get_new_updates,
     get_processed_since,
+    get_redis_updates,
+    import_taxonomies,
     load_document_fetcher,
+    perform_refresh_synonyms,
+    run_items_import,
     run_update_daemon,
     update_alias,
 )
 from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import Config, IndexConfig
 from app.indexing import DocumentProcessor
+from app.taxonomy import Taxonomy, TaxonomyNode
 
 
 class RedisXrangeClient:
@@ -352,6 +361,76 @@ def test_update_alias(default_config):
     )
 
 
+def test_run_update_daemon_ignores_removal_of_absent_document(
+    default_global_config: Config,
+):
+    off_config: IndexConfig = default_global_config.indices["off"]
+    es_client_mock = MagicMock()
+    es_client_mock.delete.side_effect = NotFoundError(
+        "not found", MagicMock(status=404), {}
+    )
+    connection_mock = MagicMock()
+    connection_mock.get_es_client.return_value = es_client_mock
+    updates = [
+        (
+            "product_updates_off",
+            1629878400000,
+            FetcherResult(status=FetcherStatus.REMOVED, document={"code": "4"}),
+        ),
+        (
+            "product_updates_off",
+            1629878400001,
+            FetcherResult(
+                status=FetcherStatus.FOUND, document={"code": "5", "name": "Doc 5"}
+            ),
+        ),
+    ]
+    with (
+        patch("app._import.connection", connection_mock),
+        patch(
+            "app._import.load_document_fetcher",
+            MagicMock(return_value=DocumentFetcher(off_config)),
+        ),
+        patch("app._import.get_new_updates", MagicMock(return_value=updates)),
+    ):
+        run_update_daemon(default_global_config)
+
+    es_client_mock.delete.assert_called_once()
+    # the daemon went on with the next update
+    es_client_mock.index.assert_called_once()
+
+
+def test_get_redis_updates_ignores_removal_of_absent_document(
+    default_global_config: Config,
+):
+    off_config: IndexConfig = default_global_config.indices["off"]
+    search_result = MagicMock()
+    search_result.to_dict.return_value = {
+        off_config.index.last_modified_field_name: 1629878400
+    }
+    results = [
+        # the document was created then deleted after the dump
+        (False, {"delete": {"_id": "4", "status": 404}}),
+        (False, {"index": {"_id": "5", "status": 400}}),
+    ]
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search") as search,
+        patch("app._import.load_document_fetcher"),
+        patch("app._import.get_redis_products", MagicMock(return_value=iter([]))),
+        patch("app._import.parallel_bulk", MagicMock(return_value=results)) as bulk,
+    ):
+        search.return_value.sort.return_value.extra.return_value.execute.return_value = [
+            search_result
+        ]
+        num_errors = get_redis_updates(MagicMock(), "off-index", off_config)
+
+    # parallel_bulk must not raise on a 404 delete
+    assert bulk.call_args.kwargs["ignore_status"] == 404
+    # only the real failure is counted
+    assert num_errors == 1
+
+
 def test_run_update_daemon(default_global_config: Config):
     off_config: IndexConfig = default_global_config.indices["off"]
     es_client_mock = MagicMock()
@@ -450,3 +529,155 @@ def test_run_update_daemon(default_global_config: Config):
     kwargs = mock_call.kwargs
     assert set(kwargs.keys()) == {"index", "id"}
     assert kwargs["id"] == "4"
+
+
+def test_perform_refresh_synonyms_uses_elasticsearch_index_name(
+    default_config: IndexConfig,
+):
+    """Search analyzers are reloaded on the index (alias) name, not on the config id"""
+    assert default_config.index.name != "off"
+    with (
+        patch("app._import.refresh_synonyms") as refresh,
+        patch("app._import.check_synonyms_sets_size"),
+    ):
+        perform_refresh_synonyms("off", default_config)
+    refresh.assert_called_once_with(default_config.index.name, default_config)
+
+
+def _patch_last_modified_search(hits: list[dict]):
+    """Make the search of the most recently modified document return `hits`"""
+    results = [MagicMock(to_dict=MagicMock(return_value=hit)) for hit in hits]
+    search = MagicMock()
+    search.return_value.sort.return_value.extra.return_value.execute.return_value = (
+        results
+    )
+    return search
+
+
+def test_get_redis_updates_catches_up_from_last_modified(default_config: IndexConfig):
+    last_modified = default_config.index.last_modified_field_name
+    products = MagicMock(return_value=iter([]))
+    with (
+        patch("app._import.Index"),
+        patch(
+            "app._import.Search", _patch_last_modified_search([{last_modified: 12.5}])
+        ),
+        patch("app._import.get_redis_products", products),
+        patch("app._import.parallel_bulk", return_value=[]) as bulk,
+    ):
+        assert get_redis_updates(MagicMock(), "idx", default_config) == 0
+    bulk.assert_called_once()
+    # timestamp in milliseconds
+    assert products.call_args.args[5] == 12500
+
+
+def test_get_redis_updates_fails_on_empty_index(default_config: IndexConfig):
+    """An empty index has no date to catch up from: skipping would lose updates"""
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search", _patch_last_modified_search([])),
+        patch("app._import.get_redis_products") as products,
+        patch("app._import.parallel_bulk") as bulk,
+        pytest.raises(RuntimeError, match="--skip-updates"),
+    ):
+        get_redis_updates(MagicMock(), "idx", default_config)
+    products.assert_not_called()
+    bulk.assert_not_called()
+
+
+def test_get_redis_updates_fails_without_last_modified(default_config: IndexConfig):
+    with (
+        patch("app._import.Index"),
+        patch("app._import.Search", _patch_last_modified_search([{"code": "1"}])),
+        patch("app._import.get_redis_products") as products,
+        patch("app._import.parallel_bulk") as bulk,
+        pytest.raises(RuntimeError, match="--skip-updates"),
+    ):
+        get_redis_updates(MagicMock(), "idx", default_config)
+    products.assert_not_called()
+    bulk.assert_not_called()
+
+
+def test_gen_taxonomy_documents_synonyms_without_name(default_config: IndexConfig):
+    """A language may have synonyms but no name for an entry"""
+    taxonomy = Taxonomy("categories")
+    taxonomy.nodes["en:milk"] = TaxonomyNode(
+        id="en:milk",
+        names={"en": "Milk"},
+        # no name in French, but synonyms
+        synonyms={"en": ["Cow milk"], "fr": ["lait de vache", "lait"]},
+    )
+    default_config.taxonomy.preprocessor = None
+    with patch("app._import.iter_taxonomies", return_value=[taxonomy]):
+        documents = list(
+            gen_taxonomy_documents(default_config, "next-index", {"en", "fr"})
+        )
+
+    assert len(documents) == 1
+    source = documents[0]["_source"]
+    assert source["name"] == {"en": "Milk"}
+    # without a name, synonyms are only sorted by length
+    assert source["synonyms"]["fr"]["input"] == ["lait", "lait de vache"]
+    # the name comes first when there is one
+    assert source["synonyms"]["en"]["input"][0] == "Milk"
+
+
+@contextmanager
+def _mock_full_import():
+    """Mock everything of a full import but the catch-up and the alias update"""
+    pool = MagicMock()
+    pool.return_value.__enter__.return_value = pool.return_value
+    with (
+        patch("app._import.connection"),
+        patch("app._import.generate_index_object"),
+        patch("app._import.wait_index_health"),
+        patch("app._import.Pool", pool),
+        patch("app._import.import_parallel", return_value=(0, 0, [])),
+        patch("app._import.update_alias") as update_alias_mock,
+    ):
+        yield update_alias_mock
+
+
+def test_run_items_import_does_not_publish_empty_index_without_catch_up(
+    default_config: IndexConfig,
+):
+    """An empty import must not replace the live index while skipping updates"""
+    with (
+        _mock_full_import() as update_alias_mock,
+        patch("app._import.Index"),
+        patch("app._import.Search", _patch_last_modified_search([])),
+        pytest.raises(RuntimeError),
+    ):
+        run_items_import(Path("items.jsonl"), 1, default_config)
+    update_alias_mock.assert_not_called()
+
+
+def test_run_items_import_skip_updates_still_publishes(default_config: IndexConfig):
+    with _mock_full_import() as update_alias_mock:
+        run_items_import(Path("items.jsonl"), 1, default_config, skip_updates=True)
+    update_alias_mock.assert_called_once()
+
+
+@pytest.mark.parametrize("success", [0, 5])
+def test_import_taxonomies_logs_errors(default_config: IndexConfig, success, caplog):
+    """Errors are logged when some, not only when all, documents failed"""
+    errors = [{"index": {"_id": "en:x", "status": 400, "error": "mapping"}}]
+    with (
+        patch("app._import.connection.current_es_client"),
+        patch("app._import.gen_taxonomy_documents", return_value=iter([])),
+        patch("app._import.bulk", return_value=(success, errors)),
+        caplog.at_level("ERROR"),
+    ):
+        import_taxonomies(default_config, "next-index")
+    assert "Encountered 1 errors while importing taxonomies" in caplog.text
+
+
+def test_import_taxonomies_no_error_no_log(default_config: IndexConfig, caplog):
+    with (
+        patch("app._import.connection.current_es_client"),
+        patch("app._import.gen_taxonomy_documents", return_value=iter([])),
+        patch("app._import.bulk", return_value=(5, [])),
+        caplog.at_level("ERROR"),
+    ):
+        import_taxonomies(default_config, "next-index")
+    assert caplog.text == ""

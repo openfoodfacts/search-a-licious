@@ -4,7 +4,7 @@ import luqum.check
 import luqum.visitor
 from luqum import tree
 
-from .config import IndexConfig
+from .config import FieldConfig, FieldType, IndexConfig, SynonymsStrategy
 
 
 class LanguageSuffixTransformer(luqum.visitor.TreeTransformer):
@@ -185,7 +185,10 @@ class QueryCheck(luqum.check.LuceneCheck):
     )
     FIELD_EXPR_FIELDS = SIMPLE_EXPR_FIELDS + (tree.FieldGroup,)
     # TECHDEBT(SAL-TECHDEBT-008): move dotted field-name support to luqum core.
-    field_name_re = re.compile(r"^[\w.]+$")
+    field_name_re = re.compile(r"^[\w.-]+$")
+    # remove zealous check on words,
+    # we use an expression redundant with spaces check (that comes before)
+    invalid_term_chars_re = re.compile(" ")
 
     def __init__(self, index_config: IndexConfig, **kwargs):
         super().__init__(**kwargs)
@@ -198,6 +201,13 @@ class QueryCheck(luqum.check.LuceneCheck):
     def check_open_range(self, item, parents):
         return iter([])
 
+    def _check_not_operator(self, item, parents):
+        # luqum reads `parents[-1]`, which does not exist for a query made
+        # only of a negation (`-sugar`, `NOT milk`)
+        if not parents:
+            return iter([])
+        return super()._check_not_operator(item, parents)
+
     def check_search_field(self, item, parents):
         """Check if the search field is valid"""
         yield from super().check_search_field(item, parents)
@@ -207,12 +217,35 @@ class QueryCheck(luqum.check.LuceneCheck):
         ]
         # join and split to normalize and only have one field
         field_names = (".".join(fields)).split(".")
-        # remove eventual lang suffix
-        has_lang_suffix = field_names[-1] in self.index_config.supported_langs_set
-        if has_lang_suffix:
-            field_names.pop()
-        is_sub_field = len(field_names) > 1
-        # check field exists in config, but only for non sub-field
-        # TECHDEBT(SAL-TECHDEBT-010): validate configured sub-fields once supported.
-        if not is_sub_field and (field_names[0] not in self.index_config.fields):
-            yield f"Search field '{'.'.join(field_names)}' not found in index config"
+        current_fields = self.index_config.fields
+        parent: FieldConfig | None = None
+        for i, part in enumerate(field_names):
+            # a trailing language code is a suffix only for fields with
+            # generated per-language sub-fields, otherwise it must be a
+            # configured sub-field
+            is_last = i == len(field_names) - 1
+            if (
+                is_last
+                and self._has_generated_lang_subfields(parent)
+                and part in self.index_config.supported_langs_set
+            ):
+                break
+            if current_fields is None or part not in current_fields:
+                yield f"Search field '{'.'.join(field_names)}' not found in index config"
+                break
+            parent = current_fields[part]
+            current_fields = parent.fields
+
+    def _has_generated_lang_subfields(self, field: FieldConfig | None) -> bool:
+        """Does the index generate per-language sub-fields for this field?
+
+        This works for nested fields too, unlike `index_config.lang_fields`
+        """
+        if field is None:
+            return False
+        if field.type == FieldType.text_lang:
+            return True
+        return (
+            field.type == FieldType.taxonomy
+            and self.index_config.synonyms_strategy == SynonymsStrategy.INDEX
+        )

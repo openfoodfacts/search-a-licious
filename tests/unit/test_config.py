@@ -93,3 +93,31 @@ def test_reserved_field_names(tmpdir):
         app.config.Config.from_yaml(my_config)
     assert "last_indexed_datetime" in str(excinfo.value)
     assert "_id" in str(excinfo.value)
+
+
+NUMERIC_TYPES = [
+    "half_float",
+    "scaled_float",
+    "float",
+    "double",
+    "short",
+    "integer",
+    "long",
+    "unsigned_long",
+]
+
+
+@pytest.mark.parametrize("field_type", list(app.config.FieldType))
+def test_is_numeric(field_type):
+    assert field_type.is_numeric() == (field_type.value in NUMERIC_TYPES)
+
+
+@pytest.mark.parametrize("field_type", NUMERIC_TYPES)
+def test_bucket_agg_is_accepted_on_every_numeric_type(field_type):
+    field = app.config.FieldConfig(type=field_type, bucket_agg=True)
+    assert field.bucket_agg
+
+
+def test_bucket_agg_is_refused_on_text():
+    with pytest.raises(ValueError, match="bucket_agg"):
+        app.config.FieldConfig(type="text", bucket_agg=True)

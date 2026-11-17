@@ -79,7 +79,7 @@ indices:
         index: false
       countries:
         type: taxonomy
-        input_field: conutries_tags
+        input_field: countries_tags
         bucket_agg: true
         taxonomy_name: countries
       states:

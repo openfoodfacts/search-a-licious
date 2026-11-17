@@ -5,7 +5,7 @@ from typer.testing import CliRunner
 
 from app.cli.main import cli
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 def add_cli_exc_info(result):
