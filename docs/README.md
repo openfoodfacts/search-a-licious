@@ -17,6 +17,7 @@ a ready to use search component built on top of [Elasticsearch](https://www.elas
 **🛠️ For Contributors & Developers:**
 - 💡 [**Development Introduction**](./devs/introduction.md) - Get started contributing
 - 🏗️ [**Architecture Overview**](./devs/explain-architecture.md) - Understand the system design
+- 🔄 [**Update Daemon**](./devs/explain-update-daemon.md) - Keep the index up to date with change events
 - 🔧 [**Installation for Development**](./devs/how-to-install.md) - Set up development environment
 - 🐛 [**Debugging Guide**](./devs/how-to-debug-backend.md) - Debug backend issues
 - 📚 [**Python Reference**](./devs/ref-python.md) - API documentation

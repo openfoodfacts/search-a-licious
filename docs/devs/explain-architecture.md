@@ -13,6 +13,11 @@ The main idea is to have:
 * a single, easy to use configuration file to declare your data structure and what you need to search
 * web components to quickly build UI's while still being able to customize it in many scenarios.
 
+## Continuous updates
+
+After the initial import, the [update daemon](./explain-update-daemon.md)
+consumes a Redis stream of change events to keep the index up to date.
+
 ## Archive
 
 The initial [Search-a-licious roadmap architecture notes](https://docs.google.com/document/d/1mibE8nACcmen6paSrqT9JQk5VbuvlFUXI1S93yHCK2I/edit) might be interesting to grasp the general idea of the project architecture.

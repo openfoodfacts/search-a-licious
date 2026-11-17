@@ -40,10 +40,17 @@ markdown_extensions:
   # this one allow to start a list without first adding a blank line, as in github/vscode
   - mdx_breakless_lists
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        # render ```mermaid fenced blocks as diagrams
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - toc:
       # add permalink after titles
       permalink: "#"
+extra_javascript:
+  - https://unpkg.com/mermaid@12/dist/mermaid.min.js
 plugins:
   # thanks to this plugin, the .pages files will customize navigation entries
   - awesome-pages
