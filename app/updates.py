@@ -57,9 +57,10 @@ RETRY_INITIAL_DELAY = 1.0
 RETRY_MAX_DELAY = 60.0
 RETRY_JITTER = 0.2
 
-# HTTP statuses that mean "the cluster is temporarily unable to serve this
+# HTTP statuses that mean the document can't be indexed
+# Those are not transient errors (see ``is_retryable_error``, below)
 # request" (rate limiting, shard/node unavailable, gateway timeouts).
-RETRYABLE_HTTP_STATUSES = frozenset({429, 502, 503, 504})
+DOCUMENT_ERROR_STATUSES = frozenset({400, 412})
 
 # Minimum delay between two writes of the processing state in Redis (see
 # UpdatesStateRecorder). The state is informational only: throttling it avoids
@@ -166,9 +167,9 @@ def is_retryable_error(exc: Exception) -> bool:
     """Tell whether an error is transient and the operation should be retried.
 
     The check order matters: in elasticsearch-py 8.x, ``NotFoundError`` and
-    ``ConflictError`` are subclasses of ``ApiError``, which is itself a
-    subclass of ``TransportError``. Subclasses must therefore be tested before
-    their parents.
+    ``ConflictError`` are subclasses of ``ApiError``,
+    which is itself a subclass of ``TransportError``.
+    Subclasses must therefore be tested before their parents.
 
     :param exc: the exception raised
     :return: True if waiting and retrying may succeed
@@ -180,7 +181,7 @@ def is_retryable_error(exc: Exception) -> bool:
         return False
     if isinstance(exc, ApiError):
         status = getattr(exc, "status_code", None)
-        return status in RETRYABLE_HTTP_STATUSES
+        return status not in DOCUMENT_ERROR_STATUSES
     if isinstance(exc, ESConnectionError):
         # Covers TimeoutError and SSLError, which are subclasses
         return True
