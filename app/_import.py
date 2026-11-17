@@ -82,9 +82,9 @@ def _add_fetched_id(
     """Add a fetched ID to the OrderedDict and prune if necessary.
 
     :param fetched_ids: the OrderedDict of fetched IDs
-      with their last fetched timestamp
+      with the timestamp up to which they are up to date
     :param id_: the ID to add
-    :param timestamp: the timestamp of the fetch
+    :param timestamp: the timestamp up to which the ID is up to date
     """
     fetched_ids[id_] = timestamp
     fetched_ids.move_to_end(id_)  # mark as recently used
@@ -105,7 +105,8 @@ def _fetch_redis_stream_item_document(
     :param timestamp_id: the ID of the item in the Redis stream
     :param item: the item from the Redis stream
     :param id_field_name: the name of the field containing the ID
-    :param fetched_ids: the IDs already fetched, with their fetch timestamp
+    :param fetched_ids: the IDs already fetched, with the timestamp up to
+        which they are up to date
     :param document_fetcher: the document fetcher
     :param redis_stream_name: the name of the Redis stream
     :return: the timestamp (in milliseconds) and the fetched document, or
@@ -134,7 +135,14 @@ def _fetch_redis_stream_item_document(
     # redis in milliseconds
     fetched_time = math.floor(datetime.now().timestamp() * 1000) - 500
     result = document_fetcher.fetch_document(redis_stream_name, item)
-    if result.status in (FetcherStatus.REMOVED, FetcherStatus.SKIP) or (
+    if result.status == FetcherStatus.REMOVED:
+        # The removal may come from the event alone (e.g. a "deleted" action),
+        # without looking at the document on the server. The last known state
+        # for this ID is then the state at the event's timestamp, not at fetch
+        # time: caching the fetch time would skip a later recreation event
+        # when replaying the backlog, and the recreated document would be lost.
+        _add_fetched_id(fetched_ids, id_, timestamp)
+    elif result.status == FetcherStatus.SKIP or (
         result.status == FetcherStatus.FOUND and result.document is not None
     ):
         _add_fetched_id(fetched_ids, id_, fetched_time)

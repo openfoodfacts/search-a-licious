@@ -83,6 +83,28 @@ class RetryThenFoundDocumentFetcher(BaseDocumentFetcher):
         )
 
 
+class EventOnlyRemovalDocumentFetcher(BaseDocumentFetcher):
+    """A fetcher handling deletions from the event only, without fetching"""
+
+    def __init__(self, config: IndexConfig) -> None:
+        super().__init__(config)
+        self.calls: list[str] = []
+
+    def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
+        assert stream_name == "product_updates_off"
+        id_ = item["code"]
+        self.calls.append(id_)
+        if item.get("action") == "deleted":
+            return FetcherResult(
+                status=FetcherStatus.REMOVED,
+                document={self.config.index.id_field_name: id_},
+            )
+        return FetcherResult(
+            status=FetcherStatus.FOUND,
+            document={"code": id_, "name": f"Document {id_}"},
+        )
+
+
 def test_get_processed_since(default_config: IndexConfig):
     id_field_name = default_config.index.id_field_name
     return_values = [
@@ -186,6 +208,51 @@ def test_get_processed_since_does_not_cache_retry_results(
         )
     ]
     assert document_fetcher.calls == 2
+
+
+def test_get_processed_since_replays_recreation_after_event_only_removal(
+    default_config: IndexConfig,
+):
+    """An event-only removal must not hide a later recreation in the backlog"""
+    id_field_name = default_config.index.id_field_name
+    return_values = [
+        [
+            ("1629878400000-0", {"code": "1", "action": "deleted"}),
+            # the document was recreated after its deletion
+            ("1629878400001-0", {"code": "1"}),
+        ]
+    ]
+    redis_client = cast(Redis, RedisXrangeClient(return_values))
+    document_fetcher = EventOnlyRemovalDocumentFetcher(default_config)
+
+    results = list(
+        get_processed_since(
+            redis_client,
+            cast(str, default_config.redis_stream_name),
+            1629878400000,
+            id_field_name,
+            document_fetcher,
+        )
+    )
+
+    assert results == [
+        (
+            1629878400000,
+            FetcherResult(
+                status=FetcherStatus.REMOVED,
+                document={id_field_name: "1"},
+            ),
+        ),
+        (
+            1629878400001,
+            FetcherResult(
+                status=FetcherStatus.FOUND,
+                document={"code": "1", "name": "Document 1"},
+            ),
+        ),
+    ]
+    # the recreation was fetched instead of being skipped as already handled
+    assert document_fetcher.calls == ["1", "1"]
 
 
 class RedisXreadClient:
