@@ -11,6 +11,7 @@ from app.utils import load_class_object_from_string
 def _prepare_projection(
     fields: frozenset[str],
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
+    # Each recursive projection uses the remaining suffixes as its cached key.
     roots = set()
     subfields_by_name: dict[str, set[str]] = {}
     for field in fields:
@@ -27,19 +28,34 @@ def _project_fields(
     result: JSONType,
     fields: set[str] | frozenset[str],
 ) -> JSONType:
-    """Select top-level fields and dotted paths within object fields."""
+    """Select fields recursively through objects and arrays of objects."""
     _, subfields_by_name = _prepare_projection(frozenset(fields))
     projected = {}
     for name, value in result.items():
         if name in fields:
             projected[name] = value
-        elif isinstance(value, dict):
+        elif isinstance(value, (dict, list)):
             subfields = subfields_by_name.get(name)
             if subfields:
-                selected = _project_fields(value, subfields)
-                if selected:
-                    projected[name] = selected
+                if isinstance(value, list):
+                    projected[name] = _project_list(value, subfields)
+                else:
+                    selected = _project_fields(value, subfields)
+                    if selected:
+                        projected[name] = selected
     return projected
+
+
+def _project_list(values: list, fields: frozenset[str]) -> list:
+    return [
+        (
+            _project_fields(value, fields)
+            if isinstance(value, dict)
+            else _project_list(value, fields)
+        )
+        for value in values
+        if isinstance(value, (dict, list))
+    ]
 
 
 class BaseResultProcessor:
@@ -91,7 +107,13 @@ class BaseResultProcessor:
     def process_after(
         self, result: JSONType, projection: set[str] | None = None
     ) -> JSONType:
-        """Subclass this method to post-process documents."""
+        """Subclass this method to post-process documents.
+
+        ``projection`` contains root field names, not dotted paths: a request
+        for ``nutriments.sugars_100g`` passes ``{"nutriments"}``. The full field
+        selection is applied after this hook returns. None or an empty set
+        means all fields were requested.
+        """
         return result
 
 

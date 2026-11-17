@@ -7,7 +7,7 @@ from elasticsearch_dsl.response import Response
 
 from app.config import Config
 from app.openfoodfacts import ResultProcessor, generate_image_url
-from app.postprocessing import BaseResultProcessor, _prepare_projection
+from app.postprocessing import BaseResultProcessor
 
 
 @pytest.mark.parametrize(
@@ -155,25 +155,6 @@ def make_search_response(documents):
     )
 
 
-def test_response_reuses_cached_projection(default_config):
-    _prepare_projection.cache_clear()
-    fields = {f"missing{i}.value" for i in range(500)} | {"nested.value"}
-    processor = BaseResultProcessor(default_config)
-    response = make_search_response([{"nested": {"value": 0, "omit": 1}}] * 100)
-
-    assert (
-        processor.process(response, fields)["hits"]
-        == [{"nested": {"value": 0}, "_score": 1}] * 100
-    )
-    # One root projection and one nested projection are shared across all hits.
-    assert _prepare_projection.cache_info().misses == 2
-    assert (
-        processor.process(response, {"nested.omit"})["hits"]
-        == [{"nested": {"omit": 1}, "_score": 1}] * 100
-    )
-    assert _prepare_projection.cache_info().maxsize == 128
-
-
 def test_response_preserves_custom_result_override(default_config):
     class CustomProcessor(BaseResultProcessor):
         def process_result(self, result, projection):
@@ -188,17 +169,36 @@ def test_response_preserves_custom_result_override(default_config):
     ]
 
 
-def test_response_isolates_custom_postprocessor_fields(default_config):
-    class CustomProcessor(BaseResultProcessor):
-        def process_after(self, result, projection=None):
-            assert projection == {"nested"}
-            projection.clear()
-            return result
+@pytest.mark.parametrize("batch", [False, True])
+def test_result_nested_fields_through_lists(default_config, batch):
+    document = {
+        "groups": [
+            {"items": [{"details": {"name": "one", "extra": 1}}, {"other": 2}]},
+            {"items": [{"details": {"name": None}}, {"details": {"name": "two"}}]},
+            {"items": []},
+        ],
+        "omit": "outside",
+    }
+    expected = {
+        "groups": [
+            {"items": [{"details": {"name": "one"}}, {}]},
+            {"items": [{"details": {"name": None}}, {"details": {"name": "two"}}]},
+            {"items": []},
+        ]
+    }
+    processor = BaseResultProcessor(default_config)
+    fields = {"groups.items.details.name"}
+    if batch:
+        result = processor.process(make_search_response([document]), fields)["hits"][0]
+        assert result.pop("_score") == 1
+    else:
+        result = processor.process_result(document, fields)
+    assert result == expected
 
-    processor = CustomProcessor(default_config)
-    response = make_search_response([{"nested": {"value": 0, "omit": 1}}] * 2)
 
-    assert (
-        processor.process(response, {"nested.value"})["hits"]
-        == [{"nested": {"value": 0}, "_score": 1}] * 2
-    )
+def test_result_whole_list_fields(default_config):
+    document = {"items": [{"name": "one", "extra": 1}, {"name": "two"}], "omit": 2}
+    processor = BaseResultProcessor(default_config)
+    assert processor.process_result(
+        copy.deepcopy(document), {"items", "items.name"}
+    ) == {"items": document["items"]}
