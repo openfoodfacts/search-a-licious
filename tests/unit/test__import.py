@@ -8,7 +8,6 @@ from typing import cast
 from unittest.mock import MagicMock, patch
 
 import pytest
-import redis.exceptions as redis_exceptions
 from redis import Redis
 
 from app._import import (
@@ -29,7 +28,6 @@ from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import Config, IndexConfig
 from app.indexing import DocumentProcessor
 from app.taxonomy import Taxonomy, TaxonomyNode
-from app.updates import reset_checkpoint_after_import
 
 
 class RedisXrangeClient:
@@ -670,62 +668,6 @@ def test_run_items_import_skip_updates_still_publishes(default_config: IndexConf
     with _mock_full_import() as update_alias_mock:
         run_items_import(Path("items.jsonl"), 1, default_config, skip_updates=True)
     update_alias_mock.assert_called_once()
-
-
-def test_reset_checkpoint_after_import(default_config: IndexConfig):
-    """The import moves the daemon checkpoint to the most recent document"""
-    redis_client_mock = MagicMock()
-    es_client_mock = MagicMock()
-    with (
-        patch(
-            "app.updates.connection.get_redis_client",
-            MagicMock(return_value=redis_client_mock),
-        ),
-        patch(
-            "app.updates.get_last_indexed_timestamp_ms",
-            MagicMock(return_value=1629878400123),
-        ),
-    ):
-        reset_checkpoint_after_import(es_client_mock, default_config)
-
-    redis_client_mock.set.assert_called_once_with(
-        "searchalicious:checkpoint:product_updates_off:openfoodfacts", "1629878400123-0"
-    )
-
-
-def test_reset_checkpoint_after_import_with_empty_index(default_config: IndexConfig):
-    """An empty index leaves the checkpoint untouched"""
-    redis_client_mock = MagicMock()
-    with (
-        patch(
-            "app.updates.connection.get_redis_client",
-            MagicMock(return_value=redis_client_mock),
-        ),
-        patch(
-            "app.updates.get_last_indexed_timestamp_ms", MagicMock(return_value=None)
-        ),
-    ):
-        reset_checkpoint_after_import(MagicMock(), default_config)
-
-    redis_client_mock.set.assert_not_called()
-
-
-def test_reset_checkpoint_after_import_redis_failure(default_config: IndexConfig):
-    """A Redis failure does not fail the import"""
-    redis_client_mock = MagicMock()
-    redis_client_mock.set.side_effect = redis_exceptions.ConnectionError("boom")
-    with (
-        patch(
-            "app.updates.connection.get_redis_client",
-            MagicMock(return_value=redis_client_mock),
-        ),
-        patch(
-            "app.updates.get_last_indexed_timestamp_ms",
-            MagicMock(return_value=1629878400123),
-        ),
-    ):
-        # must not raise
-        reset_checkpoint_after_import(MagicMock(), default_config)
 
 
 @pytest.mark.parametrize("success", [0, 5])

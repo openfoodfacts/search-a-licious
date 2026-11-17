@@ -46,6 +46,10 @@ The daemon records its position in the event stream in Redis, after each handled
   (the same stream used for two indexes has therefore two checkpoints) ;
 * the value is the Redis stream ID of the last handled event.
 
+A second key, `searchalicious:checkpoint_index:<stream name>:<index name>`,
+records **which index the checkpoint belongs to** (the concrete index name behind
+the alias, such as `off-2026-11-16-12-30-00-123456`).
+
 When the daemon restarts (deployment, crash, Elasticsearch or Redis outage),
 it resumes from this checkpoint, so events published while it was not running are not lost.
 Transient errors are retried with an exponential backoff instead of crashing the process.
@@ -59,16 +63,33 @@ Hence, the index must be populated before the daemon can start.
 checking regularly, instead of skipping the events published until then.
 It processes no event until the index has at least one document.
 
-A successful import (`import` command, unless `--skip-updates` is used)
-moves the checkpoint to the most recent imported document,
-so the daemon does not replay events that the import already took into account.
+### After a new import
+
+A successful import creates a new index and moves the alias to it.
+The daemon detects this: it checks, after each batch of events (and at most once
+per minute, so this also happens while the stream is idle), which index the alias
+points to. When it is no longer the one recorded in
+`searchalicious:checkpoint_index`, the checkpoint does not apply any more:
+the daemon derives its position again from the most recent document of the new
+index, persists the new checkpoint and the new index name, and continues from
+there — even if that position is behind the one it had reached (the events it
+covers are simply indexed again, which is harmless).
+
+The import also catches up with the events published during the import, before
+moving the alias, so the new index is up to date as soon as it is published.
+The daemon's own reset therefore only replays a few events, if any.
+
+If the daemon does not manage to read the alias (Elasticsearch unavailable), the
+failure is logged and indexing goes on from the current position; the check is
+retried at the next batch.
 
 To force the daemon to start again from the most recent indexed document,
-delete the key.
+delete both keys.
 For this use `redis-cli` on your redis instance, with:
 ```
 # replace <stream name> and <index name> with your values
 DEL searchalicious:checkpoint:<stream name>:<index name>
+DEL searchalicious:checkpoint_index:<stream name>:<index name>
 ```
 
 ### Monitoring the update daemon
@@ -77,7 +98,9 @@ Besides its checkpoint, the daemon stores some information about its processing 
 under the key `searchalicious:updates_state:<stream name>:<index name>` (a hash):
 
 * `last_read_id`: the Redis stream ID of the last event the daemon read ;
-* `pending_events`: how many events the daemon has read and still has to process.
+* `pending_events`: how many events the daemon has read and still has to process ;
+* `index`: the concrete Elasticsearch index the daemon currently sees behind the
+  alias (useful to confirm that a re-import was noticed).
 
 This state is informational only: writing it is throttled (at most once every 10 seconds,
 plus once when the stream is quiet and on shutdown) and a failure to record it never
@@ -92,6 +115,7 @@ It is reported by the `/health` API endpoint, in the `update-daemon-state` check
     "streams": [
       {
         "index": "off",
+        "elasticsearch_index": "off-2026-11-16-12-30-00-123456",
         "stream": "product_updates_off",
         "last_read_id": "1762775912345-0",
         "last_message_timestamp_ms": 1762775912345,

@@ -717,11 +717,6 @@ def run_items_import(
     if not partial:
         # make alias point to new index
         update_alias(es_client, next_index, config.index.name)
-    if not skip_updates:
-        # imported lazily: app.updates imports this module
-        from app.updates import reset_checkpoint_after_import
-
-        reset_checkpoint_after_import(es_client, config)
     return num_errors
 
 

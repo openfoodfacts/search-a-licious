@@ -55,6 +55,7 @@ def _updates_state_for(
     state = get_updates_state(redis_client, stream_name, index_name)
     last_read_id = state["last_read_id"] if state is not None else None
     pending_events = state["pending_events"] if state is not None else None
+    elasticsearch_index = state["index"] if state is not None else None
     timestamp_ms = timestamp_ms_from_stream_id(last_read_id) if last_read_id else None
     age_seconds = None
     if timestamp_ms is not None:
@@ -62,6 +63,7 @@ def _updates_state_for(
         age_seconds = round(max(0.0, time.time() - timestamp_ms / 1000), 3)
     return {
         "index": index_name,
+        "elasticsearch_index": elasticsearch_index,
         "stream": stream_name,
         "last_read_id": last_read_id,
         "last_message_timestamp_ms": timestamp_ms,

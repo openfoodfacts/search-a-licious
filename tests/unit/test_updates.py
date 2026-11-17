@@ -1,6 +1,7 @@
 """Tests of the update daemon (app.updates)."""
 
 import threading
+import unittest.mock
 from typing import cast
 from unittest.mock import MagicMock, patch
 
@@ -14,12 +15,13 @@ from app._types import FetcherResult, FetcherStatus
 from app.config import Config, IndexConfig
 from app.exceptions import TransientFetcherError
 from app.updates import (
+    ALIAS_CHECK_INTERVAL,
     UpdatesStateRecorder,
     index_result_and_track_event,
     is_retryable_error,
+    resolve_start_position,
     retry_delay,
     run_update_daemon,
-    wait_for_start_position,
 )
 
 
@@ -46,16 +48,38 @@ class DocumentFetcher(BaseDocumentFetcher):
         return cast(FetcherResult, item)
 
 
+def alias_index_name(off_config: IndexConfig) -> str:
+    """The concrete index name the daemon mock sees behind the alias"""
+    return f"{off_config.index.name}-2021-01-01"
+
+
+def configure_alias(es_client_mock: MagicMock, off_config: IndexConfig) -> MagicMock:
+    """Make the ES client mock report the alias of the test index"""
+    es_client_mock.indices.get_alias.return_value = {
+        alias_index_name(off_config): {"aliases": {off_config.index.name: {}}}
+    }
+    return es_client_mock
+
+
 def make_daemon_mocks(off_config: IndexConfig, updates: list):
     """Return (connection_mock, es_client_mock, redis_client_mock) for the daemon.
 
-    The checkpoint is pre-populated so that the daemon does not try to derive
-    its start position from the index (that's tested separately).
+    The checkpoint is pre-populated, and tied to the index the alias points to,
+    so that the daemon resumes from it instead of deriving its start position
+    from the index (the derivation is tested separately).
+
+    The index behind the alias is fixed, so that the periodic alias check sees
+    no change. Use :func:`configure_alias` if you replace the ES client mock.
     """
-    es_client_mock = MagicMock()
+    es_client_mock = configure_alias(MagicMock(), off_config)
     redis_client_mock = MagicMock()
-    # a checkpoint exists: the daemon resumes from it
-    redis_client_mock.get.return_value = "1629878399999-0"
+    # a checkpoint exists, and belongs to the current index: the daemon resumes
+    # from it
+    redis_client_mock.get.side_effect = lambda key: (
+        alias_index_name(off_config)
+        if key.startswith("searchalicious:checkpoint_index:")
+        else "1629878399999-0"
+    )
     redis_client_mock.ping.return_value = True
     connection_mock = MagicMock()
     connection_mock.get_es_client.return_value = es_client_mock
@@ -171,7 +195,7 @@ def test_run_update_daemon_ignores_removal_of_absent_document(
     default_global_config: Config,
 ):
     off_config: IndexConfig = default_global_config.indices["off"]
-    es_client_mock = MagicMock()
+    es_client_mock = configure_alias(MagicMock(), off_config)
     es_client_mock.delete.side_effect = NotFoundError(
         "not found", api_meta_response(404), {}
     )
@@ -509,6 +533,7 @@ def test_run_update_daemon_cold_start_from_last_indexed_document(
     off_config: IndexConfig = default_global_config.indices["off"]
     connection_mock, _, redis_client_mock = make_daemon_mocks(off_config, [])
     # no checkpoint yet
+    redis_client_mock.get.side_effect = None
     redis_client_mock.get.return_value = None
     STOP_EVENTS.clear()
     get_new_updates_mock = MagicMock(side_effect=empty_updates_then_stop)
@@ -526,13 +551,15 @@ def test_run_update_daemon_cold_start_from_last_indexed_document(
     ):
         run_update_daemon(default_global_config)
 
-    # the derived position is passed to the reader and persisted
+    # the derived position is passed to the reader and persisted, together with
+    # the index it was derived from
     assert get_new_updates_mock.call_args.kwargs["min_ids"] == {
         "product_updates_off": "1629878400999-0"
     }
-    redis_client_mock.set.assert_called_once_with(
-        "searchalicious:checkpoint:product_updates_off:openfoodfacts", "1629878400999-0"
-    )
+    assert [c.args[1] for c in redis_client_mock.set.mock_calls] == [
+        "1629878400999-0",
+        f"{off_config.index.name}-2021-01-01",
+    ]
 
 
 def test_run_update_daemon_waits_for_empty_index_to_be_populated(
@@ -541,6 +568,7 @@ def test_run_update_daemon_waits_for_empty_index_to_be_populated(
     """Without a checkpoint nor data, wait for the index instead of starting"""
     off_config: IndexConfig = default_global_config.indices["off"]
     connection_mock, _, redis_client_mock = make_daemon_mocks(off_config, [])
+    redis_client_mock.get.side_effect = None
     redis_client_mock.get.return_value = None
     STOP_EVENTS.clear()
     get_new_updates_mock = MagicMock(side_effect=empty_updates_then_stop)
@@ -568,21 +596,25 @@ def test_run_update_daemon_waits_for_empty_index_to_be_populated(
     redis_client_mock.set.assert_not_called()
 
 
-def test_wait_for_start_position_waits_until_the_index_is_populated():
+def test_resolve_start_position_waits_until_the_index_is_populated():
     """The position is only derived once the index has a document"""
     redis_client_mock = MagicMock()
     redis_client_mock.get.return_value = None
     stop_event = threading.Event()
     # first two checks see an empty index, then the import has run
     timestamp_mock = MagicMock(side_effect=[None, None, 1629878400999])
+    es_client_mock = MagicMock()
+    es_client_mock.indices.get_alias.return_value = {
+        "openfoodfacts-2021-01-01": {"aliases": {"openfoodfacts": {}}}
+    }
 
     with (
         patch("app.updates.get_last_indexed_timestamp_ms", timestamp_mock),
         patch("app.updates.retry_delay", MagicMock(return_value=0)),
     ):
-        start_id = wait_for_start_position(
+        start_id = resolve_start_position(
             redis_client_mock,
-            MagicMock(),
+            es_client_mock,
             "product_updates_off",
             "openfoodfacts",
             "last_modified_t",
@@ -591,14 +623,21 @@ def test_wait_for_start_position_waits_until_the_index_is_populated():
 
     assert start_id == "1629878400999-0"
     assert timestamp_mock.call_count == 3
-    # the checkpoint is persisted once the position is known
-    redis_client_mock.set.assert_called_once_with(
-        "searchalicious:checkpoint:product_updates_off:openfoodfacts",
-        "1629878400999-0",
-    )
+    # the checkpoint and the index it belongs to are persisted once the
+    # position is known
+    assert redis_client_mock.set.mock_calls == [
+        unittest.mock.call(
+            "searchalicious:checkpoint:product_updates_off:openfoodfacts",
+            "1629878400999-0",
+        ),
+        unittest.mock.call(
+            "searchalicious:checkpoint_index:product_updates_off:openfoodfacts",
+            "openfoodfacts-2021-01-01",
+        ),
+    ]
 
 
-def test_wait_for_start_position_stops_waiting():
+def test_resolve_start_position_stops_waiting():
     """A stop request interrupts the wait for the index"""
     redis_client_mock = MagicMock()
     redis_client_mock.get.return_value = None
@@ -608,7 +647,7 @@ def test_wait_for_start_position_stops_waiting():
     with patch(
         "app.updates.get_last_indexed_timestamp_ms", MagicMock(return_value=None)
     ):
-        start_id = wait_for_start_position(
+        start_id = resolve_start_position(
             redis_client_mock,
             MagicMock(),
             "product_updates_off",
@@ -621,16 +660,24 @@ def test_wait_for_start_position_stops_waiting():
     redis_client_mock.set.assert_not_called()
 
 
-def test_wait_for_start_position_resumes_from_checkpoint():
-    """An existing checkpoint is used without querying the index"""
+def test_resolve_start_position_resumes_from_checkpoint():
+    """A checkpoint belonging to the current index is used as is"""
     redis_client_mock = MagicMock()
-    redis_client_mock.get.return_value = "1629878399999-0"
+    redis_client_mock.get.side_effect = lambda key: (
+        "1629878399999-0"
+        if key.startswith("searchalicious:checkpoint:")
+        else "openfoodfacts-2021-01-01"
+    )
     timestamp_mock = MagicMock()
+    es_client_mock = MagicMock()
+    es_client_mock.indices.get_alias.return_value = {
+        "openfoodfacts-2021-01-01": {"aliases": {"openfoodfacts": {}}}
+    }
 
     with patch("app.updates.get_last_indexed_timestamp_ms", timestamp_mock):
-        start_id = wait_for_start_position(
+        start_id = resolve_start_position(
             redis_client_mock,
-            MagicMock(),
+            es_client_mock,
             "product_updates_off",
             "openfoodfacts",
             "last_modified_t",
@@ -639,6 +686,129 @@ def test_wait_for_start_position_resumes_from_checkpoint():
 
     assert start_id == "1629878399999-0"
     timestamp_mock.assert_not_called()
+    redis_client_mock.set.assert_not_called()
+
+
+def test_resolve_start_position_ignores_checkpoint_of_another_index():
+    """A checkpoint derived from the previous index must not be resumed from"""
+    redis_client_mock = MagicMock()
+    redis_client_mock.get.side_effect = lambda key: (
+        "1629878399999-0"
+        if key.startswith("searchalicious:checkpoint:")
+        else "openfoodfacts-2020-01-01"
+    )
+    es_client_mock = MagicMock()
+    es_client_mock.indices.get_alias.return_value = {
+        "openfoodfacts-2021-01-01": {"aliases": {"openfoodfacts": {}}}
+    }
+
+    with patch(
+        "app.updates.get_last_indexed_timestamp_ms",
+        MagicMock(return_value=1629878400999),
+    ):
+        start_id = resolve_start_position(
+            redis_client_mock,
+            es_client_mock,
+            "product_updates_off",
+            "openfoodfacts",
+            "last_modified_t",
+            threading.Event(),
+        )
+
+    # the position is derived from the new index, and both keys are persisted
+    assert start_id == "1629878400999-0"
+    assert redis_client_mock.set.mock_calls == [
+        unittest.mock.call(
+            "searchalicious:checkpoint:product_updates_off:openfoodfacts",
+            "1629878400999-0",
+        ),
+        unittest.mock.call(
+            "searchalicious:checkpoint_index:product_updates_off:openfoodfacts",
+            "openfoodfacts-2021-01-01",
+        ),
+    ]
+
+
+def test_resolve_start_position_ignores_checkpoint_without_index():
+    """A checkpoint with no known index (daemon predating the key) is ignored"""
+    redis_client_mock = MagicMock()
+    redis_client_mock.get.side_effect = lambda key: (
+        "1629878399999-0" if key.startswith("searchalicious:checkpoint:") else None
+    )
+    es_client_mock = MagicMock()
+    es_client_mock.indices.get_alias.return_value = {
+        "openfoodfacts-2021-01-01": {"aliases": {"openfoodfacts": {}}}
+    }
+
+    with patch(
+        "app.updates.get_last_indexed_timestamp_ms",
+        MagicMock(return_value=1629878400999),
+    ):
+        start_id = resolve_start_position(
+            redis_client_mock,
+            es_client_mock,
+            "product_updates_off",
+            "openfoodfacts",
+            "last_modified_t",
+            threading.Event(),
+        )
+
+    assert start_id == "1629878400999-0"
+    assert len(redis_client_mock.set.mock_calls) == 2
+
+
+def test_resolve_start_position_does_not_block_when_reading():
+    """While reading, an empty index gives no verdict instead of blocking"""
+    redis_client_mock = MagicMock()
+    redis_client_mock.get.return_value = None
+    es_client_mock = MagicMock()
+    es_client_mock.indices.get_alias.return_value = {}
+
+    with (
+        patch(
+            "app.updates.get_last_indexed_timestamp_ms", MagicMock(return_value=None)
+        ),
+        patch("app.updates.retry_delay", MagicMock(return_value=0)),
+    ):
+        start_id = resolve_start_position(
+            redis_client_mock,
+            es_client_mock,
+            "product_updates_off",
+            "openfoodfacts",
+            "last_modified_t",
+            threading.Event(),
+            wait_for_index=False,
+        )
+
+    assert start_id is None
+    redis_client_mock.set.assert_not_called()
+
+
+def test_resolve_start_position_does_not_block_on_es_error_when_reading():
+    """While reading, an Elasticsearch error gives no verdict instead of raising"""
+    redis_client_mock = MagicMock()
+    redis_client_mock.get.return_value = None
+    es_client_mock = MagicMock()
+    es_client_mock.indices.get_alias.return_value = {
+        "openfoodfacts-2021-01-01": {"aliases": {"openfoodfacts": {}}}
+    }
+    error = elasticsearch.TransportError("connection reset")
+
+    with patch(
+        "app.updates.get_last_indexed_timestamp_ms", MagicMock(side_effect=error)
+    ):
+        start_id = resolve_start_position(
+            redis_client_mock,
+            es_client_mock,
+            "product_updates_off",
+            "openfoodfacts",
+            "last_modified_t",
+            threading.Event(),
+            wait_for_index=False,
+        )
+
+    assert start_id is None
+    redis_client_mock.set.assert_not_called()
 
 
 def test_run_update_daemon_restarts_reader_after_redis_error(
@@ -902,11 +1072,11 @@ def test_run_update_daemon_records_processing_state(
         "searchalicious:updates_state:product_updates_off:openfoodfacts"
     }
     written = state_writes(redis_client_mock)
-    # initial state: resuming from the checkpoint, nothing pending
-    assert written[0] == {
-        "last_read_id": "1629878399999-0",
-        "pending_events": 0,
-    }
+    # initial state: resuming from the checkpoint, nothing pending, and the
+    # index the checkpoint belongs to
+    assert written[0]["last_read_id"] == "1629878399999-0"
+    assert written[0]["pending_events"] == 0
+    assert written[0]["index"] == f"{off_config.index.name}-2021-01-01"
     # the final flush records the last event read as a plain stream ID, which
     # is also the cursor used to read the next event
     assert written[-1]["last_read_id"] == "1629878400001-0"
@@ -936,3 +1106,262 @@ def test_get_new_updates_calls_on_batch_end():
     )
 
     assert stop_event.is_set()
+
+
+def make_alias_es_client(index_name: str, alias: str = "openfoodfacts"):
+    """ES client whose alias points to `index_name`"""
+    es_client = MagicMock()
+    es_client.indices.get_alias.return_value = {index_name: {"aliases": {alias: {}}}}
+    return es_client
+
+
+def run_daemon_with_alias_sequence(
+    global_config: Config,
+    off_config: IndexConfig,
+    index_names: list[str | None | Exception],
+    start_checkpoint: str = "1629878399999-0",
+    start_index: str | None = None,
+    derived_ms: int = 1629878405000,
+):
+    """Run the daemon while the alias points to successive indexes.
+
+    Each entry of `index_names` is what one alias check returns: an index
+    name, ``None`` (the alias points nowhere) or an exception instance to
+    raise. The startup check consumes the first entry, then one entry is
+    consumed per batch end.
+
+    .. note:: the reader stops itself after enough batch ends.
+
+    Unless `start_index` is given, the checkpoint is tied to the index the
+    startup check returns, so that the startup does not reset anything.
+
+    Returns the ES client mock, the Redis client mock, the ``min_ids`` each
+    generation of the reader was built with, and the number of checks.
+    """
+
+    first = index_names[0]
+    store = {
+        "index": start_index if start_index is not None else first,
+        "checkpoint": start_checkpoint,
+    }
+
+    def redis_get(key):
+        if key.startswith("searchalicious:checkpoint_index:"):
+            return store["index"]
+        return store["checkpoint"]
+
+    def redis_set(key, value):
+        if key.startswith("searchalicious:checkpoint_index:"):
+            store["index"] = value
+        elif key.startswith("searchalicious:checkpoint:"):
+            store["checkpoint"] = value
+
+    redis_client_mock = MagicMock()
+    redis_client_mock.get.side_effect = redis_get
+    redis_client_mock.set.side_effect = redis_set
+    redis_client_mock.ping.return_value = True
+
+    es_client_mock = MagicMock()
+
+    checks: list[int] = []
+
+    def get_alias_side_effect(es, alias):
+        assert es is es_client_mock
+        value = index_names[min(len(checks), len(index_names) - 1)]
+        checks.append(1)
+        if isinstance(value, Exception):
+            raise value
+        return value
+
+    connection_mock = MagicMock()
+    connection_mock.get_es_client.return_value = es_client_mock
+    connection_mock.get_redis_client.return_value = redis_client_mock
+
+    min_ids_seen: list[dict] = []
+    reads: list[int] = []
+
+    def reader(*args, **kwargs):
+        min_ids_seen.append(dict(kwargs["min_ids"]))
+        reads.append(1)
+        on_batch_end = kwargs.get("on_batch_end")
+        if on_batch_end is not None:
+            # the real generator calls it once the read returns, including
+            # when it returned nothing
+            on_batch_end()
+        # enough reads to consume every entry of the sequence after the
+        # startup check: stop instead of looping on an empty stream
+        if len(reads) > len(index_names):
+            STOP_EVENTS[-1].set()
+        return iter([])
+
+    STOP_EVENTS.clear()
+    clock = {"now": 0.0}
+
+    def monotonic():
+        value = clock["now"]
+        # each batch end happens more than ALIAS_CHECK_INTERVAL later
+        clock["now"] += ALIAS_CHECK_INTERVAL + 1
+        return value
+
+    with (
+        patch("app.updates.connection", connection_mock),
+        patch("app.updates.load_document_fetcher", MagicMock()),
+        patch("app.updates.get_new_updates", MagicMock(side_effect=reader)),
+        patch("app.updates.get_alias", MagicMock(side_effect=get_alias_side_effect)),
+        patch(
+            "app.updates.get_last_indexed_timestamp_ms",
+            MagicMock(return_value=derived_ms),
+        ),
+        patch("app.updates.time.monotonic", monotonic),
+        patch("app.updates._install_signal_handlers", _install_stop_after_first_read),
+        patch("app.updates.retry_delay", MagicMock(return_value=0)),
+    ):
+        run_update_daemon(global_config)
+
+    return es_client_mock, redis_client_mock, min_ids_seen, checks
+
+
+def test_run_update_daemon_resets_position_when_alias_moves(
+    default_global_config: Config,
+):
+    """When the alias points to a new index, the position is derived again"""
+    off_config: IndexConfig = default_global_config.indices["off"]
+    _es, redis_client, min_ids_seen, _checks = run_daemon_with_alias_sequence(
+        default_global_config,
+        off_config,
+        ["openfoodfacts-2020-01-01", "openfoodfacts-2021-01-01"],
+    )
+
+    # the reader was rebuilt from the derived position of the new index
+    assert min_ids_seen[0] == {"product_updates_off": "1629878399999-0"}
+    assert min_ids_seen[1] == {"product_updates_off": "1629878405000-0"}
+    set_calls = [c.args for c in redis_client.set.mock_calls]
+    assert set_calls == [
+        (
+            "searchalicious:checkpoint:product_updates_off:openfoodfacts",
+            "1629878405000-0",
+        ),
+        (
+            "searchalicious:checkpoint_index:product_updates_off:openfoodfacts",
+            "openfoodfacts-2021-01-01",
+        ),
+    ]
+    # the reported state is the new position, with nothing pending
+    last_write = state_writes(redis_client)[-1]
+    assert last_write["last_read_id"] == "1629878405000-0"
+    assert last_write["pending_events"] == 0
+    assert last_write["index"] == "openfoodfacts-2021-01-01"
+
+
+def test_run_update_daemon_applies_position_behind_current_cursor(
+    default_global_config: Config,
+):
+    """The derived position is applied even when it is older than the cursor"""
+    off_config: IndexConfig = default_global_config.indices["off"]
+    # the checkpoint is ahead of the derived position of the new index
+    _es, _redis, min_ids_seen, _checks = run_daemon_with_alias_sequence(
+        default_global_config,
+        off_config,
+        ["openfoodfacts-2020-01-01", "openfoodfacts-2021-01-01"],
+        start_checkpoint="1629878409000-0",
+        derived_ms=1629878405000,
+    )
+
+    assert min_ids_seen[-1] == {"product_updates_off": "1629878405000-0"}
+
+
+def test_run_update_daemon_does_not_reset_when_alias_is_unchanged(
+    default_global_config: Config,
+):
+    """An unchanged alias does not touch the checkpoint"""
+    off_config: IndexConfig = default_global_config.indices["off"]
+    _es, redis_client, min_ids_seen, checks = run_daemon_with_alias_sequence(
+        default_global_config,
+        off_config,
+        ["openfoodfacts-2020-01-01"],
+    )
+
+    assert len(checks) >= 1
+    assert all(m == {"product_updates_off": "1629878399999-0"} for m in min_ids_seen)
+    redis_client.set.assert_not_called()
+
+
+def test_run_update_daemon_ignores_alias_lookup_errors(
+    default_global_config: Config,
+):
+    """A failing alias lookup is logged, and indexing goes on"""
+    off_config: IndexConfig = default_global_config.indices["off"]
+    _es, redis_client, min_ids_seen, checks = run_daemon_with_alias_sequence(
+        default_global_config,
+        off_config,
+        [
+            "openfoodfacts-2020-01-01",
+            elasticsearch.TransportError("connection reset"),
+        ],
+    )
+
+    # the failed check did not reset anything
+    assert not redis_client.set.mock_calls
+    # the daemon never restarted the reader
+    assert all(m == {"product_updates_off": "1629878399999-0"} for m in min_ids_seen)
+    assert len(checks) >= 2
+
+
+def test_run_update_daemon_ignores_missing_alias(
+    default_global_config: Config,
+):
+    """An alias that starts pointing nowhere is not a change"""
+    off_config: IndexConfig = default_global_config.indices["off"]
+    _es, redis_client, min_ids_seen, _checks = run_daemon_with_alias_sequence(
+        default_global_config,
+        off_config,
+        ["openfoodfacts-2020-01-01", None],
+    )
+
+    # the second check gets no verdict: the position is kept
+    assert not redis_client.set.mock_calls
+    assert all(m == {"product_updates_off": "1629878399999-0"} for m in min_ids_seen)
+
+
+def test_run_update_daemon_throttles_alias_checks(default_global_config: Config):
+    """The alias is not looked up more than once per interval"""
+    es_client_mock = make_alias_es_client("openfoodfacts-2020-01-01")
+    redis_client_mock = MagicMock()
+    redis_client_mock.get.side_effect = lambda key: (
+        "openfoodfacts-2020-01-01"
+        if key.startswith("searchalicious:checkpoint_index:")
+        else "1629878399999-0"
+    )
+    redis_client_mock.ping.return_value = True
+    connection_mock = MagicMock()
+    connection_mock.get_es_client.return_value = es_client_mock
+    connection_mock.get_redis_client.return_value = redis_client_mock
+
+    reads: list[int] = []
+
+    def reader(*args, **kwargs):
+        reads.append(1)
+        on_batch_end = kwargs["on_batch_end"]
+        on_batch_end()
+        if len(reads) > 5:
+            STOP_EVENTS[-1].set()
+        return iter([])
+
+    STOP_EVENTS.clear()
+    get_alias_mock = MagicMock(return_value="openfoodfacts-2020-01-01")
+    with (
+        patch("app.updates.connection", connection_mock),
+        patch("app.updates.load_document_fetcher", MagicMock()),
+        patch("app.updates.get_new_updates", MagicMock(side_effect=reader)),
+        patch("app.updates.get_alias", get_alias_mock),
+        # the clock does not advance: every check is within the interval
+        patch("app.updates.time.monotonic", MagicMock(return_value=0.0)),
+        patch("app.updates._install_signal_handlers", _install_stop_after_first_read),
+        patch("app.updates.retry_delay", MagicMock(return_value=0)),
+    ):
+        run_update_daemon(default_global_config)
+
+    assert len(reads) >= 6
+    # the startup lookup, plus a single check: the clock never advances, so
+    # every batch end after the first falls within the throttle interval
+    assert get_alias_mock.call_count == 2

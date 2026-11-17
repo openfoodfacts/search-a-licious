@@ -52,7 +52,11 @@ def test_updates_state_is_always_healthy_and_reports_lag(
     default_global_config: Config,
 ):
     """The daemon state is informational: it never makes the app unhealthy"""
-    state = {"last_read_id": "1629878400000-0", "pending_events": "4"}
+    state = {
+        "last_read_id": "1629878400000-0",
+        "pending_events": "4",
+        "index": "off-2021-01-01",
+    }
     now_ms = 1629878400000 + 12500
     with (
         _patched_redis(state),
@@ -65,6 +69,7 @@ def test_updates_state_is_always_healthy_and_reports_lag(
         "streams": [
             {
                 "index": "off",
+                "elasticsearch_index": "off-2021-01-01",
                 "stream": "product_updates_off",
                 "last_read_id": "1629878400000-0",
                 "last_message_timestamp_ms": 1629878400000,
@@ -86,6 +91,7 @@ def test_updates_state_missing_is_reported_as_null(
     assert details["streams"] == [
         {
             "index": "off",
+            "elasticsearch_index": None,
             "stream": "product_updates_off",
             "last_read_id": None,
             "last_message_timestamp_ms": None,

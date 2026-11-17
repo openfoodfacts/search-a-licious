@@ -21,6 +21,7 @@ from elasticsearch_dsl import Search
 from redis import Redis
 
 CHECKPOINT_KEY_PREFIX = "searchalicious:checkpoint"
+CHECKPOINT_INDEX_KEY_PREFIX = "searchalicious:checkpoint_index"
 UPDATES_STATE_KEY_PREFIX = "searchalicious:updates_state"
 
 
@@ -67,6 +68,58 @@ def set_checkpoint(
     redis_client.set(checkpoint_key(stream_name, index_name), stream_id)
 
 
+def checkpoint_index_key(stream_name: str, index_name: str) -> str:
+    """Return the Redis key storing the index a checkpoint was derived from.
+
+    The checkpoint of a stream is only meaningful for the concrete index it
+    was built for: after an import, the alias points to a new index and a
+    checkpoint coming from the previous one would either replay or, worse,
+    skip events. This key records which index the checkpoint belongs to, so
+    that the update daemon can detect that the alias moved.
+
+    :param stream_name: the name of the Redis stream
+    :param index_name: the name of the index (the alias) the events are
+        written to
+    :return: the Redis key, e.g.
+        ``searchalicious:checkpoint_index:product_updates_off:off``
+    """
+    return f"{CHECKPOINT_INDEX_KEY_PREFIX}:{stream_name}:{index_name}"
+
+
+def get_checkpoint_index(
+    redis_client: Redis, stream_name: str, index_name: str
+) -> str | None:
+    """Return the index the checkpoint of this stream and index belongs to.
+
+    :param redis_client: the Redis client
+    :param stream_name: the name of the Redis stream
+    :param index_name: the name of the index (the alias)
+    :return: the name of the concrete Elasticsearch index the checkpoint was
+        derived from, or ``None`` if it is unknown (no checkpoint yet, or a
+        daemon that predates this key)
+
+    Any Redis error is propagated, so that the caller can distinguish
+    "unknown" (``None``) from "could not read the value" (exception).
+    """
+    return cast(
+        str | None, redis_client.get(checkpoint_index_key(stream_name, index_name))
+    )
+
+
+def set_checkpoint_index(
+    redis_client: Redis, stream_name: str, index_name: str, checkpoint_index: str
+) -> None:
+    """Record the index the checkpoint of this stream and index belongs to.
+
+    :param redis_client: the Redis client
+    :param stream_name: the name of the Redis stream
+    :param index_name: the name of the index (the alias)
+    :param checkpoint_index: the concrete Elasticsearch index name behind the
+        alias when the checkpoint was written
+    """
+    redis_client.set(checkpoint_index_key(stream_name, index_name), checkpoint_index)
+
+
 def updates_state_key(stream_name: str, index_name: str) -> str:
     """Return the Redis key storing the processing state of the update daemon.
 
@@ -85,6 +138,7 @@ def set_updates_state(
     index_name: str,
     last_read_id: str | None,
     pending_events: int,
+    index: str | None = None,
 ) -> None:
     """Record the processing state of the update daemon for this stream/index.
 
@@ -97,14 +151,24 @@ def set_updates_state(
     :param index_name: the name of the index (the alias)
     :param last_read_id: the stream ID of the last event read by the daemon
     :param pending_events: the number of read events still to be processed
+    :param index: the concrete Elasticsearch index the daemon currently sees
+        behind the alias, or ``None`` if unknown
     """
-    redis_client.hset(
-        updates_state_key(stream_name, index_name),
-        mapping={
-            "last_read_id": last_read_id if last_read_id is not None else "",
-            "pending_events": pending_events,
-        },
-    )
+    last_read_id = last_read_id if last_read_id is not None else ""
+    if index is None:
+        redis_client.hset(
+            updates_state_key(stream_name, index_name),
+            mapping={"last_read_id": last_read_id, "pending_events": pending_events},
+        )
+    else:
+        redis_client.hset(
+            updates_state_key(stream_name, index_name),
+            mapping={
+                "last_read_id": last_read_id,
+                "pending_events": pending_events,
+                "index": index,
+            },
+        )
 
 
 def get_updates_state(
@@ -115,9 +179,10 @@ def get_updates_state(
     :param redis_client: the Redis client
     :param stream_name: the name of the Redis stream
     :param index_name: the name of the index (the alias)
-    :return: a dict with the ``last_read_id`` (str or ``None``) and
-        ``pending_events`` (int) keys, or ``None`` if the daemon never
-        recorded its state (e.g. it never ran)
+    :return: a dict with the ``last_read_id`` (str or ``None``),
+        ``pending_events`` (int) and ``index`` (str or ``None``, the concrete
+        Elasticsearch index behind the alias) keys, or ``None`` if the daemon
+        never recorded its state (e.g. it never ran)
     """
     raw = cast(
         dict[str, str], redis_client.hgetall(updates_state_key(stream_name, index_name))
@@ -129,6 +194,7 @@ def get_updates_state(
     return {
         "last_read_id": last_read_id,
         "pending_events": int(pending_events) if pending_events is not None else None,
+        "index": raw.get("index") or None,
     }
 
 

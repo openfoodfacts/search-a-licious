@@ -12,8 +12,10 @@ import pytest
 
 from app import updates as app_updates
 from app.checkpoints import (
+    checkpoint_index_key,
     checkpoint_key,
     get_checkpoint,
+    get_checkpoint_index,
     get_last_indexed_timestamp_ms,
     stream_id_from_timestamp_ms,
     updates_state_key,
@@ -57,6 +59,7 @@ def _reset_stream(redis_client):
     redis_client.delete(
         STREAM_NAME,
         checkpoint_key(STREAM_NAME, INDEX_NAME),
+        checkpoint_index_key(STREAM_NAME, INDEX_NAME),
         updates_state_key(STREAM_NAME, INDEX_NAME),
     )
 
@@ -388,3 +391,79 @@ def test_update_daemon_waits_for_empty_index_to_be_populated(
         runner.stop()
 
     assert es_connection.exists(index="test_off", id="10000000000007")
+
+
+def test_update_daemon_resets_position_when_alias_moves(
+    test_off_config,
+    es_connection,
+    redis_client,
+    stop_events,
+    monkeypatch,
+    synonyms_created,
+):
+    """A re-import that swaps the alias must reset the daemon position
+
+    The daemon is running with a checkpoint tied to the current index. A new
+    import creates a new index and points the alias to it; the daemon must
+    notice (it checks the alias after each batch) and derive its position
+    again from the new index instead of resuming from the old checkpoint.
+    """
+    from tests.cli_utils import runner_invoke
+
+    # first import, and a daemon that catches up on it
+    result = runner_invoke(
+        "import", "/opt/search/tests/int/data/test_off_data.jsonl", "--skip-updates"
+    )
+    assert result.exit_code == 0
+    _reset_stream(redis_client)
+    redis_client.xadd(
+        STREAM_NAME,
+        _document("10000000000010", 1700000010),
+        id=_index_stream_id(es_connection, offset_ms=1000),
+    )
+    _run_daemon_until(
+        test_off_config,
+        lambda: es_connection.exists(index="test_off", id="10000000000010"),
+        "daemon did not process the first event",
+        stop_events,
+    )
+    assert get_checkpoint_index(redis_client, STREAM_NAME, "test_off") is not None
+
+    # make the daemon check the alias on each batch (it is throttled otherwise)
+    monkeypatch.setattr(app_updates, "ALIAS_CHECK_INTERVAL", 0)
+
+    runner = DaemonRunner(test_off_config)
+    runner.start()
+    try:
+        # a re-import swaps the alias to a new index
+        result = runner_invoke(
+            "import", "/opt/search/tests/int/data/test_off_data.jsonl", "--skip-updates"
+        )
+        assert result.exit_code == 0
+        new_index = _index_stream_id(es_connection, offset_ms=0)
+
+        # the daemon derives its position again from the new index
+        _wait_for(
+            lambda: get_checkpoint(redis_client, STREAM_NAME, "test_off") == new_index,
+            "daemon did not reset its position after the alias moved",
+            timeout=60,
+        )
+        updated_index = get_checkpoint_index(redis_client, STREAM_NAME, "test_off")
+        assert updated_index is not None
+
+        # an event published after the re-import is processed
+        event_id = _index_stream_id(es_connection, offset_ms=1000)
+        redis_client.xadd(
+            STREAM_NAME,
+            _document("10000000000011", 1700000011),
+            id=event_id,
+        )
+        _wait_for(
+            lambda: es_connection.exists(index="test_off", id="10000000000011"),
+            "daemon did not process the event published after the re-import",
+            timeout=60,
+        )
+    finally:
+        assert stop_events, "daemon did not install its signal handlers"
+        stop_events[-1].set()
+        runner.stop()

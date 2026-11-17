@@ -1,11 +1,14 @@
 from unittest.mock import MagicMock, patch
 
 from app.checkpoints import (
+    checkpoint_index_key,
     checkpoint_key,
     get_checkpoint,
+    get_checkpoint_index,
     get_last_indexed_timestamp_ms,
     get_updates_state,
     set_checkpoint,
+    set_checkpoint_index,
     set_updates_state,
     stream_id_from_timestamp_ms,
     timestamp_ms_from_stream_id,
@@ -108,6 +111,7 @@ def test_get_updates_state():
     assert get_updates_state(redis_client, "stream", "off") == {
         "last_read_id": "1629878400000-0",
         "pending_events": 4,
+        "index": None,
     }
     redis_client.hgetall.assert_called_once_with(
         "searchalicious:updates_state:stream:off"
@@ -127,6 +131,7 @@ def test_get_updates_state_empty_last_read_id():
     assert get_updates_state(redis_client, "stream", "off") == {
         "last_read_id": None,
         "pending_events": 0,
+        "index": None,
     }
 
 
@@ -138,3 +143,53 @@ def test_timestamp_ms_from_stream_id():
 def test_timestamp_ms_from_stream_id_malformed():
     assert timestamp_ms_from_stream_id("not-an-id") is None
     assert timestamp_ms_from_stream_id("") is None
+
+
+def test_checkpoint_index_key_includes_stream_and_index():
+    """The key is scoped by both the stream and the index (alias)"""
+    assert (
+        checkpoint_index_key("product_updates_off", "off")
+        == "searchalicious:checkpoint_index:product_updates_off:off"
+    )
+    assert checkpoint_index_key("product_updates_off", "off") != checkpoint_key(
+        "product_updates_off", "off"
+    )
+
+
+def test_get_checkpoint_index_returns_none_when_absent():
+    redis_client = MagicMock()
+    redis_client.get.return_value = None
+    assert get_checkpoint_index(redis_client, "stream", "off") is None
+    redis_client.get.assert_called_once_with(
+        "searchalicious:checkpoint_index:stream:off"
+    )
+
+
+def test_set_checkpoint_index():
+    redis_client = MagicMock()
+    set_checkpoint_index(redis_client, "stream", "off", "off-2021-01-01")
+    redis_client.set.assert_called_once_with(
+        "searchalicious:checkpoint_index:stream:off", "off-2021-01-01"
+    )
+
+
+def test_set_updates_state_records_the_index():
+    redis_client = MagicMock()
+    set_updates_state(
+        redis_client, "stream", "off", "1629878400000-0", 3, "off-2021-01-01"
+    )
+    assert redis_client.hset.call_args.kwargs["mapping"] == {
+        "last_read_id": "1629878400000-0",
+        "pending_events": 3,
+        "index": "off-2021-01-01",
+    }
+
+
+def test_get_updates_state_with_index():
+    redis_client = MagicMock()
+    redis_client.hgetall.return_value = {
+        "last_read_id": "1629878400000-0",
+        "pending_events": "4",
+        "index": "off-2021-01-01",
+    }
+    assert get_updates_state(redis_client, "stream", "off")["index"] == "off-2021-01-01"

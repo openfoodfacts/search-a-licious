@@ -33,12 +33,19 @@ from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import RedisError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 
-from app._import import BaseDocumentFetcher, get_new_updates, load_document_fetcher
+from app._import import (
+    BaseDocumentFetcher,
+    get_alias,
+    get_new_updates,
+    load_document_fetcher,
+)
 from app._types import FetcherResult, FetcherStatus
 from app.checkpoints import (
     get_checkpoint,
+    get_checkpoint_index,
     get_last_indexed_timestamp_ms,
     set_checkpoint,
+    set_checkpoint_index,
     set_updates_state,
     stream_id_from_timestamp_ms,
 )
@@ -65,6 +72,12 @@ RETRYABLE_HTTP_STATUSES = frozenset({429, 502, 503, 504})
 # UpdatesStateRecorder). The state is informational only: throttling it avoids
 # a Redis write per event on a busy stream.
 UPDATES_STATE_WRITE_INTERVAL = 10.0
+
+# Minimum delay between two lookups of the index the alias points to (see
+# resolve_start_position). The alias is checked after each read batch, but at
+# most once per interval, so that a busy stream does not query the Elasticsearch
+# metadata on every batch.
+ALIAS_CHECK_INTERVAL = 60.0
 
 
 class UpdatesStateRecorder:
@@ -105,16 +118,28 @@ class UpdatesStateRecorder:
         self.clock = clock
         self.last_read_id: str | None = None
         self.pending_events = 0
+        # the concrete Elasticsearch index currently behind the alias, if known
+        self.index: str | None = None
         self._last_write: float | None = None
 
-    def set(self, last_read_id: str | None, pending_events: int) -> None:
+    def set(
+        self,
+        last_read_id: str | None,
+        pending_events: int,
+        index: str | None = None,
+    ) -> None:
         """Record the current state, throttled.
 
         :param last_read_id: the ID of the last event read by the daemon
         :param pending_events: the number of read events still to be processed
+        :param index: the concrete Elasticsearch index the daemon sees behind
+            the alias, if known. When omitted, the previously known value (if
+            any) is kept.
         """
         self.last_read_id = last_read_id
         self.pending_events = pending_events
+        if index is not None:
+            self.index = index
         self.flush_if_due()
 
     def add_pending(self, delta: int) -> None:
@@ -150,6 +175,7 @@ class UpdatesStateRecorder:
                 self.index_name,
                 self.last_read_id,
                 self.pending_events,
+                self.index,
             )
         except Exception as exc:
             logger.warning(
@@ -365,26 +391,37 @@ def index_result_and_track_event(
     return stream_id
 
 
-def wait_for_start_position(
+def resolve_start_position(
     redis_client: Redis,
     es_client: Elasticsearch,
     stream_name: str,
     index_name: str,
     last_modified_field_name: str,
     stop_event: threading.Event,
+    wait_for_index: bool = True,
 ) -> str | None:
-    """Wait for the index to be populated, then return the stream ID to start
-    reading from.
+    """Return the stream ID to start (or restart) reading from.
 
-    The position is read from the persisted checkpoint. If there is none (first
-    run, or checkpoint deleted), it is derived from the most recent document of
-    the index, so that events published while the daemon was not running are
-    not lost.
+    The position comes from the persisted checkpoint, but only if the
+    checkpoint belongs to the index the alias currently points to (see
+    :func:`app.checkpoints.get_checkpoint_index`). The alias is changed by an
+    import, and a checkpoint derived from the previous index would replay or,
+    worse, skip events.
+
+    If the checkpoint does not belong to the current index (or its index is
+    unknown), it is ignored and the position is derived from the most recent
+    document of the index instead, so that events published while the daemon
+    was not running are not lost. Both the checkpoint and the index it belongs
+    to are then persisted.
 
     Deriving that position requires the index to be populated (usually by an
-    import). As long as it is empty, the daemon waits: starting from the end of
-    the stream instead would silently drop the events published meanwhile.
-    A stop request interrupts the wait.
+    import). What happens while it is not is driven by ``wait_for_index``:
+
+    * ``True`` (startup): wait, with a backoff, until the index is populated,
+      and propagate unexpected errors. A stop request interrupts the wait.
+    * ``False`` (while reading): never block. Return ``None`` when there is no
+      verdict (alias not readable, alias empty, or index empty), so that the
+      caller can keep processing from its current position.
 
     :param redis_client: the Redis client
     :param es_client: the Elasticsearch client
@@ -393,48 +430,121 @@ def wait_for_start_position(
     :param last_modified_field_name: the field holding the last modification
         timestamp of the documents
     :param stop_event: if set while waiting for the index, give up
-    :return: the stream ID to start from, or ``None`` if the daemon was asked
-        to stop while the index was still empty
+    :param wait_for_index: block until a position is known (startup) or return
+        ``None`` when there is no verdict (while reading)
+    :return: the stream ID to start from, or ``None`` if no verdict is
+        available (see ``wait_for_index``)
     """
     checkpoint = get_checkpoint(redis_client, stream_name, index_name)
-    if checkpoint is not None:
+    checkpoint_index = get_checkpoint_index(redis_client, stream_name, index_name)
+
+    def read_alias() -> str | None:
+        try:
+            return get_alias(es_client, index_name)
+        except NotFoundError:
+            # the alias points to no index (yet): there is nothing to derive
+            return None
+
+    alias_known = True
+    try:
+        alias_index = read_alias()
+    except Exception as exc:
+        if not wait_for_index or not is_retryable_error(exc):
+            if not wait_for_index:
+                logger.warning(
+                    "Could not read the index behind alias %s: %s", index_name, exc
+                )
+                return None
+            raise
+        logger.info("Index %s is not available yet: %s", index_name, exc)
+        alias_index = None
+        alias_known = False
+
+    if alias_known and checkpoint is not None and checkpoint_index is not None:
+        if alias_index is not None and alias_index == checkpoint_index:
+            logger.info(
+                "Resuming stream %s for index %s from checkpoint %s",
+                stream_name,
+                index_name,
+                checkpoint,
+            )
+            return checkpoint
         logger.info(
-            "Resuming stream %s for index %s from checkpoint %s",
+            "Checkpoint of stream %s for index %s belongs to index %s, but the "
+            "alias now points to %s: starting again from the current index",
             stream_name,
             index_name,
-            checkpoint,
+            checkpoint_index,
+            alias_index,
         )
-        return checkpoint
+    elif checkpoint is not None and checkpoint_index is None:
+        logger.info(
+            "Checkpoint of stream %s for index %s is not tied to an index "
+            "(unknown index): starting again from the current index",
+            stream_name,
+            index_name,
+        )
 
+    if not wait_for_index and not alias_known:
+        # while reading there is no verdict: keep the current position
+        return None
     attempt = 0
-    while not stop_event.is_set():
+    while not stop_event.is_set() or attempt == 0:
         try:
-            last_indexed_ms = get_last_indexed_timestamp_ms(
-                es_client, index_name, last_modified_field_name
-            )
+            if attempt:
+                alias_index = read_alias()
+            if alias_index is None:
+                # the alias points nowhere: there is no index to derive from.
+                logger.debug(
+                    "Alias %s points to no index yet, no start position to derive",
+                    index_name,
+                )
+                last_indexed_ms = None
+            else:
+                last_indexed_ms = get_last_indexed_timestamp_ms(
+                    es_client, alias_index, last_modified_field_name
+                )
         except Exception as exc:
+            if not wait_for_index:
+                logger.warning(
+                    "Could not resolve the start position of stream %s for "
+                    "index %s: %s",
+                    stream_name,
+                    index_name,
+                    exc,
+                )
+                return None
             if not (isinstance(exc, NotFoundError) or is_retryable_error(exc)):
                 raise
             logger.info("Index %s is not available yet: %s", index_name, exc)
             last_indexed_ms = None
+            alias_index = None
+
         if last_indexed_ms is not None:
             start_id = stream_id_from_timestamp_ms(last_indexed_ms)
             # Persist immediately: the derived position is meaningful, and this
             # avoids querying Elasticsearch again on every restart.
             set_checkpoint(redis_client, stream_name, index_name, start_id)
+            if alias_index is not None:
+                set_checkpoint_index(redis_client, stream_name, index_name, alias_index)
             logger.info(
-                "No checkpoint for stream %s and index %s, starting from the "
-                "last indexed document (%s)",
+                "No valid checkpoint for stream %s and index %s, starting from "
+                "the last indexed document (%s in index %s)",
                 stream_name,
                 index_name,
                 start_id,
+                alias_index,
             )
             return start_id
+
+        if not wait_for_index:
+            return None
+
         delay = retry_delay(attempt)
         attempt += 1
         logger.info(
-            "No checkpoint and no document yet for stream %s and index %s: "
-            "waiting for the index to be populated (checked in %.0fs)",
+            "No valid checkpoint and no document yet for stream %s and index "
+            "%s: waiting for the index to be populated (checked in %.0fs)",
             stream_name,
             index_name,
             delay,
@@ -443,50 +553,6 @@ def wait_for_start_position(
             return None
 
     return None
-
-
-def reset_checkpoint_after_import(
-    es_client: Elasticsearch, config: IndexConfig
-) -> None:
-    """Move the update daemon checkpoint to the end of the imported data.
-
-    The import already took into account the stream events up to the most
-    recent document (see :func:`app._import.get_redis_updates`), and the alias
-    now points to the new index. Keeping the previous checkpoint would only
-    cause a (harmless but wasteful) replay of old events by the daemon.
-
-    This is best effort: a failure here is logged and does not fail the
-    import, since a stale checkpoint only leads to a replay.
-
-    :param es_client: the Elasticsearch client
-    :param config: the index configuration used for the import
-    """
-    if config.redis_stream_name is None:
-        logger.info("Redis updates are disabled for index %s", config.index.name)
-        return
-    try:
-        last_indexed_ms = get_last_indexed_timestamp_ms(
-            es_client, config.index.name, config.index.last_modified_field_name
-        )
-        if last_indexed_ms is None:
-            logger.warning(
-                "Index %s is empty, leaving the update checkpoint untouched",
-                config.index.name,
-            )
-            return
-        stream_id = stream_id_from_timestamp_ms(last_indexed_ms)
-        redis_client = connection.get_redis_client()
-        set_checkpoint(
-            redis_client, config.redis_stream_name, config.index.name, stream_id
-        )
-        logger.info(
-            "Update checkpoint for stream %s and index %s set to %s",
-            config.redis_stream_name,
-            config.index.name,
-            stream_id,
-        )
-    except Exception as exc:
-        logger.warning("Could not reset the update checkpoint: %s", exc)
 
 
 def _install_signal_handlers(stop_event: threading.Event) -> None:
@@ -512,10 +578,13 @@ def _init_min_ids(
     stream_index_configs: dict[str, IndexConfig],
     stop_event: threading.Event,
 ) -> dict[str, str] | None:
-    """Read the start position of each stream from the persisted checkpoints.
+    """Read the start position of each stream.
 
-    Checkpoints are read once at startup. After that, the daemon keeps track
-    of its position itself and persists it after each handled event.
+    The position comes from the persisted checkpoint, unless the alias points
+    to another index than the one the checkpoint was derived from (see
+    :func:`resolve_start_position` and :func:`app.checkpoints.get_checkpoint_index`).
+    After that, the daemon keeps track of its position itself and persists it
+    after each handled event.
 
     :param redis_client: the Redis client
     :param es_client: the Elasticsearch client
@@ -526,13 +595,14 @@ def _init_min_ids(
     """
     min_ids: dict[str, str] = {}
     for stream_name, index_config in stream_index_configs.items():
-        start_id = wait_for_start_position(
+        start_id = resolve_start_position(
             redis_client,
             es_client,
             stream_name,
             index_config.index.name,
             index_config.index.last_modified_field_name,
             stop_event,
+            wait_for_index=True,
         )
         if start_id is None:
             return None
@@ -552,7 +622,7 @@ def _init_state_recorders(
     :param min_ids: the stream ID the daemon starts reading from, for each
         stream
     :return: the state recorder of each stream, initialized with the start
-        position and no pending event
+        position, no pending event, and the index the checkpoint belongs to
     """
     state_recorders = {
         stream_name: UpdatesStateRecorder(
@@ -561,7 +631,15 @@ def _init_state_recorders(
         for stream_name, index_config in stream_index_configs.items()
     }
     for stream_name, recorder in state_recorders.items():
-        recorder.set(min_ids[stream_name], 0)
+        recorder.set(
+            min_ids[stream_name],
+            0,
+            get_checkpoint_index(
+                redis_client,
+                stream_name,
+                stream_index_configs[stream_name].index.name,
+            ),
+        )
     return state_recorders
 
 
@@ -578,11 +656,11 @@ def _consume_streams(
 ) -> None:
     """Read the streams and track the events until a stop is requested.
 
-    If the generator fails (e.g. a Redis error during xread), it is rebuilt
-    from the persisted checkpoints: the events of the in-flight batch that
-    were not handled yet are then read again. Transient errors are retried
-    with a backoff (see :func:`is_retryable_error`), while other errors are
-    re-raised.
+    If the generator fails (e.g. a Redis error during xread), or if the alias
+    starts pointing to another index, it is rebuilt from the persisted
+    checkpoints: the events of the in-flight batch that were not handled yet
+    are then read again. Transient errors are retried with a backoff (see
+    :func:`is_retryable_error`), while other errors are re-raised.
 
     :param redis_client: the Redis client
     :param es_client: the Elasticsearch client
@@ -604,15 +682,78 @@ def _consume_streams(
     ) -> None:
         state_recorders[stream_name].add_pending(len(entries))
 
+    def on_batch_end() -> None:
+        flush_state_if_due()
+        check_index_swaps()
+
+    # The alias of each index is checked at most once per interval, after a
+    # batch has been fully consumed (also when the read timed out, so that an
+    # idle daemon notices a re-import too). When the index behind the alias
+    # changed, resolve_start_position derives the position again from the new
+    # index and persists it (with the new index name); the generator is then
+    # rebuilt from it, which also drops that stream's fetched-IDs cache. The
+    # new position may be behind the current one: this is intended, the events
+    # it covers are simply indexed again (which is idempotent).
+    last_alias_check: float | None = None
+    known_indexes: dict[str, str | None] = {
+        stream_name: get_checkpoint_index(
+            redis_client, stream_name, index_config.index.name
+        )
+        for stream_name, index_config in stream_index_configs.items()
+    }
+    cursor: dict[str, str] | None = min_ids
+
+    def check_index_swaps() -> None:
+        nonlocal last_alias_check
+        nonlocal cursor
+        now = time.monotonic()
+        if (
+            last_alias_check is not None
+            and now - last_alias_check < ALIAS_CHECK_INTERVAL
+        ):
+            return
+        last_alias_check = now
+        for stream_name, index_config in stream_index_configs.items():
+            alias = index_config.index.name
+            # resolve_start_position checks the alias and, if it moved (or if
+            # its index is unknown), derives the position from the new index.
+            # Failures are logged there and yield None: keep the position then.
+            start_id = resolve_start_position(
+                redis_client,
+                es_client,
+                stream_name,
+                alias,
+                index_config.index.last_modified_field_name,
+                stop_event,
+                wait_for_index=False,
+            )
+            if start_id is None:
+                continue
+            new_index = get_checkpoint_index(redis_client, stream_name, alias)
+            if new_index == known_indexes.get(stream_name):
+                continue
+            logger.info(
+                "Alias %s now points to %s instead of %s: deriving again the "
+                "position of stream %s (%s)",
+                alias,
+                new_index,
+                known_indexes.get(stream_name),
+                stream_name,
+                start_id,
+            )
+            known_indexes[stream_name] = new_index
+            state_recorders[stream_name].set(start_id, 0, new_index)
+            cursor = None
+
     attempt = 0
     while not stop_event.is_set():
         try:
-            if min_ids is None:
+            if cursor is None:
                 # ask for min_ids to be re-read from the persisted checkpoints
-                min_ids = _init_min_ids(
+                cursor = _init_min_ids(
                     redis_client, es_client, stream_index_configs, stop_event
                 )
-                if min_ids is None:
+                if cursor is None:
                     logger.info("Stop requested before the index was ready, exiting")
                     return
             new_updates_iterator = get_new_updates(
@@ -620,11 +761,11 @@ def _consume_streams(
                 list(id_field_names.keys()),
                 id_field_names=id_field_names,
                 document_fetchers=document_fetchers,
-                min_ids=min_ids,
+                min_ids=cursor,
                 stop_event=stop_event,
-                # The stream is quiet: flush the state so that it settles at
-                # its final value instead of waiting for the next event.
-                on_batch_end=flush_state_if_due,
+                # A batch was fully consumed: flush the state so that it settles
+                # at its final value, and check whether the alias moved.
+                on_batch_end=on_batch_end,
                 on_batch_read=track_pending_entries,
             )
             for stream_name, _, stream_id, result in new_updates_iterator:
@@ -646,7 +787,7 @@ def _consume_streams(
                     stop_event=stop_event,
                 )
                 if _min_id is not None:
-                    min_ids[stream_name] = _min_id
+                    cursor[stream_name] = _min_id
                     recorder.set(stream_id, recorder.pending_events)
                     # A retry may have been successful after several failures:
                     # reset the backoff.
@@ -673,7 +814,7 @@ def _consume_streams(
             # The connection may be dead after an outage: open a new one.
             es_client = connection.get_es_client()
             # ask for min_ids to be re-read from the persisted checkpoints
-            min_ids = None
+            cursor = None
             # we will rebuild batch so put remove pending events
             for recorder in state_recorders.values():
                 recorder.add_pending(-recorder.pending_events)
@@ -692,6 +833,12 @@ def run_update_daemon(config: Config) -> None:
     Transient Elasticsearch/Redis errors are retried with a backoff instead of
     crashing the process. If the index is empty and there is no checkpoint yet,
     it waits for the import to populate the index before starting.
+
+    The alias is also checked periodically: when an import points it to a new
+    index, the position is derived again from that index, so that the events
+    published during (or after) the import are not lost and the daemon does not
+    keep a position coming from the previous index (see
+    :func:`resolve_start_position`).
 
     :param config: the configuration to use
     """
