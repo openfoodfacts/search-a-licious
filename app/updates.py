@@ -33,7 +33,12 @@ from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import RedisError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 
-from app._import import BaseDocumentFetcher, get_new_updates, load_document_fetcher
+from app._import import (
+    REDIS_READER_TIMEOUT,
+    BaseDocumentFetcher,
+    get_new_updates,
+    load_document_fetcher,
+)
 from app._types import FetcherResult, FetcherStatus
 from app.checkpoints import (
     get_checkpoint,
@@ -476,7 +481,9 @@ def reset_checkpoint_after_import(
             )
             return
         stream_id = stream_id_from_timestamp_ms(last_indexed_ms)
-        redis_client = connection.get_redis_client()
+        redis_client = connection.get_redis_client(
+            socket_timeout=REDIS_READER_TIMEOUT * 2
+        )
         set_checkpoint(
             redis_client, config.redis_stream_name, config.index.name, stream_id
         )

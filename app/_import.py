@@ -40,6 +40,10 @@ from app.utils.io import jsonl_iter
 
 logger = get_logger(__name__)
 
+# redis-py expects the block timeout in milliseconds,
+# settings.redis_reader_timeout is in seconds.
+REDIS_READER_TIMEOUT = int(settings.redis_reader_timeout * 1000)
+
 
 class BaseDocumentFetcher(abc.ABC):
     def __init__(self, config: IndexConfig) -> None:
@@ -277,15 +281,12 @@ def get_new_updates(
         stream_name: (min_ids or {}).get(stream_name, "$")
         for stream_name in stream_names
     }
-    # redis-py expects the block timeout in milliseconds,
-    # settings.redis_reader_timeout is in seconds.
-    block_ms = int(settings.redis_reader_timeout * 1000)
     while not (stop_event is not None and stop_event.is_set()):
         logger.debug(
             "Listening to new updates from streams %s (ID: %s)", stream_names, min_ids
         )
         raw_response = redis_client.xread(
-            streams=cast(dict, min_ids), block=block_ms, count=batch_size
+            streams=cast(dict, min_ids), block=REDIS_READER_TIMEOUT, count=batch_size
         )
         # The response is a list of tuples (stream_name, batch).
         # It is empty when the block timeout expired without any new event.
