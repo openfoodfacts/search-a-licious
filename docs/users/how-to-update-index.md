@@ -52,7 +52,10 @@ Transient errors are retried with an exponential backoff instead of crashing the
 
 If there is no checkpoint yet (first run, or after deleting the key),
 the daemon starts from the most recent document of the index, using
-the [`last_modified_field_name` from the configuration](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name).
+the [`last_modified_field_name` from the configuration](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name),
+to compute the ID the [redis stream](./ref-config/searchalicious-config-schema.html#indices_additionalProperties_redis_stream_name)
+(this is why `last_modified_field_name` must be a timestamp,
+and the redis stream IDs must be time based)
 
 Hence, the index must be populated before the daemon can start.
 **If the index is empty, the daemon waits for it to be filled** (by an import),
