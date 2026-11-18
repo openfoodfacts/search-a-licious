@@ -75,6 +75,24 @@ class Settings(BaseSettings):
             )
         ),
     ] = "http://localhost:9200"
+    elasticsearch_request_timeout: Annotated[
+        float,
+        Field(
+            gt=0,
+            description=cd_(
+                """Timeout in seconds of the requests the API sends to Elasticsearch
+                (search, autocomplete, document, scripts).
+
+                A request that is not answered in this time gets a 503 error,
+                and the worker thread is free again.
+                The default is the one of the Elasticsearch client.
+
+                It does not apply to imports and to the update daemon,
+                which set their own timeouts.
+                """
+            ),
+        ),
+    ] = 10.0
     redis_host: Annotated[
         str,
         Field(

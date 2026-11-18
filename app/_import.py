@@ -1,19 +1,30 @@
+"""Full import of a dataset into Elasticsearch.
+
+This module also provides the helpers used to catch up with the Redis event
+stream during an import, and the reader of the event stream itself
+(:func:`get_new_updates`) which is shared with the update daemon
+(see :mod:`app.updates`).
+"""
+
 import abc
+import collections
 import math
+import threading
 from datetime import datetime
 from inspect import cleandoc as cd_
 from multiprocessing import Pool
 from pathlib import Path
-from typing import Iterator, cast
+from typing import Callable, Iterator, List, Tuple, cast
 
 import tqdm
-from elasticsearch import Elasticsearch, NotFoundError
+from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk, parallel_bulk
-from elasticsearch_dsl import Index, Search
+from elasticsearch_dsl import Index
 from redis import Redis
 
 from app._types import FetcherResult, FetcherStatus, JSONType
-from app.config import Config, IndexConfig
+from app.checkpoints import get_last_indexed_timestamp_ms
+from app.config import IndexConfig, settings
 from app.exceptions import TooManySynonymsSetsException
 from app.indexing import (
     BaseTaxonomyPreprocessor,
@@ -28,6 +39,10 @@ from app.utils import connection, get_logger, load_class_object_from_string
 from app.utils.io import jsonl_iter
 
 logger = get_logger(__name__)
+
+# redis-py expects the block timeout in milliseconds,
+# settings.redis_reader_timeout is in seconds.
+REDIS_READER_TIMEOUT = int(settings.redis_reader_timeout * 1000)
 
 
 class BaseDocumentFetcher(abc.ABC):
@@ -59,6 +74,98 @@ def load_document_fetcher(config: IndexConfig) -> BaseDocumentFetcher:
     return fetcher_cls(config)
 
 
+# max number of entries to keep in memory for fetched_ids (see _add_fetched_id)
+FETCHED_IDS_MAX = 10_000
+
+
+def _add_fetched_id(
+    fetched_ids: collections.OrderedDict[str, int],
+    id_: str,
+    timestamp: int,
+) -> None:
+    """Add a fetched ID to the OrderedDict and prune if necessary.
+
+    :param fetched_ids: the OrderedDict of fetched IDs
+      with the timestamp up to which they are up to date
+    :param id_: the ID to add
+    :param timestamp: the timestamp up to which the ID is up to date
+    """
+    fetched_ids[id_] = timestamp
+    fetched_ids.move_to_end(id_)  # mark as recently used
+    while len(fetched_ids) > FETCHED_IDS_MAX:
+        fetched_ids.popitem(last=False)
+
+
+def _fetch_redis_stream_item_document(
+    timestamp_id: str,
+    item: JSONType,
+    id_field_name: str,
+    fetched_ids: collections.OrderedDict[str, int],
+    document_fetcher: BaseDocumentFetcher,
+    redis_stream_name: str,
+) -> tuple[int, FetcherResult] | None:
+    """Fetches the document of a single item from a Redis stream.
+
+    :param timestamp_id: the ID of the item in the Redis stream
+    :param item: the item from the Redis stream
+    :param id_field_name: the name of the field containing the ID
+    :param fetched_ids: the IDs already fetched, with the timestamp up to
+        which they are up to date
+    :param document_fetcher: the document fetcher
+    :param redis_stream_name: the name of the Redis stream
+    :return: the timestamp (in milliseconds) and the fetched document, or
+        ``None`` if the item should be skipped.
+        Document that should be retried is returned
+        with a ``FetcherStatus.RETRY`` status.
+    """
+    id_ = item.get(id_field_name)
+    if id_ is None:
+        logger.warning("Skipping item with no ID field %s: %s", id_field_name, item)
+        return None
+    logger.debug("Fetched ID: %s", id_)
+    # Get the timestamp from the ID
+    timestamp = int(timestamp_id.split("-")[0])
+    # Avoid fetching the same ID repeatedly
+    # As we read the latest document from the server,
+    # It is useless to re-index the same document again
+    # if the event is before the last indexing
+    if id_ in fetched_ids and fetched_ids[id_] > timestamp:
+        logger.debug(f"Skipping ID {id_} because it was already fetched")
+        return None
+    # use current timestamp - 500 ms
+    # as a pessimistic timestamp of last index update
+    # (to eventually account for clock differences between redis stream and our clock)
+    # *1000 because python timestamp are in seconds,
+    # redis in milliseconds
+    fetched_time = math.floor(datetime.now().timestamp() * 1000) - 500
+    result = document_fetcher.fetch_document(redis_stream_name, item)
+    if result.status == FetcherStatus.REMOVED:
+        # The removal may come from the event alone (e.g. a "deleted" action),
+        # without looking at the document on the server. The last known state
+        # for this ID is then the state at the event's timestamp, not at fetch
+        # time: caching the fetch time would skip a later recreation event
+        # when replaying the backlog, and the recreated document would be lost.
+        _add_fetched_id(fetched_ids, id_, timestamp)
+    elif result.status == FetcherStatus.SKIP or (
+        result.status == FetcherStatus.FOUND and result.document is not None
+    ):
+        _add_fetched_id(fetched_ids, id_, fetched_time)
+    if result.status == FetcherStatus.SKIP:
+        logger.debug(f"Skipping ID {id_} because fetches stated to do so")
+    elif result.status == FetcherStatus.RETRY:
+        return timestamp, result
+    elif result.status == FetcherStatus.REMOVED:
+        return timestamp, result
+    elif result.status == FetcherStatus.FOUND:
+        if result.document is None:
+            logger.error(f"Document is None for ID {id_}, while status is FOUND !")
+        else:
+            return timestamp, result
+    else:
+        logger.debug(f"Skipping ID {id_} due to status {result.status.name}")
+    return None
+
+
 def get_processed_since(
     redis_client: Redis,
     redis_stream_name: str,
@@ -79,7 +186,7 @@ def get_processed_since(
     :yield: a tuple containing the timestamp (in milliseconds) and the document
     """
     # store fetched ids with a timestamp
-    fetched_ids: dict[str, int] = {}
+    fetched_ids: collections.OrderedDict[str, int] = collections.OrderedDict()
     # We start from the given timestamp
     min_id = f"{start_timestamp_ms}-0"
 
@@ -99,37 +206,26 @@ def get_processed_since(
         # We update the min_id to the last ID of the batch
         min_id = f"({batch[-1][0]}"
         for timestamp_id, item in batch:
-            id_ = item[id_field_name]
-            logger.debug("Fetched ID: %s", id_)
-            # Get the timestamp from the ID
-            timestamp = int(timestamp_id.split("-")[0])
-            # Avoid fetching the same ID repeatedly
-            if id_ in fetched_ids and fetched_ids[id_] > timestamp:
-                logger.debug(f"Skipping ID {id_} because it was already fetched")
-                continue
-            # use current timestamp
-            # as a pessimistic timestamp of last index update
-            # *1000 because python timestamp are in seconds,
-            # redis in milliseconds
-            fetched_ids[id_] = math.floor(datetime.now().timestamp() * 1000)
-            result = document_fetcher.fetch_document(redis_stream_name, item)
-            if result.status == FetcherStatus.SKIP:
-                logger.debug(f"Skipping ID {id_} because fetches stated to do so")
-            elif result.status == FetcherStatus.RETRY:
-                logger.warning(
-                    f"Should retry ID {id_} due to status RETRY, but it's not yet implemented !"
-                )
-            elif result.status == FetcherStatus.REMOVED:
-                yield timestamp, result
-            elif result.status == FetcherStatus.FOUND:
-                if result.document is None:
-                    logger.error(
-                        f"Document is None for ID {id_}, while status is FOUND !"
+            fetched = _fetch_redis_stream_item_document(
+                timestamp_id,
+                item,
+                id_field_name,
+                fetched_ids,
+                document_fetcher,
+                redis_stream_name,
+            )
+            if fetched is not None:
+                timestamp, result = fetched
+                if result.status == FetcherStatus.RETRY:
+                    # If the fetcher wants to retry, we don't yield it yet
+                    # and we don't update the fetched_ids timestamp
+                    _id = item.get(id_field_name, "--unknown--")
+                    logger.warning(
+                        f"Should retry ID {_id} due to status RETRY, "
+                        "but it's not yet implemented ! (in this phase)"
                     )
-                else:
-                    yield timestamp, result
-            else:
-                logger.debug(f"Skipping ID {id_} due to status {result.status.name}")
+                    continue
+                yield fetched
 
 
 def get_new_updates(
@@ -137,69 +233,94 @@ def get_new_updates(
     stream_names: list[str],
     id_field_names: dict[str, str],
     document_fetchers: dict[str, BaseDocumentFetcher],
+    min_ids: dict[str, str] | None = None,
     batch_size: int = 100,
-) -> Iterator[tuple[str, int, FetcherResult]]:
-    """Reads new updates from Redis Stream, starting from the moment this
-    function is called.
+    stop_event: threading.Event | None = None,
+    on_batch_end: Callable[[], None] | None = None,
+    on_batch_read: Callable[[str, list[tuple[str, dict]]], None] | None = None,
+) -> Iterator[tuple[str, int | None, str, FetcherResult | None]]:
+    """Reads new updates from Redis Stream, starting from the given positions.
 
-    The function will block until new updates are available.
+    The function reads the stream in batches, and returns whenever there are
+    no new updates for a while (see ``settings.redis_reader_timeout``), so that
+    the caller can check its ``stop_event``.
+
+    The stream cursor is only advanced in memory here: it is the caller's
+    responsibility to persist the ID of the last *handled* event (see
+    :func:`app.checkpoints.set_checkpoint`), so that a crash does not lose the
+    events that were read but not processed yet. The in-memory cursor is what
+    makes the generator move forward within a session.
 
     :param redis_client: the Redis client
     :param stream_names: the names of the Redis streams to read from
     :param id_field_names: the name of the field containing the ID for each
         stream
     :param document_fetchers: the document fetcher for each stream
+    :param min_ids: the stream ID to start reading from, for each stream.
+        Defaults to ``"$"`` (only new events) for streams not specified.
     :param batch_size: the size of the batch to fetch, defaults to 100.
+    :param stop_event: if provided, the generator returns when this event is
+        set (checked after each batch and each read timeout).
+    :param on_batch_end: if provided, called each time a batch coming from a
+        single ``xread`` has been fully consumed (also when the read timed out
+        without any new event), i.e. when the stream is quiet for now.
+    :param on_batch_read: if provided, called each time a batch coming from a
+        single ``xread`` has been read (before processing the entries).
+        with the stream name and the list of read entries.
     :yield: a tuple containing the stream name, the timestamp (in
-        milliseconds) and the document
+        milliseconds), the stream ID and the document.
+        In case the document is not to be processed,
+        the timestamp and document are ``None``.
     """
-    # We start from the last ID
-    min_ids: dict[bytes | str | memoryview, int | bytes | str | memoryview] = {
-        stream_name: "$" for stream_name in stream_names
+    # for each stream store fetched ids with a timestamp
+    fetched_ids: dict[str, collections.OrderedDict[str, int]] = collections.defaultdict(
+        collections.OrderedDict
+    )
+    # We start from the last ID, or from "$" (only new events) if unknown.
+    min_ids = {
+        stream_name: (min_ids or {}).get(stream_name, "$")
+        for stream_name in stream_names
     }
-    while True:
+    while not (stop_event is not None and stop_event.is_set()):
         logger.debug(
             "Listening to new updates from streams %s (ID: %s)", stream_names, min_ids
         )
-        # We use block=0 to wait indefinitely for new updates
-        response = redis_client.xread(streams=min_ids, block=0, count=batch_size)
-        response = cast(list[tuple[str, list[tuple[str, dict]]]], response)
-        # The response is a list of tuples (stream_name, batch)
+        raw_response = redis_client.xread(
+            streams=cast(dict, min_ids), block=REDIS_READER_TIMEOUT, count=batch_size
+        )
+        # The response is a list of tuples (stream_name, batch).
+        # It is empty when the block timeout expired without any new event.
+        response = cast(List[Tuple[str, List[Tuple[str, dict]]]], raw_response)
 
         for stream_name, batch in response:
-            # We update the min_id to the last ID of the batch
-            min_id = batch[-1][0]
-            min_ids[stream_name] = min_id
+            if on_batch_read is not None:
+                on_batch_read(stream_name, batch)
             id_field_name = id_field_names[stream_name]
             document_fetcher = document_fetchers[stream_name]
+            # Note: the in-memory cursor is advanced *before* yielding an entry,
+            # because the caller may rebuild the generator after an error.
+            # XREAD returns the entries strictly after the given ID, so the ID
+            # of the last read entry is the cursor for the next read. The caller
+            # resets the cursor to the last persisted checkpoint when it
+            # rebuilds the generator, which guarantees that no entry is skipped.
             for timestamp_id, item in batch:
-                id_ = item[id_field_name]
-                logger.debug("Fetched ID: %s", id_)
-                # Get the timestamp from the ID
-                timestamp = int(timestamp_id.split("-")[0])
-                result = document_fetcher.fetch_document(stream_name, item)
-                if result.status == FetcherStatus.SKIP:
-                    logger.debug(
-                        f"Skipping ID {id_}  in {stream_name} because fetches stated to do so"
-                    )
-                elif result.status == FetcherStatus.RETRY:
-                    logger.warning(
-                        f"Should retry ID {id_}  in {stream_name} due to status RETRY, "
-                        "but it's not yet implemented !"
-                    )
-                elif result.status == FetcherStatus.REMOVED:
-                    yield stream_name, timestamp, result
-                elif result.status == FetcherStatus.FOUND:
-                    if result.document is None:
-                        logger.error(
-                            f"Document is None for ID {id_} in {stream_name}, while status is FOUND !"
-                        )
-                    else:
-                        yield stream_name, timestamp, result
+                min_ids[stream_name] = timestamp_id
+                fetched = _fetch_redis_stream_item_document(
+                    timestamp_id,
+                    item,
+                    id_field_name,
+                    fetched_ids[stream_name],
+                    document_fetcher,
+                    stream_name,
+                )
+                if fetched is not None:
+                    timestamp, result = fetched
+                    yield stream_name, timestamp, timestamp_id, result
                 else:
-                    logger.debug(
-                        f"Skipping ID {id_} in {stream_name} due to status {result.status.name}"
-                    )
+                    yield stream_name, None, timestamp_id, None
+
+        if on_batch_end is not None:
+            on_batch_end()
 
 
 def get_document_dict(
@@ -232,12 +353,17 @@ def gen_documents(
     num_items: int | None,
     num_processes: int,
     process_num: int,
-    gen_document_errors: list[Exception] | None = None,
+    gen_document_errors: list[dict[str, str | None]] | None = None,
 ):
     """Generate documents to index for process number process_num
 
     We chunk documents based on document num % process_num
+
+    A document that can not be prepared is skipped, and described
+    in `gen_document_errors` (if provided) by its id (if known)
+    and the error.
     """
+    id_field_name = processor.config.index.id_field_name
     for i, row in enumerate(tqdm.tqdm(jsonl_iter(file_path))):
         if num_items is not None and i >= num_items:
             break
@@ -253,7 +379,16 @@ def gen_documents(
             )
         except Exception as e:
             if gen_document_errors is not None:
-                gen_document_errors.append(e)
+                gen_document_errors.append(
+                    {
+                        "id": (
+                            str(row[id_field_name])
+                            if isinstance(row, dict) and id_field_name in row
+                            else None
+                        ),
+                        "error": f"{type(e).__name__}: {e}",
+                    }
+                )
             continue
         if not document_dict:
             continue
@@ -369,8 +504,8 @@ def import_parallel(
     processor = DocumentProcessor(config)
     # open a connection for this process
     es = connection.get_es_client(request_timeout=120, retry_on_timeout=True)
-    # a list of errors that occurs during document generation
-    gen_document_errors: list[Exception] = []
+    # the documents that could not be prepared (they are skipped)
+    gen_document_errors: list[dict[str, str | None]] = []
     # Note that bulk works better than parallel bulk for our usecase.
     # The preprocessing in this file is non-trivial, so it's better to
     # parallelize that. If we then do parallel_bulk here, this causes queueing
@@ -388,7 +523,13 @@ def import_parallel(
         ),
         raise_on_error=False,
     )
-    return process_num, success, errors
+    # skipped documents are errors too: report them with the indexing ones,
+    # so that they are logged and counted
+    all_errors = [
+        *cast(list, errors),
+        *({"document_preparation_error": error} for error in gen_document_errors),
+    ]
+    return process_num, success, all_errors
 
 
 def import_taxonomies(config: IndexConfig, next_index: str):
@@ -478,27 +619,18 @@ def get_redis_updates(es_client: Elasticsearch, index: str, config: IndexConfig)
     fetcher = load_document_fetcher(config)
     # Ensure all documents are searchable after the import
     Index(index, using=es_client).refresh()
-    last_modified_field_name = config.index.last_modified_field_name
-    query = (
-        Search(index=index, using=es_client)
-        .sort(f"-{last_modified_field_name}")
-        .extra(size=1)
+    last_updated_timestamp_ms = get_last_indexed_timestamp_ms(
+        es_client, index, config.index.last_modified_field_name
     )
-    # Note that we can't use index() because we don't want to also query the
-    # main alias
-    query._index = [index]
-    results = query.execute()
-    results_dict = [r.to_dict() for r in results]
-    if not results_dict or last_modified_field_name not in results_dict[0]:
+    if last_updated_timestamp_ms is None:
         # Nothing says from where to catch up. Skipping would silently lose the
         # updates since the dump, and the alias would then point to this index.
         raise RuntimeError(
             f"Cannot catch up on Redis updates: no document with a "
-            f"{last_modified_field_name} in index {index} (is the import empty?). "
+            f"{config.index.last_modified_field_name} in index {index} "
+            "(is the import empty?). "
             "Use --skip-updates to import without them."
         )
-    last_updated_timestamp: int | float = results_dict[0][last_modified_field_name]
-    last_updated_timestamp_ms = int(last_updated_timestamp * 1000)
     id_field_name = config.index.id_field_name
     # Since this is only done by a single process, we can use parallel_bulk
     num_errors = 0
@@ -614,6 +746,11 @@ def run_items_import(
     if not partial:
         # make alias point to new index
         update_alias(es_client, next_index, config.index.name)
+    if not skip_updates:
+        # imported lazily: app.updates imports this module
+        from app.updates import reset_checkpoint_after_import
+
+        reset_checkpoint_after_import(es_client, config)
     return num_errors
 
 
@@ -679,72 +816,3 @@ def perform_refresh_synonyms(index_id: str, config: IndexConfig) -> None:
             ),
             e,
         )
-
-
-def run_update_daemon(config: Config) -> None:
-    """Run the update import daemon.
-
-    This daemon listens to the Redis stream containing information about
-    updated documents, fetches the full document and indexes it in
-    Elasticsearch.
-
-    :param config: the configuration to use
-    """
-    logger.info("Starting update import daemon")
-    es_client = connection.get_es_client()
-    # redis-py defaults to a 5s read timeout, which would end the block=0 xread
-    redis_client = connection.get_redis_client(socket_timeout=None)
-
-    if redis_client.ping():
-        logger.info("Connected to Redis")
-    else:
-        logger.error("Could not connect to Redis")
-        return
-
-    if len(list(config.indices)) != 1:
-        raise ValueError("Only one index is supported")
-
-    processors: dict[str, DocumentProcessor] = {}
-    document_fetchers: dict[str, BaseDocumentFetcher] = {}
-    id_field_names: dict[str, str] = {}
-    stream_name_to_index_id: dict[str, str] = {}
-
-    for index_id, index_config in config.indices.items():
-        stream_name = index_config.redis_stream_name
-        if stream_name is not None:
-            processors[stream_name] = DocumentProcessor(index_config)
-            document_fetchers[stream_name] = load_document_fetcher(index_config)
-            id_field_names[stream_name] = index_config.index.id_field_name
-            stream_name_to_index_id[stream_name] = index_id
-
-    for stream_name, _, result in get_new_updates(
-        redis_client,
-        list(id_field_names.keys()),
-        id_field_names=id_field_names,
-        document_fetchers=document_fetchers,
-    ):
-        processed_result = processors[stream_name].from_result(result)
-        processed_document = processed_result.document
-        if (
-            processed_result.status not in (FetcherStatus.FOUND, FetcherStatus.REMOVED)
-            or processed_document is None
-        ):
-            continue
-        _id = processed_document.pop("_id")
-        index_id = stream_name_to_index_id[stream_name]
-        logger.debug("Document:\n%s", processed_document)
-        if processed_result.status == FetcherStatus.REMOVED:
-            try:
-                es_client.delete(
-                    index=config.indices[index_id].index.name,
-                    id=_id,
-                )
-            except NotFoundError:
-                # already absent from the index, nothing to do
-                logger.info("Document %s to remove is not in the index", _id)
-        else:
-            es_client.index(
-                index=config.indices[index_id].index.name,
-                body=processed_document,
-                id=_id,
-            )

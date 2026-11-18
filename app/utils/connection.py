@@ -12,6 +12,12 @@ def get_es_client(**kwargs):
     )
 
 
+def get_api_es_client():
+    """Create the default connection used by the API,
+    with the timeout of the settings"""
+    return get_es_client(request_timeout=settings.elasticsearch_request_timeout)
+
+
 def current_es_client() -> elasticsearch.Elasticsearch:
     """Return ElasticSearch default connection"""
     return connections.get_connection()
