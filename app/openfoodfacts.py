@@ -293,6 +293,7 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
         self.add_main_language(document)
         # self.normalize_ingredients(document)
         # self.normalize_bool_fields(document)
+        self.flatten_languages_codes(document)
         # Don't keep all nutriment values
         self.select_nutriments(document)
         # make nova_groups_markers a list
@@ -334,6 +335,16 @@ class DocumentPreprocessor(BaseDocumentPreprocessor):
             if "ingredients" in ingredient:
                 # recursively normalize sub-ingredients
                 self.normalize_ingredients(ingredient)
+
+    def flatten_languages_codes(self, document: JSONType) -> None:
+        """Turn ``languages_codes`` (an object keyed by language code)
+        into a list of codes, so it can be indexed as a keyword field.
+
+        Update `document` in place.
+        """
+        languages_codes = document.get("languages_codes")
+        if isinstance(languages_codes, dict):
+            document["languages_codes"] = list(languages_codes.keys())
 
     def select_nutriments(self, document: JSONType):
         """Only selected interesting nutriments, as there are hundreds of
@@ -540,29 +551,17 @@ class ResultProcessor(BaseResultProcessor):
                 for language_code in product["languages_codes"]:
                     image_id = f"{image_type}_{language_code}"
                     if images and images.get(image_id) and images[image_id]["sizes"]:
-                        if "selected_images" not in fields:
-                            fields["selected_images"] = {}
-                        rev_id = images[image_id]["rev"]
-                        fields["selected_images"].update(
-                            {
-                                image_type: {
-                                    "display": {
-                                        language_code: generate_image_url(
-                                            code, f"{image_id}.{rev_id}.400"
-                                        )
-                                    },
-                                    "small": {
-                                        language_code: generate_image_url(
-                                            code, f"{image_id}.{rev_id}.200"
-                                        )
-                                    },
-                                    "thumb": {
-                                        language_code: generate_image_url(
-                                            code, f"{image_id}.{rev_id}.100"
-                                        )
-                                    },
-                                },
-                            }
+                        selected = fields.setdefault("selected_images", {}).setdefault(
+                            image_type, {"display": {}, "small": {}, "thumb": {}}
                         )
+                        rev_id = images[image_id]["rev"]
+                        for size_name, size in (
+                            ("display", 400),
+                            ("small", 200),
+                            ("thumb", 100),
+                        ):
+                            selected[size_name][language_code] = generate_image_url(
+                                code, f"{image_id}.{rev_id}.{size}"
+                            )
 
         return fields

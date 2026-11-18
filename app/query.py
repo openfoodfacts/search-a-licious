@@ -155,6 +155,17 @@ def build_es_query(
     params: SearchParameters,
     es_query_builder: ElasticsearchQueryBuilder,
 ) -> QueryAnalysis:
+    """Build the elasticsearch_dsl Search for ``params`` from the analyzed query.
+
+    Adds the main query, an optional configured language filter
+    (when ``filter_by_langs`` is set), aggregations, sorting and pagination.
+
+    :param analysis: the analyzed query (luqum tree)
+    :param params: the search parameters
+    :param es_query_builder: the builder to transform the luqum tree
+      to an elasticsearch query
+    :return: the analysis, cloned with the built ``es_query``
+    """
     config = params.index_config
     es_query = Search(index=config.index.name)
     # main query
@@ -171,6 +182,13 @@ def build_es_query(
             raise InvalidLuceneQueryError(
                 "Request could not be transformed by luqum"
             ) from e
+
+    if params.filter_by_langs and config.lang_filter_field is not None:
+        filter_langs = [lang for lang in params.langs if lang != "main"]
+        if filter_langs:
+            es_query = es_query.filter(
+                "terms", **{config.lang_filter_field: filter_langs}
+            )
 
     agg_fields = set(params.facets) if params.facets is not None else set()
     if params.charts is not None:

@@ -228,3 +228,17 @@ def test_autocomplete_empty_query_is_422(default_global_config):
     client = TestClient(app, raise_server_exceptions=True)
     response = client.get("/autocomplete?q=&taxonomy_names=categories")
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_search_language_filter_unsupported_is_422(default_config, monkeypatch, method):
+    """Both endpoints reject an unsupported filter before contacting Elasticsearch."""
+    monkeypatch.setattr(default_config, "lang_filter_field", None)
+    client = TestClient(app, raise_server_exceptions=True)
+    params = {"q": "milk", "langs": "fr", "filter_by_langs": True}
+    if method == "get":
+        response = client.get("/search", params=params)
+    else:
+        response = client.post("/search", json={**params, "langs": ["fr"]})
+    assert response.status_code == 422
+    assert "lang_filter_field" in response.text
