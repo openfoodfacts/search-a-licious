@@ -109,3 +109,40 @@ def test_no_script_configured_removes_the_stored_ones(default_config, es):
     )
     assert fake.stored == {}
     assert stats == {"removed": 2, "added": 0}
+
+
+@pytest.fixture
+def sync_scripts_command(default_config, es, monkeypatch):
+    """Run `sync-scripts` against a fake Elasticsearch, return (exit code, fake)"""
+    from app.cli import main as cli_main
+    from tests.cli_utils import runner_invoke
+
+    def run(stored: dict[str, str], reject: set[str], **scripts):
+        fake = es(stored)
+        fake.reject = reject
+        index_config = _config(default_config, **scripts)
+        monkeypatch.setattr(
+            cli_main, "_get_index_config", lambda *args: ("off", index_config)
+        )
+        monkeypatch.setattr(es_scripts.connection, "get_es_client", mock.Mock())
+        return runner_invoke("sync-scripts").exit_code, fake
+
+    return run
+
+
+def test_sync_scripts_command_succeeds_when_all_scripts_are_stored(
+    sync_scripts_command,
+):
+    exit_code, fake = sync_scripts_command({}, set(), a="1", b="2")
+    assert exit_code == 0
+    assert fake.stored == {"off__a": "1", "off__b": "2"}
+
+
+def test_sync_scripts_command_fails_when_a_script_is_not_stored(sync_scripts_command):
+    exit_code, fake = sync_scripts_command(
+        {"off__a": "old", "off__old": "x"}, {"off__a"}, a="1", b="2"
+    )
+    assert exit_code == 1
+    # the rest of the sync was done: b is stored, the script no longer
+    # configured is removed, and a keeps its previous version
+    assert fake.stored == {"off__a": "old", "off__b": "2"}
