@@ -9872,6 +9872,516 @@
     },
     {
       "kind": "javascript-module",
+      "path": "src/utils/charts.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "refreshCharts",
+          "description": "Refresh vega charts by dispatching a resize event\nThis is needed because vega charts are not displayed correctly because of the hidden sidebar"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "refreshCharts",
+          "declaration": {
+            "name": "refreshCharts",
+            "module": "src/utils/charts.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/utils/constants.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "FACET_TERM_OTHER",
+          "type": {
+            "text": "string"
+          },
+          "default": "'--other--'"
+        },
+        {
+          "kind": "variable",
+          "name": "API_LIST_DIVIDER",
+          "type": {
+            "text": "string"
+          },
+          "default": "','"
+        },
+        {
+          "kind": "variable",
+          "name": "PROPERTY_LIST_DIVIDER",
+          "type": {
+            "text": "string"
+          },
+          "default": "','"
+        },
+        {
+          "kind": "variable",
+          "name": "DEFAULT_SEARCH_NAME",
+          "type": {
+            "text": "string"
+          },
+          "default": "'searchalicious'"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FACET_TERM_OTHER",
+          "declaration": {
+            "name": "FACET_TERM_OTHER",
+            "module": "src/utils/constants.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "API_LIST_DIVIDER",
+          "declaration": {
+            "name": "API_LIST_DIVIDER",
+            "module": "src/utils/constants.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "PROPERTY_LIST_DIVIDER",
+          "declaration": {
+            "name": "PROPERTY_LIST_DIVIDER",
+            "module": "src/utils/constants.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "DEFAULT_SEARCH_NAME",
+          "declaration": {
+            "name": "DEFAULT_SEARCH_NAME",
+            "module": "src/utils/constants.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/utils/enums.ts",
+      "declarations": [],
+      "exports": []
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/utils/index.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "filterObjectByKeys",
+          "return": {
+            "type": {
+              "text": ""
+            }
+          },
+          "parameters": [
+            {
+              "name": "obj",
+              "type": {
+                "text": "T"
+              }
+            },
+            {
+              "name": "keys",
+              "type": {
+                "text": "string[]"
+              }
+            }
+          ],
+          "description": "Filter an object by keys"
+        },
+        {
+          "kind": "function",
+          "name": "isNullOrUndefined",
+          "return": {
+            "type": {
+              "text": "value is null | undefined"
+            }
+          },
+          "parameters": [
+            {
+              "name": "value",
+              "type": {
+                "text": "unknown"
+              }
+            }
+          ],
+          "description": "Check if a value is null or undefined"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "filterObjectByKeys",
+          "declaration": {
+            "name": "filterObjectByKeys",
+            "module": "src/utils/index.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "isNullOrUndefined",
+          "declaration": {
+            "name": "isNullOrUndefined",
+            "module": "src/utils/index.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/utils/search.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "isTheSameSearchName",
+          "return": {
+            "type": {
+              "text": "boolean"
+            }
+          },
+          "parameters": [
+            {
+              "name": "searchName",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "event",
+              "type": {
+                "text": "Event"
+              }
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "isTheSameSearchName",
+          "declaration": {
+            "name": "isTheSameSearchName",
+            "module": "src/utils/search.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/utils/taxonomies.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "getTaxonomyName",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "taxonomy",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Get the taxonomy name from the taxonomy string"
+        },
+        {
+          "kind": "function",
+          "name": "removeLangFromTermId",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "termId",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Remove the language from the term id\nFor exemple: en:termId => termId"
+        },
+        {
+          "kind": "function",
+          "name": "unquoteTerm",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "term",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "unquote a term"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "getTaxonomyName",
+          "declaration": {
+            "name": "getTaxonomyName",
+            "module": "src/utils/taxonomies.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "removeLangFromTermId",
+          "declaration": {
+            "name": "removeLangFromTermId",
+            "module": "src/utils/taxonomies.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "unquoteTerm",
+          "declaration": {
+            "name": "unquoteTerm",
+            "module": "src/utils/taxonomies.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/utils/url.ts",
+      "declarations": [
+        {
+          "kind": "function",
+          "name": "setURLHistory",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "url",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "params",
+              "type": {
+                "text": "Record<string, string | undefined>"
+              }
+            }
+          ],
+          "description": "Set the URL parameters history"
+        },
+        {
+          "kind": "function",
+          "name": "setCurrentURLHistory",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "params",
+              "type": {
+                "text": "Record<string, string | undefined>"
+              }
+            }
+          ],
+          "description": "Set the current URL parameters history"
+        },
+        {
+          "kind": "function",
+          "name": "removeParenthesis",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "value",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Remove parenthesis from a string\nfor example: \"(test OR test2)\" => \"test OR test2\""
+        },
+        {
+          "kind": "function",
+          "name": "addParamPrefix",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "value",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "prefix",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Add a prefix to a string\nfor example: addParamPrefix('test', 'off') => 'off_test'"
+        },
+        {
+          "kind": "function",
+          "name": "addParamPrefixes",
+          "return": {
+            "type": {
+              "text": "Record<string, unknown>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "obj",
+              "type": {
+                "text": "Record<string, unknown>"
+              }
+            },
+            {
+              "name": "prefix",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Add a prefix to all keys of an object"
+        },
+        {
+          "kind": "function",
+          "name": "removeParamPrefix",
+          "return": {
+            "type": {
+              "text": "string"
+            }
+          },
+          "parameters": [
+            {
+              "name": "value",
+              "type": {
+                "text": "string"
+              }
+            },
+            {
+              "name": "prefix",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Remove a prefix from a string\nfor example: removeParamPrefix('off_test', 'off') => 'test'"
+        },
+        {
+          "kind": "function",
+          "name": "removeParamPrefixes",
+          "return": {
+            "type": {
+              "text": "Record<string, string>"
+            }
+          },
+          "parameters": [
+            {
+              "name": "obj",
+              "type": {
+                "text": "Record<string, string>"
+              }
+            },
+            {
+              "name": "prefix",
+              "type": {
+                "text": "string"
+              }
+            }
+          ],
+          "description": "Remove a prefix from all keys of an object"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "setURLHistory",
+          "declaration": {
+            "name": "setURLHistory",
+            "module": "src/utils/url.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "setCurrentURLHistory",
+          "declaration": {
+            "name": "setCurrentURLHistory",
+            "module": "src/utils/url.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "removeParenthesis",
+          "declaration": {
+            "name": "removeParenthesis",
+            "module": "src/utils/url.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "addParamPrefix",
+          "declaration": {
+            "name": "addParamPrefix",
+            "module": "src/utils/url.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "addParamPrefixes",
+          "declaration": {
+            "name": "addParamPrefixes",
+            "module": "src/utils/url.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "removeParamPrefix",
+          "declaration": {
+            "name": "removeParamPrefix",
+            "module": "src/utils/url.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "removeParamPrefixes",
+          "declaration": {
+            "name": "removeParamPrefixes",
+            "module": "src/utils/url.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "src/test/search-bar_test.ts",
       "declarations": [],
       "exports": []
@@ -10568,516 +11078,6 @@
           "declaration": {
             "name": "resetSignalToDefault",
             "module": "src/test/utils.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/utils/charts.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "refreshCharts",
-          "description": "Refresh vega charts by dispatching a resize event\nThis is needed because vega charts are not displayed correctly because of the hidden sidebar"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "refreshCharts",
-          "declaration": {
-            "name": "refreshCharts",
-            "module": "src/utils/charts.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/utils/constants.ts",
-      "declarations": [
-        {
-          "kind": "variable",
-          "name": "FACET_TERM_OTHER",
-          "type": {
-            "text": "string"
-          },
-          "default": "'--other--'"
-        },
-        {
-          "kind": "variable",
-          "name": "API_LIST_DIVIDER",
-          "type": {
-            "text": "string"
-          },
-          "default": "','"
-        },
-        {
-          "kind": "variable",
-          "name": "PROPERTY_LIST_DIVIDER",
-          "type": {
-            "text": "string"
-          },
-          "default": "','"
-        },
-        {
-          "kind": "variable",
-          "name": "DEFAULT_SEARCH_NAME",
-          "type": {
-            "text": "string"
-          },
-          "default": "'searchalicious'"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "FACET_TERM_OTHER",
-          "declaration": {
-            "name": "FACET_TERM_OTHER",
-            "module": "src/utils/constants.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "API_LIST_DIVIDER",
-          "declaration": {
-            "name": "API_LIST_DIVIDER",
-            "module": "src/utils/constants.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "PROPERTY_LIST_DIVIDER",
-          "declaration": {
-            "name": "PROPERTY_LIST_DIVIDER",
-            "module": "src/utils/constants.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "DEFAULT_SEARCH_NAME",
-          "declaration": {
-            "name": "DEFAULT_SEARCH_NAME",
-            "module": "src/utils/constants.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/utils/enums.ts",
-      "declarations": [],
-      "exports": []
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/utils/index.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "filterObjectByKeys",
-          "return": {
-            "type": {
-              "text": ""
-            }
-          },
-          "parameters": [
-            {
-              "name": "obj",
-              "type": {
-                "text": "T"
-              }
-            },
-            {
-              "name": "keys",
-              "type": {
-                "text": "string[]"
-              }
-            }
-          ],
-          "description": "Filter an object by keys"
-        },
-        {
-          "kind": "function",
-          "name": "isNullOrUndefined",
-          "return": {
-            "type": {
-              "text": "value is null | undefined"
-            }
-          },
-          "parameters": [
-            {
-              "name": "value",
-              "type": {
-                "text": "unknown"
-              }
-            }
-          ],
-          "description": "Check if a value is null or undefined"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "filterObjectByKeys",
-          "declaration": {
-            "name": "filterObjectByKeys",
-            "module": "src/utils/index.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "isNullOrUndefined",
-          "declaration": {
-            "name": "isNullOrUndefined",
-            "module": "src/utils/index.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/utils/search.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "isTheSameSearchName",
-          "return": {
-            "type": {
-              "text": "boolean"
-            }
-          },
-          "parameters": [
-            {
-              "name": "searchName",
-              "type": {
-                "text": "string"
-              }
-            },
-            {
-              "name": "event",
-              "type": {
-                "text": "Event"
-              }
-            }
-          ]
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "isTheSameSearchName",
-          "declaration": {
-            "name": "isTheSameSearchName",
-            "module": "src/utils/search.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/utils/taxonomies.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "getTaxonomyName",
-          "return": {
-            "type": {
-              "text": "string"
-            }
-          },
-          "parameters": [
-            {
-              "name": "taxonomy",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Get the taxonomy name from the taxonomy string"
-        },
-        {
-          "kind": "function",
-          "name": "removeLangFromTermId",
-          "return": {
-            "type": {
-              "text": "string"
-            }
-          },
-          "parameters": [
-            {
-              "name": "termId",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Remove the language from the term id\nFor exemple: en:termId => termId"
-        },
-        {
-          "kind": "function",
-          "name": "unquoteTerm",
-          "return": {
-            "type": {
-              "text": "string"
-            }
-          },
-          "parameters": [
-            {
-              "name": "term",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "unquote a term"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "getTaxonomyName",
-          "declaration": {
-            "name": "getTaxonomyName",
-            "module": "src/utils/taxonomies.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "removeLangFromTermId",
-          "declaration": {
-            "name": "removeLangFromTermId",
-            "module": "src/utils/taxonomies.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "unquoteTerm",
-          "declaration": {
-            "name": "unquoteTerm",
-            "module": "src/utils/taxonomies.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/utils/url.ts",
-      "declarations": [
-        {
-          "kind": "function",
-          "name": "setURLHistory",
-          "return": {
-            "type": {
-              "text": "string"
-            }
-          },
-          "parameters": [
-            {
-              "name": "url",
-              "type": {
-                "text": "string"
-              }
-            },
-            {
-              "name": "params",
-              "type": {
-                "text": "Record<string, string | undefined>"
-              }
-            }
-          ],
-          "description": "Set the URL parameters history"
-        },
-        {
-          "kind": "function",
-          "name": "setCurrentURLHistory",
-          "return": {
-            "type": {
-              "text": "string"
-            }
-          },
-          "parameters": [
-            {
-              "name": "params",
-              "type": {
-                "text": "Record<string, string | undefined>"
-              }
-            }
-          ],
-          "description": "Set the current URL parameters history"
-        },
-        {
-          "kind": "function",
-          "name": "removeParenthesis",
-          "return": {
-            "type": {
-              "text": "string"
-            }
-          },
-          "parameters": [
-            {
-              "name": "value",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Remove parenthesis from a string\nfor example: \"(test OR test2)\" => \"test OR test2\""
-        },
-        {
-          "kind": "function",
-          "name": "addParamPrefix",
-          "return": {
-            "type": {
-              "text": "string"
-            }
-          },
-          "parameters": [
-            {
-              "name": "value",
-              "type": {
-                "text": "string"
-              }
-            },
-            {
-              "name": "prefix",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Add a prefix to a string\nfor example: addParamPrefix('test', 'off') => 'off_test'"
-        },
-        {
-          "kind": "function",
-          "name": "addParamPrefixes",
-          "return": {
-            "type": {
-              "text": "Record<string, unknown>"
-            }
-          },
-          "parameters": [
-            {
-              "name": "obj",
-              "type": {
-                "text": "Record<string, unknown>"
-              }
-            },
-            {
-              "name": "prefix",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Add a prefix to all keys of an object"
-        },
-        {
-          "kind": "function",
-          "name": "removeParamPrefix",
-          "return": {
-            "type": {
-              "text": "string"
-            }
-          },
-          "parameters": [
-            {
-              "name": "value",
-              "type": {
-                "text": "string"
-              }
-            },
-            {
-              "name": "prefix",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Remove a prefix from a string\nfor example: removeParamPrefix('off_test', 'off') => 'test'"
-        },
-        {
-          "kind": "function",
-          "name": "removeParamPrefixes",
-          "return": {
-            "type": {
-              "text": "Record<string, string>"
-            }
-          },
-          "parameters": [
-            {
-              "name": "obj",
-              "type": {
-                "text": "Record<string, string>"
-              }
-            },
-            {
-              "name": "prefix",
-              "type": {
-                "text": "string"
-              }
-            }
-          ],
-          "description": "Remove a prefix from all keys of an object"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "setURLHistory",
-          "declaration": {
-            "name": "setURLHistory",
-            "module": "src/utils/url.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "setCurrentURLHistory",
-          "declaration": {
-            "name": "setCurrentURLHistory",
-            "module": "src/utils/url.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "removeParenthesis",
-          "declaration": {
-            "name": "removeParenthesis",
-            "module": "src/utils/url.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "addParamPrefix",
-          "declaration": {
-            "name": "addParamPrefix",
-            "module": "src/utils/url.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "addParamPrefixes",
-          "declaration": {
-            "name": "addParamPrefixes",
-            "module": "src/utils/url.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "removeParamPrefix",
-          "declaration": {
-            "name": "removeParamPrefix",
-            "module": "src/utils/url.ts"
-          }
-        },
-        {
-          "kind": "js",
-          "name": "removeParamPrefixes",
-          "declaration": {
-            "name": "removeParamPrefixes",
-            "module": "src/utils/url.ts"
           }
         }
       ]
