@@ -449,7 +449,8 @@ in your indexed objects.</p>
 
 <p>This is used for incremental updates using Redis queues.</p>
 
-<p>The field value must be an int/float representing the timestamp.</p>
+<p>The field value must be an int/float representing the timestamp.<br />
+either in ms or in seconds (auto-detected).</p>
 </span>
         
 
@@ -4903,6 +4904,9 @@ Otherwise it will allow some gap between words matching</p>
 <span class="description"><p>Name of the Redis stream to read from when listening to document updates.</p>
 
 <p>If not provided, document updates won't be listened to for this index.</p>
+
+<p>The stream  IDs must be time-based (the Redis * default)<br />
+and must use the same clock domain as the <code>last_modified_field</code>.</p>
 </span><div class="any-of-value" id="indices_additionalProperties_redis_stream_name_anyOf"><h2 class="handle">
   <label>Any of</label>
 </h2><ul class="nav nav-tabs" id="tabsindices_additionalProperties_redis_stream_name_anyOf_anyOf" role="tablist"><li class="nav-item">
@@ -5065,6 +5069,6 @@ Otherwise it will allow some gap between words matching</p>
 </div>
 
     <footer>
-        <p class="generated-by-footer">Generated using <a href="https://github.com/coveooss/json-schema-for-humans">json-schema-for-humans</a> on 2026-11-16 at 15:56:37 +0000</p>
+        <p class="generated-by-footer">Generated using <a href="https://github.com/coveooss/json-schema-for-humans">json-schema-for-humans</a> on 2026-11-18 at 13:58:23 +0000</p>
     </footer></body>
 </html>

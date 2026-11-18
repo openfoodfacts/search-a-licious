@@ -57,6 +57,7 @@
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -70,6 +71,8 @@
         <li><a href="config.html#app.config.IndexConfig.add_field_name_to_each_field">(app.config.IndexConfig class method)</a>
 </li>
       </ul></li>
+      <li><a href="misc.html#app.updates.UpdatesStateRecorder.add_pending">add_pending() (app.updates.UpdatesStateRecorder method)</a>
+</li>
       <li><a href="types.html#app._types.AggregateSearchParameters">AggregateSearchParameters (class in app._types)</a>
 </li>
       <li>
@@ -91,6 +94,13 @@
 
       <ul>
         <li><a href="searching.html#module-app.charts">module</a>
+</li>
+      </ul></li>
+      <li>
+    app.checkpoints
+
+      <ul>
+        <li><a href="misc.html#module-app.checkpoints">module</a>
 </li>
       </ul></li>
       <li>
@@ -166,6 +176,13 @@
 </li>
       </ul></li>
       <li>
+    app.updates
+
+      <ul>
+        <li><a href="misc.html#module-app.updates">module</a>
+</li>
+      </ul></li>
+      <li>
     app.utils.analyzers
 
       <ul>
@@ -235,6 +252,8 @@
       <li><a href="types.html#app.validations.check_index_id_is_defined">check_index_id_is_defined() (in module app.validations)</a>
 </li>
       <li><a href="types.html#app._types.QuerySearchParameters.check_max_results">check_max_results() (app._types.QuerySearchParameters method)</a>
+</li>
+      <li><a href="misc.html#app.checkpoints.checkpoint_key">checkpoint_key() (in module app.checkpoints)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -324,13 +343,17 @@
 </li>
       <li><a href="config.html#app.config.IndexConfig.field_references_must_exist_and_be_valid">field_references_must_exist_and_be_valid() (app.config.IndexConfig method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.FieldConfig">FieldConfig (class in app.config)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.FieldType">FieldType (class in app.config)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.find_deepest_nodes">find_deepest_nodes() (app.taxonomy.Taxonomy method)</a>
+</li>
+      <li><a href="misc.html#app.updates.UpdatesStateRecorder.flush">flush() (app.updates.UpdatesStateRecorder method)</a>
+</li>
+      <li><a href="misc.html#app.updates.UpdatesStateRecorder.flush_if_due">flush_if_due() (app.updates.UpdatesStateRecorder method)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.from_dict">from_dict() (app.taxonomy.Taxonomy class method)</a>
 </li>
@@ -370,6 +393,8 @@
 </li>
       <li><a href="searching.html#app.utils.analyzers.get_autocomplete_analyzer">get_autocomplete_analyzer() (in module app.utils.analyzers)</a>
 </li>
+      <li><a href="misc.html#app.checkpoints.get_checkpoint">get_checkpoint() (in module app.checkpoints)</a>
+</li>
       <li><a href="config.html#app.config.get_config">get_config() (in module app.config)</a>
 </li>
       <li><a href="api.html#app.api.get_document">get_document() (in module app.api)</a>
@@ -380,6 +405,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.checkpoints.get_last_indexed_timestamp_ms">get_last_indexed_timestamp_ms() (in module app.checkpoints)</a>
+</li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.get_localized_name">get_localized_name() (app.taxonomy.Taxonomy method)</a>
 
       <ul>
@@ -405,6 +432,8 @@
       <li><a href="searching.html#app.utils.analyzers.get_taxonomy_stop_words_filter">get_taxonomy_stop_words_filter() (in module app.utils.analyzers)</a>
 </li>
       <li><a href="searching.html#app.facets.get_translations">get_translations() (in module app.facets)</a>
+</li>
+      <li><a href="misc.html#app.checkpoints.get_updates_state">get_updates_state() (in module app.checkpoints)</a>
 </li>
       <li><a href="types.html#app._types.GetSearchParameters">GetSearchParameters (class in app._types)</a>
 </li>
@@ -434,6 +463,8 @@
 </li>
       <li><a href="types.html#app._types.QuerySearchParameters.index_config">index_config (app._types.QuerySearchParameters property)</a>
 </li>
+      <li><a href="misc.html#app.updates.index_result_and_track_event">index_result_and_track_event() (in module app.updates)</a>
+</li>
       <li><a href="config.html#app.config.IndexConfig">IndexConfig (class in app.config)</a>
 </li>
       <li><a href="searching.html#app.taxonomy_es.ingest_synonyms_sets">ingest_synonyms_sets() (in module app.taxonomy_es)</a>
@@ -456,6 +487,8 @@
         <li><a href="misc.html#app.taxonomy.TaxonomyNode.is_parent_of_any">(app.taxonomy.TaxonomyNode method)</a>
 </li>
       </ul></li>
+      <li><a href="misc.html#app.updates.is_retryable_error">is_retryable_error() (in module app.updates)</a>
+</li>
       <li><a href="types.html#app._types.FacetInfo.items">items (app._types.FacetInfo attribute)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.iter_nodes">iter_nodes() (app.taxonomy.Taxonomy method)</a>
@@ -570,6 +603,8 @@
 </li>
         <li><a href="searching.html#module-app.charts">app.charts</a>
 </li>
+        <li><a href="misc.html#module-app.checkpoints">app.checkpoints</a>
+</li>
         <li><a href="cli.html#module-app.cli.main">app.cli.main</a>
 </li>
         <li><a href="config.html#module-app.config">app.config</a>
@@ -589,6 +624,8 @@
         <li><a href="misc.html#module-app.taxonomy">app.taxonomy</a>
 </li>
         <li><a href="searching.html#module-app.taxonomy_es">app.taxonomy_es</a>
+</li>
+        <li><a href="misc.html#module-app.updates">app.updates</a>
 </li>
         <li><a href="searching.html#module-app.utils.analyzers">app.utils.analyzers</a>
 </li>
@@ -627,16 +664,18 @@
 </li>
       <li><a href="types.html#app._types.GetSearchParameters.parse_value_str">parse_value_str() (app._types.GetSearchParameters class method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="types.html#app._types.PostSearchParameters">PostSearchParameters (class in app._types)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="searching.html#app.indexing.BaseDocumentPreprocessor.preprocess">preprocess() (app.indexing.BaseDocumentPreprocessor method)</a>
 
       <ul>
         <li><a href="searching.html#app.indexing.BaseTaxonomyPreprocessor.preprocess">(app.indexing.BaseTaxonomyPreprocessor method)</a>
 </li>
       </ul></li>
+      <li><a href="misc.html#app.updates.process_event">process_event() (in module app.updates)</a>
+</li>
       <li><a href="searching.html#app.indexing.process_taxonomy_field">process_taxonomy_field() (in module app.indexing)</a>
 </li>
       <li><a href="searching.html#app.indexing.process_text_lang_field">process_text_lang_field() (in module app.indexing)</a>
@@ -659,12 +698,22 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.Config.redis_stream_name_should_be_unique">redis_stream_name_should_be_unique() (app.config.Config method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.updates.reset_checkpoint_after_import">reset_checkpoint_after_import() (in module app.updates)</a>
+</li>
       <li><a href="types.html#app._types.ResultSearchParameters">ResultSearchParameters (class in app._types)</a>
 </li>
-      <li><a href="cli.html#app.cli.main.run_update_daemon">run_update_daemon() (in module app.cli.main)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.updates.retry_delay">retry_delay() (in module app.updates)</a>
 </li>
+      <li><a href="misc.html#app.updates.retry_until_done">retry_until_done() (in module app.updates)</a>
+</li>
+      <li><a href="cli.html#app.cli.main.run_update_daemon">run_update_daemon() (in module app.cli.main)</a>
+
+      <ul>
+        <li><a href="misc.html#app.updates.run_update_daemon">(in module app.updates)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -693,9 +742,15 @@
 </li>
       <li><a href="types.html#app._types.FacetItem.selected">selected (app._types.FacetItem attribute)</a>
 </li>
+      <li><a href="api.html#app.api.serve_index">serve_index() (in module app.api)</a>
+</li>
+      <li><a href="misc.html#app.updates.UpdatesStateRecorder.set">set() (app.updates.UpdatesStateRecorder method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#app.api.serve_index">serve_index() (in module app.api)</a>
+      <li><a href="misc.html#app.checkpoints.set_checkpoint">set_checkpoint() (in module app.checkpoints)</a>
+</li>
+      <li><a href="misc.html#app.checkpoints.set_updates_state">set_updates_state() (in module app.checkpoints)</a>
 </li>
       <li><a href="config.html#app.config.Settings">Settings (class in app.config)</a>
 </li>
@@ -704,6 +759,8 @@
       <li><a href="types.html#app._types.ResultSearchParameters.sort_by_is_field_or_script">sort_by_is_field_or_script() (app._types.ResultSearchParameters method)</a>
 </li>
       <li><a href="types.html#app._types.PostSearchParameters.sort_by_scripts_needs_params">sort_by_scripts_needs_params() (app._types.PostSearchParameters method)</a>
+</li>
+      <li><a href="misc.html#app.checkpoints.stream_id_from_timestamp_ms">stream_id_from_timestamp_ms() (in module app.checkpoints)</a>
 </li>
       <li><a href="config.html#app.config.FieldConfig.subfields_only_if_object_or_nested">subfields_only_if_object_or_nested() (app.config.FieldConfig method)</a>
 </li>
@@ -737,17 +794,21 @@
 </li>
       <li><a href="misc.html#app.taxonomy.TaxonomyNodeResult">TaxonomyNodeResult (class in app.taxonomy)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.TaxonomySourceConfig">TaxonomySourceConfig (class in app.config)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="misc.html#app.health.test_connect_es">test_connect_es() (in module app.health)</a>
 </li>
       <li><a href="misc.html#app.health.test_connect_redis">test_connect_redis() (in module app.health)</a>
 </li>
+      <li><a href="misc.html#app.health.test_updates_state">test_updates_state() (in module app.health)</a>
+</li>
       <li><a href="config.html#app.config.IndexConfig.text_lang_fields">text_lang_fields (app.config.IndexConfig property)</a>
 </li>
       <li><a href="types.html#app._types.QueryAnalysis.text_query">text_query (app._types.QueryAnalysis attribute)</a>
+</li>
+      <li><a href="misc.html#app.checkpoints.timestamp_ms_from_stream_id">timestamp_ms_from_stream_id() (in module app.checkpoints)</a>
 </li>
       <li><a href="misc.html#app.taxonomy.Taxonomy.to_dict">to_dict() (app.taxonomy.Taxonomy method)</a>
 </li>
@@ -759,6 +820,12 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.checkpoints.updates_state_key">updates_state_key() (in module app.checkpoints)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.updates.UpdatesStateRecorder">UpdatesStateRecorder (class in app.updates)</a>
+</li>
       <li><a href="types.html#app._types.ResultSearchParameters.uses_sort_script">uses_sort_script (app._types.ResultSearchParameters property)</a>
 </li>
   </ul></td>
@@ -774,6 +841,14 @@
       <li><a href="types.html#app._types.QuerySearchParameters.validate_index_id">validate_index_id() (app._types.QuerySearchParameters method)</a>
 </li>
       <li><a href="types.html#app._types.GetSearchParameters.validate_q_or_sort_by">validate_q_or_sort_by() (app._types.GetSearchParameters method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="misc.html#app.updates.wait_for_start_position">wait_for_start_position() (in module app.updates)</a>
 </li>
   </ul></td>
 </tr></table>

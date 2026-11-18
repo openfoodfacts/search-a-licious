@@ -60,7 +60,9 @@ $defs:
           This is used for incremental updates using Redis queues.
 
 
-          The field value must be an int/float representing the timestamp.'
+          The field value must be an int/float representing the timestamp.
+
+          either in ms or in seconds (auto-detected).'
         title: Last Modified Field Name
         type: string
     required:
@@ -489,7 +491,12 @@ $defs:
           updates.
 
 
-          If not provided, document updates won''t be listened to for this index.'
+          If not provided, document updates won''t be listened to for this index.
+
+
+          The stream  IDs must be time-based (the Redis * default)
+
+          and must use the same clock domain as the `last_modified_field`.'
         title: Redis Stream Name
     required:
     - index

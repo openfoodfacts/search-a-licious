@@ -308,6 +308,458 @@ version is available (based on file Etag)</p></li>
 <dd><p>Test connection to REDIS.</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="app.health.test_updates_state">
+<span class="sig-prename descclassname"><span class="pre">app.health.</span></span><span class="sig-name descname"><span class="pre">test_updates_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/health.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.health.test_updates_state" title="Link to this definition">¶</a></dt>
+<dd><p>Report the processing state of the update daemon.</p>
+<p>This is informational only, it never makes the application unhealthy: a
+slow or stopped update daemon must not take the search API out of
+rotation. A daemon that stopped shows up as a growing
+<code class="docutils literal notranslate"><span class="pre">last_message_age_seconds</span></code>.</p>
+</dd></dl>
+
+</section>
+<section id="module-app.updates">
+<span id="index-updates"></span><h2>Index updates<a class="headerlink" href="#module-app.updates" title="Link to this heading">¶</a></h2>
+<p>Update daemon: keep an Elasticsearch index up to date from Redis streams.</p>
+<p>Applications publish the documents that changed to a Redis stream. This module
+consumes such a stream, fetches each changed document and writes it to the
+index, forever.</p>
+<p>Two properties matter here:</p>
+<ul class="simple">
+<li><p><strong>no lost event</strong>: the position reached in the stream is persisted in Redis
+after each handled event (see <a class="reference internal" href="#module-app.checkpoints" title="app.checkpoints"><code class="xref py py-mod docutils literal notranslate"><span class="pre">app.checkpoints</span></code></a>), so a restart resumes
+where it stopped, and an event is never acknowledged before being indexed;</p></li>
+<li><p><strong>no crash on a transient error</strong>: Elasticsearch and Redis outages are
+retried with an exponential backoff, instead of stopping the daemon.</p></li>
+</ul>
+<p>The reader of the stream (<code class="xref py py-func docutils literal notranslate"><span class="pre">app._import.get_new_updates()</span></code>) and the
+document fetchers are shared with the import process, which uses the same
+stream to catch up with the events published during a full import.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="app.updates.UpdatesStateRecorder">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">UpdatesStateRecorder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">redis_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Redis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clock</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable[[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">float]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;built-in</span> <span class="pre">function</span> <span class="pre">monotonic&gt;</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.UpdatesStateRecorder" title="Link to this definition">¶</a></dt>
+<dd><p>Record the processing state of the daemon for the health endpoint.</p>
+<p>The state (the ID of the last event read by the daemon and the number of
+read events still to be processed) is informational: writing it must never
+slow down or break the daemon. Writes are therefore throttled to at most
+one per <code class="docutils literal notranslate"><span class="pre">UPDATES_STATE_WRITE_INTERVAL</span></code> seconds, and errors are logged and
+ignored.</p>
+<p>A throttled write is “leading edge”: the value is written as soon as it
+changes after the interval, the intermediate values being skipped. The
+stream being quiet is the signal to flush the latest value (see
+<a class="reference internal" href="#app.updates.UpdatesStateRecorder.flush_if_due" title="app.updates.UpdatesStateRecorder.flush_if_due"><code class="xref py py-meth docutils literal notranslate"><span class="pre">flush_if_due()</span></code></a>), so that the state settles at its final value when
+the daemon has nothing left to do.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="app.updates.UpdatesStateRecorder.add_pending">
+<span class="sig-name descname"><span class="pre">add_pending</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.UpdatesStateRecorder.add_pending" title="Link to this definition">¶</a></dt>
+<dd><p>Update the number of pending events, keeping the last read ID.</p>
+<p>The write is throttled like <a class="reference internal" href="#app.updates.UpdatesStateRecorder.set" title="app.updates.UpdatesStateRecorder.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>delta</strong> – the number of events to add to (or remove from) the
+pending count</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.updates.UpdatesStateRecorder.flush">
+<span class="sig-name descname"><span class="pre">flush</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.UpdatesStateRecorder.flush" title="Link to this definition">¶</a></dt>
+<dd><p>Write the state now, whatever the throttle says.</p>
+<p>Failures are logged and ignored: the state is not critical.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.updates.UpdatesStateRecorder.flush_if_due">
+<span class="sig-name descname"><span class="pre">flush_if_due</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.UpdatesStateRecorder.flush_if_due" title="Link to this definition">¶</a></dt>
+<dd><p>Write the state if the throttle interval has elapsed.</p>
+<p>Does nothing if a write happened less than <code class="docutils literal notranslate"><span class="pre">interval</span></code> seconds ago.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="app.updates.UpdatesStateRecorder.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">last_read_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pending_events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.UpdatesStateRecorder.set" title="Link to this definition">¶</a></dt>
+<dd><p>Record the current state, throttled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>last_read_id</strong> – the ID of the last event read by the daemon</p></li>
+<li><p><strong>pending_events</strong> – the number of read events still to be processed</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.updates.index_result_and_track_event">
+<span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">index_result_and_track_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">redis_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Redis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">es_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Elasticsearch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.FetcherResult" title="app._types.FetcherResult"><span class="pre">FetcherResult</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="searching.html#app.indexing.DocumentProcessor" title="app.indexing.DocumentProcessor"><span class="pre">DocumentProcessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Event</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.index_result_and_track_event" title="Link to this definition">¶</a></dt>
+<dd><p>Index an event and persist the position it allows to resume from.</p>
+<p>Both steps are retried on transient errors (see <a class="reference internal" href="#app.updates.retry_until_done" title="app.updates.retry_until_done"><code class="xref py py-func docutils literal notranslate"><span class="pre">retry_until_done()</span></code></a>).
+The position is only persisted once the event has been handled (indexed,
+removed, skipped or permanently failed), which gives at-least-once
+semantics: after a crash, the last unconfirmed event is processed again
+(indexing is idempotent).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>redis_client</strong> – the Redis client, storing the checkpoints</p></li>
+<li><p><strong>es_client</strong> – the Elasticsearch client</p></li>
+<li><p><strong>stream_name</strong> – the name of the Redis stream</p></li>
+<li><p><strong>stream_id</strong> – the ID of the event in the stream</p></li>
+<li><p><strong>result</strong> – the document fetched from the stream,
+or None if the document is not to be indexed (e.g. because it was already handled)</p></li>
+<li><p><strong>processor</strong> – the document processor of the target index</p></li>
+<li><p><strong>index_name</strong> – the index (alias) the documents are written to</p></li>
+<li><p><strong>stop_event</strong> – if set while retrying, give up</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the stream cursor to use to read the next event,
+or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the daemon was stopped before the event could be handled</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.updates.is_retryable_error">
+<span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">is_retryable_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Exception</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.is_retryable_error" title="Link to this definition">¶</a></dt>
+<dd><p>Tell whether an error is transient and the operation should be retried.</p>
+<p>The check order matters: in elasticsearch-py 8.x, <code class="docutils literal notranslate"><span class="pre">NotFoundError</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ConflictError</span></code> are subclasses of <code class="docutils literal notranslate"><span class="pre">ApiError</span></code>,
+which is itself a subclass of <code class="docutils literal notranslate"><span class="pre">TransportError</span></code>.
+Subclasses must therefore be tested before their parents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>exc</strong> – the exception raised</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if waiting and retrying may succeed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.updates.process_event">
+<span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">process_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.FetcherResult" title="app._types.FetcherResult"><span class="pre">FetcherResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">processor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="searching.html#app.indexing.DocumentProcessor" title="app.indexing.DocumentProcessor"><span class="pre">DocumentProcessor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">es_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Elasticsearch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.process_event" title="Link to this definition">¶</a></dt>
+<dd><p>Index (or remove) a single document in Elasticsearch.</p>
+<p>This is idempotent: indexing the same document twice only refreshes its
+<code class="docutils literal notranslate"><span class="pre">last_indexed_datetime</span></code>, so it is safe to retry the whole event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream_name</strong> – the name of the Redis stream (for logging)</p></li>
+<li><p><strong>result</strong> – the document fetched from the stream</p></li>
+<li><p><strong>processor</strong> – the document processor of the target index</p></li>
+<li><p><strong>es_client</strong> – the Elasticsearch client</p></li>
+<li><p><strong>index_name</strong> – the index (alias) to write to</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.updates.reset_checkpoint_after_import">
+<span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">reset_checkpoint_after_import</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">es_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Elasticsearch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.models.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.reset_checkpoint_after_import" title="Link to this definition">¶</a></dt>
+<dd><p>Move the update daemon checkpoint to the end of the imported data.</p>
+<p>The import already took into account the stream events up to the most
+recent document (see <code class="xref py py-func docutils literal notranslate"><span class="pre">app._import.get_redis_updates()</span></code>), and the alias
+now points to the new index. Keeping the previous checkpoint would only
+cause a (harmless but wasteful) replay of old events by the daemon.</p>
+<p>This is best effort: a failure here is logged and does not fail the
+import, since a stale checkpoint only leads to a replay.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>es_client</strong> – the Elasticsearch client</p></li>
+<li><p><strong>config</strong> – the index configuration used for the import</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.updates.retry_delay">
+<span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">retry_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attempt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.retry_delay" title="Link to this definition">¶</a></dt>
+<dd><p>Return the delay to wait before the n-th retry of a transient error.</p>
+<p>The delay is <code class="docutils literal notranslate"><span class="pre">RETRY_INITIAL_DELAY</span></code> doubled on each attempt, capped at
+<code class="docutils literal notranslate"><span class="pre">RETRY_MAX_DELAY</span></code>, with a random jitter of +-<code class="docutils literal notranslate"><span class="pre">RETRY_JITTER</span></code> (relative)
+so that several processes don’t retry at the exact same time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attempt</strong> – the number of retries already performed (0 for the first)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the delay in seconds</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.updates.retry_until_done">
+<span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">retry_until_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">what</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_non_retryable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.retry_until_done" title="Link to this definition">¶</a></dt>
+<dd><p>Call func, retrying on transient errors until it is done.</p>
+<p>Transient errors (see <a class="reference internal" href="#app.updates.is_retryable_error" title="app.updates.is_retryable_error"><code class="xref py py-func docutils literal notranslate"><span class="pre">is_retryable_error()</span></code></a>) are retried with an
+exponential backoff, forever: no event is ever skipped because of a
+temporary Elasticsearch or Redis outage. Non-retryable errors are logged
+and skipped by default, so that a single invalid document cannot block the
+whole stream forever (the checkpoint is still advanced by the caller,
+which means the document is only re-indexed if it changes again).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>what</strong> – a short description of the operation, for logging</p></li>
+<li><p><strong>func</strong> – the (idempotent) function to call</p></li>
+<li><p><strong>stop_event</strong> – if set while waiting, give up retrying and return</p></li>
+<li><p><strong>skip_non_retryable</strong> – if True (the default), a non-retryable error is
+logged and the operation is skipped. If False, it is re-raised to the
+caller (used for operations that must not be silently dropped).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the operation was not canceled, False otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.updates.run_update_daemon">
+<span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">run_update_daemon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.Config" title="app.config.models.Config"><span class="pre">Config</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.run_update_daemon" title="Link to this definition">¶</a></dt>
+<dd><p>Run the update import daemon.</p>
+<p>This daemon listens to the Redis stream containing information about
+updated documents, fetches the full document and indexes it in
+Elasticsearch.</p>
+<p>Its position in the stream is persisted in Redis (see
+<a class="reference internal" href="#module-app.checkpoints" title="app.checkpoints"><code class="xref py py-mod docutils literal notranslate"><span class="pre">app.checkpoints</span></code></a>) after each handled event, so that a restart resumes
+where it stopped instead of skipping the events published meanwhile.
+Transient Elasticsearch/Redis errors are retried with a backoff instead of
+crashing the process. If the index is empty and there is no checkpoint yet,
+it waits for the import to populate the index before starting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> – the configuration to use</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.updates.wait_for_start_position">
+<span class="sig-prename descclassname"><span class="pre">app.updates.</span></span><span class="sig-name descname"><span class="pre">wait_for_start_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">redis_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Redis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">es_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Elasticsearch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_modified_field_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Event</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/updates.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.updates.wait_for_start_position" title="Link to this definition">¶</a></dt>
+<dd><p>Wait for the index to be populated, then return the stream ID to start
+reading from.</p>
+<p>The position is read from the persisted checkpoint. If there is none (first
+run, or checkpoint deleted), it is derived from the most recent document of
+the index, so that events published while the daemon was not running are
+not lost.</p>
+<p>Deriving that position requires the index to be populated (usually by an
+import). As long as it is empty, the daemon waits: starting from the end of
+the stream instead would silently drop the events published meanwhile.
+A stop request interrupts the wait.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>redis_client</strong> – the Redis client</p></li>
+<li><p><strong>es_client</strong> – the Elasticsearch client</p></li>
+<li><p><strong>stream_name</strong> – the name of the Redis stream</p></li>
+<li><p><strong>index_name</strong> – the name of the index alias the events are written to</p></li>
+<li><p><strong>last_modified_field_name</strong> – the field holding the last modification
+timestamp of the documents</p></li>
+<li><p><strong>stop_event</strong> – if set while waiting for the index, give up</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the stream ID to start from, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the daemon was asked
+to stop while the index was still empty</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-app.checkpoints">Persist the position reached in a Redis stream.</p>
+<p>The update daemon reads a Redis stream to know which documents changed. To be
+able to resume where it stopped after a restart (deployment, crash, ES blip),
+it stores the ID of the last handled stream entry in Redis.</p>
+<p>A checkpoint is identified by both the stream name <em>and</em> the index alias the
+events are written to, because the same stream may be consumed for different
+indexes.</p>
+<p>This module also stores <em>informational</em> processing state of the update daemon
+(<a class="reference internal" href="#app.checkpoints.set_updates_state" title="app.checkpoints.set_updates_state"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_updates_state()</span></code></a>), read by the health endpoint. It lives under its
+own key prefix, so that it can never interfere with the durability contract of
+the checkpoints.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.checkpoint_key">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">checkpoint_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.checkpoint_key" title="Link to this definition">¶</a></dt>
+<dd><p>Return the Redis key storing the checkpoint of a stream for an index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream_name</strong> – the name of the Redis stream</p></li>
+<li><p><strong>index_name</strong> – the name of the index (the alias) the events are
+written to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the Redis key, e.g.
+<code class="docutils literal notranslate"><span class="pre">searchalicious:checkpoint:product_updates_off:off</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.get_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">get_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">redis_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Redis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.get_checkpoint" title="Link to this definition">¶</a></dt>
+<dd><p>Return the last handled stream ID for this stream and index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>redis_client</strong> – the Redis client</p></li>
+<li><p><strong>stream_name</strong> – the name of the Redis stream</p></li>
+<li><p><strong>index_name</strong> – the name of the index (the alias)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the last handled stream ID, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if there is no checkpoint
+(i.e. the daemon never ran for this stream and index)</p>
+</dd>
+</dl>
+<p>Any Redis error is propagated, so that the caller can distinguish “no
+checkpoint” (<code class="docutils literal notranslate"><span class="pre">None</span></code>) from “could not read the checkpoint” (exception).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.get_last_indexed_timestamp_ms">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">get_last_indexed_timestamp_ms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">es_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Elasticsearch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_modified_field_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.get_last_indexed_timestamp_ms" title="Link to this definition">¶</a></dt>
+<dd><p>Return the <code class="docutils literal notranslate"><span class="pre">last_modified</span></code> timestamp of the most recent document
+in the given index, in milliseconds.</p>
+<p>This is used to derive a starting position in the Redis stream, both at
+the end of a full import and when the daemon has no checkpoint yet.</p>
+<p>To account for possible errors,
+it removes all timestamp that are in the future.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>es_client</strong> – the Elasticsearch client</p></li>
+<li><p><strong>index</strong> – the index (or alias) to query</p></li>
+<li><p><strong>last_modified_field_name</strong> – the name of the field holding the last
+modification timestamp (in seconds)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the newest timestamp in milliseconds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the index
+is empty</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.get_updates_state">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">get_updates_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">redis_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Redis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.get_updates_state" title="Link to this definition">¶</a></dt>
+<dd><p>Return the processing state of the update daemon for this stream/index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>redis_client</strong> – the Redis client</p></li>
+<li><p><strong>stream_name</strong> – the name of the Redis stream</p></li>
+<li><p><strong>index_name</strong> – the name of the index (the alias)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a dict with the <code class="docutils literal notranslate"><span class="pre">last_read_id</span></code> (str or <code class="docutils literal notranslate"><span class="pre">None</span></code>) and
+<code class="docutils literal notranslate"><span class="pre">pending_events</span></code> (int) keys, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the daemon never
+recorded its state (e.g. it never ran)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.set_checkpoint">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">set_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">redis_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Redis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.set_checkpoint" title="Link to this definition">¶</a></dt>
+<dd><p>Record the last handled stream ID for this stream and index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>redis_client</strong> – the Redis client</p></li>
+<li><p><strong>stream_name</strong> – the name of the Redis stream</p></li>
+<li><p><strong>index_name</strong> – the name of the index (the alias)</p></li>
+<li><p><strong>stream_id</strong> – the Redis stream ID of the last handled event</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.set_updates_state">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">set_updates_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">redis_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Redis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_read_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pending_events</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.set_updates_state" title="Link to this definition">¶</a></dt>
+<dd><p>Record the processing state of the update daemon for this stream/index.</p>
+<p>This is purely informational (for monitoring): it is written atomically so
+that a reader never sees a torn state, but it is not part of the resume
+contract.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>redis_client</strong> – the Redis client</p></li>
+<li><p><strong>stream_name</strong> – the name of the Redis stream</p></li>
+<li><p><strong>index_name</strong> – the name of the index (the alias)</p></li>
+<li><p><strong>last_read_id</strong> – the stream ID of the last event read by the daemon</p></li>
+<li><p><strong>pending_events</strong> – the number of read events still to be processed</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.stream_id_from_timestamp_ms">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">stream_id_from_timestamp_ms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp_ms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.stream_id_from_timestamp_ms" title="Link to this definition">¶</a></dt>
+<dd><p>Build a Redis stream ID from a timestamp in milliseconds.</p>
+<p>We use sequence <code class="docutils literal notranslate"><span class="pre">0</span></code>, the lowest possible sequence for this millisecond,
+so that events sharing the same millisecond as the last indexed document
+are replayed rather than skipped (re-indexing a document is idempotent,
+skipping it is not).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>timestamp_ms</strong> – the timestamp in milliseconds</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a stream ID such as <code class="docutils literal notranslate"><span class="pre">&quot;1629878400000-0&quot;</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.timestamp_ms_from_stream_id">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">timestamp_ms_from_stream_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.timestamp_ms_from_stream_id" title="Link to this definition">¶</a></dt>
+<dd><p>Return the timestamp part of a Redis stream ID, in milliseconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>stream_id</strong> – a stream ID such as <code class="docutils literal notranslate"><span class="pre">&quot;1629878400000-0&quot;</span></code></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the timestamp in milliseconds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if the ID cannot be
+parsed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.checkpoints.updates_state_key">
+<span class="sig-prename descclassname"><span class="pre">app.checkpoints.</span></span><span class="sig-name descname"><span class="pre">updates_state_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/checkpoints.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.checkpoints.updates_state_key" title="Link to this definition">¶</a></dt>
+<dd><p>Return the Redis key storing the processing state of the update daemon.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>stream_name</strong> – the name of the Redis stream</p></li>
+<li><p><strong>index_name</strong> – the name of the index (the alias) the events are
+written to</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the Redis key, e.g.
+<code class="docutils literal notranslate"><span class="pre">searchalicious:updates_state:product_updates_off:off</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -353,6 +805,7 @@ version is available (based on file Etag)</p></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Misc</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#taxonomy">Taxonomy</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-app.health">Health check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-app.updates">Index updates</a></li>
 </ul>
 </li>
 </ul>

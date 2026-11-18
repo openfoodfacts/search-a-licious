@@ -467,6 +467,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Continuous updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#update-daemon-checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update daemon checkpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring-the-update-daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitoring the update daemon
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1027,6 +1055,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Continuous updates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#update-daemon-checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update daemon checkpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitoring-the-update-daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitoring the update daemon
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1104,20 +1160,78 @@ if you have another way of getting changes, but this part is up to you.</p>
 <div class="highlight"><pre><span></span><code>docker-compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>updater
 </code></pre></div></p>
 <p>This will continuously fetch updates from the event stream, and update the index accordingly.</p>
-<p>The updater only processes events pushed <strong>after it started</strong>.
-It does not catch up on events pushed while it was stopped.</p>
-<p>To catch up after a downtime, run the <a href="../../devs/ref-python/cli.html#python3-m-app-import"><code>import</code> command</a>
-without <code>--skip-updates</code>: once the import is done, it processes the events of the stream
-since the most recent
-<a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name"><code>last_modified_field_name</code></a>
-found in the index.</p>
-<p>Replay relies on the ids of the Redis stream being Unix timestamps in milliseconds
-(the default <code>&lt;ms&gt;-&lt;seq&gt;</code> ids): events with ids that are not compatible timestamps
-(eg. <code>0-1</code>) would be skipped.</p>
-<p>An event pushed after the replay ended, but before the new index is switched in
-as the alias, would be written to the old index and missed by the new one.
-To be safe, pause the production of events until the import is finished
-and the updater is listening to the stream, then resume it.</p>
+<h3 id="update-daemon-checkpoints">Update daemon checkpoints<a class="headerlink" href="#update-daemon-checkpoints" title="Permanent link">#</a></h3>
+<p>The daemon records its position in the event stream in Redis, after each handled event:</p>
+<ul>
+<li>the key is <code>searchalicious:checkpoint:&lt;stream name&gt;:&lt;index name&gt;</code>,
+  where the index name is the index (alias) the events are written to
+  (the same stream used for two indexes has therefore two checkpoints) ;</li>
+<li>the value is the Redis stream ID of the last handled event.</li>
+</ul>
+<p>When the daemon restarts (deployment, crash, Elasticsearch or Redis outage),
+it resumes from this checkpoint, so events published while it was not running are not lost.
+Transient errors are retried with an exponential backoff instead of crashing the process.</p>
+<p>If there is no checkpoint yet (first run, or after deleting the key),
+the daemon starts from the most recent document of the index, using
+the <a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_index_last_modified_field_name"><code>last_modified_field_name</code> from the configuration</a>,
+to compute the ID the <a href="../ref-config/searchalicious-config-schema.html#indices_additionalProperties_redis_stream_name">redis stream</a>
+(this is why <code>last_modified_field_name</code> must be a timestamp,
+and the redis stream IDs must be time based)</p>
+<p>Hence, the index must be populated before the daemon can start.
+<strong>If the index is empty, the daemon waits for it to be filled</strong> (by an import),
+checking regularly, instead of skipping the events published until then.
+It processes no event until the index has at least one document.</p>
+<p>A successful import (<code>import</code> command, unless <code>--skip-updates</code> is used)
+moves the checkpoint to the most recent imported document,
+so the daemon does not replay events that the import already took into account.</p>
+<p>To force the daemon to start again from the most recent indexed document,</p>
+<ul>
+<li>first stop all updates daemons</li>
+<li>
+<p>then delete the key.</p>
+<p>For this use <code>redis-cli</code> on your redis instance, with:
+<div class="highlight"><pre><span></span><code># replace &lt;stream name&gt; and &lt;index name&gt; with your values
+DEL searchalicious:checkpoint:&lt;stream name&gt;:&lt;index name&gt;
+</code></pre></div></p>
+</li>
+</ul>
+<ul>
+<li>restart updates daemons</li>
+</ul>
+<h3 id="monitoring-the-update-daemon">Monitoring the update daemon<a class="headerlink" href="#monitoring-the-update-daemon" title="Permanent link">#</a></h3>
+<p>Besides its checkpoint, the daemon stores some information about its processing in Redis,
+under the key <code>searchalicious:updates_state:&lt;stream name&gt;:&lt;index name&gt;</code> (a hash):</p>
+<ul>
+<li><code>last_read_id</code>: the Redis stream ID of the last event the daemon read ;</li>
+<li><code>pending_events</code>: how many events the daemon has read and still has to process.</li>
+</ul>
+<p>This state is informational only: writing it is throttled (at most once every 10 seconds,
+plus once when the stream is quiet and on shutdown) and a failure to record it never
+affects the indexing of the events.</p>
+<p>It is reported by the <code>/health</code> API endpoint, in the <code>update-daemon-state</code> check
+(these fields never change the health status of the API):</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"update-daemon-state"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"streams"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"index"</span><span class="p">:</span><span class="w"> </span><span class="s2">"off"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"stream"</span><span class="p">:</span><span class="w"> </span><span class="s2">"product_updates_off"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"last_read_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1762775912345-0"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"last_message_timestamp_ms"</span><span class="p">:</span><span class="w"> </span><span class="mi">1762775912345</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"last_message_age_seconds"</span><span class="p">:</span><span class="w"> </span><span class="mf">12.4</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"pending_events"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>last_message_age_seconds</code> is computed when the endpoint is queried, from the timestamp of
+<code>last_read_id</code>: <strong>it keeps growing if the daemon stops</strong>, which is the signal to watch
+(beware that an idle stream naturally makes it grow as long as no event is published).
+Note that the check result is cached by the health check library for about 30 seconds:
+<code>last_message_age_seconds</code> is the age at the time reported in the <code>timestamp</code> field of
+the <code>update-daemon-state</code> check result, not at the time of the request.
+The fields are <code>null</code> if the daemon never recorded its state.</p>
 <h2 id="updating-the-index-from-time-to-time-with-an-export">Updating the index from time to time with an export<a class="headerlink" href="#updating-the-index-from-time-to-time-with-an-export" title="Permanent link">#</a></h2>
 <p>Another way to update the index is to periodically re-import the all the data, or changed data.</p>
 <p>This is less compelling to your users, but this might be the best way
