@@ -4,6 +4,7 @@ The daemon is run in a thread (so that it can be stopped from the test), on a
 stream that is fed by the test.
 """
 
+import _thread
 import threading
 import time
 from unittest.mock import patch
@@ -61,18 +62,23 @@ def _reset_stream(redis_client):
     )
 
 
-def _wait_for(predicate, msg: str, timeout: float = 30.0, interval: float = 0.1):
-    """Wait until predicate() is truthy, or fail the test"""
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        if predicate():
-            return
-        time.sleep(interval)
-    raise AssertionError(f"condition not met in time: {msg}")
+# A stuck daemon must fail the test instead of blocking it forever (notably in
+# DaemonRunner.stop(), which waits for the daemon thread). Tests are expected
+# to finish well within this delay.
+DAEMON_TEST_TIMEOUT = 60.0
+
+
+class DaemonTimeout(AssertionError):
+    """Raised in the test thread when the daemon does not finish in time"""
 
 
 class DaemonRunner:
-    """Run the update daemon in a background thread, and stop it cleanly"""
+    """Run the update daemon in a background thread, and stop it cleanly
+
+    A watchdog interrupts the test thread (which is then waiting for the
+    daemon) once DAEMON_TEST_TIMEOUT has elapsed, so that a stuck daemon makes
+    the test fail instead of blocking the whole test run.
+    """
 
     def __init__(self, config):
         from app.updates import run_update_daemon
@@ -81,6 +87,8 @@ class DaemonRunner:
         self._config = config
         self._thread: threading.Thread | None = None
         self._error: BaseException | None = None
+        self._watchdog: threading.Timer | None = None
+        self._timed_out = False
 
     def start(self):
         def _target():
@@ -89,15 +97,63 @@ class DaemonRunner:
             except BaseException as exc:  # noqa: BLE001 - reported in stop()
                 self._error = exc
 
+        # a daemon thread: the process must not wait for it at exit
         self._thread = threading.Thread(target=_target, daemon=True)
         self._thread.start()
+        self._watchdog = threading.Timer(DAEMON_TEST_TIMEOUT, self._on_timeout)
+        self._watchdog.daemon = True
+        self._watchdog.start()
+
+    def _on_timeout(self):
+        # Interrupt the test thread: it is blocked in join() or in a polling
+        # wait, and would otherwise never notice that the daemon is stuck.
+        # Raise an AssertionError (a test failure, not an error) from there.
+        self._timed_out = True
+        _thread.interrupt_main()
+
+    def _wait(self, func, timeout: float):
+        """Call a blocking func, absorbing the watchdog interruption"""
+        try:
+            func()
+        except KeyboardInterrupt:
+            if not self._timed_out:
+                raise
+            raise DaemonTimeout(
+                f"update daemon still running after {DAEMON_TEST_TIMEOUT:.0f}s"
+            ) from None
+
+    def wait(self, predicate, msg: str, timeout: float = 30.0, interval: float = 0.1):
+        """Wait until predicate() is truthy, or fail the test
+
+        Unlike a plain polling loop, a stuck daemon interrupts this wait too.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if self._timed_out:
+                raise DaemonTimeout(
+                    f"update daemon still running after {DAEMON_TEST_TIMEOUT:.0f}s"
+                )
+            if predicate():
+                return
+            time.sleep(interval)
+        raise AssertionError(f"condition not met in time: {msg}")
 
     def stop(self, timeout: float = 30.0):
-        """Wait for the thread to end, and re-raise its error if any"""
+        """Wait for the thread to end, and re-raise its error if any.
+
+        Fails the test (instead of blocking) if the daemon is still alive after
+        ``timeout`` seconds.
+        """
         if self._thread is None:
             return
-        self._thread.join(timeout=timeout)
-        assert not self._thread.is_alive(), "daemon did not stop"
+        try:
+            self._wait(lambda: self._thread.join(timeout=timeout), timeout)
+            assert (
+                not self._thread.is_alive()
+            ), f"daemon did not stop within {timeout:.0f}s"
+        finally:
+            if self._watchdog is not None:
+                self._watchdog.cancel()
         if self._error is not None:
             raise self._error
 
@@ -124,7 +180,7 @@ def _run_daemon_until(config, predicate, msg: str, stop_events, timeout=60.0):
     runner = DaemonRunner(config)
     runner.start()
     try:
-        _wait_for(predicate, msg, timeout=timeout)
+        runner.wait(predicate, msg, timeout=timeout)
     finally:
         # ask for a clean stop, like SIGTERM does
         assert stop_events, "daemon did not install its signal handlers"
@@ -269,7 +325,7 @@ def test_update_daemon_cold_start_from_last_indexed_document(
     runner.start()
     try:
         # the daemon started after the newest indexed document
-        _wait_for(
+        runner.wait(
             lambda: (
                 get_checkpoint(redis_client, STREAM_NAME, "test_off") == derived_start
             ),
@@ -284,12 +340,12 @@ def test_update_daemon_cold_start_from_last_indexed_document(
             _document("10000000000005", 1700000005),
             id=recent_id,
         )
-        _wait_for(
+        runner.wait(
             lambda: es_connection.exists(index="test_off", id="10000000000005"),
             "daemon did not process new event in time, can't find document 10000000000005",
             timeout=30,
         )
-        _wait_for(
+        runner.wait(
             lambda: get_checkpoint(redis_client, STREAM_NAME, "test_off") == recent_id,
             "daemon did not persist the checkpoint for the processed event",
             timeout=30,
@@ -361,8 +417,10 @@ def test_update_daemon_waits_for_empty_index_to_be_populated(
 
         # the daemon starts from the newest indexed document: the old event is
         # still ignored...
-        assert started.wait(timeout=30)
-        _wait_for(
+        runner.wait(
+            lambda: started.is_set(), "daemon did not start in time", timeout=30
+        )
+        runner.wait(
             lambda: (
                 get_checkpoint(redis_client, STREAM_NAME, "test_off") == expected_start
             ),
@@ -377,7 +435,7 @@ def test_update_daemon_waits_for_empty_index_to_be_populated(
             _document("10000000000007", 1700000007),
             id=new_event_id,
         )
-        _wait_for(
+        runner.wait(
             lambda: es_connection.exists(index="test_off", id="10000000000007"),
             "daemon did not process new event in time, can't find document 10000000000007",
             timeout=30,

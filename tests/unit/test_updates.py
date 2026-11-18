@@ -1,5 +1,6 @@
 """Tests of the update daemon (app.updates)."""
 
+import _thread
 import threading
 from typing import cast
 from unittest.mock import MagicMock, patch
@@ -21,6 +22,44 @@ from app.updates import (
     run_update_daemon,
     wait_for_start_position,
 )
+
+# A daemon that consumes a finite list of updates stops itself (see
+# StopWhenExhausted). If a test does not provide the events the daemon needs,
+# it would loop forever: this watchdog fails the test after a fixed delay
+# instead of blocking the whole test run.
+DAEMON_TEST_TIMEOUT = 20.0
+
+
+class DaemonTimeout(AssertionError):
+    """Raised in the test thread when the daemon does not finish in time"""
+
+
+def run_with_timeout(func, *args, **kwargs):
+    """Call func, failing the test if it does not return in time
+
+    The watchdog interrupts the test thread (which is blocked in the daemon),
+    and the resulting KeyboardInterrupt is turned into an AssertionError so
+    that the test is reported as a failure, not an error.
+    """
+    timed_out = threading.Event()
+
+    def _on_timeout():
+        timed_out.set()
+        _thread.interrupt_main()
+
+    watchdog = threading.Timer(DAEMON_TEST_TIMEOUT, _on_timeout)
+    watchdog.daemon = True
+    watchdog.start()
+    try:
+        return func(*args, **kwargs)
+    except KeyboardInterrupt:
+        if not timed_out.is_set():
+            raise
+        raise DaemonTimeout(
+            f"update daemon still running after {DAEMON_TEST_TIMEOUT:.0f}s"
+        ) from None
+    finally:
+        watchdog.cancel()
 
 
 def api_meta_response(status: int):
@@ -163,7 +202,7 @@ def run_daemon_for_test(
         # the signal handlers can't be installed outside the main thread
         patch("app.updates._install_signal_handlers", _install),
     ):
-        run_update_daemon(global_config)
+        run_with_timeout(run_update_daemon, global_config)
     return connection_mock
 
 
@@ -172,8 +211,9 @@ def test_run_update_daemon_ignores_removal_of_absent_document(
 ):
     off_config: IndexConfig = default_global_config.indices["off"]
     es_client_mock = MagicMock()
+    # status not_found is important it means it's a document 404, not a missing index
     es_client_mock.delete.side_effect = NotFoundError(
-        "not found", api_meta_response(404), {}
+        "not found", api_meta_response(404), {"status": "not_found"}
     )
     connection_mock, _, redis_client_mock = make_daemon_mocks(off_config, [])
     connection_mock.get_es_client.return_value = es_client_mock
@@ -299,7 +339,7 @@ def test_run_update_daemon(default_global_config: Config):
         ),
         patch("app.updates._install_signal_handlers", _install),
     ):
-        run_update_daemon(default_global_config)
+        run_with_timeout(run_update_daemon, default_global_config)
 
     # Assertions
     connection_mock.get_es_client.assert_called()
@@ -440,7 +480,7 @@ def test_run_update_daemon_retries_fetcher_retry_status(
         patch("app.updates._install_signal_handlers", _install_stop_after_first_read),
         patch("app.updates.retry_delay", MagicMock(return_value=0)),
     ):
-        run_update_daemon(default_global_config)
+        run_with_timeout(run_update_daemon, default_global_config)
 
     # the reader was rebuilt after the RETRY...
     assert get_new_updates_mock.call_count == 2
@@ -524,7 +564,7 @@ def test_run_update_daemon_cold_start_from_last_indexed_document(
         # stop the daemon after the (empty) stream was read once
         patch("app.updates._install_signal_handlers", _install_stop_after_first_read),
     ):
-        run_update_daemon(default_global_config)
+        run_with_timeout(run_update_daemon, default_global_config)
 
     # the derived position is passed to the reader and persisted
     assert get_new_updates_mock.call_args.kwargs["min_ids"] == {
@@ -560,7 +600,7 @@ def test_run_update_daemon_waits_for_empty_index_to_be_populated(
         patch("app.updates._install_signal_handlers", _install_and_stop),
         patch("app.updates.retry_delay", MagicMock(return_value=0)),
     ):
-        run_update_daemon(default_global_config)
+        run_with_timeout(run_update_daemon, default_global_config)
 
     # the reader was never started: events published before the import must
     # not be silently skipped
@@ -666,7 +706,7 @@ def test_run_update_daemon_restarts_reader_after_redis_error(
         patch("app.updates._install_signal_handlers", _install_stop_after_first_read),
         patch("app.updates.retry_delay", MagicMock(return_value=0)),
     ):
-        run_update_daemon(default_global_config)
+        run_with_timeout(run_update_daemon, default_global_config)
 
     # the reader was rebuilt once, from the persisted checkpoint
     assert len(calls) == 2
@@ -694,7 +734,7 @@ def test_run_update_daemon_raises_non_retryable_reader_error(
         patch("app.updates._install_signal_handlers", _install_stop_after_first_read),
     ):
         with pytest.raises(ValueError, match="a bug"):
-            run_update_daemon(default_global_config)
+            run_with_timeout(run_update_daemon, default_global_config)
 
 
 def test_track_event_returns_plain_stream_id():
@@ -738,10 +778,16 @@ def test_is_retryable_error():
     assert is_retryable_error(
         elasticsearch.ApiError("too many requests", api_meta_response(429), "body")
     )
-    # NotFoundError and ConflictError are subclasses of ApiError but must not
-    # be retried
+    # NotFoundError and ConflictError are subclasses
+    # of ApiError but must notbe retried if it's for a document
     assert not is_retryable_error(
-        NotFoundError("not found", api_meta_response(404), {})
+        NotFoundError("not found", api_meta_response(404), {"status": "not_found"})
+    )
+    # but retried if it's a missing index
+    assert is_retryable_error(
+        NotFoundError(
+            "not found", api_meta_response(404), {"error": {"type": "not_found"}}
+        )
     )
     assert not is_retryable_error(
         elasticsearch.ConflictError("conflict", api_meta_response(409), {})

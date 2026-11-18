@@ -181,6 +181,12 @@ def is_retryable_error(exc: Exception) -> bool:
     """
     if isinstance(exc, TransientFetcherError):
         return True
+    if isinstance(exc, NotFoundError):
+        # document is already absent from the index, nothing to do
+        is_document_level_exc = (
+            "error" not in exc.body and exc.body.get("status") == "not_found"
+        )
+        return not is_document_level_exc
     if isinstance(exc, (NotFoundError, ConflictError)):
         # Document-level errors: retrying the same request will not help.
         return False
@@ -252,9 +258,13 @@ def process_event(
     if processed_result.status == FetcherStatus.REMOVED:
         try:
             es_client.delete(index=index_name, id=_id)
-        except NotFoundError:
-            # already absent from the index, nothing to do
-            logger.info("Document %s to remove is not in the index", _id)
+        except NotFoundError as e:
+            if "error" not in e.body and e.body.get("status") == "not_found":
+                # document is already absent from the index, nothing to do
+                logger.info("Document %s to remove is not in the index", _id)
+            else:
+                # reraise the exception, it is a real error (index missing or other)
+                raise
     else:
         es_client.index(index=index_name, body=processed_document, id=_id)
 
