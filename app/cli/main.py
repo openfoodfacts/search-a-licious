@@ -90,6 +90,10 @@ def import_data(
 
     File must contains one JSON document per line,
     each document must have same format as a document returned by the API.
+
+    A document that can not be prepared or indexed is skipped and reported:
+    it is logged and counted as an error, and the command then exits with a
+    non-zero code.
     """
     import time
 
@@ -276,8 +280,8 @@ def run_update_daemon(
     """
 
     from app import config
-    from app._import import run_update_daemon
     from app.config import set_global_config, settings
+    from app.updates import run_update_daemon
     from app.utils import get_logger, init_sentry
 
     # Create root logger

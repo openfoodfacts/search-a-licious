@@ -49,3 +49,10 @@ class TooManySynonymsSetsException(IndexException):
     This is due to the fact that
     Elasticsearch has a limit of 10000 synonyms rules per set.
     """
+
+
+class TransientFetcherError(Exception):
+    """A transient error occurred while fetching a document.
+
+    This is a temporary error that should be retried later.
+    """

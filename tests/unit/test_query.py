@@ -5,7 +5,13 @@ from typing import Any
 import pytest
 from luqum.parser import parser
 
-from app._types import JSONType, QueryAnalysis, SearchParameters
+from app._types import (
+    JSONType,
+    PostChartSearchParameters,
+    QueryAnalysis,
+    ScatterChart,
+    SearchParameters,
+)
 from app.config import ANALYZER_LANG_MAPPING, Config, IndexConfig
 from app.es_query_builder import FullTextQueryBuilder
 from app.exceptions import QueryAnalysisError
@@ -389,3 +395,53 @@ def test_completion_query_only_asks_for_the_fields_it_uses(default_config: Index
     assert body["_source"] == ["id", "taxonomy_name", "name"]
     # the suggestions are still all there
     assert set(body["suggest"]) == {"taxonomy_suggest_en", "taxonomy_suggest_fr"}
+
+
+def test_build_chart_query(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    charts = [
+        ScatterChart(x="nutriments.fat_100g", y="completeness"),
+        ScatterChart(x="scans_n", y="completeness"),
+    ]
+    params = PostChartSearchParameters(
+        q="milk", charts=charts, max_entries=7, sort_by="-scans_n"
+    )
+    es_query = build_search_query(
+        params, es_query_builder=default_filter_query_builder
+    )._dict_dump()["es_query"]
+    assert es_query["size"] == 7
+    assert es_query["from"] == 0
+    assert es_query["_source"] == ["completeness", "nutriments.fat_100g", "scans_n"]
+    assert "aggs" not in es_query
+    assert es_query["sort"] == [{"scans_n": {"order": "desc"}}]
+    should = [
+        f["bool"]["should"]
+        for f in es_query["query"]["bool"]["filter"]
+        if "should" in f.get("bool", {})
+    ]
+    assert should == [
+        [
+            {"bool": {"filter": [{"exists": {"field": x}}, {"exists": {"field": y}}]}}
+            for x, y in [
+                ("nutriments.fat_100g", "completeness"),
+                ("scans_n", "completeness"),
+            ]
+        ]
+    ]
+
+
+def test_build_chart_query_sort_script(
+    default_config: IndexConfig,
+    default_filter_query_builder: FullTextQueryBuilder,
+):
+    params = PostChartSearchParameters(
+        charts=[ScatterChart(x="scans_n", y="completeness")],
+        sort_by="personal_score",
+        sort_params={"environmental_score": 1, "nutri_score": 1, "nova_group": 1},
+    )
+    es_query = build_search_query(
+        params, es_query_builder=default_filter_query_builder
+    )._dict_dump()["es_query"]
+    assert "_script" in es_query["sort"][0]
