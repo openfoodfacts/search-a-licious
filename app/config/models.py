@@ -463,6 +463,7 @@ class ESIndexConfig(BaseESIndexConfig):
                 This is used for incremental updates using Redis queues.
 
                 The field value must be an int/float representing the timestamp.
+                either in ms or in seconds (auto-detected).
                 """
             )
         ),
@@ -761,6 +762,9 @@ class IndexConfig(BaseModel):
                 """Name of the Redis stream to read from when listening to document updates.
 
                 If not provided, document updates won't be listened to for this index.
+
+                The stream  IDs must be time-based (the Redis * default)
+                and must use the same clock domain as the `last_modified_field`.
                 """
             )
         ),
