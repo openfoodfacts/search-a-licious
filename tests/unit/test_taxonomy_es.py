@@ -110,3 +110,16 @@ def test_lookup_started_before_a_clear_does_not_fill_the_cache(default_config, f
     fetch.meanwhile = None
     get_taxonomy_names(ITEMS, default_config)
     assert len(fetch.searches) == 2
+
+
+def test_names_are_returned_when_the_cache_cannot_store_them(
+    default_config, fetch, monkeypatch
+):
+    """Reads take no lock: with cachetools, one can make an eviction fail"""
+
+    class FailingCache(cachetools.TTLCache):
+        def __setitem__(self, key, value):
+            raise RuntimeError("OrderedDict mutated during iteration")
+
+    monkeypatch.setattr(taxonomy_es, "_NAMES_CACHE", FailingCache(maxsize=10, ttl=3600))
+    assert get_taxonomy_names(ITEMS, default_config) == NAMES

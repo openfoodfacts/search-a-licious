@@ -24,9 +24,15 @@ from app.utils.lists import batch
 # process, so the entries expire instead of being invalidated.
 TAXONOMY_NAMES_CACHE_SIZE = 10_000
 TAXONOMY_NAMES_CACHE_TTL = 3600  # seconds
-_NAMES_CACHE: cachetools.TTLCache = cachetools.TTLCache(
-    maxsize=TAXONOMY_NAMES_CACHE_SIZE, ttl=TAXONOMY_NAMES_CACHE_TTL
-)
+
+
+def _new_names_cache() -> cachetools.TTLCache:
+    return cachetools.TTLCache(
+        maxsize=TAXONOMY_NAMES_CACHE_SIZE, ttl=TAXONOMY_NAMES_CACHE_TTL
+    )
+
+
+_NAMES_CACHE = _new_names_cache()
 # the API serves requests in several threads: the lock protects the writes,
 # reading a name that is slightly outdated or just evicted is harmless
 _NAMES_CACHE_LOCK = threading.Lock()
@@ -37,9 +43,11 @@ _NAMES_CACHE_GENERATION = 0
 
 def clear_taxonomy_names_cache() -> None:
     """Forget the names that were already looked up"""
-    global _NAMES_CACHE_GENERATION
+    global _NAMES_CACHE, _NAMES_CACHE_GENERATION
     with _NAMES_CACHE_LOCK:
-        _NAMES_CACHE.clear()
+        # a new cache rather than clear(): it evicts entry by entry, which can
+        # fail while another thread reads (see below)
+        _NAMES_CACHE = _new_names_cache()
         _NAMES_CACHE_GENERATION += 1
 
 
@@ -82,7 +90,13 @@ def get_taxonomy_names(
                 for item in missing:
                     names = fetched.get(item)
                     if names is not None or absence_is_known:
-                        _NAMES_CACHE[(index_name, *item)] = names
+                        try:
+                            _NAMES_CACHE[(index_name, *item)] = names
+                        except RuntimeError:
+                            # a read (which takes no lock) reordered the cache
+                            # while it was evicting an entry: this name is
+                            # simply not kept
+                            continue
         translations.update(fetched)
     return translations
 
