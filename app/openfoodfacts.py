@@ -199,24 +199,16 @@ class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
     def preprocess(self, taxonomy: Taxonomy, node: TaxonomyNode) -> TaxonomyNodeResult:
         """Preprocess a taxonomy node.
 
-        We add the main language, and we also have specificities for some
-        taxonomies.
+        We add the main language, and the `xx` (language independent) entries
+        to every supported language.
         """
-        if taxonomy.name == "brands":
-            # brands are all stored under the `xx` lang prefix,
-            # put them in "main lang" (or pick en, or a random one)
-            if "xx" in node.names:
-                node.names.update(main=node.names["xx"])
-            if node.synonyms and (synonyms_xx := list(node.synonyms.get("xx", []))):
-                node.synonyms.update(main=synonyms_xx)
-        else:
-            # main language is entry id prefix + eventual xx entries
-            id_lang = node.id.split(":")[0]
-            if node_names := node.names.get(id_lang):
-                node.names.update(main=node_names)
-            node.synonyms.update(main=list(node.synonyms.get(id_lang, [])))
+        # main language is entry id prefix + eventual xx entries
+        # (the ids of brands start with `xx:`, they have no other language)
+        id_lang = node.id.split(":")[0]
+        if node_names := node.names.get(id_lang):
+            node.names.update(main=node_names)
+        node.synonyms.update(main=list(node.synonyms.get(id_lang, [])))
         # add eventual xx entries as synonyms to all languages
-        # (brands have only these, so without it no language finds them)
         xx_name = node.names.get("xx")
         xx_names = [xx_name] if xx_name else []
         xx_names += node.synonyms.get("xx", [])
