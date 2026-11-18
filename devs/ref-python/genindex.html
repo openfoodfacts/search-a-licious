@@ -213,6 +213,8 @@
 </li>
       <li><a href="config.html#app.config.BaseESIndexConfig">BaseESIndexConfig (class in app.config)</a>
 </li>
+      <li><a href="types.html#app._types.BaseSearchParameters">BaseSearchParameters (class in app._types)</a>
+</li>
       <li><a href="searching.html#app.indexing.BaseTaxonomyPreprocessor">BaseTaxonomyPreprocessor (class in app.indexing)</a>
 </li>
       <li><a href="config.html#app.config.FieldConfig.bucket_agg_should_be_used_for_keyword_and_numeric_types_only">bucket_agg_should_be_used_for_keyword_and_numeric_types_only() (app.config.FieldConfig method)</a>
@@ -239,24 +241,38 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#app.api.chart">chart() (in module app.api)</a>
+
+      <ul>
+        <li><a href="searching.html#app.search.chart">(in module app.search)</a>
+</li>
+      </ul></li>
+      <li><a href="api.html#app.api.chart_get">chart_get() (in module app.api)</a>
+</li>
+      <li><a href="types.html#app._types.ChartSearchParameters">ChartSearchParameters (class in app._types)</a>
+</li>
       <li><a href="types.html#app._types.ChartsInfos">ChartsInfos (in module app._types)</a>
 </li>
       <li><a href="types.html#app.validations.check_all_values_are_fields_agg">check_all_values_are_fields_agg() (in module app.validations)</a>
 </li>
       <li><a href="types.html#app._types.AggregateSearchParameters.check_charts_are_valid">check_charts_are_valid() (app._types.AggregateSearchParameters method)</a>
+
+      <ul>
+        <li><a href="types.html#app._types.ChartSearchParameters.check_charts_are_valid">(app._types.ChartSearchParameters method)</a>
 </li>
+      </ul></li>
       <li><a href="types.html#app._types.AggregateSearchParameters.check_facets_are_valid">check_facets_are_valid() (app._types.AggregateSearchParameters method)</a>
 </li>
       <li><a href="types.html#app.validations.check_fields_are_numeric">check_fields_are_numeric() (in module app.validations)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="types.html#app.validations.check_index_id_is_defined">check_index_id_is_defined() (in module app.validations)</a>
 </li>
-      <li><a href="types.html#app._types.QuerySearchParameters.check_max_results">check_max_results() (app._types.QuerySearchParameters method)</a>
+      <li><a href="types.html#app._types.ResultSearchParameters.check_max_results">check_max_results() (app._types.ResultSearchParameters method)</a>
 </li>
       <li><a href="misc.html#app.checkpoints.checkpoint_key">checkpoint_key() (in module app.checkpoints)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="cli.html#app.cli.main.cleanup_indexes">cleanup_indexes() (in module app.cli.main)</a>
 </li>
       <li><a href="types.html#app._types.CommonParametersQuery">CommonParametersQuery (class in app._types)</a>
@@ -279,7 +295,7 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.SearchParameters.debug_info_list_from_str">debug_info_list_from_str() (app._types.SearchParameters class method)</a>
+      <li><a href="types.html#app._types.BaseSearchParameters.debug_info_list_from_str">debug_info_list_from_str() (app._types.BaseSearchParameters class method)</a>
 </li>
       <li><a href="types.html#app._types.DebugInfo">DebugInfo (class in app._types)</a>
 </li>
@@ -403,10 +419,10 @@
 </li>
       <li><a href="config.html#app.config.FieldConfig.get_input_field">get_input_field() (app.config.FieldConfig method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="misc.html#app.checkpoints.get_last_indexed_timestamp_ms">get_last_indexed_timestamp_ms() (in module app.checkpoints)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="misc.html#app.taxonomy.Taxonomy.get_localized_name">get_localized_name() (app.taxonomy.Taxonomy method)</a>
 
       <ul>
@@ -435,6 +451,10 @@
 </li>
       <li><a href="misc.html#app.checkpoints.get_updates_state">get_updates_state() (in module app.checkpoints)</a>
 </li>
+      <li><a href="types.html#app._types.GetBaseSearchParameters">GetBaseSearchParameters (class in app._types)</a>
+</li>
+      <li><a href="types.html#app._types.GetChartSearchParameters">GetChartSearchParameters (class in app._types)</a>
+</li>
       <li><a href="types.html#app._types.GetSearchParameters">GetSearchParameters (class in app._types)</a>
 </li>
   </ul></td>
@@ -444,6 +464,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config.html#app.config.FieldConfig.has_lang_subfield">has_lang_subfield() (app.config.FieldConfig method)</a>
+</li>
+      <li><a href="searching.html#app.charts.has_scatter_values">has_scatter_values() (in module app.charts)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -538,6 +560,10 @@
       <li><a href="types.html#app._types.AggregateSearchParameters.model_config">model_config (app._types.AggregateSearchParameters attribute)</a>
 
       <ul>
+        <li><a href="types.html#app._types.BaseSearchParameters.model_config">(app._types.BaseSearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.ChartSearchParameters.model_config">(app._types.ChartSearchParameters attribute)</a>
+</li>
         <li><a href="types.html#app._types.DistributionChart.model_config">(app._types.DistributionChart attribute)</a>
 </li>
         <li><a href="types.html#app._types.ErrorSearchResponse.model_config">(app._types.ErrorSearchResponse attribute)</a>
@@ -548,7 +574,15 @@
 </li>
         <li><a href="types.html#app._types.FetcherResult.model_config">(app._types.FetcherResult attribute)</a>
 </li>
+        <li><a href="types.html#app._types.GetBaseSearchParameters.model_config">(app._types.GetBaseSearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.GetChartSearchParameters.model_config">(app._types.GetChartSearchParameters attribute)</a>
+</li>
         <li><a href="types.html#app._types.GetSearchParameters.model_config">(app._types.GetSearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.PostBaseSearchParameters.model_config">(app._types.PostBaseSearchParameters attribute)</a>
+</li>
+        <li><a href="types.html#app._types.PostChartSearchParameters.model_config">(app._types.PostChartSearchParameters attribute)</a>
 </li>
         <li><a href="types.html#app._types.PostSearchParameters.model_config">(app._types.PostSearchParameters attribute)</a>
 </li>
@@ -563,6 +597,8 @@
         <li><a href="types.html#app._types.SearchResponseDebug.model_config">(app._types.SearchResponseDebug attribute)</a>
 </li>
         <li><a href="types.html#app._types.SearchResponseError.model_config">(app._types.SearchResponseError attribute)</a>
+</li>
+        <li><a href="types.html#app._types.SortSearchParameters.model_config">(app._types.SortSearchParameters attribute)</a>
 </li>
         <li><a href="types.html#app._types.SuccessSearchResponse.model_config">(app._types.SuccessSearchResponse attribute)</a>
 </li>
@@ -654,8 +690,12 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="types.html#app._types.GetSearchParameters.parse_charts_str">parse_charts_str() (app._types.GetSearchParameters class method)</a>
+      <li><a href="types.html#app._types.GetChartSearchParameters.parse_charts_str">parse_charts_str() (app._types.GetChartSearchParameters class method)</a>
+
+      <ul>
+        <li><a href="types.html#app._types.GetSearchParameters.parse_charts_str">(app._types.GetSearchParameters class method)</a>
 </li>
+      </ul></li>
       <li><a href="types.html#app._types.QuerySearchParameters.parse_langs_str">parse_langs_str() (app._types.QuerySearchParameters class method)</a>
 </li>
       <li><a href="searching.html#app.query.parse_sort_by_field">parse_sort_by_field() (in module app.query)</a>
@@ -664,10 +704,14 @@
 </li>
       <li><a href="types.html#app._types.GetSearchParameters.parse_value_str">parse_value_str() (app._types.GetSearchParameters class method)</a>
 </li>
-      <li><a href="types.html#app._types.PostSearchParameters">PostSearchParameters (class in app._types)</a>
+      <li><a href="types.html#app._types.PostBaseSearchParameters">PostBaseSearchParameters (class in app._types)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="types.html#app._types.PostChartSearchParameters">PostChartSearchParameters (class in app._types)</a>
+</li>
+      <li><a href="types.html#app._types.PostSearchParameters">PostSearchParameters (class in app._types)</a>
+</li>
       <li><a href="searching.html#app.indexing.BaseDocumentPreprocessor.preprocess">preprocess() (app.indexing.BaseDocumentPreprocessor method)</a>
 
       <ul>
@@ -756,9 +800,11 @@
 </li>
       <li><a href="config.html#app.config.SettingsGenerateJsonSchema">SettingsGenerateJsonSchema (class in app.config)</a>
 </li>
-      <li><a href="types.html#app._types.ResultSearchParameters.sort_by_is_field_or_script">sort_by_is_field_or_script() (app._types.ResultSearchParameters method)</a>
+      <li><a href="types.html#app._types.SortSearchParameters.sort_by_is_field_or_script">sort_by_is_field_or_script() (app._types.SortSearchParameters method)</a>
 </li>
-      <li><a href="types.html#app._types.PostSearchParameters.sort_by_scripts_needs_params">sort_by_scripts_needs_params() (app._types.PostSearchParameters method)</a>
+      <li><a href="types.html#app._types.PostBaseSearchParameters.sort_by_scripts_needs_params">sort_by_scripts_needs_params() (app._types.PostBaseSearchParameters method)</a>
+</li>
+      <li><a href="types.html#app._types.SortSearchParameters">SortSearchParameters (class in app._types)</a>
 </li>
       <li><a href="misc.html#app.checkpoints.stream_id_from_timestamp_ms">stream_id_from_timestamp_ms() (in module app.checkpoints)</a>
 </li>
@@ -826,7 +872,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="misc.html#app.updates.UpdatesStateRecorder">UpdatesStateRecorder (class in app.updates)</a>
 </li>
-      <li><a href="types.html#app._types.ResultSearchParameters.uses_sort_script">uses_sort_script (app._types.ResultSearchParameters property)</a>
+      <li><a href="types.html#app._types.SortSearchParameters.uses_sort_script">uses_sort_script (app._types.SortSearchParameters property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -840,7 +886,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="types.html#app._types.QuerySearchParameters.validate_index_id">validate_index_id() (app._types.QuerySearchParameters method)</a>
 </li>
-      <li><a href="types.html#app._types.GetSearchParameters.validate_q_or_sort_by">validate_q_or_sort_by() (app._types.GetSearchParameters method)</a>
+      <li><a href="types.html#app._types.GetBaseSearchParameters.validate_q_or_sort_by">validate_q_or_sort_by() (app._types.GetBaseSearchParameters method)</a>
 </li>
   </ul></td>
 </tr></table>

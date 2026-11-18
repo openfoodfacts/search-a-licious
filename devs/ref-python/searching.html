@@ -251,7 +251,7 @@ according to our configuration</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="app.query.build_search_query">
-<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">build_search_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.SearchParameters" title="app._types.SearchParameters"><span class="pre">SearchParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">es_query_builder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ElasticsearchQueryBuilder</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.build_search_query" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">app.query.</span></span><span class="sig-name descname"><span class="pre">build_search_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.BaseSearchParameters" title="app._types.BaseSearchParameters"><span class="pre">BaseSearchParameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">es_query_builder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ElasticsearchQueryBuilder</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="types.html#app._types.QueryAnalysis" title="app._types.QueryAnalysis"><span class="pre">QueryAnalysis</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/query.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.query.build_search_query" title="Link to this definition">¶</a></dt>
 <dd><p>Build an elasticsearch_dsl Query.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -302,6 +302,12 @@ subfield.</p>
 </section>
 <section id="module-app.search">
 <span id="search"></span><h2>Search<a class="headerlink" href="#module-app.search" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.search.chart">
+<span class="sig-prename descclassname"><span class="pre">app.search.</span></span><span class="sig-name descname"><span class="pre">chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.ChartSearchParameters" title="app._types.ChartSearchParameters"><span class="pre">ChartSearchParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="types.html#app._types.ErrorSearchResponse" title="app._types.ErrorSearchResponse"><span class="pre">ErrorSearchResponse</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="types.html#app._types.SuccessSearchResponse" title="app._types.SuccessSearchResponse"><span class="pre">SuccessSearchResponse</span></a></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/search.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.search.chart" title="Link to this definition">¶</a></dt>
+<dd><p>Build scatter charts from the first <cite>max_entries</cite> results</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="app.search.invalidate_runtime_caches">
 <span class="sig-prename descclassname"><span class="pre">app.search.</span></span><span class="sig-name descname"><span class="pre">invalidate_runtime_caches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/search.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.search.invalidate_runtime_caches" title="Link to this definition">¶</a></dt>
@@ -369,11 +375,7 @@ Inspiration: <a class="reference external" href="https://vega.github.io/vega/exa
 <dl class="py function">
 <dt class="sig sig-object py" id="app.charts.build_scatter_chart">
 <span class="sig-prename descclassname"><span class="pre">app.charts.</span></span><span class="sig-name descname"><span class="pre">build_scatter_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chart_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.ScatterChart" title="app._types.ScatterChart"><span class="pre">ScatterChart</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="config.html#app.config.IndexConfig" title="app.config.models.IndexConfig"><span class="pre">IndexConfig</span></a></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/charts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.charts.build_scatter_chart" title="Link to this definition">¶</a></dt>
-<dd><p>Build a scatter plot only for values from search_results
-(only values in the current page)
-TECHDEBT(SAL-TECHDEBT-005): evaluate using full result set
-(or dedicated aggregation)
-instead of current page only.
+<dd><p>Build a scatter plot for the values of search_result hits
 Inspiration: <a class="reference external" href="https://vega.github.io/vega/examples/scatter-plot/">https://vega.github.io/vega/examples/scatter-plot/</a></p>
 </dd></dl>
 
@@ -389,6 +391,12 @@ It would have been possible to use higher lever vega-lite API,
 which is able to write vega specifications but it’s probably too
 much for our usage
 Inspired by: <a class="reference external" href="https://vega.github.io/vega/examples/bar-chart/">https://vega.github.io/vega/examples/bar-chart/</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="app.charts.has_scatter_values">
+<span class="sig-prename descclassname"><span class="pre">app.charts.</span></span><span class="sig-name descname"><span class="pre">has_scatter_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chart_option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="types.html#app._types.ScatterChart" title="app._types.ScatterChart"><span class="pre">ScatterChart</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/charts.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.charts.has_scatter_values" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the hit has both values of the scatter chart</p>
 </dd></dl>
 
 </section>
