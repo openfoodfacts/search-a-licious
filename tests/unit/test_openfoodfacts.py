@@ -21,9 +21,9 @@ def test_prod_config(fname, load_expected_result):
     # than the config parser
     conf = app.config.Config.from_yaml(Path(f"data/config/{fname}.yml"))
     expected_conf = load_expected_result(
-        f"test_prod_config_{fname}", json.loads(conf.json())
+        f"test_prod_config_{fname}", json.loads(conf.model_dump_json())
     )
-    assert expected_conf == json.loads(conf.json())
+    assert expected_conf == json.loads(conf.model_dump_json())
 
 
 def test_openfoodfacts_document_processor(load_expected_result):
