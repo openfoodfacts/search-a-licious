@@ -278,15 +278,6 @@ class QuerySearchParameters(BaseModel):
             raise ValueError("`index_id` was not yet provided or computed")
         return self.index_id
 
-    @model_validator(mode="after")
-    def check_max_results(self):
-        """Check we don't ask too many results at once"""
-        if self.page * self.page_size > 10_000:
-            raise ValueError(
-                f"Maximum number of returned results is 10 000 (here: page * page_size = {self.page * self.page_size})",
-            )
-        return self
-
     @cached_property
     def index_config(self):
         """Get the index config once and for all"""
@@ -307,23 +298,8 @@ class QuerySearchParameters(BaseModel):
         return self.langs[0] if self.langs else "en"
 
 
-class ResultSearchParameters(BaseModel):
-    """Parameters that influence results presentation: pagination and sorting"""
-
-    fields: Annotated[
-        list[str] | None,
-        Query(
-            description="List of fields to include in the response. All other fields will be ignored."
-        ),
-    ] = None
-
-    page_size: Annotated[
-        int, Query(ge=1, description="Number of results to return per page.")
-    ] = 10
-
-    page: Annotated[
-        int, Query(ge=1, description="Page number to return, starting at 1.")
-    ] = 1
+class SortSearchParameters(BaseModel):
+    """Parameters for sorting results"""
 
     sort_by: Annotated[
         str | None,
@@ -380,6 +356,34 @@ class ResultSearchParameters(BaseModel):
             if self.sort_by is None
             else str_utils.split_sort_by_sign(self.sort_by)
         )
+
+
+class ResultSearchParameters(BaseModel):
+    """Parameters that influence results presentation: fields and pagination"""
+
+    fields: Annotated[
+        list[str] | None,
+        Query(
+            description="List of fields to include in the response. All other fields will be ignored."
+        ),
+    ] = None
+
+    page_size: Annotated[
+        int, Query(ge=1, description="Number of results to return per page.")
+    ] = 10
+
+    page: Annotated[
+        int, Query(ge=1, description="Page number to return, starting at 1.")
+    ] = 1
+
+    @model_validator(mode="after")
+    def check_max_results(self):
+        """Check we don't ask too many results at once"""
+        if self.page * self.page_size > 10_000:
+            raise ValueError(
+                f"Maximum number of returned results is 10 000 (here: page * page_size = {self.page * self.page_size})",
+            )
+        return self
 
 
 class AggregateSearchParameters(BaseModel):
@@ -468,10 +472,8 @@ def _prepare_str_list(item: Any) -> str | None:
     return None
 
 
-class SearchParameters(
-    QuerySearchParameters, ResultSearchParameters, AggregateSearchParameters
-):
-    """Parameters for search, common to GET and POST"""
+class BaseSearchParameters(QuerySearchParameters, SortSearchParameters):
+    """Parameters common to search and chart"""
 
     # forbid extra parameters to prevent failed expectations because of typos
     model_config = {"extra": "forbid"}
@@ -505,35 +507,8 @@ class SearchParameters(
         return debug_info
 
 
-class GetSearchParameters(SearchParameters):
-    """GET parameters for search"""
-
-    @field_validator("charts", mode="before")
-    @classmethod
-    def parse_charts_str(
-        cls, charts: str | list[str] | list[ChartType] | None
-    ) -> list[ChartType] | None:
-        """
-        Parse for get params are 'field' or 'xfield:yfield'
-        separated by ',' for Distribution and Scatter charts.
-
-        Directly the dictionnaries in POST request
-        """
-        str_charts = _prepare_str_list(charts)
-        if str_charts is None:
-            return cast(list[ChartType] | None, charts)
-        if not str_charts:
-            return []
-
-        parsed_charts: list[DistributionChart | ScatterChart] = []
-        charts_list = str_charts.split(",")
-        for c in charts_list:
-            if ":" in c:
-                x, y = c.split(":", 1)
-                parsed_charts.append(ScatterChart(x=x, y=y))
-            else:
-                parsed_charts.append(DistributionChart(field=c))
-        return cast(list[ChartType], parsed_charts)
+class GetBaseSearchParameters(BaseSearchParameters):
+    """GET parameters common to search and chart"""
 
     @model_validator(mode="after")
     def validate_q_or_sort_by(self):
@@ -542,21 +517,6 @@ class GetSearchParameters(SearchParameters):
             raise ValueError("`sort_by` must be provided when `q` is missing")
         return self
 
-    @field_validator("facets", "fields", mode="before")
-    @classmethod
-    def parse_value_str(cls, value: str | list[str] | None) -> list[str] | None:
-        """
-        Parse for get params 'langs'
-        """
-        value_str = _prepare_str_list(value)
-        if value_str:
-            value = value_str.split(",")
-        if value is not None:
-            # we already know because of code logic that value is the right type
-            # but we need to cast for mypy type checking
-            value = cast(list[str], value)
-        return value
-
     @model_validator(mode="after")
     def no_sort_by_scripts_on_get(self):
         if self.uses_sort_script:
@@ -564,8 +524,8 @@ class GetSearchParameters(SearchParameters):
         return self
 
 
-class PostSearchParameters(SearchParameters):
-    """POST parameters for search"""
+class PostBaseSearchParameters(BaseSearchParameters):
+    """POST parameters common to search and chart"""
 
     sort_params: Annotated[
         JSONType | None,
@@ -603,6 +563,129 @@ class PostSearchParameters(SearchParameters):
                     f"sort_params keys must match expected keys. {missing_str} {new_str}"
                 )
         return self
+
+
+class SearchParameters(
+    BaseSearchParameters, ResultSearchParameters, AggregateSearchParameters
+):
+    """Parameters for search, common to GET and POST"""
+
+
+class GetSearchParameters(SearchParameters, GetBaseSearchParameters):
+    """GET parameters for search"""
+
+    @field_validator("charts", mode="before")
+    @classmethod
+    def parse_charts_str(
+        cls, charts: str | list[str] | list[ChartType] | None
+    ) -> list[ChartType] | None:
+        """
+        Parse for get params are 'field' or 'xfield:yfield'
+        separated by ',' for Distribution and Scatter charts.
+
+        Directly the dictionnaries in POST request
+        """
+        str_charts = _prepare_str_list(charts)
+        if str_charts is None:
+            return cast(list[ChartType] | None, charts)
+        if not str_charts:
+            return []
+
+        parsed_charts: list[DistributionChart | ScatterChart] = []
+        charts_list = str_charts.split(",")
+        for c in charts_list:
+            if ":" in c:
+                x, y = c.split(":", 1)
+                parsed_charts.append(ScatterChart(x=x, y=y))
+            else:
+                parsed_charts.append(DistributionChart(field=c))
+        return cast(list[ChartType], parsed_charts)
+
+    @field_validator("facets", "fields", mode="before")
+    @classmethod
+    def parse_value_str(cls, value: str | list[str] | None) -> list[str] | None:
+        """
+        Parse for get params 'langs'
+        """
+        value_str = _prepare_str_list(value)
+        if value_str:
+            value = value_str.split(",")
+        if value is not None:
+            # we already know because of code logic that value is the right type
+            # but we need to cast for mypy type checking
+            value = cast(list[str], value)
+        return value
+
+
+class PostSearchParameters(SearchParameters, PostBaseSearchParameters):
+    """POST parameters for search"""
+
+
+class ChartSearchParameters(BaseSearchParameters):
+    """Parameters for scatter charts over the whole result set,
+    common to GET and POST
+    """
+
+    charts: Annotated[
+        list[ScatterChart],
+        Query(
+            min_length=1,
+            description=cd_(
+                """The scatter charts to build, each with two numeric fields
+                (`x_axis_field:y_axis_field`, separated by `,` when using GET).
+                """
+            ),
+        ),
+    ]
+
+    max_entries: Annotated[
+        int,
+        Query(
+            ge=1,
+            le=10_000,
+            description=cd_(
+                """Maximum number of results to plot, taken from the whole result set
+                (not only a page), after sorting.
+                A result is plotted on each chart for which it has both values.
+                """
+            ),
+        ),
+    ] = 1000
+
+    @model_validator(mode="after")
+    def check_charts_are_valid(self):
+        """Check that the chart fields are valid."""
+        errors = check_fields_are_numeric(
+            self.index_id, [field for c in self.charts for field in (c.x, c.y)]
+        )
+        if errors:
+            raise ValueError(errors)
+        return self
+
+
+class GetChartSearchParameters(ChartSearchParameters, GetBaseSearchParameters):
+    """GET parameters for chart"""
+
+    @field_validator("charts", mode="before")
+    @classmethod
+    def parse_charts_str(
+        cls, charts: str | list[str] | list[ScatterChart]
+    ) -> list[ScatterChart]:
+        """Parse for get params 'xfield:yfield' separated by ','"""
+        str_charts = _prepare_str_list(charts)
+        if str_charts is None:
+            return cast(list[ScatterChart], charts)
+        parsed_charts: list[ScatterChart] = []
+        for c in str_charts.split(","):
+            parts = c.split(":")
+            if len(parts) != 2:
+                raise ValueError("`charts` must be 'xfield:yfield' separated by ','")
+            parsed_charts.append(ScatterChart(x=parts[0], y=parts[1]))
+        return parsed_charts
+
+
+class PostChartSearchParameters(ChartSearchParameters, PostBaseSearchParameters):
+    """POST parameters for chart"""
 
 
 class FetcherStatus(Enum):
