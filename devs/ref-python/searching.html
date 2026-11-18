@@ -534,6 +534,16 @@ If we want to handle them, we have to remove them in synonyms, so we need the li
 with the timeout of the settings</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="app.utils.connection.get_redis_probe_client">
+<span class="sig-prename descclassname"><span class="pre">app.utils.connection.</span></span><span class="sig-name descname"><span class="pre">get_redis_probe_client</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Redis</span></span></span><a class="reference external" href="https://github.com/openfoodfacts/search-a-licious/tree/main/app/utils/connection.py"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#app.utils.connection.get_redis_probe_client" title="Link to this definition">¶</a></dt>
+<dd><p>Return a Redis client for a probe: it gives up quickly.</p>
+<p>It has a timeout to connect and to wait for each answer
+(<cite>REDIS_PROBE_TIMEOUT</cite>), and does not try again: by default redis-py tries
+a failed connection 10 more times, and has no timeout to wait for an
+answer.</p>
+</dd></dl>
+
 </section>
 </section>
 
