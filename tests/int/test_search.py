@@ -106,7 +106,11 @@ GET_POST: list[GetOrPostType] = ["GET", "POST"]
 
 
 def do_search(
-    test_client, req_type: GetOrPostType, params: dict[str, Any], code=200
+    test_client,
+    req_type: GetOrPostType,
+    params: dict[str, Any],
+    code=200,
+    path="/search",
 ) -> tuple[Response, dict[str, Any]]:
     if req_type == "GET":
         # eventually transform list[str] to str
@@ -115,9 +119,9 @@ def do_search(
                 params[field] = ",".join(params[field])
         if params.get("boost_phrase"):
             params["boost_phrase"] = "1"
-        resp = test_client.get("/search", params=params)
+        resp = test_client.get(path, params=params)
     else:
-        resp = test_client.post("/search", json=params)
+        resp = test_client.post(path, json=params)
     assert resp.status_code == code
     return resp, resp.json()
 
@@ -455,3 +459,139 @@ def test_fields(req_type, sample_data, test_client):
     assert set(
         attributes for result in data["hits"] for attributes in result.keys()
     ) == {"_score", "code", "product_name"}
+
+
+def do_chart(test_client, req_type, *charts, code=200, **params):
+    if req_type == "GET":
+        params["charts"] = ",".join(charts)
+    else:
+        params["charts"] = [dict(zip(("x", "y"), c.split(":"))) for c in charts]
+    return do_search(test_client, req_type, params, code=code, path="/chart")
+
+
+def chart_values(data, key="unique_scans_n:completeness"):
+    return data["charts"][key]["data"][0]["values"]
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_chart_all_points(req_type, sample_data, test_client):
+    _, data = do_chart(
+        test_client, req_type, "unique_scans_n:completeness", sort_by="created_t"
+    )
+    assert data["hits"] == []
+    assert data["count"] == 6
+    assert list(data["charts"].keys()) == ["unique_scans_n:completeness"]
+    assert data["charts"]["unique_scans_n:completeness"]["title"] == (
+        "unique_scans_n x completeness"
+    )
+    assert len(chart_values(data)) == 6
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_chart_several_charts(req_type, sample_data, test_client):
+    _, data = do_chart(
+        test_client,
+        req_type,
+        "unique_scans_n:completeness",
+        "nutriments.energy-kj_100g:completeness",
+        sort_by="created_t",
+        debug_info="es_query" if req_type == "GET" else ["es_query"],
+    )
+    assert list(data["charts"].keys()) == [
+        "unique_scans_n:completeness",
+        "nutriments.energy-kj_100g:completeness",
+    ]
+    assert len(chart_values(data)) == 6
+    assert chart_values(data, "nutriments.energy-kj_100g:completeness") == []
+    assert data["count"] == 6
+    assert data["debug"]["es_query"]["_source"] == [
+        "completeness",
+        "nutriments.energy-kj_100g",
+        "unique_scans_n",
+    ]
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_chart_max_entries_keeps_sorted_head(req_type, sample_data, test_client):
+    _, data = do_chart(
+        test_client,
+        req_type,
+        "unique_scans_n:completeness",
+        max_entries=2,
+        sort_by="-unique_scans_n",
+    )
+    assert [v["unique_scans_n"] for v in chart_values(data)] == [600, 500]
+    assert data["count"] == 6
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_chart_skips_docs_without_values(req_type, sample_data, test_client):
+    _, data = do_chart(
+        test_client,
+        req_type,
+        "nutriments.energy-kj_100g:completeness",
+        sort_by="created_t",
+    )
+    assert chart_values(data, "nutriments.energy-kj_100g:completeness") == []
+    assert data["count"] == 0
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_chart_with_query(req_type, sample_data, test_client):
+    _, data = do_chart(test_client, req_type, "unique_scans_n:completeness", q="brown")
+    assert len(chart_values(data)) == 2
+    assert data["count"] == 2
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_chart_debug_info(req_type, sample_data, test_client):
+    _, data = do_chart(
+        test_client,
+        req_type,
+        "unique_scans_n:completeness",
+        max_entries=3,
+        sort_by="created_t",
+        debug_info="es_query" if req_type == "GET" else ["es_query"],
+    )
+    es_query = data["debug"]["es_query"]
+    assert es_query["size"] == 3
+    assert es_query["_source"] == ["completeness", "unique_scans_n"]
+
+
+@pytest.mark.parametrize("req_type", GET_POST)
+def test_chart_bad_params_fail(req_type, sample_data, test_client):
+    args = (test_client, req_type, "unique_scans_n:completeness")
+    kwargs = {"code": 422, "sort_by": "created_t"}
+    resp, _ = do_chart(*args, max_entries=10_001, **kwargs)
+    assert "less_than_equal" in resp.text
+    resp, _ = do_chart(test_client, req_type, "labels:categories", **kwargs)
+    assert "Non numeric field name" in resp.text
+    resp, _ = do_chart(test_client, req_type, "unknown_field:completeness", **kwargs)
+    assert "Unknown field name" in resp.text
+    resp, _ = do_chart(*args, page=2, **kwargs)
+    assert "extra_forbidden" in resp.text
+
+
+def test_chart_post_needs_a_chart(sample_data, test_client):
+    resp, _ = do_chart(test_client, "POST", code=422, sort_by="created_t")
+    assert "too_short" in resp.text
+
+
+def test_chart_get_needs_q_or_sort_by(sample_data, test_client):
+    resp, _ = do_chart(test_client, "GET", "unique_scans_n:completeness", code=422)
+    assert "`sort_by` must be provided when `q` is missing" in resp.text
+
+
+def test_chart_get_without_chart_fails(sample_data, test_client):
+    resp, _ = do_search(
+        test_client, "GET", {"sort_by": "created_t"}, code=422, path="/chart"
+    )
+    assert "Field required" in resp.text
+    resp, _ = do_search(
+        test_client,
+        "GET",
+        {"sort_by": "created_t", "charts": "unique_scans_n"},
+        code=422,
+        path="/chart",
+    )
+    assert "xfield:yfield" in resp.text

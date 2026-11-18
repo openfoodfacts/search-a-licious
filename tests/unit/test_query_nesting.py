@@ -68,3 +68,25 @@ def test_the_error_does_not_break_the_next_requests(default_global_config):
     with mock.patch("app.search.execute_query", return_value=_success()):
         assert client.get("/search", params={"q": _nested(TOO_DEEP)}).status_code == 400
         assert client.get("/search", params={"q": "milk"}).status_code == 200
+
+
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_a_chart_query_nested_too_deeply_is_a_client_error(
+    default_global_config, method
+):
+    """/chart builds its query like /search does"""
+    client = TestClient(app, raise_server_exceptions=False)
+    q = _nested(TOO_DEEP)
+    with mock.patch("app.search.execute_query") as execute:
+        if method == "get":
+            response = client.get(
+                "/chart", params={"q": q, "charts": "scans_n:completeness"}
+            )
+        else:
+            response = client.post(
+                "/chart",
+                json={"q": q, "charts": [{"x": "scans_n", "y": "completeness"}]},
+            )
+    assert response.status_code == 400
+    assert response.json()["errors"][0]["title"] == "QueryTooComplexError"
+    execute.assert_not_called()

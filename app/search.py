@@ -7,6 +7,9 @@ from luqum.elasticsearch.visitor import ElasticsearchQueryBuilder
 
 from . import config
 from ._types import (
+    BaseSearchParameters,
+    ChartSearchParameters,
+    ChartsInfos,
     DebugInfo,
     ErrorSearchResponse,
     QueryAnalysis,
@@ -16,7 +19,7 @@ from ._types import (
     SearchResponseError,
     SuccessSearchResponse,
 )
-from .charts import build_charts
+from .charts import build_charts, has_scatter_values
 from .exceptions import QueryAnalysisError
 from .facets import build_facets
 from .postprocessing import BaseResultProcessor, load_result_processor
@@ -86,7 +89,7 @@ def get_result_processor(index_id):
 def add_debug_info(
     search_result: SuccessSearchResponse,
     analysis: QueryAnalysis,
-    params: SearchParameters,
+    params: BaseSearchParameters,
 ) -> SearchResponseDebug | None:
     if not params.debug_info:
         return None
@@ -106,27 +109,9 @@ def add_debug_info(
     return SearchResponseDebug(**data)
 
 
-def search(
-    params: SearchParameters,
-) -> SearchResponse:
-    """Run a search"""
-    result_processor = cast(
-        BaseResultProcessor, get_result_processor(params.valid_index_id)
-    )
-    logger.debug(
-        "Received search query: q='%s', langs='%s', page=%d, "
-        "page_size=%d, fields='%s', sort_by='%s', charts='%s'",
-        params.q,
-        params.langs_set,
-        params.page,
-        params.page_size,
-        params.fields,
-        params.sort_by,
-        params.charts,
-    )
-    index_config = params.index_config
+def _build_query(params: BaseSearchParameters) -> QueryAnalysis | ErrorSearchResponse:
     try:
-        query = build_search_query(
+        return build_search_query(
             params,
             # ES query builder is generated from elasticsearch mapping and
             # takes ~40ms to generate, build-it before hand to avoid this delay
@@ -157,6 +142,30 @@ def search(
                 )
             ],
         )
+
+
+def search(
+    params: SearchParameters,
+) -> SearchResponse:
+    """Run a search"""
+    result_processor = cast(
+        BaseResultProcessor, get_result_processor(params.valid_index_id)
+    )
+    logger.debug(
+        "Received search query: q='%s', langs='%s', page=%d, "
+        "page_size=%d, fields='%s', sort_by='%s', charts='%s'",
+        params.q,
+        params.langs_set,
+        params.page,
+        params.page_size,
+        params.fields,
+        params.sort_by,
+        params.charts,
+    )
+    index_config = params.index_config
+    query = _build_query(params)
+    if isinstance(query, ErrorSearchResponse):
+        return query
     (
         logger.debug(
             "Luqum query: %s\nElasticsearch query: %s",
@@ -188,5 +197,39 @@ def search(
         )
         search_result.debug = add_debug_info(search_result, query, params)
         # remove aggregations
+        search_result.aggregations = None
+    return search_result
+
+
+def chart(params: ChartSearchParameters) -> SearchResponse:
+    """Build scatter charts from the first `max_entries` results"""
+    query = _build_query(params)
+    if isinstance(query, ErrorSearchResponse):
+        return query
+    result_processor = cast(
+        BaseResultProcessor, get_result_processor(params.valid_index_id)
+    )
+    search_result = execute_query(
+        query.es_query,
+        result_processor,
+        page=1,
+        page_size=params.max_entries,
+        projection={f.split(".")[0] for c in params.charts for f in (c.x, c.y)},
+    )
+    if isinstance(search_result, SuccessSearchResponse):
+        all_hits = search_result.hits
+        charts: ChartsInfos = {}
+        for chart_option in params.charts:
+            search_result.hits = [
+                h for h in all_hits if has_scatter_values(h, chart_option)
+            ]
+            charts.update(
+                build_charts(
+                    search_result, params.index_config, [chart_option], params.main_lang
+                )
+            )
+        search_result.charts = charts
+        search_result.debug = add_debug_info(search_result, query, params)
+        search_result.hits = []
         search_result.aggregations = None
     return search_result
