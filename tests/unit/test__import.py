@@ -1,13 +1,14 @@
 import datetime
 import json
 import tempfile
+import threading
 from contextlib import contextmanager
 from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, patch
 
 import pytest
-from elasticsearch import NotFoundError
+import redis.exceptions as redis_exceptions
 from redis import Redis
 
 from app._import import (
@@ -22,13 +23,13 @@ from app._import import (
     load_document_fetcher,
     perform_refresh_synonyms,
     run_items_import,
-    run_update_daemon,
     update_alias,
 )
 from app._types import FetcherResult, FetcherStatus, JSONType
 from app.config import Config, IndexConfig
 from app.indexing import DocumentProcessor
 from app.taxonomy import Taxonomy, TaxonomyNode
+from app.updates import reset_checkpoint_after_import
 
 
 class RedisXrangeClient:
@@ -58,6 +59,46 @@ class DocumentFetcher(BaseDocumentFetcher):
         id_ = item["code"]
         if id_ in self.missing_documents:
             return FetcherResult(status=FetcherStatus.REMOVED, document=None)
+        return FetcherResult(
+            status=FetcherStatus.FOUND,
+            document={"code": id_, "name": f"Document {id_}"},
+        )
+
+
+class RetryThenFoundDocumentFetcher(BaseDocumentFetcher):
+    """A fetcher that asks for a retry the first time it is called."""
+
+    def __init__(self, config: IndexConfig) -> None:
+        super().__init__(config)
+        self.calls = 0
+
+    def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
+        assert stream_name == "product_updates_off"
+        self.calls += 1
+        if self.calls == 1:
+            return FetcherResult(status=FetcherStatus.RETRY, document=None)
+        return FetcherResult(
+            status=FetcherStatus.FOUND,
+            document={"code": item["code"], "name": f"Document {item['code']}"},
+        )
+
+
+class EventOnlyRemovalDocumentFetcher(BaseDocumentFetcher):
+    """A fetcher handling deletions from the event only, without fetching"""
+
+    def __init__(self, config: IndexConfig) -> None:
+        super().__init__(config)
+        self.calls: list[str] = []
+
+    def fetch_document(self, stream_name: str, item: JSONType) -> FetcherResult:
+        assert stream_name == "product_updates_off"
+        id_ = item["code"]
+        self.calls.append(id_)
+        if item.get("action") == "deleted":
+            return FetcherResult(
+                status=FetcherStatus.REMOVED,
+                document={self.config.index.id_field_name: id_},
+            )
         return FetcherResult(
             status=FetcherStatus.FOUND,
             document={"code": id_, "name": f"Document {id_}"},
@@ -131,15 +172,102 @@ def test_get_processed_since(default_config: IndexConfig):
     assert not results
 
 
+def test_get_processed_since_does_not_cache_retry_results(
+    default_config: IndexConfig,
+):
+    """A RETRY result is skipped, but a later event for the same ID is fetched"""
+    id_field_name = default_config.index.id_field_name
+    return_values = [
+        [
+            ("1629878400000-0", {"code": "1"}),
+            # the first fetch asked for a retry: the second event for the same
+            # document must be fetched again instead of being deduplicated
+            ("1629878400001-0", {"code": "1"}),
+        ]
+    ]
+    redis_client = cast(Redis, RedisXrangeClient(return_values))
+    document_fetcher = RetryThenFoundDocumentFetcher(default_config)
+
+    results = list(
+        get_processed_since(
+            redis_client,
+            cast(str, default_config.redis_stream_name),
+            1629878400000,
+            id_field_name,
+            document_fetcher,
+        )
+    )
+
+    assert results == [
+        (
+            1629878400001,
+            FetcherResult(
+                status=FetcherStatus.FOUND,
+                document={"code": "1", "name": "Document 1"},
+            ),
+        )
+    ]
+    assert document_fetcher.calls == 2
+
+
+def test_get_processed_since_replays_recreation_after_event_only_removal(
+    default_config: IndexConfig,
+):
+    """An event-only removal must not hide a later recreation in the backlog"""
+    id_field_name = default_config.index.id_field_name
+    return_values = [
+        [
+            ("1629878400000-0", {"code": "1", "action": "deleted"}),
+            # the document was recreated after its deletion
+            ("1629878400001-0", {"code": "1"}),
+        ]
+    ]
+    redis_client = cast(Redis, RedisXrangeClient(return_values))
+    document_fetcher = EventOnlyRemovalDocumentFetcher(default_config)
+
+    results = list(
+        get_processed_since(
+            redis_client,
+            cast(str, default_config.redis_stream_name),
+            1629878400000,
+            id_field_name,
+            document_fetcher,
+        )
+    )
+
+    assert results == [
+        (
+            1629878400000,
+            FetcherResult(
+                status=FetcherStatus.REMOVED,
+                document={id_field_name: "1"},
+            ),
+        ),
+        (
+            1629878400001,
+            FetcherResult(
+                status=FetcherStatus.FOUND,
+                document={"code": "1", "name": "Document 1"},
+            ),
+        ),
+    ]
+    # the recreation was fetched instead of being skipped as already handled
+    assert document_fetcher.calls == ["1", "1"]
+
+
 class RedisXreadClient:
     def __init__(self, xread_return_values: list):
         self.xread_return_values = xread_return_values
         self.call_count = 0
+        self.streams_history: list[dict] = []
 
     def xread(self, streams: dict, block: int, count: int | None = None):
         assert set(streams.keys()) == {"product_updates_off"}
-        assert block == 0
+        # XREAD takes plain "ms-seq" IDs, the "(" prefix is only for XRANGE
+        assert all(not stream_id.startswith("(") for stream_id in streams.values())
+        assert block > 0
         assert count == 100
+        self.streams_history.append(dict(streams))
         if self.call_count >= len(self.xread_return_values):
             raise ValueError("No more values")
         self.call_count += 1
@@ -189,6 +317,7 @@ def test_get_new_updates(default_config: IndexConfig):
     assert result == (
         redis_stream_name,
         1629878400002,
+        "1629878400002-0",
         FetcherResult(status=FetcherStatus.REMOVED, document=None),
     )
 
@@ -196,6 +325,7 @@ def test_get_new_updates(default_config: IndexConfig):
     assert result == (
         redis_stream_name,
         1629878400000,
+        "1629878400000-0",
         FetcherResult(
             status=FetcherStatus.FOUND, document={"code": "1", "name": "Document 1"}
         ),
@@ -205,6 +335,7 @@ def test_get_new_updates(default_config: IndexConfig):
     assert result == (
         redis_stream_name,
         1629878400001,
+        "1629878400001-0",
         FetcherResult(
             status=FetcherStatus.FOUND, document={"code": "2", "name": "Document 2"}
         ),
@@ -214,10 +345,102 @@ def test_get_new_updates(default_config: IndexConfig):
     assert result == (
         redis_stream_name,
         1629878400003,
+        "1629878400003-0",
         FetcherResult(
             status=FetcherStatus.FOUND, document={"code": "3", "name": "Document 3"}
         ),
     )
+    # we started from "$" (no position given) as there is no checkpoint, then
+    # used the plain ID of the last read entry as the cursor (XREAD is
+    # exclusive, unlike XRANGE)
+    assert redis_client.streams_history == [  # type: ignore
+        {redis_stream_name: "$"},
+        {redis_stream_name: "1629878400002-0"},
+        {redis_stream_name: "1629878400000-0"},
+        {redis_stream_name: "1629878400001-0"},
+    ]
+
+
+def test_get_new_updates_yields_retry_and_does_not_cache_it(
+    default_config: IndexConfig,
+):
+    """RETRY results reach the daemon, and the ID is not marked as fetched"""
+    redis_stream_name = cast(str, default_config.redis_stream_name)
+    return_values = [
+        [(redis_stream_name, [("1629878400000-0", {"code": "1"})])],
+        [(redis_stream_name, [("1629878400001-0", {"code": "1"})])],
+    ]
+    redis_client = cast(Redis, RedisXreadClient(return_values))
+    document_fetcher = RetryThenFoundDocumentFetcher(default_config)
+
+    updates_iter = get_new_updates(
+        redis_client,
+        [redis_stream_name],
+        {redis_stream_name: default_config.index.id_field_name},
+        {redis_stream_name: document_fetcher},
+    )
+
+    assert next(updates_iter) == (
+        redis_stream_name,
+        1629878400000,
+        "1629878400000-0",
+        FetcherResult(status=FetcherStatus.RETRY, document=None),
+    )
+    # the RETRY result was not cached: the next event for the same document is
+    # fetched and yielded
+    assert next(updates_iter) == (
+        redis_stream_name,
+        1629878400001,
+        "1629878400001-0",
+        FetcherResult(
+            status=FetcherStatus.FOUND,
+            document={"code": "1", "name": "Document 1"},
+        ),
+    )
+    assert document_fetcher.calls == 2
+
+
+def test_get_new_updates_starts_from_given_position(default_config: IndexConfig):
+    """The generator must start from the given position, not from `$`"""
+    redis_stream_name = cast(str, default_config.redis_stream_name)
+    return_values = [
+        [(redis_stream_name, [("1629878400005-0", {"code": "5"})])],
+    ]
+    redis_client = cast(Redis, RedisXreadClient(return_values))
+    document_fetcher = DocumentFetcher(default_config)
+
+    updates_iter = get_new_updates(
+        redis_client,
+        [redis_stream_name],
+        {redis_stream_name: default_config.index.id_field_name},
+        {redis_stream_name: document_fetcher},
+        min_ids={redis_stream_name: "1629878400004-0"},
+    )
+    result = next(updates_iter)
+    assert result[2] == "1629878400005-0"
+    assert redis_client.streams_history[0] == {  # type: ignore
+        redis_stream_name: "1629878400004-0"
+    }
+
+
+def test_get_new_updates_stops_when_stop_event_is_set(default_config: IndexConfig):
+    """The generator must end when the stop event is set"""
+    redis_stream_name = cast(str, default_config.redis_stream_name)
+    redis_client = cast(Redis, RedisXreadClient([]))
+    document_fetcher = DocumentFetcher(default_config)
+    stop_event = threading.Event()
+
+    updates_iter = get_new_updates(
+        redis_client,
+        [redis_stream_name],
+        {redis_stream_name: default_config.index.id_field_name},
+        {redis_stream_name: document_fetcher},
+        stop_event=stop_event,
+    )
+    stop_event.set()
+    assert list(updates_iter) == []
+    # xread was never called: the stop was noticed before reading
+    assert redis_client.streams_history == []  # type: ignore
 
 
 def test_load_document_fetcher(default_config):
@@ -302,7 +525,7 @@ def test_gen_documents(default_config):
     items[0].pop("code")
     tmp_path.write_text("\n".join(json.dumps(item) for item in items))
     next_index = "index1"
-    start_datetime = datetime.datetime.utcnow()
+    start_datetime = datetime.datetime.now(datetime.UTC)
     num_items = 100
     num_processes = 4
     process_id = 0
@@ -361,53 +584,10 @@ def test_update_alias(default_config):
     )
 
 
-def test_run_update_daemon_ignores_removal_of_absent_document(
-    default_global_config: Config,
-):
-    off_config: IndexConfig = default_global_config.indices["off"]
-    es_client_mock = MagicMock()
-    es_client_mock.delete.side_effect = NotFoundError(
-        "not found", MagicMock(status=404), {}
-    )
-    connection_mock = MagicMock()
-    connection_mock.get_es_client.return_value = es_client_mock
-    updates = [
-        (
-            "product_updates_off",
-            1629878400000,
-            FetcherResult(status=FetcherStatus.REMOVED, document={"code": "4"}),
-        ),
-        (
-            "product_updates_off",
-            1629878400001,
-            FetcherResult(
-                status=FetcherStatus.FOUND, document={"code": "5", "name": "Doc 5"}
-            ),
-        ),
-    ]
-    with (
-        patch("app._import.connection", connection_mock),
-        patch(
-            "app._import.load_document_fetcher",
-            MagicMock(return_value=DocumentFetcher(off_config)),
-        ),
-        patch("app._import.get_new_updates", MagicMock(return_value=updates)),
-    ):
-        run_update_daemon(default_global_config)
-
-    es_client_mock.delete.assert_called_once()
-    # the daemon went on with the next update
-    es_client_mock.index.assert_called_once()
-
-
 def test_get_redis_updates_ignores_removal_of_absent_document(
     default_global_config: Config,
 ):
     off_config: IndexConfig = default_global_config.indices["off"]
-    search_result = MagicMock()
-    search_result.to_dict.return_value = {
-        off_config.index.last_modified_field_name: 1629878400
-    }
     results = [
         # the document was created then deleted after the dump
         (False, {"delete": {"_id": "4", "status": 404}}),
@@ -415,120 +595,20 @@ def test_get_redis_updates_ignores_removal_of_absent_document(
     ]
     with (
         patch("app._import.Index"),
-        patch("app._import.Search") as search,
         patch("app._import.load_document_fetcher"),
         patch("app._import.get_redis_products", MagicMock(return_value=iter([]))),
+        patch(
+            "app._import.get_last_indexed_timestamp_ms",
+            MagicMock(return_value=1629878400000),
+        ),
         patch("app._import.parallel_bulk", MagicMock(return_value=results)) as bulk,
     ):
-        search.return_value.sort.return_value.extra.return_value.execute.return_value = [
-            search_result
-        ]
         num_errors = get_redis_updates(MagicMock(), "off-index", off_config)
 
     # parallel_bulk must not raise on a 404 delete
     assert bulk.call_args.kwargs["ignore_status"] == 404
     # only the real failure is counted
     assert num_errors == 1
-
-
-def test_run_update_daemon(default_global_config: Config):
-    off_config: IndexConfig = default_global_config.indices["off"]
-    es_client_mock = MagicMock()
-    redis_client_mock = MagicMock()
-    # note that it won't really be used,
-    # but we need it to instanciate the gen_new_updates mock
-    document_fetcher_mock = DocumentFetcher(off_config)
-
-    # Replace with your desired test data
-    updates = [
-        (
-            "product_updates_off",
-            1629878400000,
-            FetcherResult(
-                status=FetcherStatus.FOUND, document={"code": "1", "name": "Document 1"}
-            ),
-        ),
-        (
-            "product_updates_off",
-            1629878400001,
-            FetcherResult(
-                status=FetcherStatus.FOUND, document={"code": "2", "name": "Document 2"}
-            ),
-        ),
-        (
-            "product_updates_off",
-            1629878400002,
-            FetcherResult(
-                status=FetcherStatus.FOUND, document={"code": "3", "name": "Document 3"}
-            ),
-        ),
-        (
-            "product_updates_off",
-            1629878400003,
-            FetcherResult(
-                status=FetcherStatus.REMOVED,
-                document={"code": "4", "name": "Document 4"},
-            ),
-        ),
-        (
-            "product_updates_off",
-            1629878400004,
-            FetcherResult(status=FetcherStatus.FOUND, document=None),
-        ),
-        # to skip
-        (
-            "product_updates_off",
-            1629878400005,
-            FetcherResult(
-                status=FetcherStatus.SKIP, document={"code": "6", "name": "Document 6"}
-            ),
-        ),
-        # this corresponds to id in document_denylist
-        (
-            "product_updates_off",
-            1629878400005,
-            FetcherResult(
-                status=FetcherStatus.FOUND,
-                document={"code": "8901552007122", "name": "Denyed Document"},
-            ),
-        ),
-    ]
-
-    # Mock the necessary dependencies
-    connection_mock = MagicMock()
-    connection_mock.get_es_client.return_value = es_client_mock
-    connection_mock.get_redis_client.return_value = redis_client_mock
-    load_document_fetcher_mock = MagicMock(return_value=document_fetcher_mock)
-
-    # Patch the necessary functions and objects
-    with (
-        patch("app._import.connection", connection_mock),
-        patch("app._import.load_document_fetcher", load_document_fetcher_mock),
-        patch("app._import.get_new_updates", MagicMock(return_value=updates)),
-    ):
-        # Call the function
-        run_update_daemon(default_global_config)
-
-    # Assertions
-    connection_mock.get_es_client.assert_called_once()
-    connection_mock.get_redis_client.assert_called_once()
-    load_document_fetcher_mock.assert_called_once_with(off_config)
-    # only three first elements are indexed
-    assert len(es_client_mock.index.mock_calls) == 3
-    for i, mock_call in enumerate(es_client_mock.index.mock_calls):
-        assert mock_call.args == ()
-        kwargs = mock_call.kwargs
-        assert set(kwargs.keys()) == {"index", "body", "id"}
-        assert kwargs["id"] == str(i + 1)
-        assert kwargs["body"]["code"] == str(i + 1)
-        assert isinstance(kwargs["body"]["last_indexed_datetime"], str)
-    # one element removed
-    assert len(es_client_mock.delete.mock_calls) == 1
-    mock_call = es_client_mock.delete.mock_calls[0]
-    assert mock_call.args == ()
-    kwargs = mock_call.kwargs
-    assert set(kwargs.keys()) == {"index", "id"}
-    assert kwargs["id"] == "4"
 
 
 def test_perform_refresh_synonyms_uses_elasticsearch_index_name(
@@ -548,7 +628,7 @@ def _patch_last_modified_search(hits: list[dict]):
     """Make the search of the most recently modified document return `hits`"""
     results = [MagicMock(to_dict=MagicMock(return_value=hit)) for hit in hits]
     search = MagicMock()
-    search.return_value.sort.return_value.extra.return_value.execute.return_value = (
+    search.return_value.filter.return_value.sort.return_value.extra.return_value.execute.return_value = (
         results
     )
     return search
@@ -560,7 +640,8 @@ def test_get_redis_updates_catches_up_from_last_modified(default_config: IndexCo
     with (
         patch("app._import.Index"),
         patch(
-            "app._import.Search", _patch_last_modified_search([{last_modified: 12.5}])
+            "app.checkpoints.Search",
+            _patch_last_modified_search([{last_modified: 12.5}]),
         ),
         patch("app._import.get_redis_products", products),
         patch("app._import.parallel_bulk", return_value=[]) as bulk,
@@ -575,7 +656,7 @@ def test_get_redis_updates_fails_on_empty_index(default_config: IndexConfig):
     """An empty index has no date to catch up from: skipping would lose updates"""
     with (
         patch("app._import.Index"),
-        patch("app._import.Search", _patch_last_modified_search([])),
+        patch("app.checkpoints.Search", _patch_last_modified_search([])),
         patch("app._import.get_redis_products") as products,
         patch("app._import.parallel_bulk") as bulk,
         pytest.raises(RuntimeError, match="--skip-updates"),
@@ -588,7 +669,7 @@ def test_get_redis_updates_fails_on_empty_index(default_config: IndexConfig):
 def test_get_redis_updates_fails_without_last_modified(default_config: IndexConfig):
     with (
         patch("app._import.Index"),
-        patch("app._import.Search", _patch_last_modified_search([{"code": "1"}])),
+        patch("app.checkpoints.Search", _patch_last_modified_search([{"code": "1"}])),
         patch("app._import.get_redis_products") as products,
         patch("app._import.parallel_bulk") as bulk,
         pytest.raises(RuntimeError, match="--skip-updates"),
@@ -645,7 +726,7 @@ def test_run_items_import_does_not_publish_empty_index_without_catch_up(
     with (
         _mock_full_import() as update_alias_mock,
         patch("app._import.Index"),
-        patch("app._import.Search", _patch_last_modified_search([])),
+        patch("app.checkpoints.Search", _patch_last_modified_search([])),
         pytest.raises(RuntimeError),
     ):
         run_items_import(Path("items.jsonl"), 1, default_config)
@@ -656,6 +737,62 @@ def test_run_items_import_skip_updates_still_publishes(default_config: IndexConf
     with _mock_full_import() as update_alias_mock:
         run_items_import(Path("items.jsonl"), 1, default_config, skip_updates=True)
     update_alias_mock.assert_called_once()
+
+
+def test_reset_checkpoint_after_import(default_config: IndexConfig):
+    """The import moves the daemon checkpoint to the most recent document"""
+    redis_client_mock = MagicMock()
+    es_client_mock = MagicMock()
+    with (
+        patch(
+            "app.updates.connection.get_redis_client",
+            MagicMock(return_value=redis_client_mock),
+        ),
+        patch(
+            "app.updates.get_last_indexed_timestamp_ms",
+            MagicMock(return_value=1629878400123),
+        ),
+    ):
+        reset_checkpoint_after_import(es_client_mock, default_config)
+
+    redis_client_mock.set.assert_called_once_with(
+        "searchalicious:checkpoint:product_updates_off:openfoodfacts", "1629878400123-0"
+    )
+
+
+def test_reset_checkpoint_after_import_with_empty_index(default_config: IndexConfig):
+    """An empty index leaves the checkpoint untouched"""
+    redis_client_mock = MagicMock()
+    with (
+        patch(
+            "app.updates.connection.get_redis_client",
+            MagicMock(return_value=redis_client_mock),
+        ),
+        patch(
+            "app.updates.get_last_indexed_timestamp_ms", MagicMock(return_value=None)
+        ),
+    ):
+        reset_checkpoint_after_import(MagicMock(), default_config)
+
+    redis_client_mock.set.assert_not_called()
+
+
+def test_reset_checkpoint_after_import_redis_failure(default_config: IndexConfig):
+    """A Redis failure does not fail the import"""
+    redis_client_mock = MagicMock()
+    redis_client_mock.set.side_effect = redis_exceptions.ConnectionError("boom")
+    with (
+        patch(
+            "app.updates.connection.get_redis_client",
+            MagicMock(return_value=redis_client_mock),
+        ),
+        patch(
+            "app.updates.get_last_indexed_timestamp_ms",
+            MagicMock(return_value=1629878400123),
+        ),
+    ):
+        # must not raise
+        reset_checkpoint_after_import(MagicMock(), default_config)
 
 
 @pytest.mark.parametrize("success", [0, 5])
