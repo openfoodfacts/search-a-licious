@@ -157,12 +157,11 @@ def _tiebreak_sort(config: IndexConfig) -> JSONType | None:
     when its type can be sorted on (Elasticsearch cannot sort on a text field).
     """
     field = config.fields.get(config.index.id_field_name)
-    if field is None or not (
+    is_sortable = field is not None and (
         field.type.is_numeric()
         or field.type in (FieldType.keyword, FieldType.date, FieldType.bool)
-    ):
-        return None
-    return {field.name: "asc"}
+    )
+    return {field.name: "asc"} if is_sortable else None
 
 
 def build_es_query(
@@ -201,7 +200,9 @@ def build_es_query(
     tiebreak = _tiebreak_sort(config)
     if tiebreak is not None:
         # results that tie must always come in the same order,
-        # or the same product can be on two pages and another on none
+        # or the same product can be on two pages and another on none.
+        # Note: a query without any scoring part would be sorted by `_doc`,
+        # which Elasticsearch does very fast, sorting on `_score` is slower.
         es_query = es_query.sort(sort_by if sort_by is not None else "_score", tiebreak)
     elif sort_by is not None:
         es_query = es_query.sort(sort_by)
