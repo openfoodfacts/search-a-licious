@@ -1,4 +1,5 @@
 import json
+import logging
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Annotated, Any, cast
@@ -17,7 +18,9 @@ from app import config
 from app._types import (
     CommonParametersQuery,
     ErrorSearchResponse,
+    GetChartSearchParameters,
     GetSearchParameters,
+    PostChartSearchParameters,
     PostSearchParameters,
     SearchResponse,
     SuccessSearchResponse,
@@ -203,6 +206,45 @@ def search_get(
     return result
 
 
+@app.post(
+    "/chart",
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
+)
+def chart(
+    response: Response, chart_parameters: Annotated[PostChartSearchParameters, Body()]
+) -> SearchResponse:
+    """Build scatter charts from the whole result set (up to `max_entries`
+    results, after sorting), not only from a page of results.
+
+    Under the hood, it calls the :py:func:`app.search.chart` function
+    """
+    result = app_search.chart(chart_parameters)
+    response.status_code = status_for_response(result)
+    return result
+
+
+@app.get(
+    "/chart",
+    responses={
+        400: {"model": ErrorSearchResponse},
+        500: {"model": ErrorSearchResponse},
+    },
+)
+def chart_get(
+    response: Response, chart_parameters: Annotated[GetChartSearchParameters, Query()]
+) -> SearchResponse:
+    """Build scatter charts when using GET request
+
+    Under the hood, it calls the :py:func:`app.search.chart` function
+    """
+    result = app_search.chart(chart_parameters)
+    response.status_code = status_for_response(result)
+    return result
+
+
 @app.get("/autocomplete")
 def taxonomy_autocomplete(
     q: Annotated[str, Query(min_length=1, description="User autocomplete query.")],
@@ -342,5 +384,10 @@ def healthcheck():
     from app.health import health
 
     message, status, _ = health.run()
-    logger.warning("HEALTH: %s %s", message, status)
+    logger.log(
+        logging.DEBUG if status == 200 else logging.WARNING,
+        "HEALTH: %s %s",
+        message,
+        status,
+    )
     return Response(content=message, status_code=status, media_type="application/json")

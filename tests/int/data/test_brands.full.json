@@ -1,0 +1,33 @@
+{
+  "xx:flora": {
+    "name": {
+      "xx": "Flora"
+    },
+    "synonyms": {
+      "xx": [
+        "Flora"
+      ]
+    }
+  },
+  "xx:nat-vie": {
+    "name": {
+      "xx": "NAT&vie"
+    },
+    "synonyms": {
+      "xx": [
+        "NAT&vie",
+        "NAT&vie veggie"
+      ]
+    }
+  },
+  "xx:haagen-dazs": {
+    "name": {
+      "xx": "Häagen-Dazs"
+    },
+    "synonyms": {
+      "xx": [
+        "Häagen-Dazs"
+      ]
+    }
+  }
+}
