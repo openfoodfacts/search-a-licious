@@ -68,9 +68,10 @@ and `fuzziness` (none by default).
 
     /autocomplete?q=choc&taxonomy_names=categories,labels&langs=fr
 
-A taxonomy name that is not configured (or not imported) is not an error:
+A taxonomy name that is not configured is not an error:
 you just get no options. If you get none, check the spelling first
 (for example `brands`, not `brand` or `brands_tags`).
+If the taxonomies were never imported, you get a 500 asking to import them first.
 
 With the Open Food Facts configuration (`data/config/openfoodfacts.yml`), the names are:
 `categories`, `labels`, `additives`, `allergens`, `amino_acids`, `countries`, `data_quality`,
