@@ -100,6 +100,9 @@ def test_max_page_size_setting(monkeypatch):
     assert Settings().max_page_size == 500
     monkeypatch.delenv("MAX_PAGE_SIZE")
     assert Settings().max_page_size is None
-    monkeypatch.setenv("MAX_PAGE_SIZE", "0")
+    monkeypatch.setenv("MAX_PAGE_SIZE", "10")
+    assert Settings().max_page_size == 10
+    # below the default page_size, a plain search would get a 422
+    monkeypatch.setenv("MAX_PAGE_SIZE", "9")
     with pytest.raises(ValueError):
         Settings()

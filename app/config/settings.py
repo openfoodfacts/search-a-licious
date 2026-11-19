@@ -135,11 +135,12 @@ class Settings(BaseSettings):
     max_page_size: Annotated[
         int | None,
         Field(
-            ge=1,
+            ge=10,
             description=cd_(
                 """Maximum value of the `page_size` parameter of the search API.
 
                 A larger value gets a 422 error.
+                It must be at least 10, the default `page_size`.
                 By default there is no limit, except that `page * page_size`
                 cannot go over 10,000 results.
 
