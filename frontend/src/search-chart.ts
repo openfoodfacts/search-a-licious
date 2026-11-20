@@ -1,5 +1,6 @@
 import {LitElement, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import {localized, msg} from '@lit/localize';
 
 import {WHITE_PANEL_STYLE} from './styles';
 import {SearchResultDetail} from './signals';
@@ -14,6 +15,7 @@ declare const vega: any;
 /**
  * Base class for chart elements
  */
+@localized()
 export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
@@ -60,7 +62,7 @@ export class SearchaliciousChart extends SearchaliciousResultCtlMixin(
 
     if (this.vegaRepresentation === undefined) {
       return html`<slot class="white-panel" name="no-data"
-        ><p>no data</p></slot
+        ><p>${msg('No data')}</p></slot
       >`;
     }
 

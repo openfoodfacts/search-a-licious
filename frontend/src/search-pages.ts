@@ -1,6 +1,7 @@
 import {LitElement, html, css, nothing} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {repeat} from 'lit/directives/repeat.js';
+import {localized, msg} from '@lit/localize';
 
 import {SearchaliciousEvents} from './utils/enums';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
@@ -18,6 +19,7 @@ function _range(start: number, end: number): number[] {
  * A component to display pagination for search results.
  */
 @customElement('searchalicious-pages')
+@localized()
 export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
   LitElement
 ) {
@@ -178,13 +180,23 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
           ${this.displayFirst
             ? html` <li @click=${this._firstPage} part="first">
                 <slot name="first"
-                  ><button ?disabled=${this._isFirstPage}>|&lt;</button></slot
+                  ><button
+                    ?disabled=${this._isFirstPage}
+                    aria-label=${msg('First page')}
+                  >
+                    |&lt;
+                  </button></slot
                 >
               </li>`
             : ''}
           <li @click=${this._prevPage} part="previous">
             <slot name="previous"
-              ><button ?disabled=${this._isFirstPage}>&lt;</button></slot
+              ><button
+                ?disabled=${this._isFirstPage}
+                aria-label=${msg('Previous page')}
+              >
+                &lt;
+              </button></slot
             >
           </li>
           ${this._hasStartEllipsis
@@ -213,13 +225,23 @@ export class SearchaliciousPages extends SearchaliciousResultCtlMixin(
 
           <li @click=${this._nextPage} part="next">
             <slot name="next"
-              ><button ?disabled=${this._isLastPage}>&gt;</button></slot
+              ><button
+                ?disabled=${this._isLastPage}
+                aria-label=${msg('Next page')}
+              >
+                &gt;
+              </button></slot
             >
           </li>
           ${this.displayLast
             ? html` <li @click=${this._lastPage} part="last">
                 <slot name="last"
-                  ><button ?disabled=${this._isLastPage}>&gt;|</button></slot
+                  ><button
+                    ?disabled=${this._isLastPage}
+                    aria-label=${msg('Last page')}
+                  >
+                    &gt;|
+                  </button></slot
                 >
               </li>`
             : nothing}

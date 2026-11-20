@@ -12,7 +12,7 @@ import {SearchActionMixin} from './mixins/search-action';
 import {FACET_TERM_OTHER} from './utils/constants';
 import {QueryOperator, SearchaliciousEvents} from './utils/enums';
 import {getPluralTranslation} from './localization/translations';
-import {msg, localized} from '@lit/localize';
+import {msg, str, localized} from '@lit/localize';
 import {WHITE_PANEL_STYLE} from './styles';
 import {SearchaliciousFacetsInterface} from './interfaces/facets-interfaces';
 import {SearchaliciousResultCtlMixin} from './mixins/search-results-ctl';
@@ -495,7 +495,7 @@ export class SearchaliciousTermsFacet extends SearchActionMixin(
           <legend><slot name="legend">${this.name}</slot></legend>
           <span class="buttons">
             <searchalicious-button-transparent
-                title="Reset ${this.name}"
+                title=${msg(str`Reset ${this.name}`)}
               @click=${this.reset}
               >
                 <searchalicious-icon-cross></searchalicious-icon-cross

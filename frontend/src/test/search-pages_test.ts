@@ -57,14 +57,14 @@ suite('searchalicious-pages', () => {
         <ul part="pages">
           <li part="first">
             <slot name="first">
-              <button disabled="">
+              <button aria-label="First page" disabled="">
                 |&lt;
               </button>
             </slot>
           </li>
           <li part="previous">
             <slot name="previous">
-              <button disabled="">
+              <button aria-label="Previous page" disabled="">
                 &lt;
               </button>
             </slot>
@@ -105,14 +105,14 @@ suite('searchalicious-pages', () => {
           </li>
           <li part="next">
             <slot name="next">
-              <button>
+              <button aria-label="Next page">
                 &gt;
               </button>
             </slot>
           </li>
           <li part="last">
             <slot name="last">
-              <button>
+              <button aria-label="Last page">
                 &gt;|
               </button>
             </slot>
