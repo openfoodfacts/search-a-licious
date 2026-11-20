@@ -17,6 +17,7 @@ from app._types import (
     SuccessSearchResponse,
 )
 from app.api import app, status_for_response
+from app.config import settings
 
 
 def _error_response(title: str) -> ErrorSearchResponse:
@@ -118,6 +119,19 @@ def test_off_test_page_displays_search_errors(default_config):
         response = TestClient(app).get("/off-test?q=milk")
     assert response.status_code == 200
     assert "InvalidLuceneQueryError" in response.text
+
+
+@pytest.mark.parametrize("max_page_size, expected", [(None, 24), (100, 24), (10, 10)])
+def test_off_test_page_default_page_size_respects_the_maximum(
+    monkeypatch, default_config, max_page_size, expected
+):
+    """The default used to be 24, which got a 500 when the maximum is lower"""
+    monkeypatch.setattr(settings, "max_page_size", max_page_size)
+    result = _success_response([{"code": "123", "product_name": "Whole milk"}])
+    with mock.patch("app.api.app_search.search", return_value=result) as search:
+        response = TestClient(app).get("/off-test?q=milk")
+    assert response.status_code == 200
+    assert search.call_args.args[0].page_size == expected
 
 
 def _es_api_error(status_code: int) -> elasticsearch.ApiError:
@@ -229,6 +243,21 @@ def test_autocomplete_empty_query_is_422(default_global_config):
     client = TestClient(app, raise_server_exceptions=True)
     response = client.get("/autocomplete?q=&taxonomy_names=categories")
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_search_page_size_over_the_maximum_is_422(
+    monkeypatch, default_global_config, method
+):
+    """The maximum is a setting; it is checked before any call to Elasticsearch"""
+    monkeypatch.setattr(settings, "max_page_size", 100)
+    client = TestClient(app, raise_server_exceptions=True)
+    if method == "get":
+        response = client.get("/search", params={"q": "milk", "page_size": 101})
+    else:
+        response = client.post("/search", json={"q": "milk", "page_size": 101})
+    assert response.status_code == 422
+    assert "Maximum page_size is 100" in response.text
 
 
 def _suggestion_response(**scores_by_lang: list[float]):
