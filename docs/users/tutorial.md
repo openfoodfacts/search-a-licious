@@ -386,6 +386,50 @@ The more precise the category, the closer the alternatives are
 The filters are normal queries, so you can add `AND NOT brands:...`
 to leave out the brand of the product.
 
+### Building a scatter chart across search results
+
+Use `/chart` when you want a scatter plot across matching products. A scatter chart
+requested through `/search` uses the hits on that page only.
+
+With the Open Food Facts index configuration, this request plots sugars against
+fiber for up to 100 cereal products, ordered from most to least scanned:
+
+```sh
+curl --get 'http://127.0.0.1:8000/chart' \
+  --data-urlencode 'q=breakfast cereals' \
+  --data-urlencode 'charts=nutriments.sugars_100g:nutriments.fiber_100g' \
+  --data-urlencode 'sort_by=-unique_scans_n' \
+  --data-urlencode 'max_entries=100'
+```
+
+For POST requests, put the same axes in a JSON array of chart objects:
+
+```sh
+curl 'http://127.0.0.1:8000/chart' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "q": "breakfast cereals",
+    "charts": [
+      {"x": "nutriments.sugars_100g", "y": "nutriments.fiber_100g"}
+    ],
+    "sort_by": "-unique_scans_n",
+    "max_entries": 100
+  }'
+```
+
+Read the Vega specification at
+`charts["nutriments.sugars_100g:nutriments.fiber_100g"]`. Its
+`data[0].values` contains the plotted points. The `hits` array is empty.
+Pass the specification to a [Vega renderer](https://vega.github.io/vega/usage/)
+to display the chart.
+
+Products need both axis values to appear on a chart. The server keeps at most
+`max_entries` matching products after sorting. The default is 1,000 and the
+limit is 10,000. If you request several charts together, they share that cap
+and a product can appear on some charts but not others. For the number of
+points on one chart, use the length of its `data[0].values` array rather than
+the response's `count`.
+
 ## Creating a search Page using web components
 
 Now that we have played around with the API,
