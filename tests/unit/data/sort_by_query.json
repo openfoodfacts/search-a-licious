@@ -43,6 +43,9 @@
         "unique_scans_n": {
           "order": "desc"
         }
+      },
+      {
+        "code": "asc"
       }
     ]
   },

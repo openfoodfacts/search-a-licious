@@ -34,7 +34,13 @@
         ]
       }
     },
-    "size": 25
+    "size": 25,
+    "sort": [
+      "_score",
+      {
+        "code": "asc"
+      }
+    ]
   },
   "facets_filters": {},
   "luqum_tree": "(unique_scans_n:{2  TO *]AND unique_scans_n:[* TO 3}) OR unique_scans_n:[10 TO *]",
