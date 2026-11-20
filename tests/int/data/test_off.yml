@@ -33,6 +33,7 @@ indices:
         bucket_agg: true
       last_modified_t:
         type: date
+        date_format: strict_date_optional_time||epoch_second
       created_t:
         type: date
       nutriments:
