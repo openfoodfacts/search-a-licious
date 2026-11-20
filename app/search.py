@@ -128,6 +128,20 @@ def _build_query(params: BaseSearchParameters) -> QueryAnalysis | ErrorSearchRes
                 )
             ],
         )
+    except RecursionError:
+        # the parser and the transformers of the query are recursive:
+        # a query nested too deeply (from 150 to 330 levels, depending on the
+        # shape of the query) is a client error
+        return ErrorSearchResponse(
+            debug=SearchResponseDebug(),
+            errors=[
+                SearchResponseError(
+                    title="QueryTooComplexError",
+                    description="The query is nested too deeply",
+                    status=400,
+                )
+            ],
+        )
 
 
 def search(

@@ -199,31 +199,25 @@ class TaxonomyPreprocessor(BaseTaxonomyPreprocessor):
     def preprocess(self, taxonomy: Taxonomy, node: TaxonomyNode) -> TaxonomyNodeResult:
         """Preprocess a taxonomy node.
 
-        We add the main language, and we also have specificities for some
-        taxonomies.
+        We add the main language, and the `xx` (language independent) entries
+        to every supported language.
         """
-        if taxonomy.name == "brands":
-            # brands are all stored under the `xx` lang prefix,
-            # put them in "main lang" (or pick en, or a random one)
-            if "xx" in node.names:
-                node.names.update(main=node.names["xx"])
-            if node.synonyms and (synonyms_xx := list(node.synonyms.get("xx", []))):
-                node.synonyms.update(main=synonyms_xx)
-        else:
-            # main language is entry id prefix + eventual xx entries
-            id_lang = node.id.split(":")[0]
-            if node_names := node.names.get(id_lang):
-                node.names.update(main=node_names)
-            node.synonyms.update(main=list(node.synonyms.get(id_lang, [])))
-            # add eventual xx entries as synonyms to all languages
-            xx_name = node.names.get("xx")
-            xx_names = [xx_name] if xx_name else []
-            xx_names += node.synonyms.get("xx", [])
-            if xx_names:
-                for lang in self.config.supported_langs:
-                    node.names.setdefault(lang, xx_names[0])
-                    lang_synonyms = node.synonyms.setdefault(lang, [])
-                    lang_synonyms += xx_names
+        # main language is entry id prefix + eventual xx entries
+        # (the ids of brands start with `xx:`, they have no other language)
+        id_lang = node.id.split(":")[0]
+        if node_names := node.names.get(id_lang):
+            node.names.update(main=node_names)
+        node.synonyms.update(main=list(node.synonyms.get(id_lang, [])))
+        # add eventual xx entries as synonyms to all languages
+        xx_name = node.names.get("xx")
+        xx_names = [xx_name] if xx_name else []
+        xx_names += node.synonyms.get("xx", [])
+        xx_names = list(dict.fromkeys(xx_names))
+        if xx_names:
+            for lang in self.config.supported_langs:
+                node.names.setdefault(lang, xx_names[0])
+                lang_synonyms = node.synonyms.setdefault(lang, [])
+                lang_synonyms += [s for s in xx_names if s not in lang_synonyms]
         return TaxonomyNodeResult(status=FetcherStatus.FOUND, node=node)
 
 

@@ -1,3 +1,4 @@
+import types
 from unittest import mock
 
 import elastic_transport
@@ -118,6 +119,19 @@ def test_off_test_page_displays_search_errors(default_config):
         response = TestClient(app).get("/off-test?q=milk")
     assert response.status_code == 200
     assert "InvalidLuceneQueryError" in response.text
+
+
+@pytest.mark.parametrize("max_page_size, expected", [(None, 24), (100, 24), (10, 10)])
+def test_off_test_page_default_page_size_respects_the_maximum(
+    monkeypatch, default_config, max_page_size, expected
+):
+    """The default used to be 24, which got a 500 when the maximum is lower"""
+    monkeypatch.setattr(settings, "max_page_size", max_page_size)
+    result = _success_response([{"code": "123", "product_name": "Whole milk"}])
+    with mock.patch("app.api.app_search.search", return_value=result) as search:
+        response = TestClient(app).get("/off-test?q=milk")
+    assert response.status_code == 200
+    assert search.call_args.args[0].page_size == expected
 
 
 def _es_api_error(status_code: int) -> elasticsearch.ApiError:
@@ -244,3 +258,69 @@ def test_search_page_size_over_the_maximum_is_422(
         response = client.post("/search", json={"q": "milk", "page_size": 101})
     assert response.status_code == 422
     assert "Maximum page_size is 100" in response.text
+
+
+def _suggestion_response(**scores_by_lang: list[float]):
+    """The response of Elasticsearch to the suggesters (one per language), each
+    with the options `en:<lang>-<i>` of the scores given"""
+    return types.SimpleNamespace(
+        took=2,
+        timed_out=False,
+        suggest=types.SimpleNamespace(
+            **{
+                f"taxonomy_suggest_{lang}": [
+                    types.SimpleNamespace(
+                        options=[
+                            types.SimpleNamespace(
+                                text=f"{lang} {i}",
+                                _score=score,
+                                _source={
+                                    "id": f"en:{lang}-{i}",
+                                    "taxonomy_name": "categories",
+                                    "name": types.SimpleNamespace(en=f"{lang} {i}"),
+                                },
+                            )
+                            for i, score in enumerate(scores)
+                        ]
+                    )
+                ]
+                for lang, scores in scores_by_lang.items()
+            }
+        ),
+    )
+
+
+def _autocomplete(response, **params):
+    with mock.patch("app.api.build_completion_query") as build:
+        build.return_value.execute.return_value = response
+        build.return_value.to_dict.return_value = {}
+        return TestClient(app).get(
+            "/autocomplete",
+            params={"q": "x", "taxonomy_names": "categories", **params},
+        )
+
+
+def test_autocomplete_returns_at_most_size_options(default_config):
+    """There is a suggester per language, each one giving `size` options"""
+    response = _suggestion_response(en=[9, 5, 1], fr=[8, 7, 2])
+    result = _autocomplete(response, langs="en,fr", size=3)
+    assert result.status_code == 200
+    # the 3 best, whatever their language
+    assert [o["id"] for o in result.json()["options"]] == [
+        "en:en-0",
+        "en:fr-0",
+        "en:fr-1",
+    ]
+
+
+@pytest.mark.parametrize("size, expected", [(1, 1), (6, 6), (10, 6), (0, 0)])
+def test_autocomplete_size_limits_the_options(default_config, size, expected):
+    response = _suggestion_response(en=[9, 5, 1], fr=[8, 7, 2])
+    result = _autocomplete(response, langs="en,fr", size=size)
+    assert len(result.json()["options"]) == expected
+
+
+def test_autocomplete_size_defaults_to_10(default_config):
+    response = _suggestion_response(en=list(range(8)), fr=list(range(8)))
+    result = _autocomplete(response, langs="en,fr")
+    assert len(result.json()["options"]) == 10

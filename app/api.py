@@ -292,7 +292,9 @@ def taxonomy_autocomplete(
                 detail="taxonomy index not found, taxonomies need to be imported first",
             ) from e
 
-    response = process_taxonomy_completion_response(es_response, q, langs.split(","))
+    response = process_taxonomy_completion_response(
+        es_response, q, langs.split(","), size=size
+    )
 
     return {
         **response,
@@ -313,7 +315,7 @@ def html_search(
     request: Request,
     q: str | None = None,
     page: int = 1,
-    page_size: int = 24,
+    page_size: int | None = None,
     langs: str = "fr,en",
     sort_by: str | None = None,
     index_id: Annotated[str | None, CommonParametersQuery.index_id] = None,
@@ -323,6 +325,10 @@ def html_search(
     """A demo page to test the search endpoint directly"""
     if not q:
         return templates.TemplateResponse(request, "search.html")
+
+    if page_size is None:
+        # 24 by default, but not above the maximum of the setting
+        page_size = min(24, settings.max_page_size or 24)
 
     results = app_search.search(
         GetSearchParameters(

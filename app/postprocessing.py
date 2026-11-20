@@ -68,20 +68,33 @@ def load_result_processor(config: IndexConfig) -> BaseResultProcessor | None:
 
 
 def process_taxonomy_completion_response(
-    response: Response, input: str, langs: list[str]
+    response: Response, input: str, langs: list[str], size: int | None = None
 ) -> JSONType:
+    """Build the answer of the autocomplete from the response of Elasticsearch
+
+    There is a suggester per language, each one returning up to `size`
+    options: they are merged, and the `size` best ones are kept.
+
+    :param response: the response of Elasticsearch
+    :param input: the text the user typed
+    :param langs: the languages asked, the first one gives the name
+    :param size: the maximum number of options to return, no limit by default
+    """
     output = {"took": response.took, "timed_out": response.timed_out}
     options = []
-    ids = set()
+    # the same entry is found by the suggesters of several languages,
+    # but an id is not unique across taxonomies
+    seen = set()
     lang = langs[0]
     for suggestion_id in dir(response.suggest):
         if not suggestion_id.startswith("taxonomy_suggest_"):
             continue
         for suggestion in getattr(response.suggest, suggestion_id):
             for option in suggestion.options:
-                if option._source["id"] in ids:
+                entry = (option._source["id"], option._source["taxonomy_name"])
+                if entry in seen:
                     continue
-                ids.add(option._source["id"])
+                seen.add(entry)
                 result = {
                     "id": option._source["id"],
                     "text": option.text,
@@ -92,7 +105,6 @@ def process_taxonomy_completion_response(
                 }
                 options.append(result)
     # highest score first
-    output["options"] = sorted(
-        options, key=lambda option: option["score"], reverse=True
-    )
+    options = sorted(options, key=lambda option: option["score"], reverse=True)
+    output["options"] = options if size is None else options[:size]
     return output

@@ -21,6 +21,13 @@ import pytest
             "fr,main",
             [("en:max-havelaar", "Fairtrade/Max Havelaar", 85)],
         ),
+        # brands only have an xx name: found in every language
+        ("flo", "brands", "en", [("xx:flora", "Flora", 92)]),
+        ("flo", "brands", "fr", [("xx:flora", "Flora", 92)]),
+        ("flo", "brands", "main", [("xx:flora", "Flora", 92)]),
+        ("flo", "brands", "en,fr", [("xx:flora", "Flora", 92)]),
+        ("nat&v", "brands", "fr", [("xx:nat-vie", "NAT&vie", 90)]),
+        ("haa", "brands", "fr", [("xx:haagen-dazs", "Häagen-Dazs", 86)]),
         # multiple taxonomies
         (
             "fr",
