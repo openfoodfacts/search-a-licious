@@ -64,7 +64,7 @@ a comma-separated list of taxonomy names.
 The names are the `name` of the entries of `taxonomy.sources` in your configuration
 (not the field names), for example `categories` or `brands`.
 Optional parameters: `langs` (comma-separated, default `en`), `size` (default 10)
-and `fuzziness` (none by default).
+and `fuzziness` (none by default). With more than one index in the configuration, also pass `index_id`.
 
     /autocomplete?q=choc&taxonomy_names=categories,labels&langs=fr
 
