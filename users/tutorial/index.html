@@ -630,6 +630,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#finding-alternatives-to-a-product" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding alternatives to a product
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1513,6 +1524,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#finding-alternatives-to-a-product" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding alternatives to a product
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1876,6 +1898,19 @@ If we were to ask for the <code>labels_tags</code> facets with the same request,
 the <code>en:fair-trade</code> label would be selected, as it is an active filter.
 (note that it only works if you write the query in a specific way).</p>
 <p>You can try and ask both facets by using <code>nutriscore_grade,labels_tags</code> as the facets parameter.</p>
+<h3 id="finding-alternatives-to-a-product">Finding alternatives to a product<a class="headerlink" href="#finding-alternatives-to-a-product" title="Permanent link">#</a></h3>
+<p>There is no special endpoint to suggest alternatives, but the search API already does it:
+keep the category of the product, ask for a better grade, and put the most popular first.
+For a chocolate bar graded E, with <code>data/config/openfoodfacts.yml</code>:</p>
+<ul>
+<li><code>q</code> = <code>categories:"en:chocolates" AND nutriscore_grade:(a OR b)</code></li>
+<li><code>sort_by</code> = <code>-unique_scans_n</code> (the most scanned products first)</li>
+<li><code>fields</code> = <code>code,product_name,nutriscore_grade</code> (only what the page shows)</li>
+</ul>
+<p>The more precise the category, the closer the alternatives are
+(<code>en:chocolates</code> is closer than <code>en:snacks</code>).
+The filters are normal queries, so you can add <code>AND NOT brands:...</code>
+to leave out the brand of the product.</p>
 <h2 id="creating-a-search-page-using-web-components">Creating a search Page using web components<a class="headerlink" href="#creating-a-search-page-using-web-components" title="Permanent link">#</a></h2>
 <p>Now that we have played around with the API,
 we might want to create a search page to let users do their own search in a visual way.</p>
