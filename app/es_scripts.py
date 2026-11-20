@@ -36,8 +36,11 @@ def _remove_scripts(scripts_ids: list[str], index_config: config.IndexConfig):
 
 def _store_script(
     script_id: str, script: config.ScriptConfig, index_config: config.IndexConfig
-):
-    """Store a script in Elasticsearch."""
+) -> bool:
+    """Store a script in Elasticsearch.
+
+    :return: True if Elasticsearch acknowledged it
+    """
     params = dict((script.params or {}), **(script.static_params or {}))
     payload = {
         "lang": script.lang.value,
@@ -47,7 +50,8 @@ def _store_script(
     # hardcode context to scoring for the moment
     context = "score"
     es = connection.current_es_client()
-    es.put_script(id=script_id, script=payload, context=context)
+    response = es.put_script(id=script_id, script=payload, context=context)
+    return bool(response["acknowledged"])
 
 
 def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, int]:
@@ -55,8 +59,9 @@ def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, i
 
     The configured scripts are stored first (a script is created, or replaced
     if it exists), then the scripts of this index that are not configured any
-    more are removed. So a configured script is never missing, and one that
-    can not be stored keeps its previous version.
+    more are removed. So the sync never deletes a configured script, and one
+    that can not be stored keeps its previous version (if it had one: a new
+    script that is rejected stays missing).
 
     :return: the number of scripts `removed` (the ones no longer configured)
         and `added` (the ones stored)
@@ -70,8 +75,12 @@ def sync_scripts(index_id: str, index_config: config.IndexConfig) -> dict[str, i
         stored_id = get_script_id(index_id, script_id)
         configured_ids.add(stored_id)
         try:
-            _store_script(stored_id, script, index_config)
-            stored_scripts += 1
+            if _store_script(stored_id, script, index_config):
+                stored_scripts += 1
+            else:
+                logger.error(
+                    "Script %s was not acknowledged by Elasticsearch", script_id
+                )
         except elasticsearch.ApiError as e:
             logger.error(
                 "Unable to store script %s, got exception %s: %s",

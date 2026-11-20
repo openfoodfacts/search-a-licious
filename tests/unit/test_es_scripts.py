@@ -14,6 +14,8 @@ class FakeElasticsearch:
         self.stored = dict(stored)  # id => source
         self.calls: list[tuple[str, str]] = []  # ("put" or "delete", id)
         self.reject: set[str] = set()  # ids that Elasticsearch refuses to store
+        # ids that Elasticsearch does not acknowledge in time
+        self.unacknowledged: set[str] = set()
         self.cluster = mock.Mock()
         self.cluster.state.side_effect = lambda metric: {
             "metadata": {"stored_scripts": dict(self.stored)}
@@ -24,6 +26,7 @@ class FakeElasticsearch:
         if id in self.reject:
             raise elasticsearch.ApiError("bad script", mock.MagicMock(status=400), {})
         self.stored[id] = script["source"]
+        return {"acknowledged": id not in self.unacknowledged}
 
     def delete_script(self, id):
         self.calls.append(("delete", id))
@@ -76,10 +79,10 @@ def test_scripts_no_longer_configured_are_removed_after_the_others_are_stored(
     assert fake.stored == {"off__a": "new", "off__b": "2"}
     assert stats == {"removed": 1, "added": 2}
     # the removal comes last
-    assert fake.calls[-1] == ("delete", "off__old")
-    assert [c for c in fake.calls if c[0] == "put"] == [
+    assert fake.calls == [
         ("put", "off__a"),
         ("put", "off__b"),
+        ("delete", "off__old"),
     ]
 
 
@@ -93,6 +96,16 @@ def test_a_script_that_cannot_be_stored_keeps_its_previous_version(
     assert ("delete", "off__a") not in fake.calls
     assert stats == {"removed": 0, "added": 0}
     assert "Unable to store script a" in caplog.text
+
+
+def test_a_script_that_is_not_acknowledged_is_not_counted_as_stored(
+    default_config, es, caplog
+):
+    fake = es({})
+    fake.unacknowledged = {"off__a"}
+    stats = es_scripts.sync_scripts("off", _config(default_config, a="1", b="2"))
+    assert stats == {"removed": 0, "added": 1}
+    assert "Script a was not acknowledged" in caplog.text
 
 
 def test_scripts_of_other_indexes_are_not_touched(default_config, es):
