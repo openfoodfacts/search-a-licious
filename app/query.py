@@ -161,7 +161,9 @@ def _tiebreak_sort(config: IndexConfig) -> JSONType | None:
         field.type.is_numeric()
         or field.type in (FieldType.keyword, FieldType.date, FieldType.bool)
     )
-    return {field.name: "asc"} if is_sortable else None
+    if field is None or not is_sortable:
+        return None
+    return {field.name: "asc"}
 
 
 def build_es_query(
