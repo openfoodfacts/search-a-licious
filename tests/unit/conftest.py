@@ -7,10 +7,19 @@ from app._types import JSONType
 from app.config import Config
 from app.config import loader as app_config
 from app.query import build_elasticsearch_query_builder
+from app.taxonomy_es import clear_taxonomy_names_cache
 from app.utils.io import load_json
 
 DATA_DIR = Path(__file__).parent / "data"
 DEFAULT_CONFIG_PATH = DATA_DIR / "openfoodfacts_config.yml"
+
+
+@pytest.fixture(autouse=True)
+def empty_taxonomy_names_cache():
+    """The names already looked up are cached: do not share them between tests"""
+    clear_taxonomy_names_cache()
+    yield
+    clear_taxonomy_names_cache()
 
 
 @pytest.fixture

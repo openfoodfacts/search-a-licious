@@ -4,7 +4,9 @@ See also :py:mod:`app.taxonomy`
 """
 
 import re
+import threading
 
+import cachetools
 import elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
@@ -15,12 +17,95 @@ from app.taxonomy import Taxonomy, iter_taxonomies
 from app.utils import connection
 from app.utils.lists import batch
 
+# Names already looked up, by (taxonomy index, id, taxonomy name).
+# The value is the names, or None if the id is in no taxonomy (it is not
+# searched for again either).
+# Taxonomies change only when they are imported, which is done by another
+# process, so the entries expire instead of being invalidated.
+TAXONOMY_NAMES_CACHE_SIZE = 10_000
+TAXONOMY_NAMES_CACHE_TTL = 3600  # seconds
+
+
+def _new_names_cache() -> cachetools.TTLCache:
+    return cachetools.TTLCache(
+        maxsize=TAXONOMY_NAMES_CACHE_SIZE, ttl=TAXONOMY_NAMES_CACHE_TTL
+    )
+
+
+_NAMES_CACHE = _new_names_cache()
+# the API serves requests in several threads: the lock protects the writes,
+# reading a name that is slightly outdated or just evicted is harmless
+_NAMES_CACHE_LOCK = threading.Lock()
+# changed each time the cache is cleared: a search that started before
+# must not fill the cache with what it found (it may be outdated)
+_NAMES_CACHE_GENERATION = 0
+
+
+def clear_taxonomy_names_cache() -> None:
+    """Forget the names that were already looked up"""
+    global _NAMES_CACHE, _NAMES_CACHE_GENERATION
+    with _NAMES_CACHE_LOCK:
+        # a new cache rather than clear(): it evicts entry by entry, which can
+        # fail while another thread reads (see below)
+        _NAMES_CACHE = _new_names_cache()
+        _NAMES_CACHE_GENERATION += 1
+
 
 def get_taxonomy_names(
     items: list[tuple[str, str]],
     config: IndexConfig,
 ) -> dict[tuple[str, str], dict[str, str]]:
-    """Given a set of terms in different taxonomies, return their names"""
+    """Given a set of terms in different taxonomies, return their names
+
+    Names that were looked up recently are not searched for again:
+    only the missing ones are fetched from Elasticsearch.
+    A failed lookup raises and caches nothing.
+
+    :param items: a list of (id, taxonomy name)
+    :param config: the index configuration
+    :return: the names of the items that were found, by (id, taxonomy name)
+    """
+    index_name = config.taxonomy.index.name
+    translations: dict[tuple[str, str], dict[str, str]] = {}
+    missing: list[tuple[str, str]] = []
+    # read before the names: if the cache is cleared meanwhile,
+    # it is detected below and nothing is stored
+    generation = _NAMES_CACHE_GENERATION
+    for item in dict.fromkeys(items):
+        try:
+            names = _NAMES_CACHE[(index_name, *item)]
+        except KeyError:  # not cached, expired, or evicted by another thread
+            missing.append(item)
+            continue
+        if names is not None:
+            translations[item] = names
+    if missing:
+        fetched = _fetch_taxonomy_names(missing, config)
+        # An id without language prefix matches many entries, which can fill
+        # the response and leave another item out: only without such an id,
+        # an item that is not in the response is known to be in no taxonomy.
+        absence_is_known = all(":" in id_ for id_, _ in missing)
+        with _NAMES_CACHE_LOCK:
+            if generation == _NAMES_CACHE_GENERATION:
+                for item in missing:
+                    names = fetched.get(item)
+                    if names is not None or absence_is_known:
+                        try:
+                            _NAMES_CACHE[(index_name, *item)] = names
+                        except RuntimeError:
+                            # a read (which takes no lock) reordered the cache
+                            # while it was evicting an entry: this name is
+                            # simply not kept
+                            continue
+        translations.update(fetched)
+    return translations
+
+
+def _fetch_taxonomy_names(
+    items: list[tuple[str, str]],
+    config: IndexConfig,
+) -> dict[tuple[str, str], dict[str, str]]:
+    """Search the names of terms in different taxonomies in Elasticsearch"""
     filters = []
     no_lang_prefix_ids = {id_ for id_, _ in items if ":" not in id_}
     for id, taxonomy_name in items:
