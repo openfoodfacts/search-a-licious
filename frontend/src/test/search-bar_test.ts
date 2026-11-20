@@ -151,4 +151,33 @@ suite('searchalicious-bar', () => {
     );
     assert.equal(bar.query, 'categories:pastas');
   });
+
+  test('ignores the suggestions of an input that is not the current one', async () => {
+    const el = await fixture(html` <searchalicious-bar></searchalicious-bar>`);
+    const bar = el as any;
+    // run the debounced function right away, do not really search
+    bar.debounce = (func: () => void) => func();
+    bar.search = () => {};
+
+    // one pending answer per typed value
+    const resolvers: Record<string, (options: any[]) => void> = {};
+    bar.getSuggestions = (value: string) =>
+      new Promise((resolve) => {
+        resolvers[value] = resolve;
+      });
+    const option = (id: string) => ({id, value: id, label: id, input: 'x'});
+
+    bar.handleInput('mi');
+    bar.handleInput('milk');
+    // the answer for "milk" comes first, the one for "mi" arrives late
+    resolvers['milk']([option('milk')]);
+    await Promise.resolve();
+    resolvers['mi']([option('mi')]);
+    await new Promise((resolve) => setTimeout(resolve));
+
+    assert.deepEqual(
+      bar.options.map((o: any) => o.id),
+      ['milk']
+    );
+  });
 });

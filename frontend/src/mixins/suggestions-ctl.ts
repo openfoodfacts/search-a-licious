@@ -30,6 +30,8 @@ export interface SearchaliciousTaxonomiesInterface
   isTermsLoading: boolean;
   taxonomiesBaseUrl: string;
   langs: string;
+  /** fuzziness to ask for, if any */
+  readonly termsFuzziness: number | undefined;
 
   termLabel(term: TermOption): string;
 
@@ -60,7 +62,7 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
     terms: TermOption[] = [];
 
     @state()
-    isTermsLoading = {} as boolean;
+    isTermsLoading = false;
 
     @property({attribute: 'base-url'})
     taxonomiesBaseUrl = '/';
@@ -72,6 +74,15 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
      */
     get langs(): string {
       throw new Error('langs must be defined in child class');
+    }
+
+    /**
+     * Fuzziness to ask for, if any.
+     *
+     * Child classes may override it, no fuzziness is asked by default.
+     */
+    get termsFuzziness(): number | undefined {
+      return undefined;
     }
 
     termLabel(term: TermOption): string {
@@ -89,7 +100,18 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
      */
     _termsUrl(q: string, taxonomyNames: string[]) {
       const baseUrl = this.taxonomiesBaseUrl.replace(/\/+$/, '');
-      return `${baseUrl}/autocomplete?q=${q}&langs=${this.langs}&taxonomy_names=${taxonomyNames}&size=5`;
+      // URLSearchParams encodes values: "M&M" must not become "M"
+      const params = new URLSearchParams({
+        q: q,
+        langs: this.langs,
+        taxonomy_names: taxonomyNames.join(','),
+        size: '5',
+      });
+      const fuzziness = this.termsFuzziness;
+      if (fuzziness !== undefined) {
+        params.set('fuzziness', String(fuzziness));
+      }
+      return `${baseUrl}/autocomplete?${params}`;
     }
 
     /**
@@ -102,12 +124,15 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
       q: string,
       taxonomyNames: string[]
     ): Promise<TaxomiesTermsResponse> {
+      // get the version of the terms for each taxonomy
+      const version = this.incrementVersion();
       if (!q) {
+        // nothing to suggest: forget previous terms and pending requests
+        this.terms = [];
+        this.isTermsLoading = false;
         return Promise.resolve({options: []});
       }
       this.isTermsLoading = true;
-      // get the version of the terms for each taxonomy
-      const version = this.incrementVersion();
 
       return fetch(this._termsUrl(q, taxonomyNames), {
         method: 'GET',
@@ -116,23 +141,30 @@ export const SearchaliciousTermsMixin = <T extends Constructor<LitElement>>(
         },
       })
         .then((response) => {
-          if (this.isLatestVersion(version)) {
-            // this is the legitimate suggestion request, loading finished
-            this.isTermsLoading = false;
-          }
           if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error(
+              `Network response was not ok (HTTP ${response.status})`
+            );
           }
           return response.json() as Promise<TaxomiesTermsResponse>;
         })
         .then((response) => {
-          if (!this.isLatestVersion(version)) {
-            // another suggestion request was launched in the mean time,
-            // give up
-            return response;
+          if (this.isLatestVersion(version)) {
+            // this is the legitimate suggestion request, loading finished
+            this.terms = response.options;
+            this.isTermsLoading = false;
           }
-          this.terms = response.options;
+          // otherwise another suggestion request was launched in the mean time,
+          // we give up on updating the state
           return response;
+        })
+        .catch((error) => {
+          if (this.isLatestVersion(version)) {
+            // do not stay loading forever, nor show terms of another input
+            this.terms = [];
+            this.isTermsLoading = false;
+          }
+          throw error;
         });
     }
   }
