@@ -392,7 +392,8 @@ Use `/chart` when you want a scatter plot across matching products. A scatter ch
 requested through `/search` uses the hits on that page only.
 
 With the Open Food Facts index configuration, this request plots sugars against
-fiber for up to 100 cereal products, ordered from most to least scanned:
+fiber for up to 100 products matching the text query `breakfast cereals`,
+ordered from most to least scanned:
 
 ```sh
 curl --get 'http://127.0.0.1:8000/chart' \
@@ -419,13 +420,15 @@ curl 'http://127.0.0.1:8000/chart' \
 
 Read the Vega specification at
 `charts["nutriments.sugars_100g:nutriments.fiber_100g"]`. Its
-`data[0].values` contains the plotted points. The `hits` array is empty.
+`data[0].values` contains the plotted points. Vega point keys replace dots with
+`__`, for example `nutriments__sugars_100g`. The `hits` array is empty.
 Pass the specification to a [Vega renderer](https://vega.github.io/vega/usage/)
 to display the chart.
 
-Products need both axis values to appear on a chart. The server keeps at most
-`max_entries` matching products after sorting. The default is 1,000 and the
-limit is 10,000. If you request several charts together, they share that cap
+The server filters out products that do not have a complete pair of axis
+values for any requested chart before applying the sorted `max_entries` cap.
+The default is 1,000 and the limit is 10,000. If you request several charts
+together, they share that cap
 and a product can appear on some charts but not others. For the number of
 points on one chart, use the length of its `data[0].values` array rather than
 the response's `count`.
