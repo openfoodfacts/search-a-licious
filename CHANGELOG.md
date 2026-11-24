@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/openfoodfacts/search-a-licious/compare/v2.0.0...v2.1.0) (2026-11-24)
+
+
+### Features
+
+* force minor version bump ([#618](https://github.com/openfoodfacts/search-a-licious/issues/618)) ([d08fc4e](https://github.com/openfoodfacts/search-a-licious/commit/d08fc4e674149794de3a290f3aa54efd1b41f045))
+
 ## [2.0.0](https://github.com/openfoodfacts/search-a-licious/compare/v1.4.0...v2.0.0) (2026-11-24)
 
 
