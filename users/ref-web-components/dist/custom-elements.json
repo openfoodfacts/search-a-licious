@@ -6845,50 +6845,6 @@
     },
     {
       "kind": "javascript-module",
-      "path": "src/css/header.ts",
-      "declarations": [
-        {
-          "kind": "variable",
-          "name": "searchBarInputAndButtonStyle",
-          "default": "css`\n  input.search-input,\n  button.search-button {\n    line-height: normal;\n    height: 2.35rem;\n    top: 0;\n    box-sizing: border-box;\n    position: relative;\n  }\n`",
-          "description": "The styles for the input and button of the search bar."
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "searchBarInputAndButtonStyle",
-          "declaration": {
-            "name": "searchBarInputAndButtonStyle",
-            "module": "src/css/header.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
-      "path": "src/css/index.ts",
-      "declarations": [
-        {
-          "kind": "variable",
-          "name": "iconStyle",
-          "default": "css`\n  .icon {\n    display: inline-block;\n    fill: currentColor;\n    margin-left: 0.25em;\n    margin-right: 0.25em;\n    overflow: hidden;\n    width: 1em;\n    height: 1em;\n  }\n`",
-          "description": "The styles for icon elements from off styles"
-        }
-      ],
-      "exports": [
-        {
-          "kind": "js",
-          "name": "iconStyle",
-          "declaration": {
-            "name": "iconStyle",
-            "module": "src/css/index.ts"
-          }
-        }
-      ]
-    },
-    {
-      "kind": "javascript-module",
       "path": "src/icons/chart.ts",
       "declarations": [
         {
@@ -7011,6 +6967,50 @@
           "declaration": {
             "name": "SearchaliciousIconSearch",
             "module": "src/icons/search.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/css/header.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "searchBarInputAndButtonStyle",
+          "default": "css`\n  input.search-input,\n  button.search-button {\n    line-height: normal;\n    height: 2.35rem;\n    top: 0;\n    box-sizing: border-box;\n    position: relative;\n  }\n`",
+          "description": "The styles for the input and button of the search bar."
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "searchBarInputAndButtonStyle",
+          "declaration": {
+            "name": "searchBarInputAndButtonStyle",
+            "module": "src/css/header.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/css/index.ts",
+      "declarations": [
+        {
+          "kind": "variable",
+          "name": "iconStyle",
+          "default": "css`\n  .icon {\n    display: inline-block;\n    fill: currentColor;\n    margin-left: 0.25em;\n    margin-right: 0.25em;\n    overflow: hidden;\n    width: 1em;\n    height: 1em;\n  }\n`",
+          "description": "The styles for icon elements from off styles"
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "iconStyle",
+          "declaration": {
+            "name": "iconStyle",
+            "module": "src/css/index.ts"
           }
         }
       ]
