@@ -10,6 +10,7 @@ jobs:
   ShowAndLabelTopIssues:
     name: Display and label top issues.
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
     - name: Run top issues action
       uses: rickstaa/top-issues-action@v1

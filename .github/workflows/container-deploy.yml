@@ -18,6 +18,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     if: github.repository == 'openfoodfacts/search-a-licious'
     strategy:
       matrix:
