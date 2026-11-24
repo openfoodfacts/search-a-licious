@@ -39,6 +39,9 @@ on:
     - review_request_removed
     - auto_merge_enabled
     - auto_merge_disabled
+
+permissions: {}
+
 jobs:
   add-to-design-project:
     name: Add issues to the 🎨 openfoodfacts-design or 📚 Documentation project
