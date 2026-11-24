@@ -28,11 +28,11 @@ jobs:
     steps:
       - name: Set common variables
         run: |
-          echo "SSH_PROXY_HOST=ovh1.openfoodfacts.org" >> $GITHUB_ENV
           echo "SSH_USERNAME=off" >> $GITHUB_ENV
       - name: Set various variable for staging (net) deployment
         if: matrix.env == 'off-search-net'
         run: |
+          echo "SSH_PROXY_HOST=ovh1.openfoodfacts.org" >> $GITHUB_ENV
           echo "SSH_HOST=10.1.0.200" >> $GITHUB_ENV
           # this is the network shared with Product Opener,
           # in staging Product Opener is deployed on the same VM
@@ -42,6 +42,7 @@ jobs:
       - name: Set various variable for production deployment
         if: matrix.env == 'off-search-org'
         run: |
+          echo "SSH_PROXY_HOST=ovh2.openfoodfacts.org" >> $GITHUB_ENV
           echo "SSH_HOST=10.1.0.201" >> $GITHUB_ENV
           # this is the network shared with Product Opener,
           # in production Product Opener is deployed on a
