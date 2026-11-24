@@ -217,7 +217,8 @@ jobs:
           script_stop: false
           script: |
             cd ${{ matrix.env }}
-            make sync-scripts
+            # Elasticsearch may still be starting after `make up`
+            make wait-es && make sync-scripts
 
       - name: Cleanup obsolete Docker objects
         uses: appleboy/ssh-action@master

@@ -29,7 +29,7 @@ DOCKER_COMPOSE_TEST = $(SUDO) COMPOSE_PROJECT_NAME=search_test $(DOCKER_COMPOSE)
 # for integration tests we also add the services of docker/test.yml
 DOCKER_COMPOSE_TEST_INT = $(SUDO) COMPOSE_PATH_SEPARATOR=";" COMPOSE_PROJECT_NAME=search_test COMPOSE_FILE="docker-compose.yml;docker/dev.yml;docker/test.yml" $(DOCKER_COMPOSE)
 
-.PHONY: build create_external_volumes livecheck up down test test_front test_front_watch test_api test_api_unit test_api_integration test_clean import-dataset import-taxonomies sync-scripts build-translations generate-openapi check check_front check_translations lint lint_back lint_front
+.PHONY: build create_external_volumes livecheck up down test test_front test_front_watch test_api test_api_unit test_api_integration test_clean import-dataset import-taxonomies sync-scripts wait-es build-translations generate-openapi check check_front check_translations lint lint_back lint_front
 #------------#
 # Production #
 #------------#
@@ -178,6 +178,29 @@ import-taxonomies:
 sync-scripts:
 	@echo "🔎 Syncing scripts …"
 	${DOCKER_COMPOSE} run --rm api python3 -m app sync-scripts
+
+# max time to wait for Elasticsearch, in seconds
+ES_WAIT_SECONDS ?= 300
+
+# wait until Elasticsearch answers and the cluster is at least yellow
+# (a single node with replicas is yellow, never green)
+wait-es:
+	@echo "🔎 Waiting for Elasticsearch (up to ${ES_WAIT_SECONDS}s) …"
+	@if [ -z "$$(${DOCKER_COMPOSE} ps -q es01)" ]; then \
+		echo "es01 is not running"; \
+		exit 1; \
+	fi; \
+	waited=0; \
+	until ${DOCKER_COMPOSE} exec -T es01 curl -fsS -u elastic:elastic "localhost:9200/_cat/health?h=status" 2>/dev/null | grep -qE '^(green|yellow)'; do \
+		if [ $$waited -ge ${ES_WAIT_SECONDS} ]; then \
+			echo "Elasticsearch is not ready after ${ES_WAIT_SECONDS}s"; \
+			exit 1; \
+		fi; \
+		echo "Elasticsearch is not ready yet, waiting …"; \
+		sleep 5; \
+		waited=$$((waited + 5)); \
+	done; \
+	echo "Elasticsearch is ready"
 
 build-translations:
 	@echo "🔎 Building translations …"
