@@ -33,12 +33,12 @@ jobs:
         echo "BUILD_TARGET=frontend" >> $GITHUB_ENV
         echo "BUILD_FILE=frontend/Dockerfile" >> $GITHUB_ENV
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@v7.0.1
       with:
         fetch-depth: 1
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v4
+      uses: docker/setup-buildx-action@v4.4.1
       with:
         version: v0.6.0
         buildkitd-flags: --debug
@@ -52,7 +52,7 @@ jobs:
 
     - name: Docker meta
       id: meta
-      uses: docker/metadata-action@v6
+      uses: docker/metadata-action@v6.2.0
       with:
         images: |
           ghcr.io/${{ github.repository }}/${{ matrix.image_name }}
@@ -63,7 +63,7 @@ jobs:
           type=sha,format=long
 
     - name: Build and push
-      uses: docker/build-push-action@v7
+      uses: docker/build-push-action@v7.4.0
       with:
         context: ${{ env.BUILD_CONTEXT }}
         target: ${{ env.BUILD_TARGET }}
