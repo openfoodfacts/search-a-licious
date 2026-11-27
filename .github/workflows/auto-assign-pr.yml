@@ -11,5 +11,6 @@ permissions:
 jobs:
   assign-author:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: toshimaru/auto-author-assign@v3.1.1

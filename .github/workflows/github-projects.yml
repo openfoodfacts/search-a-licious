@@ -43,6 +43,7 @@ jobs:
   add-to-design-project:
     name: Add issues to the 🎨 openfoodfacts-design or 📚 Documentation project
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/add-to-project@main
         with:

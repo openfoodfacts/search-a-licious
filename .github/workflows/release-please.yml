@@ -6,6 +6,7 @@ on:
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: github.repository == 'openfoodfacts/search-a-licious'
     steps:
       - uses: googleapis/release-please-action@v5.0.0
