@@ -32,7 +32,7 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/playwright
 USER node
 # install dependencies
 RUN --mount=type=cache,id=search-a-licious-npm-cache,target=/home/node/.npm,mode=0777 \
-  npm install && \
+  npm ci && \
   npx playwright install chromium
 USER root
 # Install the dependencies for playwright with chromium
@@ -67,7 +67,7 @@ RUN rm -rf public/dist/* && npm run build && npm run bundle
 CMD ["npm", "run", "serve"]
 
 # nginx
-FROM nginx:stable AS frontend
+FROM nginx:1.30 AS frontend
 WORKDIR /opt/search-a-licious
 ARG USER_UID
 ARG USER_GID
