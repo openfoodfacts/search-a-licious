@@ -18,6 +18,9 @@ suite('searchalicious-bar', () => {
         <input
           class="search-input"
           autocomplete="off"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded="false"
           name="q"
           part="input"
           placeholder="Search..."
@@ -50,6 +53,9 @@ suite('searchalicious-bar', () => {
           <input
             autocomplete="off"
             name="q"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded="false"
             class="search-input"
             part="input"
             placeholder="Try it !"
