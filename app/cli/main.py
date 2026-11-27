@@ -214,6 +214,15 @@ def sync_scripts(
     logger.info(
         f"Synced scripts (removed: {stats['removed']}, added: {stats['added']})"
     )
+    # a script that could not be stored keeps its previous version (if any),
+    # so make the failure visible to whoever runs this (deployment, CI)
+    not_stored = len(index_config.scripts or {}) - stats["added"]
+    if not_stored:
+        logger.error(
+            "%d configured script(s) could not be stored, see the errors above",
+            not_stored,
+        )
+        raise typer.Exit(code=1)
 
 
 @cli.command()
