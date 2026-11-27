@@ -1,49 +1,268 @@
-# Add labels to any any pull request with changes to the specified paths
+# Add labels to any pull request with changes to the specified paths
 
-# Pull requests that update GitHub Actions code. If you navigate to the folder, you will have a README of what it does
 📚 Documentation:
 - changed-files:
   - any-glob-to-any-file:
     - 'docs/**/*'
     - 'docs/*'
+    - 'README.md'
+    - 'CHANGELOG.md'
+    - 'mkdocs.yml'
+    - 'frontend/README.md'
+
 API:
 - changed-files:
   - any-glob-to-any-file:
     - 'docs/sphinx/api.rst'
+    - 'docs/users/ref-openapi.md'
     - 'app/api.py'
+    - 'app/middleware.py'
+    - 'app/health.py'
+    - 'app/exceptions.py'
+
+OpenAPI:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'docs/users/ref-openapi.md'
 
 Build Scripts:
 - changed-files:
-  - any-glob-to-any-file: 'scripts/Dockerfile.sphinx'
-  - any-glob-to-any-file: 'scripts/build_*.sh'
-  - any-glob-to-any-file: 'scripts/generate_doc.sh'
-  - any-glob-to-any-file: 'scripts/sphinx/Makefile'
+  - any-glob-to-any-file:
+    - 'scripts/**/*'
+    - 'Makefile'
 
 🐳 docker:
 - changed-files:
-  - any-glob-to-any-file: 'Dockerfile'
-  - any-glob-to-any-file: 'docker-compose.yml'
+  - any-glob-to-any-file:
+    - 'Dockerfile'
+    - '.dockerignore'
+    - 'docker-compose.yml'
+    - 'docker/**/*'
+    - 'frontend/Dockerfile'
+    - 'frontend/.dockerignore'
+    - 'scripts/Dockerfile.*'
 
-Indexation:
+github_actions:
 - changed-files:
-  - any-glob-to-any-file: 'app/indexing.py'
-  - any-glob-to-any-file: 'docs/sphinx/index.rst'
-  
+  - any-glob-to-any-file:
+    - '.github/workflows/**/*'
+    - '.github/labeler.yml'
+    - '.github/dependabot.yml'
+
+🐍 Python:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/**/*.py'
+    - 'tests/**/*.py'
+    - 'pyproject.toml'
+    - 'poetry.lock'
+    - '.flake8'
+
+backend:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/**/*'
+    - 'pyproject.toml'
+    - 'poetry.lock'
+
+frontend:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/**/*'
+
+javascript:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/**/*.ts'
+    - 'frontend/**/*.js'
+    - 'frontend/package.json'
+    - 'frontend/package-lock.json'
+
+web components:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/src/search-*.ts'
+    - 'frontend/src/button-transparent.ts'
+    - 'frontend/src/secondary-button.ts'
+    - 'frontend/public/web-components.html'
+    - 'docs/users/ref-web-components.md'
+
+mixins:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/src/mixins/**/*'
+
+charts:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/charts.py'
+    - 'frontend/src/search-chart.ts'
+    - 'frontend/src/search-toggle-charts.ts'
+    - 'frontend/src/utils/charts.ts'
+    - 'frontend/src/interfaces/chart-interfaces.ts'
+    - 'frontend/public/vega5.js'
+    - 'tests/unit/test_charts*.py'
+
+facets:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/facets.py'
+    - 'frontend/src/search-facets.ts'
+    - 'frontend/src/interfaces/facets-interfaces.ts'
+    - 'tests/unit/test_facets.py'
+
+search bar:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/src/search-bar.ts'
+    - 'frontend/src/search-autocomplete.ts'
+    - 'frontend/src/search-suggester.ts'
+    - 'frontend/src/search-suggestion-entry.ts'
+    - 'frontend/src/interfaces/search-bar-interfaces.ts'
+    - 'frontend/src/interfaces/suggestion-interfaces.ts'
+    - 'frontend/src/test/search-bar_test.ts'
+
+search results:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/src/search-results.ts'
+    - 'frontend/src/search-count.ts'
+    - 'frontend/src/interfaces/search-result-interfaces.ts'
+    - 'frontend/src/mixins/search-results-ctl.ts'
+    - 'frontend/src/test/search-results_test.ts'
+    - 'app/templates/display_results.html'
+
+pagination:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/src/search-pages.ts'
+    - 'frontend/src/test/search-pages_test.ts'
+
+sorting:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/src/search-sort.ts'
+    - 'frontend/src/search-sort-script.ts'
+    - 'frontend/src/interfaces/sort-interfaces.ts'
+
+search history:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/src/mixins/history.ts'
+    - 'frontend/src/interfaces/history-interfaces.ts'
+
+🌐 i18n:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/src/localization/**/*'
+    - 'frontend/lit-localize.json'
+
+Translations:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'frontend/xliff/**/*'
+    - 'crowdin.yml'
+
+indexation:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/indexing.py'
+    - 'app/_import.py'
+    - 'app/updates.py'
+    - 'app/checkpoints.py'
+    - 'app/utils/conform_json.py'
+    - 'docs/sphinx/index.rst'
+    - 'docs/users/how-to-update-index.md'
+
 Taxonomies:
 - changed-files:
-  - any-glob-to-any-file: 'app/taxonomy.py'
-  - any-glob-to-any-file: 'app/taxonomy_es.py'
-  
+  - any-glob-to-any-file:
+    - 'app/taxonomy.py'
+    - 'app/taxonomy_es.py'
+    - 'frontend/src/utils/taxonomies.ts'
+    - 'docs/users/explain-taxonomies.md'
+
 CLI:
 - changed-files:
-  - any-glob-to-any-file: 'app/cli/main.py'
-  - any-glob-to-any-file: 'docs/sphinx/cli.rst'
-  
-Config:
-- changed-files:
-  - any-glob-to-any-file: 'docs/sphinx/config.rst'
+  - any-glob-to-any-file:
+    - 'app/cli/**/*'
+    - 'docs/sphinx/cli.rst'
+    - 'docs/devs/ref-python/cli.html'
 
-#  - any-glob-to-any-file: 'app/query.py'
-#  - any-glob-to-any-file: 'app/utils/analyzers.py'
-#  - any-glob-to-any-file: 'app/utils/download.py'
-#  - any-glob-to-any-file: 'app/validations.py'
+config:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/config/**/*'
+    - 'data/config/**/*'
+    - 'docs/sphinx/config.rst'
+    - 'docs/users/ref-config.md'
+    - 'docs/users/ref-config/**/*'
+    - 'docs/users/ref-settings.md'
+    - 'docs/users/ref-settings/**/*'
+    - 'docs/users/explain-configuration.md'
+    - 'json_schema.json'
+    - '.env'
+    - '.env.openfoodfacts'
+
+elastic search:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/es_query_builder.py'
+    - 'app/es_scripts.py'
+    - 'app/taxonomy_es.py'
+    - 'tests/unit/test_es_query_builder.py'
+
+query understanding:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/query.py'
+    - 'app/query_pipeline.py'
+    - 'app/query_transformers.py'
+    - 'app/validations.py'
+    - 'docs/users/explain-query-language.md'
+    - 'docs/sphinx/searching.rst'
+
+🧪 tests:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'tests/**/*'
+    - 'frontend/src/test/**/*'
+    - 'frontend/web-test-runner.config.js'
+    - 'docker/test.yml'
+
+nginx:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'confs/nginx.conf'
+
+monitoring:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'docker/monitor.yml'
+
+REDIS:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/updates.py'
+    - 'app/checkpoints.py'
+    - 'tests/unit/test_updates.py'
+    - 'tests/unit/test_checkpoints.py'
+    - 'tests/int/test_update_daemon.py'
+    - 'tests/int/test_checkpoints.py'
+
+CORS:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/middleware.py'
+    - 'tests/unit/test_cors_on_errors.py'
+
+🍊 Open Food Facts:
+- changed-files:
+  - any-glob-to-any-file:
+    - 'app/openfoodfacts.py'
+    - 'data/config/openfoodfacts.yml'
+    - '.env.openfoodfacts'
+    - 'tests/unit/test_openfoodfacts.py'
+    - 'tests/unit/data/openfoodfacts_config.yml'
+    - 'tests/unit/data/test_openfoodfacts_document_preprocessor.json'
+    - 'tests/unit/data/test_prod_config_openfoodfacts.json'
