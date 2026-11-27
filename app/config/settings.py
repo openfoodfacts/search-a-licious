@@ -132,6 +132,25 @@ class Settings(BaseSettings):
             description="User-Agent used when fetching resources (taxonomies) or documents"
         ),
     ] = "search-a-licious"
+    max_page_size: Annotated[
+        int | None,
+        Field(
+            ge=10,
+            description=cd_(
+                """Maximum value of the `page_size` parameter of the search API.
+
+                A larger value gets a 422 error.
+                It must be at least 10, the default `page_size`.
+                By default there is no limit, except that `page * page_size`
+                cannot go over 10,000 results.
+
+                A hit weighs about 13 KB without the `fields` parameter,
+                so `page_size=10000` is a 73 MB answer that takes seconds to build.
+                A limit of 1,000 is a reasonable start for a public instance.
+                """
+            ),
+        ),
+    ] = None
 
     @field_validator("config_path", mode="before")
     @classmethod
