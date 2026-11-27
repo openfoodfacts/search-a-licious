@@ -618,6 +618,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Autocompletion with taxonomies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-the-autocompletion-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the autocompletion API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1077,6 +1094,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Autocompletion with taxonomies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-the-autocompletion-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the autocompletion API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1174,6 +1208,25 @@ but for the whole index by the <code>synonyms_strategy</code> option:</p>
 <p>The webcomponents can use them to add values to facets,
 or to provide suggestions in the search bar.</p>
 <p>You can also use the <a href="../ref-openapi/#operation/taxonomy_autocomplete_autocomplete_get">autocompletion API</a></p>
+<h3 id="using-the-autocompletion-api">Using the autocompletion API<a class="headerlink" href="#using-the-autocompletion-api" title="Permanent link">#</a></h3>
+<p><code>GET /autocomplete</code> needs <code>q</code> (what the user typed) and <code>taxonomy_names</code>,
+a comma-separated list of taxonomy names.
+The names are the <code>name</code> of the entries of <code>taxonomy.sources</code> in your configuration
+(not the field names), for example <code>categories</code> or <code>brands</code>.
+Optional parameters: <code>langs</code> (comma-separated, default <code>en</code>), <code>size</code> (default 10)
+and <code>fuzziness</code> (none by default). With more than one index in the configuration, also pass <code>index_id</code>.</p>
+<div class="highlight"><pre><span></span><code>/autocomplete?q=choc&amp;taxonomy_names=categories,labels&amp;langs=fr
+</code></pre></div>
+<p>A taxonomy name that is not configured is not an error:
+you just get no options. If you get none, check the spelling first
+(for example <code>brands</code>, not <code>brand</code> or <code>brands_tags</code>).
+If the taxonomies were never imported, you get a 500 asking to import them first.</p>
+<p>With the Open Food Facts configuration (<code>data/config/openfoodfacts.yml</code>), the names are:
+<code>categories</code>, <code>labels</code>, <code>additives</code>, <code>allergens</code>, <code>amino_acids</code>, <code>countries</code>, <code>data_quality</code>,
+<code>food_groups</code>, <code>improvements</code>, <code>ingredients</code>, <code>ingredients_analysis</code>, <code>ingredients_processing</code>,
+<code>languages</code>, <code>minerals</code>, <code>misc</code>, <code>nova_groups</code>, <code>nucleotides</code>, <code>nutrients</code>, <code>origins</code>,
+<code>other_nutritional_substances</code>, <code>packaging_materials</code>, <code>packaging_recycling</code>, <code>packaging_shapes</code>,
+<code>periods_after_opening</code>, <code>preservation</code>, <code>states</code>, <code>vitamins</code>, <code>brands</code> and <code>stores</code>.</p>
 <h2 id="importing-taxonomies">Importing taxonomies<a class="headerlink" href="#importing-taxonomies" title="Permanent link">#</a></h2>
 <p>If you defined taxonomies,
 you must import them using the <a href="../../devs/ref-python/cli.html#python3-m-app-import-taxonomies">import-taxonomies command</a>.</p>
