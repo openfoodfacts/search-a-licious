@@ -3,7 +3,7 @@ import datetime
 import logging
 import re
 import time
-from typing import Iterable
+from typing import Any, Iterable
 
 import elasticsearch
 from elasticsearch_dsl import Index, Mapping, analyzer
@@ -61,7 +61,7 @@ def generate_dsl_field(
         and `taxonomy` field types
     :return: the elasticsearch_dsl field
     """
-    metadata = {}
+    metadata: dict[str, Any] = {}
     if not field.index and field.type not in (FieldType.object, FieldType.nested):
         metadata["index"] = False
     if field.type is FieldType.taxonomy:
@@ -120,6 +120,8 @@ def generate_dsl_field(
         cls_ = FIELD_TYPE_TO_DSL_TYPE.get(field.type)
         if cls_ is None:
             raise ValueError(f"unsupported field type: {field.type}")
+        if field.date_format:
+            metadata["format"] = field.date_format
         return cls_(**metadata)
 
 

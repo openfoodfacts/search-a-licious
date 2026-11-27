@@ -328,3 +328,14 @@ def test_inputs_from_data_object_inside_nested_recursion():
         },
         {"percent": 2.0, "source": {"name": "api"}},
     ]
+
+
+def test_date_mapping_uses_the_format_of_the_field(default_config):
+    config = default_config.model_copy(deep=True)
+    config.fields["last_modified_t"].date_format = "epoch_second"
+    properties = generate_mapping_object(config).to_dict()["properties"]
+    assert properties["last_modified_t"]["format"] == "epoch_second"
+    # other dates and the default are untouched
+    assert properties["created_t"] == {"type": "date"}
+    default_mapping = generate_mapping_object(default_config).to_dict()["properties"]
+    assert default_mapping["last_modified_t"] == {"type": "date"}
