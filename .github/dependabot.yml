@@ -15,8 +15,24 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 30
+  # poetry: pyproject.toml and poetry.lock are at the root
   - package-ecosystem: pip
-    directory: "/app"
+    directory: "/"
     schedule:
-      interval: daily
-    open-pull-requests-limit: 30
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-minor-and-patch:
+        update-types:
+          - minor
+          - patch
+  - package-ecosystem: npm
+    directory: "/frontend"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-and-patch:
+        update-types:
+          - minor
+          - patch
