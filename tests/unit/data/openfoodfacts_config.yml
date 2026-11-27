@@ -166,8 +166,11 @@ indices:
             bucket_agg: true
           weight_measured:
             type: float
+      languages_codes:
+        type: keyword
     document_denylist:
     - '8901552007122'
+    lang_filter_field: languages_codes
     lang_separator: _
     match_phrase_boost: 2.0
     preprocessor: app.openfoodfacts.DocumentPreprocessor
