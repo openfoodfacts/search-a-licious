@@ -113,7 +113,7 @@ jobs:
             cd ${{ matrix.env }}
 
             # Fetch newest commits (in case it wasn't freshly cloned)
-            git fetch --depth 1
+            git fetch --depth 1 origin ${{ github.sha }}
 
             # Checkout current commit SHA
             git checkout -qf ${{ github.sha }}
@@ -239,5 +239,5 @@ jobs:
         with:
           apiHost: https://grafana.openfoodfacts.org
           apiToken: ${{ secrets.GRAFANA_API_TOKEN }}
-          text: <a href="https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}">Deployment ${{ steps.livecheck.outcome }} on ${{ matrix.env }}</a>
-          tags: type:deployment,origin:github,status:${{ steps.livecheck.outcome }},repo:${{ github.repository }},sha:${{ github.sha }},app:robotoff,env:${{ matrix.env }}
+          text: <a href="https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}">Deployment ${{ job.status }} on ${{ matrix.env }}</a>
+          tags: type:deployment,origin:github,status:${{ job.status }},repo:${{ github.repository }},sha:${{ github.sha }},app:search-a-licious,env:${{ matrix.env }}
