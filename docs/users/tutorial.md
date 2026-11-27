@@ -301,6 +301,9 @@ Say we search for *fair trade* and we want the results to be sorted by the nutri
 
 We simply repeat the above query with `q` = `fair trade` and `sort_by` = `nutriscore_grade`.
 
+To sort on a nutriment, use the path of its sub-field, for example `sort_by` = `nutriments.sugars_100g`
+(lowest sugar first), or `-nutriments.sugars_100g` for the highest first.
+
 ### Limiting fields
 
 In the previous example, we might only be interested in the name of the product and it's Nutri-Score.
